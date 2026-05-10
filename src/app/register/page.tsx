@@ -1,14 +1,15 @@
+import { RegisterForm } from "@/components/auth/register-form";
+import Link from "next/link";
+
 export default function RegisterPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="w-full max-w-md rounded-xl border border-border-subtle p-8">
-        <h1 className="mb-6 text-center font-fustat text-2xl font-bold">
-          Daftar ke NovaPlan
-        </h1>
-        <p className="mb-8 text-center text-sm text-text-gray">
-          Fase 1 — Coming Soon
-        </p>
+    <div className="flex min-h-screen flex-col items-center justify-center px-4">
+      <div className="mb-8">
+        <Link href="/" className="font-schibsted text-2xl font-semibold tracking-tight">
+          NovaPlan
+        </Link>
       </div>
+      <RegisterForm />
     </div>
   );
 }
