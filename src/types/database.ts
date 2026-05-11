@@ -97,6 +97,39 @@ export const PLAN_LIMITS: Record<Plan, { prd: number; revision: number }> = {
   hengker: { prd: -1, revision: -1 },
 };
 
+export interface ApiKey {
+  id: string;
+  user_id: string;
+  name: string;
+  key_hash: string;
+  key_prefix: string;
+  last_used_at: string | null;
+  created_at: string;
+  revoked_at: string | null;
+}
+
+export interface PrdTemplate {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  structure: Record<string, unknown>[];
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NotificationPreferences {
+  id: string;
+  user_id: string;
+  quota_warning: boolean;
+  prd_completed: boolean;
+  payment_updates: boolean;
+  product_updates: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export const FEATURES: Record<
   Plan,
   {

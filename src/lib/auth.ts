@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import type { Plan } from "@/types/database";
 
 export async function getUser() {
   const supabase = await createClient();
@@ -41,4 +42,18 @@ export async function getUserQuota() {
     .single();
 
   return quota;
+}
+
+export async function getUserPlan(): Promise<Plan> {
+  const user = await getUser();
+  if (!user) return "free";
+
+  const supabase = await createClient();
+  const { data: subscription } = await supabase
+    .from("subscriptions")
+    .select("plan")
+    .eq("user_id", user.id)
+    .single();
+
+  return (subscription?.plan as Plan) || "free";
 }

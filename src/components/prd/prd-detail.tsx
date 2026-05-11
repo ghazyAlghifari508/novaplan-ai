@@ -6,7 +6,7 @@ import { VersionHistory } from "./version-history";
 import { ChatPanel } from "@/components/chat";
 import { PrdActions } from "./prd-actions";
 import { cn } from "@/lib/utils";
-import type { PrdVersion } from "@/types/database";
+import type { PrdVersion, Plan } from "@/types/database";
 
 interface PrdDetailProps {
   projectId: string;
@@ -15,6 +15,8 @@ interface PrdDetailProps {
   allVersions: PrdVersion[];
   conversationId?: string;
   isChatOpen?: boolean;
+  plan?: Plan;
+  revisionLimit?: number;
 }
 
 export function PrdDetail({
@@ -24,6 +26,8 @@ export function PrdDetail({
   allVersions,
   conversationId,
   isChatOpen: initialChatOpen = false,
+  plan = "free",
+  revisionLimit,
 }: PrdDetailProps) {
   const [currentContent, setCurrentContent] = useState(latestVersion.content);
   const [isChatOpen, setIsChatOpen] = useState(initialChatOpen);
@@ -45,6 +49,11 @@ export function PrdDetail({
           </div>
 
           <div className="flex items-center gap-3">
+            {revisionLimit !== undefined && (
+              <span className="rounded-full bg-light-gray-bg px-3 py-1 text-xs font-medium text-text-gray">
+                Revisi: {allVersions.length - 1}/{revisionLimit === -1 ? "∞" : revisionLimit}
+              </span>
+            )}
             <VersionHistory
               versions={allVersions.map((v) => ({
                 id: v.id,
@@ -55,6 +64,7 @@ export function PrdDetail({
               }))}
               currentVersion={latestVersion.version}
               onSelectVersion={handleVersionSelect}
+              plan={plan}
             />
 
             <button
@@ -82,6 +92,7 @@ export function PrdDetail({
         <PrdViewer
           content={currentContent}
           projectName={projectName}
+          plan={plan}
         />
 
         <div className="xl:hidden">

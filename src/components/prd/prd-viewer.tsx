@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
@@ -8,20 +8,25 @@ import { TableOfContents } from "./table-of-contents";
 import { Button } from "@/components/ui/button";
 import { useUIStore } from "@/store";
 import { cn } from "@/lib/utils";
+import { FEATURES } from "@/types/database";
+import type { Plan } from "@/types/database";
 
 interface PrdViewerProps {
   content: string;
   projectName: string;
   className?: string;
+  plan?: Plan;
 }
 
-export function PrdViewer({
+export const PrdViewer = memo(function PrdViewer({
   content,
   projectName,
   className,
+  plan = "free",
 }: PrdViewerProps) {
   const [copied, setCopied] = useState(false);
   const showToast = useUIStore((s) => s.showToast);
+  const features = FEATURES[plan];
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(content);
@@ -39,6 +44,27 @@ export function PrdViewer({
     a.click();
     URL.revokeObjectURL(url);
     showToast("PRD di-download", "success");
+  };
+
+  const handleDownloadPdf = async () => {
+    try {
+      const response = await fetch("/api/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content, title: projectName }),
+      });
+      if (!response.ok) throw new Error("Failed");
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `PRD_${projectName.replace(/\s+/g, "_")}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("PDF di-download", "success");
+    } catch {
+      showToast("Gagal generate PDF", "error");
+    }
   };
 
   return (
@@ -65,6 +91,15 @@ export function PrdViewer({
             >
               Download .md
             </Button>
+            {features.downloadPdf && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDownloadPdf}
+              >
+                Download .pdf
+              </Button>
+            )}
           </div>
         </div>
 
@@ -108,4 +143,4 @@ export function PrdViewer({
       </div>
     </div>
   );
-}
+});

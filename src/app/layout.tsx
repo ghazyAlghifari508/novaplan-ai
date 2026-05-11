@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Fustat, Schibsted_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
 import { Providers } from "./providers";
 import { Toast } from "@/components/ui";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
 const fustat = Fustat({
@@ -72,6 +73,7 @@ export default function RootLayout({
       <body className="antialiased">
         <Providers>
           {children}
+          <Analytics />
           <Toast />
         </Providers>
       </body>

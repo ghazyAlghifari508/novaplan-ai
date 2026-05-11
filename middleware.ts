@@ -35,7 +35,7 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   const isPublicRoute = PUBLIC_ROUTES.some(
-    (route) => pathname === route || pathname.startsWith("/auth/") || pathname.startsWith("/api/")
+    (route) => pathname === route || pathname.startsWith("/auth/") || pathname.startsWith("/api/") || pathname.startsWith("/prd/share/")
   );
 
   const isAuthRoute = AUTH_ROUTES.includes(pathname);

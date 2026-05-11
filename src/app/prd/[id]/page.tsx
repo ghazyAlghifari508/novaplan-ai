@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { requireAuth } from "@/lib/auth";
+import { requireAuth, getUserPlan, getUserQuota } from "@/lib/auth";
 import { PrdDetail } from "@/components/prd/prd-detail";
 import type { Metadata } from "next";
 
@@ -29,6 +29,8 @@ export default async function PrdPage({
   params: Promise<{ id: string }>;
 }) {
   const user = await requireAuth();
+  const plan = await getUserPlan();
+  const quota = await getUserQuota();
   const supabase = await createClient();
   const { id } = await params;
 
@@ -83,6 +85,8 @@ export default async function PrdPage({
       latestVersion={latestVersion}
       allVersions={versions}
       conversationId={conversation?.id}
+      plan={plan}
+      revisionLimit={quota?.revision_limit ?? undefined}
     />
   );
 }

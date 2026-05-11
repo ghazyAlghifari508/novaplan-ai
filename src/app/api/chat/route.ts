@@ -5,6 +5,7 @@ import { PRD_SYSTEM_PROMPT } from "@/lib/prompts";
 import { checkRateLimit, recordRequest } from "@/lib/rate-limit";
 import { checkQuota, incrementPrdCount } from "@/lib/quota";
 import { generateShareToken } from "@/lib/utils";
+import { AI_MODELS } from "@/lib/constants";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -163,7 +164,8 @@ export async function POST(req: NextRequest) {
       const conversationId = conversationIdToUse;
 
       try {
-        for await (const chunk of streamChat(fullMessages)) {
+        const modelName = plan === "hengker" ? AI_MODELS.premium : undefined;
+        for await (const chunk of streamChat(fullMessages, modelName)) {
           fullResponse += chunk;
 
           const event = JSON.stringify({
@@ -186,7 +188,7 @@ export async function POST(req: NextRequest) {
               conversation_id: conversationId,
               role: "assistant",
               content: fullResponse,
-              metadata: { model: "gemini-flash" },
+              metadata: { model: plan === "hengker" ? "gemini-pro" : "gemini-flash" },
             },
           ]);
         }

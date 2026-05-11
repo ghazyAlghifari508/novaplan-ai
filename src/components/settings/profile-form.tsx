@@ -1,0 +1,96 @@
+"use client";
+
+import { useState, memo } from "react";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { updateProfile, uploadAvatar } from "@/app/actions/settings";
+
+export const ProfileForm = memo(function ProfileForm({
+  profile,
+}: {
+  profile: { full_name: string | null; avatar_url: string | null; email: string };
+}) {
+  const [uploading, setUploading] = useState(false);
+
+  return (
+    <div className="space-y-8">
+      <div className="flex items-center gap-4">
+        <div className="relative">
+          {profile.avatar_url ? (
+            <Image
+              src={profile.avatar_url}
+              alt="Avatar"
+              width={64}
+              height={64}
+              className="h-16 w-16 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-light-gray-bg text-2xl text-text-gray">
+              {profile.full_name?.charAt(0) || profile.email.charAt(0)}
+            </div>
+          )}
+          <label className="absolute -bottom-1 -right-1 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-primary-black text-white text-xs shadow hover:bg-text-gray">
+            +
+            <input
+              type="file"
+              name="avatar"
+              accept="image/jpeg,image/png,image/webp"
+              disabled={uploading}
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                if (file.size > 5 * 1024 * 1024) return;
+
+                setUploading(true);
+                const fd = new FormData();
+                fd.append("avatar", file);
+                await uploadAvatar(fd);
+                setUploading(false);
+              }}
+            />
+          </label>
+        </div>
+
+        <div>
+          <h2 className="font-fustat text-lg font-bold">
+            {profile.full_name || "User"}
+          </h2>
+          <p className="text-sm text-text-gray">{profile.email}</p>
+        </div>
+      </div>
+
+      <form action={updateProfile} className="space-y-5">
+        <div>
+          <label className="mb-1 block text-sm font-medium">Nama Lengkap</label>
+          <Input
+            name="full_name"
+            defaultValue={profile.full_name || ""}
+            placeholder="Nama lengkap kamu"
+          />
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm font-medium">Peran</label>
+          <select
+            name="role"
+            defaultValue="user"
+            className="h-11 w-full rounded-lg border border-border-subtle bg-white px-4 text-sm focus:border-primary-black focus:outline-none focus:ring-2 focus:ring-primary-black/5"
+          >
+            <option value="pm">Product Manager</option>
+            <option value="developer">Software Developer</option>
+            <option value="founder">Startup Founder / CTO</option>
+            <option value="designer">UX/UI Designer</option>
+            <option value="student">Mahasiswa / Fresh Graduate</option>
+            <option value="other">Lainnya</option>
+          </select>
+        </div>
+
+        <Button type="submit" size="md">
+          Simpan Perubahan
+        </Button>
+      </form>
+    </div>
+  );
+});

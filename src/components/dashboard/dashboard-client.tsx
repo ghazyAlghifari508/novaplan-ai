@@ -4,6 +4,9 @@ import { useState, useTransition } from "react";
 import { StatsBar } from "./stats-bar";
 import { PrdCard } from "./prd-card";
 import { FilterBar } from "./filter-bar";
+import { AnalyticsSection } from "./analytics-section";
+import { FEATURES } from "@/types/database";
+import type { Plan } from "@/types/database";
 import Link from "next/link";
 
 interface DashboardClientProps {
@@ -23,6 +26,15 @@ interface DashboardClientProps {
     plan: string;
     reset_at: string | null;
   } | null;
+  plan: Plan;
+  analytics?: {
+    totalPrds: number;
+    totalVersions: number;
+    avgVersionsPerPrd: number;
+    mostRevisedPrd: { name: string; versions: number; id: string } | null;
+    completedCount: number;
+    draftCount: number;
+  };
 }
 
 export function DashboardClient({
@@ -30,6 +42,8 @@ export function DashboardClient({
   userName,
   projects: initialProjects,
   quota,
+  plan,
+  analytics,
 }: DashboardClientProps) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
@@ -60,6 +74,8 @@ export function DashboardClient({
     plan: quota?.plan ?? "free",
   };
 
+  const showAnalytics = FEATURES[plan].apiAccess && analytics;
+
   return (
     <div className="mx-auto max-w-[1280px] px-6 py-8">
       <div className="mb-8 flex items-center justify-between">
@@ -81,6 +97,12 @@ export function DashboardClient({
       </div>
 
       <StatsBar stats={stats} />
+
+      {showAnalytics && (
+        <div className="mb-6">
+          <AnalyticsSection analytics={analytics} />
+        </div>
+      )}
 
       <FilterBar
         search={search}
