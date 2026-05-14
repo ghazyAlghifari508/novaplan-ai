@@ -8,10 +8,12 @@ import { cn } from "@/lib/utils";
 import type { Plan } from "@/types/database";
 import Link from "next/link";
 
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
+
 interface Tier {
   plan: Plan;
   name: string;
-  emoji: string;
+  icon: React.ReactNode;
   price: number;
   features: { text: string; included: boolean }[];
   cta: string;
@@ -22,7 +24,15 @@ const TIERS: Tier[] = [
   {
     plan: "free",
     name: "Gratis",
-    emoji: "🆓",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-text-gray">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+        <path d="M9 14v-4"></path>
+        <path d="M12 14v-4"></path>
+        <path d="M15 14v-4"></path>
+        <path d="M9 10h6"></path>
+      </svg>
+    ),
     price: 0,
     cta: "Mulai Gratis",
     features: [
@@ -40,7 +50,11 @@ const TIERS: Tier[] = [
   {
     plan: "pro",
     name: "Pro",
-    emoji: "⭐",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-500">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+      </svg>
+    ),
     price: 25000,
     popular: true,
     cta: "Pilih Pro",
@@ -59,7 +73,11 @@ const TIERS: Tier[] = [
   {
     plan: "hengker",
     name: "Hengker",
-    emoji: "🔥",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-500">
+        <path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 2.5z"></path>
+      </svg>
+    ),
     price: 100000,
     cta: "Pilih Hengker",
     features: [
@@ -89,7 +107,7 @@ export const PricingCards = memo(function PricingCards() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-16">
-      <div className="mb-12 text-center">
+      <ScrollReveal className="mb-12 text-center">
         <h1 className="font-fustat text-4xl font-bold">Pilih Plan</h1>
         <p className="mt-3 text-text-gray">
           Mulai gratis, upgrade kapan saja sesuai kebutuhan
@@ -122,12 +140,13 @@ export const PricingCards = memo(function PricingCards() {
             </span>
           </button>
         </div>
-      </div>
+      </ScrollReveal>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {TIERS_STATIC.map((tier) => (
-          <div
+        {TIERS_STATIC.map((tier, i) => (
+          <ScrollReveal
             key={tier.plan}
+            delay={i * 0.15}
             className={cn(
               "relative flex flex-col rounded-2xl border p-8 transition-all",
               tier.popular
@@ -143,7 +162,7 @@ export const PricingCards = memo(function PricingCards() {
 
             <div className="mb-6">
               <div className="flex items-center gap-2">
-                <span className="text-2xl">{tier.emoji}</span>
+                <span className="flex items-center justify-center">{tier.icon}</span>
                 <h2 className="font-fustat text-xl font-bold">{tier.name}</h2>
               </div>
               <div className="mt-3">
@@ -214,7 +233,7 @@ export const PricingCards = memo(function PricingCards() {
                 label={tier.cta}
               />
             )}
-          </div>
+          </ScrollReveal>
         ))}
       </div>
     </div>

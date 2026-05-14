@@ -35,3 +35,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# graphify (cache only - graph can be rebuilt with `graphify update .`)
+graphify-out/cache/
+
+# vitest
+/coverage

@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { Infinity as InfinityIcon } from "lucide-react";
 
 interface Stats {
   total: number;
@@ -44,9 +45,9 @@ export function StatsBar({ stats }: { stats: Stats }) {
             {stats.plan}
           </span>
         </div>
-        <div className="mt-1 font-fustat text-2xl font-bold">
+        <div className="mt-1 font-fustat text-2xl font-bold flex items-center h-8">
           {stats.quotaLimit === -1
-            ? "∞"
+            ? <InfinityIcon size={24} className="stroke-[3]" />
             : `${stats.quotaUsed} / ${stats.quotaLimit}`}
         </div>
         {stats.quotaLimit !== -1 && (

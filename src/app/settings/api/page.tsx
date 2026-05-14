@@ -10,14 +10,18 @@ export default async function ApiKeysPage() {
 
   if (!FEATURES[plan].apiAccess) {
     return (
-      <div className="rounded-xl border border-border-subtle bg-white p-6">
-        <h2 className="mb-4 font-fustat text-xl font-bold">API Keys</h2>
-        <p className="text-text-gray">
+      <div
+        className="rounded-xl border border-[var(--border-subtle)] p-6"
+        style={{ background: "var(--bg-elevated)" }}
+      >
+        <h2 className="mb-4 font-fustat text-xl font-bold" style={{ color: "var(--text-primary)" }}>API Keys</h2>
+        <p style={{ color: "var(--text-secondary)" }}>
           API access hanya tersedia untuk plan <strong>Hengker</strong>.
         </p>
         <Link
           href="/pricing"
-          className="mt-4 inline-flex rounded-lg bg-primary-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-text-gray"
+          className="mt-4 inline-flex rounded-lg bg-primary-black px-4 py-2 text-sm font-medium transition-colors hover:opacity-90"
+          style={{ color: "white" }}
         >
           Upgrade ke Hengker
         </Link>
@@ -33,12 +37,7 @@ export default async function ApiKeysPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <div className="rounded-xl border border-border-subtle bg-white p-6">
-      <h2 className="mb-6 font-fustat text-xl font-bold">API Keys</h2>
-      <p className="mb-6 text-sm text-text-gray">
-        Kelola API key untuk akses REST API programmatic. Lihat dokumentasi di {" "}
-        <code className="rounded bg-light-gray-bg px-1.5 py-0.5 text-xs font-mono">/api/v1/</code>.
-      </p>
+    <div className="w-full">
       <ApiKeysForm apiKeys={apiKeys || []} />
     </div>
   );

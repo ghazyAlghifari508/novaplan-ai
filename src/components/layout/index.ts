@@ -1,4 +1,5 @@
 export { Navbar } from "./navbar";
-export { VideoBackground } from "./video-background";
+export { GridBackground } from "./grid-background";
 export { HeroContent } from "./hero";
 export { ChatInput } from "./chat-input";
+export { Footer } from "./footer";

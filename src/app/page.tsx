@@ -1,11 +1,20 @@
-import { Navbar, VideoBackground, HeroContent } from "@/components/layout";
+import { Navbar, GridBackground, HeroContent } from "@/components/layout";
+import React from "react";
 
 export default function HomePage() {
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-primary-black">
-      <VideoBackground />
+    <React.Fragment>
       <Navbar />
-      <HeroContent />
-    </main>
+      <main className="flex flex-col">
+        {/* Hero Section */}
+        <section
+          className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden"
+          style={{ background: "var(--bg-page)" }}
+        >
+          <GridBackground />
+          <HeroContent />
+        </section>
+      </main>
+    </React.Fragment>
   );
 }

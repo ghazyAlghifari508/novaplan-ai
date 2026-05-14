@@ -3,6 +3,7 @@
 import { useState, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { useUIStore } from "@/store";
+import { Bug, Sparkles, MessageSquare, Check, Loader2 } from "lucide-react";
 
 export const FeedbackForm = memo(function FeedbackForm() {
   const [message, setMessage] = useState("");
@@ -48,13 +49,13 @@ export const FeedbackForm = memo(function FeedbackForm() {
               key={t}
               type="button"
               onClick={() => setType(t)}
-              className={`rounded-lg border px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
+              className={`rounded-lg border px-3 py-1.5 text-xs font-medium capitalize transition-colors flex items-center gap-1.5 ${
                 type === t
                   ? "border-primary-black bg-primary-black text-white"
                   : "border-border-subtle bg-white text-text-gray hover:border-primary-black"
               }`}
             >
-              {t === "bug" ? "🐛 Bug Report" : t === "feature" ? "✨ Fitur Baru" : "💬 Umum"}
+              {t === "bug" ? <><Bug size={14} /> Bug Report</> : t === "feature" ? <><Sparkles size={14} /> Fitur Baru</> : <><MessageSquare size={14} /> Umum</>}
             </button>
           ))}
         </div>
@@ -77,8 +78,8 @@ export const FeedbackForm = memo(function FeedbackForm() {
         />
       </div>
 
-      <Button type="submit" disabled={sending || !message.trim() || sent}>
-        {sending ? "Mengirim..." : sent ? "✓ Terkirim!" : "Kirim Feedback"}
+      <Button type="submit" disabled={sending || !message.trim() || sent} className="flex items-center gap-2">
+        {sending ? <><Loader2 className="animate-spin" size={16} /> Mengirim...</> : sent ? <><Check size={16} /> Terkirim!</> : "Kirim Feedback"}
       </Button>
     </form>
   );

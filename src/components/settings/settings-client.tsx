@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
+import { User, Shield, Bell, CreditCard, Key, LayoutTemplate, MessageSquare, ArrowLeft } from "lucide-react";
 
 interface SettingsClientProps {
   profile: unknown;
@@ -11,13 +12,13 @@ interface SettingsClientProps {
 }
 
 const NAV_ITEMS = [
-  { href: "/settings/profile", label: "Profil" },
-  { href: "/settings/account", label: "Akun" },
-  { href: "/settings/notifications", label: "Notifikasi" },
-  { href: "/settings/billing", label: "Billing" },
-  { href: "/settings/api", label: "API Keys" },
-  { href: "/settings/templates", label: "Templates" },
-  { href: "/settings/feedback", label: "Feedback" },
+  { href: "/settings/profile", label: "Profil", icon: User },
+  { href: "/settings/account", label: "Akun", icon: Shield },
+  { href: "/settings/notifications", label: "Notifikasi", icon: Bell },
+  { href: "/settings/billing", label: "Billing", icon: CreditCard },
+  { href: "/settings/api", label: "API Keys", icon: Key },
+  { href: "/settings/templates", label: "Templates", icon: LayoutTemplate },
+  { href: "/settings/feedback", label: "Feedback", icon: MessageSquare },
 ];
 
 export const SettingsClient = memo(function SettingsClient({
@@ -26,31 +27,65 @@ export const SettingsClient = memo(function SettingsClient({
   const pathname = usePathname();
 
   return (
-    <div className="mx-auto flex max-w-[1280px] gap-8 px-6 py-8">
-      <nav className="w-56 shrink-0 space-y-1">
-        {NAV_ITEMS.map((item) => (
+    <div className="flex min-h-screen" style={{ background: "var(--bg-surface)" }}>
+      {/* Sidebar - fixed on the left, full height */}
+      <aside
+        className="fixed left-0 top-0 bottom-0 w-64 shrink-0 border-r border-[var(--border-subtle)] flex flex-col font-schibsted z-40"
+        style={{ background: "var(--bg-elevated)" }}
+      >
+        <div className="p-8 pb-4">
+          <h1 className="text-2xl font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>Settings</h1>
+          <p className="mt-1 text-sm" style={{ color: "var(--text-secondary)" }}>Manage account preferences</p>
+        </div>
+
+        <nav className="flex-1 space-y-1.5 px-4 overflow-y-auto">
+          {NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href || (item.href === "/settings" && pathname === "/settings");
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] font-medium transition-all duration-200",
+                  isActive
+                    ? "bg-primary-black shadow-md"
+                    : "hover:bg-[var(--bg-hover)]"
+                )}
+                style={{
+                  color: isActive ? "#ffffff" : "var(--text-secondary)",
+                }}
+              >
+                <Icon
+                  size={18}
+                  style={{
+                    color: isActive ? "#ffffff" : "var(--text-muted)",
+                  }}
+                />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+
+          <div className="my-6 h-px w-full" style={{ background: "var(--border-subtle)" }} />
+
           <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              "block rounded-lg px-4 py-2 text-sm font-medium transition-colors",
-              pathname === item.href
-                ? "bg-primary-black text-white"
-                : "text-text-gray hover:bg-light-gray-bg hover:text-primary-black",
-            )}
+            href="/"
+            className="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] font-medium transition-all duration-200 hover:bg-[var(--bg-hover)]"
+            style={{ color: "var(--text-secondary)" }}
           >
-            {item.label}
+            <ArrowLeft size={18} style={{ color: "var(--text-muted)" }} />
+            Back to Workspace
           </Link>
-        ))}
+        </nav>
+      </aside>
 
-        <hr className="my-4 border-border-subtle" />
-
-        <Link href="/dashboard" className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-text-gray hover:text-primary-black">
-          ← Dashboard
-        </Link>
-      </nav>
-
-      <div className="flex-1">{children}</div>
+      {/* Main Content - Pushed to the right of the sidebar */}
+      <main className="flex-1 ml-64 p-8 lg:p-12">
+        <div className="w-full [&>div]:min-h-[calc(100vh-6rem)]">
+          {children}
+        </div>
+      </main>
     </div>
   );
 });

@@ -2,84 +2,179 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { User, Settings, CreditCard, LogOut } from "lucide-react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export function Navbar() {
   const [user, setUser] = useState<{ email: string } | null>(null);
-  const [scrolled, setScrolled] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setUser(null);
+    router.push("/login");
+    router.refresh();
+  };
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user ? { email: data.user.email! } : null);
-    });
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_, session) => {
-      setUser(session?.user ? { email: session.user.email! } : null);
-    });
+    const checkUser = async () => {
+      const { data, error } = await supabase.auth.getUser();
 
-    const handleScroll = () => setScrolled(window.scrollY > 10);
-    window.addEventListener("scroll", handleScroll, { passive: true });
+      if (error || !data.user) {
+        setUser(null);
+        await supabase.auth.signOut({ scope: "local" });
+      } else {
+        setUser({ email: data.user.email! });
+      }
+      setIsLoading(false);
+    };
+
+    checkUser();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === "SIGNED_OUT") {
+          setUser(null);
+        } else if (session?.user) {
+          setUser({ email: session.user.email! });
+        }
+      }
+    );
 
     return () => {
       authListener?.subscription.unsubscribe();
-      window.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
   return (
     <nav
-      className={cn(
-        "fixed left-0 right-0 top-0 z-50 transition-all duration-300",
-        scrolled
-          ? "bg-white/95 shadow-sm backdrop-blur-xl"
-          : "bg-transparent backdrop-blur-none",
-      )}
+      className="fixed left-0 right-0 top-0 z-50 border-b border-[var(--border-subtle)]"
+      style={{ background: "var(--navbar-bg)", backdropFilter: "blur(12px)" }}
     >
-      <div className="mx-auto flex max-w-[1280px] items-center justify-between px-[120px] py-4 max-md:px-6">
+      <div className="mx-auto flex max-w-[1440px] items-center justify-between px-[120px] py-[16px] max-md:px-6">
         <Link
           href="/"
-          className={cn(
-            "text-2xl font-semibold tracking-[-1.44px] transition-colors",
-            "font-schibsted",
-            scrolled ? "text-primary-black" : "text-white",
-          )}
+          className="font-schibsted text-[24px] font-semibold tracking-[-1.44px]"
+          style={{ color: "var(--text-primary)" }}
         >
           NovaPlan
         </Link>
 
-        <div className="flex items-center gap-6">
-          <Link
-            href="/pricing"
-            className={cn(
-              "text-base font-medium tracking-[-0.2px] transition-colors hover:opacity-80",
-              scrolled ? "text-text-gray" : "text-white/80",
-            )}
-          >
-            Pricing
-          </Link>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
 
-          {user ? (
-            <Link
-              href="/dashboard"
-              className={cn(
-                "text-base font-medium tracking-[-0.2px] transition-colors hover:opacity-80",
-                scrolled ? "text-text-gray" : "text-white/80",
-              )}
-            >
-              Dashboard
-            </Link>
-          ) : (
-            <Link href="/login">
-              <Button
-                variant={scrolled ? "primary" : "transparent"}
-                size="sm"
+          {isLoading ? (
+            <div className="flex items-center gap-3 ml-1">
+              <div className="h-[40px] w-[82px] rounded-lg bg-black/5 dark:bg-white/5 animate-pulse" />
+              <div className="h-[40px] w-[101px] rounded-lg bg-black/5 dark:bg-white/5 animate-pulse" />
+            </div>
+          ) : !user ? (
+            <>
+              <Link
+                href="/register"
+                className="flex h-[40px] w-[82px] items-center justify-center rounded-lg bg-transparent font-schibsted text-[16px] font-medium transition-colors hover:bg-[var(--bg-hover)]"
+                style={{ color: "var(--text-primary)" }}
               >
-                Login
-              </Button>
-            </Link>
+                Sign Up
+              </Link>
+              <Link
+                href="/login"
+                className="flex h-[40px] w-[101px] items-center justify-center rounded-lg bg-primary-black font-schibsted text-[16px] font-medium hover:opacity-90 transition-opacity"
+                style={{ color: "#ffffff" }}
+              >
+                Log In
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/prd"
+                className="flex h-[40px] px-6 items-center justify-center rounded-lg bg-primary-black font-schibsted text-[16px] font-medium hover:opacity-90 transition-opacity"
+                style={{ color: "#ffffff" }}
+              >
+                Workspace
+              </Link>
+              <div className="relative">
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex h-[40px] w-[40px] items-center justify-center rounded-full transition-colors border border-[var(--border-subtle)] hover:bg-[var(--bg-hover)]"
+                  style={{ background: "var(--bg-hover)" }}
+                >
+                  <User size={20} style={{ color: "var(--text-secondary)" }} />
+                </button>
+
+                {isDropdownOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setIsDropdownOpen(false)}
+                    />
+                    <div
+                      className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-[var(--border-subtle)] py-2 shadow-lg z-50 flex flex-col font-schibsted"
+                      style={{ background: "var(--dropdown-bg)" }}
+                    >
+                      <div className="px-4 py-2 mb-1">
+                        <p
+                          className="text-sm font-medium truncate"
+                          style={{ color: "var(--text-primary)" }}
+                        >
+                          {user?.email}
+                        </p>
+                      </div>
+                      <div
+                        className="h-px w-full mb-1"
+                        style={{ background: "var(--border-subtle)" }}
+                      />
+                      <Link
+                        href="/settings/profile"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors hover:bg-[var(--bg-hover)]"
+                        style={{ color: "var(--text-primary)" }}
+                      >
+                        <Settings
+                          size={18}
+                          style={{ color: "var(--text-muted)" }}
+                        />
+                        Profile / Setting
+                      </Link>
+                      <Link
+                        href="/pricing"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors hover:bg-[var(--bg-hover)]"
+                        style={{ color: "var(--text-primary)" }}
+                      >
+                        <CreditCard
+                          size={18}
+                          style={{ color: "var(--text-muted)" }}
+                        />
+                        Pricing
+                      </Link>
+                      <div
+                        className="my-1 h-px w-full"
+                        style={{ background: "var(--border-subtle)" }}
+                      />
+                      <button
+                        onClick={() => {
+                          setIsDropdownOpen(false);
+                          handleLogout();
+                        }}
+                        className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-500 hover:bg-red-500/10 transition-colors text-left"
+                      >
+                        <LogOut size={18} />
+                        Log Out
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </>
           )}
         </div>
       </div>

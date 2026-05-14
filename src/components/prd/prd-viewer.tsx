@@ -10,6 +10,7 @@ import { useUIStore } from "@/store";
 import { cn } from "@/lib/utils";
 import { FEATURES } from "@/types/database";
 import type { Plan } from "@/types/database";
+import { Check, Copy, Download } from "lucide-react";
 
 interface PrdViewerProps {
   content: string;
@@ -69,35 +70,44 @@ export const PrdViewer = memo(function PrdViewer({
 
   return (
     <div className={cn("flex h-full", className)}>
-      <aside className="sticky top-0 hidden h-[calc(100vh-0px)] w-64 shrink-0 border-r border-border-subtle p-6 overflow-y-auto xl:block">
+      <aside
+        className="sticky top-0 hidden h-[calc(100vh-0px)] w-64 shrink-0 border-r border-[var(--border-subtle)] p-6 overflow-y-auto xl:block"
+        style={{ background: "var(--bg-page)" }}
+      >
         <TableOfContents content={content} />
       </aside>
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="flex items-center justify-between border-b border-border-subtle px-8 py-4">
+      <div className="flex-1 overflow-y-auto relative">
+        <div
+          className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--border-subtle)] px-8 py-4"
+          style={{ background: "var(--bg-page)" }}
+        >
           <h1 className="font-fustat text-xl font-bold">{projectName}</h1>
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={handleCopy}
+              className="flex items-center gap-1.5 cursor-pointer"
             >
-              {copied ? "✓ Copied" : "Copy"}
+              {copied ? <><Check size={16} /> Copied</> : <><Copy size={16} /> Copy</>}
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={handleDownloadMd}
+              className="flex items-center gap-1.5 cursor-pointer"
             >
-              Download .md
+              <Download size={16} /> Download .md
             </Button>
             {features.downloadPdf && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleDownloadPdf}
+                className="flex items-center gap-1.5"
               >
-                Download .pdf
+                <Download size={16} /> Download .pdf
               </Button>
             )}
           </div>

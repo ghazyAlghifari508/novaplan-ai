@@ -57,34 +57,22 @@ export default async function PrdPage({
     .limit(1)
     .single();
 
-  const latestVersion = versions?.[0];
+  const { data: projects } = await supabase
+    .from("projects")
+    .select("id, name, status, updated_at")
+    .eq("user_id", user.id)
+    .order("updated_at", { ascending: false });
 
-  if (!latestVersion) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <h1 className="font-fustat text-2xl font-bold">{project.name}</h1>
-          <p className="mt-4 text-text-gray">
-            Belum ada konten PRD. Mulai chat di dashboard.
-          </p>
-          <a
-            href="/dashboard/chat"
-            className="mt-6 inline-flex rounded-lg bg-primary-black px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-text-gray"
-          >
-            Mulai Chat
-          </a>
-        </div>
-      </div>
-    );
-  }
+  const latestVersion = versions?.[0];
 
   return (
     <PrdDetail
       projectId={id}
       projectName={project.name}
       latestVersion={latestVersion}
-      allVersions={versions}
+      allVersions={versions || []}
       conversationId={conversation?.id}
+      projects={projects || []}
       plan={plan}
       revisionLimit={quota?.revision_limit ?? undefined}
     />

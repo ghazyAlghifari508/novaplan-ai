@@ -69,6 +69,7 @@ export default function RootLayout({
     <html
       lang="id"
       className={`${fustat.variable} ${schibstedGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+      suppressHydrationWarning
     >
       <body className="antialiased">
         <Providers>

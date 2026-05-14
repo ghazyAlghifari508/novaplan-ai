@@ -6,8 +6,11 @@ export default async function ProfilePage() {
   const profile = await getUserProfile();
 
   return (
-    <div className="rounded-xl border border-border-subtle bg-white p-6">
-      <h2 className="mb-6 font-fustat text-xl font-bold">Edit Profil</h2>
+    <div
+      className="rounded-xl border border-[var(--border-subtle)] p-6"
+      style={{ background: "var(--bg-elevated)" }}
+    >
+      <h2 className="mb-6 font-fustat text-xl font-bold" style={{ color: "var(--text-primary)" }}>Edit Profil</h2>
       <ProfileForm
         profile={{
           full_name: profile?.full_name || null,

@@ -29,6 +29,7 @@ export function Toast() {
           "rounded-lg px-5 py-3 text-sm font-medium shadow-lg",
           variants[toastType || "info"]
         )}
+        style={{ color: "white" }}
       >
         {toastMessage}
       </div>

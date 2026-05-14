@@ -1,11 +1,11 @@
--- Auth Trigger for NovaPlan
+-- Auth Trigger for NovaPlan (DEBUG VERSION)
 -- File: migrations/003_auth_triggers.sql
 
 -- Function to handle new user signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger
 LANGUAGE plpgsql
-SECURITY DEFINER SET search_path = ''
+SECURITY DEFINER SET search_path = public
 AS $$
 DECLARE
   default_plan text := 'free';
@@ -13,21 +13,34 @@ DECLARE
 BEGIN
   monthly_reset := date_trunc('month', now()) + interval '1 month';
 
-  INSERT INTO public.users (id, email, full_name, avatar_url, provider, role)
-  VALUES (
-    new.id,
-    new.email,
-    new.raw_user_meta_data ->> 'full_name',
-    new.raw_user_meta_data ->> 'avatar_url',
-    new.raw_app_metadata ->> 'provider',
-    'user'
-  );
+  BEGIN
+    INSERT INTO public.users (id, email, full_name, avatar_url, provider, role)
+    VALUES (
+      new.id,
+      new.email,
+      COALESCE(new.raw_user_meta_data ->> 'full_name', new.raw_user_meta_data ->> 'name', ''),
+      COALESCE(new.raw_user_meta_data ->> 'avatar_url', new.raw_user_meta_data ->> 'picture', ''),
+      COALESCE(new.raw_app_meta_data ->> 'provider', 'email'),
+      'user'
+    );
 
-  INSERT INTO public.subscriptions (user_id, plan, status, current_period_start, current_period_end)
-  VALUES (new.id, default_plan, 'active', now(), monthly_reset);
+    INSERT INTO public.subscriptions (user_id, plan, status, current_period_start, current_period_end)
+    VALUES (new.id, default_plan, 'active', now(), monthly_reset);
 
-  INSERT INTO public.quotas (user_id, plan, prd_used, prd_limit, revision_used, revision_limit, reset_at)
-  VALUES (new.id, default_plan, 0, 3, 0, 3, monthly_reset);
+    INSERT INTO public.quotas (user_id, plan, prd_used, prd_limit, revision_used, revision_limit, reset_at)
+    VALUES (new.id, default_plan, 0, 3, 0, 3, monthly_reset);
+    
+  EXCEPTION WHEN OTHERS THEN
+    -- DEBUG: Save the exact SQL error into the user's metadata so we can read it from the frontend!
+    -- This also prevents the "Database error saving new user" crash.
+    UPDATE auth.users 
+    SET raw_user_meta_data = jsonb_set(
+      COALESCE(raw_user_meta_data, '{}'::jsonb), 
+      '{trigger_error}', 
+      to_jsonb(SQLERRM)
+    )
+    WHERE id = new.id;
+  END;
 
   RETURN new;
 END;

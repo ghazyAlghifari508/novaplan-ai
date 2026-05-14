@@ -8,6 +8,7 @@ import { AnalyticsSection } from "./analytics-section";
 import { FEATURES } from "@/types/database";
 import type { Plan } from "@/types/database";
 import Link from "next/link";
+import { FileText } from "lucide-react";
 
 interface DashboardClientProps {
   userEmail: string;
@@ -114,9 +115,9 @@ export function DashboardClient({
       />
 
       {sorted.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 text-center">
-          <span className="text-6xl">📄</span>
-          <h2 className="mt-6 font-fustat text-2xl font-bold">
+        <div className="flex flex-col items-center justify-center py-24 text-center text-text-gray/50">
+          <FileText size={64} strokeWidth={1} />
+          <h2 className="mt-6 font-fustat text-2xl font-bold text-primary-black">
             {search || filter !== "all"
               ? "Tidak ada PRD ditemukan"
               : "Belum ada PRD"}

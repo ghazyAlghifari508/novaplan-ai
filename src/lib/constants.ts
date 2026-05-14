@@ -6,10 +6,20 @@ export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000
 export const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 export const AI_MODELS = {
-  primary: "google/gemini-flash-1.5",
-  fallback: "meta-llama/llama-3.1-8b-instruct:free",
-  premium: "google/gemini-pro-1.5",
+  primary: "meta-llama/llama-3.3-70b-instruct:free",
+  fallback: "google/gemma-4-31b-it:free",
+  premium: "nvidia/nemotron-3-super-120b-a12b:free",
 } as const;
+
+// Fallback chain: tried in order if previous model is rate-limited
+export const AI_MODEL_CHAIN = [
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "google/gemma-4-31b-it:free",
+  "nvidia/nemotron-3-super-120b-a12b:free",
+  "qwen/qwen3-coder:free",
+  "nousresearch/hermes-3-llama-3.1-405b:free",
+  "google/gemma-4-26b-a4b-it:free",
+] as const;
 
 export const RATE_LIMITS = {
   free: 5,

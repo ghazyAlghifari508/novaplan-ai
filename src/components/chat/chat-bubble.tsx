@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { Sparkles } from "lucide-react";
 
 interface ChatBubbleProps {
   role: "user" | "assistant" | "system";
@@ -25,8 +26,10 @@ export function ChatBubble({
       className={cn("flex gap-3", isUser ? "justify-end" : "justify-start", className)}
     >
       {!isUser && (
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-green/20">
-          <span className="text-sm">✨</span>
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-green/20"
+          style={{ color: "var(--text-primary)" }}
+        >
+          <Sparkles size={16} />
         </div>
       )}
 
@@ -34,9 +37,14 @@ export function ChatBubble({
         className={cn(
           "max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
           isUser
-            ? "bg-primary-black text-white rounded-br-md"
-            : "bg-light-gray-bg text-primary-black rounded-bl-md",
+            ? "bg-primary-black rounded-br-md"
+            : "rounded-bl-md",
         )}
+        style={
+          isUser
+            ? { color: "#ffffff" }
+            : { background: "var(--bg-surface)", color: "var(--text-primary)" }
+        }
       >
         <p className="whitespace-pre-wrap">
           {content}
@@ -48,7 +56,7 @@ export function ChatBubble({
 
       {isUser && (
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-black">
-          <span className="text-xs text-white">U</span>
+          <span className="text-xs" style={{ color: "#ffffff" }}>U</span>
         </div>
       )}
     </motion.div>

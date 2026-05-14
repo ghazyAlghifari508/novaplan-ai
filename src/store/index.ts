@@ -45,12 +45,14 @@ interface ChatState {
   generationStep: number;
   selectedMode: "ai_auto" | "manual" | null;
   activeProjectId: string | null;
+  streamingPRDContent: string;
   addMessage: (message: ChatMessage) => void;
   setStreaming: (streaming: boolean) => void;
   setGeneratingPRD: (generating: boolean) => void;
   setGenerationStep: (step: number) => void;
   setSelectedMode: (mode: "ai_auto" | "manual" | null) => void;
   setActiveProject: (projectId: string | null) => void;
+  setStreamingPRDContent: (content: string) => void;
   updateLastMessage: (content: string) => void;
   resetChat: () => void;
 }
@@ -62,6 +64,7 @@ const chatInitialState = {
   generationStep: 0,
   selectedMode: null as "ai_auto" | "manual" | null,
   activeProjectId: null as string | null,
+  streamingPRDContent: "",
 };
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -73,6 +76,7 @@ export const useChatStore = create<ChatState>((set) => ({
   setGenerationStep: (generationStep) => set({ generationStep }),
   setSelectedMode: (selectedMode) => set({ selectedMode }),
   setActiveProject: (activeProjectId) => set({ activeProjectId }),
+  setStreamingPRDContent: (streamingPRDContent) => set({ streamingPRDContent }),
   updateLastMessage: (content) =>
     set((state) => {
       const messages = [...state.messages];

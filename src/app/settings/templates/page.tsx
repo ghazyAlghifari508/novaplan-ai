@@ -10,14 +10,18 @@ export default async function TemplatesPage() {
 
   if (!FEATURES[plan].customTemplate) {
     return (
-      <div className="rounded-xl border border-border-subtle bg-white p-6">
-        <h2 className="mb-4 font-fustat text-xl font-bold">Custom Templates</h2>
-        <p className="text-text-gray">
+      <div
+        className="rounded-xl border border-[var(--border-subtle)] p-6"
+        style={{ background: "var(--bg-elevated)" }}
+      >
+        <h2 className="mb-4 font-fustat text-xl font-bold" style={{ color: "var(--text-primary)" }}>Custom Templates</h2>
+        <p style={{ color: "var(--text-secondary)" }}>
           Custom template hanya tersedia untuk plan <strong>Hengker</strong>.
         </p>
         <Link
           href="/pricing"
-          className="mt-4 inline-flex rounded-lg bg-primary-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-text-gray"
+          className="mt-4 inline-flex rounded-lg bg-primary-black px-4 py-2 text-sm font-medium transition-colors hover:opacity-90"
+          style={{ color: "white" }}
         >
           Upgrade ke Hengker
         </Link>
@@ -33,9 +37,12 @@ export default async function TemplatesPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <div className="rounded-xl border border-border-subtle bg-white p-6">
-      <h2 className="mb-6 font-fustat text-xl font-bold">Custom Templates</h2>
-      <p className="mb-6 text-sm text-text-gray">
+    <div
+      className="rounded-xl border border-[var(--border-subtle)] p-6"
+      style={{ background: "var(--bg-elevated)" }}
+    >
+      <h2 className="mb-6 font-fustat text-xl font-bold" style={{ color: "var(--text-primary)" }}>Custom Templates</h2>
+      <p className="mb-6 text-sm" style={{ color: "var(--text-secondary)" }}>
         Buat struktur template PRD sendiri. Template bisa dipilih saat mulai chat.
       </p>
       <TemplatesForm templates={templates || []} />

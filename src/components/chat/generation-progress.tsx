@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GENERATION_STEPS } from "@/lib/prompts";
+import { CheckCircle2, Loader2, Circle } from "lucide-react";
 
 interface GenerationProgressProps {
   isActive: boolean;
@@ -62,8 +63,14 @@ export function GenerationProgress({ isActive }: GenerationProgressProps) {
                     : "text-text-gray/30"
                 }`}
               >
-                <span className="w-4">
-                  {index < currentStep ? "✅" : index === currentStep ? "🔄" : "○"}
+                <span className="w-5 flex justify-center">
+                  {index < currentStep ? (
+                    <CheckCircle2 size={16} className="text-accent-green" />
+                  ) : index === currentStep ? (
+                    <Loader2 size={16} className="animate-spin text-primary-black" />
+                  ) : (
+                    <Circle size={16} className="text-text-gray/30" />
+                  )}
                 </span>
                 {step}
               </div>

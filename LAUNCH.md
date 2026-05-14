@@ -28,6 +28,8 @@ cp .env.example .env.local
 | `RESEND_API_KEY` | resend.com → API Keys | Untuk feedback email |
 | `FEEDBACK_EMAIL` | Email kamu | Untuk menerima feedback |
 | `NEXT_PUBLIC_APP_URL` | `https://your-domain.com` | Domain production |
+| `GOOGLE_CLIENT_ID` | Google Cloud Console | Untuk Google OAuth |
+| `GOOGLE_CLIENT_SECRET` | Google Cloud Console | Untuk Google OAuth |
 | `SENTRY_DSN` | Sentry → Project Settings → Client Keys | Error monitoring |
 | `SENTRY_AUTH_TOKEN` | Sentry → Settings → API → Auth Tokens | Untuk upload source maps |
 | `SENTRY_ORG` | `novaplan` | Organisasi Sentry |
@@ -56,10 +58,34 @@ Di Supabase Dashboard → Storage:
 
 ### 2d. Setup Auth Providers
 Di Supabase Dashboard → Authentication → Providers:
-1. **Google OAuth**: Aktifkan, masukkan Client ID + Secret dari Google Cloud Console
-2. **Email**: Pastikan enabled dengan template yang sesuai
 
-### 2e. Backup Otomatis
+**Google OAuth — Step by Step:**
+1. Buka https://supabase.com/dashboard/project/hiotgmmhhtklltjmsvic/auth/providers
+2. Cari **Google** dalam daftar providers
+3. Toggle **Google** ke ON
+4. Masukkan credentials yang sudah dibuat:
+   - **Client ID**: `78241774960-27nmrhq2gamp23ajabqp1m7gore0okoi.apps.googleusercontent.com`
+   - **Client Secret**: `GradReady2026`
+5. Di section **Redirect URLs**, tambahkan:
+   - `https://hiotgmmhhtklltjmsvic.supabase.co/auth/v1/callback`
+   - `http://localhost:3000/auth/callback` (untuk development)
+6. Klik **Save**
+7. Pastikan **Email** provider tetap enabled
+
+**Catatan**: Jika Google OAuth belum dibuat di Google Cloud Console, lihat section 2d-extra di bawah.
+
+### 2d-extra. Buat Google OAuth Credentials (jika belum ada)
+1. Buka https://console.cloud.google.com/apis/credentials
+2. Pilih project (atau buat baru)
+3. Klik **Create Credentials** → **OAuth client ID**
+4. Application type: **Web application**
+5. Masukkan nama: `NovaPlan Supabase`
+6. Di **Authorized redirect URIs**, tambahkan:
+   - `https://hiotgmmhhtklltjmsvic.supabase.co/auth/v1/callback`
+7. Klik **Create**
+8. Copy **Client ID** dan **Client Secret** ke Supabase Dashboard
+
+### 2e. Setup Storage Buckets
 Di Supabase Dashboard → Database → Backups:
 - Free tier: 7 daily backups (managed by Supabase)
 - Pro tier: Point-in-time recovery + daily backups

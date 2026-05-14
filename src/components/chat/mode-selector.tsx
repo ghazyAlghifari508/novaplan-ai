@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { Bot, Pencil } from "lucide-react";
 
 interface ModeSelectorProps {
   onSelect: (mode: "ai_auto" | "manual") => void;
@@ -19,9 +20,9 @@ export function ModeSelector({ onSelect }: ModeSelectorProps) {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => onSelect("ai_auto")}
-          className="flex flex-col items-center gap-3 rounded-xl border border-border-subtle bg-white p-6 text-left transition-all hover:border-primary-black/30 hover:shadow-md"
+          className="flex flex-col items-center gap-3 rounded-xl border border-border-subtle bg-white p-6 text-center transition-all hover:border-primary-black/30 hover:shadow-md"
         >
-          <span className="text-3xl">🤖</span>
+          <span className="text-primary-black"><Bot size={32} /></span>
           <span className="font-medium">Biarkan AI Memilih</span>
           <span className="text-xs text-text-gray">
             AI langsung pilih stack & design
@@ -32,9 +33,9 @@ export function ModeSelector({ onSelect }: ModeSelectorProps) {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => onSelect("manual")}
-          className="flex flex-col items-center gap-3 rounded-xl border border-border-subtle bg-white p-6 text-left transition-all hover:border-primary-black/30 hover:shadow-md"
+          className="flex flex-col items-center gap-3 rounded-xl border border-border-subtle bg-white p-6 text-center transition-all hover:border-primary-black/30 hover:shadow-md"
         >
-          <span className="text-3xl">✏️</span>
+          <span className="text-primary-black"><Pencil size={32} /></span>
           <span className="font-medium">Pilih Sendiri</span>
           <span className="text-xs text-text-gray">
             Atur preferensi & detail produk

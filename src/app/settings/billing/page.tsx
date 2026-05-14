@@ -18,17 +18,11 @@ export default async function BillingPage() {
   const quota = quotaResult.data;
 
   return (
-    <div className="mx-auto max-w-[1280px] px-6 py-8">
-      <div className="mb-8">
-        <Link href="/dashboard" className="text-sm text-text-gray hover:text-primary-black">
-          ← Dashboard
-        </Link>
-        <h1 className="mt-2 font-fustat text-3xl font-bold">Billing & Subscription</h1>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-2">
+    <div className="flex flex-col gap-6">
+      <div className="grid gap-6 lg:grid-cols-2 h-full">
+        {/* Plan Saat Ini */}
         <div className="rounded-xl border border-border-subtle bg-white p-6">
-          <h2 className="mb-4 font-fustat text-lg font-bold">Plan Saat Ini</h2>
+          <h2 className="mb-6 font-fustat text-xl font-bold">Billing & Subscription</h2>
           <div className="flex items-center justify-between">
             <div>
               <span className="text-3xl font-bold capitalize">{subscription?.plan || "free"}</span>
@@ -45,16 +39,16 @@ export default async function BillingPage() {
           </div>
 
           {quota && (
-            <div className="mt-4 rounded-lg bg-light-gray-bg p-3">
-              <div className="flex justify-between text-sm">
+            <div className="mt-6 rounded-lg bg-light-gray-bg p-4">
+              <div className="mb-2 flex justify-between text-sm">
                 <span className="text-text-gray">PRD digunakan</span>
-                <span>
+                <span className="font-medium">
                   {quota.prd_used} / {quota.prd_limit === -1 ? "∞" : quota.prd_limit}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-text-gray">Revisi digunakan</span>
-                <span>
+                <span className="font-medium">
                   {quota.revision_used} / {quota.revision_limit === -1 ? "∞" : quota.revision_limit}
                 </span>
               </div>
@@ -62,25 +56,26 @@ export default async function BillingPage() {
           )}
         </div>
 
+        {/* Riwayat Pembayaran */}
         <div className="rounded-xl border border-border-subtle bg-white p-6">
-          <h2 className="mb-4 font-fustat text-lg font-bold">Riwayat Pembayaran</h2>
+          <h2 className="mb-6 font-fustat text-xl font-bold">Riwayat Pembayaran</h2>
           {payments.length === 0 ? (
             <p className="text-sm text-text-gray">Belum ada pembayaran</p>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {payments.map((p) => (
                 <div
                   key={p.id}
-                  className="flex items-center justify-between rounded-lg border border-border-subtle p-3 text-sm"
+                  className="flex items-center justify-between rounded-lg border border-border-subtle p-4 text-sm"
                 >
                   <div>
-                    <span className="font-medium">{formatCurrency(p.amount)}</span>
-                    <span className="ml-2 text-xs text-text-gray">
+                    <div className="font-medium">{formatCurrency(p.amount)}</div>
+                    <div className="mt-1 text-xs text-text-gray">
                       {formatDate(p.created_at)}
-                    </span>
+                    </div>
                   </div>
                   <span
-                    className={`rounded-full px-2 py-0.5 text-xs ${
+                    className={`rounded-full px-3 py-1 text-xs font-medium ${
                       p.status === "success"
                         ? "bg-green-100 text-green-800"
                         : p.status === "pending"
