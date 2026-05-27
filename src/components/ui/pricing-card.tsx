@@ -4,7 +4,6 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, X } from "lucide-react";
 
@@ -17,6 +16,7 @@ interface PricingComponentProps extends React.HTMLAttributes<HTMLDivElement> {
   billingCycle: BillingCycle;
   onCycleChange: (cycle: BillingCycle) => void;
   onPlanSelect: (planId: string, cycle: BillingCycle) => void;
+  currentPlan?: string;
 }
 
 // --- 2. Utility Components ---
@@ -42,6 +42,7 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
   billingCycle,
   onCycleChange,
   onPlanSelect,
+  currentPlan = 'free',
   className,
   ...props
 }) => {
@@ -54,35 +55,35 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
 
   const CycleToggle = (
     <div className="flex justify-center mb-10 mt-2 font-schibsted">
-      <ToggleGroup
-        type="single"
-        value={billingCycle}
-        onValueChange={(value) => {
-          if (value && (value === 'monthly' || value === 'annually')) {
-            onCycleChange(value);
-          }
-        }}
-        aria-label="Select billing cycle"
-        className="border border-border-subtle dark:border-white/10 rounded-lg p-1 bg-light-gray-bg dark:bg-[#161616]"
-      >
-        <ToggleGroupItem
-          value="monthly"
+      <div className="flex border border-border-subtle dark:border-white/10 rounded-lg p-1 bg-light-gray-bg dark:bg-[#161616] items-center gap-1">
+        <button
+          onClick={() => onCycleChange('monthly')}
           aria-label="Monthly Billing"
-          className="px-6 py-1.5 text-sm font-medium data-[state=on]:bg-white dark:bg-[#1E1E1E] data-[state=on]:shadow-sm data-[state=on]:border-border-subtle dark:border-white/10 data-[state=on]:ring-1 data-[state=on]:ring-black/5 rounded-md transition-colors"
+          className={cn(
+            "px-6 py-1.5 text-sm font-medium rounded-md transition-colors",
+            billingCycle === 'monthly'
+              ? "bg-white dark:bg-[#2C2C2C] text-primary-black dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10"
+              : "text-text-gray dark:text-[#A0A0A0] hover:text-primary-black dark:hover:text-white"
+          )}
         >
           Bulanan
-        </ToggleGroupItem>
-        <ToggleGroupItem
-          value="annually"
+        </button>
+        <button
+          onClick={() => onCycleChange('annually')}
           aria-label="Annual Billing"
-          className="px-6 py-1.5 text-sm font-medium data-[state=on]:bg-white dark:bg-[#1E1E1E] data-[state=on]:shadow-sm data-[state=on]:border-border-subtle dark:border-white/10 data-[state=on]:ring-1 data-[state=on]:ring-black/5 rounded-md transition-colors relative"
+          className={cn(
+            "px-6 py-1.5 text-sm font-medium rounded-md transition-colors relative",
+            billingCycle === 'annually'
+              ? "bg-white dark:bg-[#2C2C2C] text-primary-black dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10"
+              : "text-text-gray dark:text-[#A0A0A0] hover:text-primary-black dark:hover:text-white"
+          )}
         >
           Tahunan
-          <span className="absolute -top-3 right-0 text-xs font-semibold text-primary-black dark:text-[#F0F0F0] bg-accent-green px-1.5 rounded-full whitespace-nowrap">
+          <span className="absolute -top-3 right-0 text-xs font-semibold text-primary-black bg-accent-green px-1.5 rounded-full whitespace-nowrap">
             Hemat {annualDiscountPercent}%
           </span>
-        </ToggleGroupItem>
-      </ToggleGroup>
+        </button>
+      </div>
     </div>
   );
 
@@ -150,19 +151,51 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
               </ul>
             </CardContent>
             <CardFooter className="p-6 pt-0">
-              <Button
-                onClick={() => onPlanSelect(plan.id, billingCycle)}
-                className={cn(
-                  "w-full transition-all duration-200 font-schibsted font-bold cursor-pointer",
-                  isFeatured
-                    ? "bg-[var(--btn-bg)] hover:bg-[var(--btn-bg)]/90 text-[var(--btn-text)] shadow-lg shadow-black/20"
-                    : "bg-white dark:bg-[#1E1E1E] text-primary-black dark:text-[#F0F0F0] hover:bg-light-gray-bg dark:bg-[#161616] border border-border-subtle dark:border-white/10"
-                )}
-                size="lg"
-                aria-label={`Pilih paket ${plan.name}`}
-              >
-                {plan.buttonLabel}
-              </Button>
+              {(() => {
+                const planHierarchy = { free: 0, pro: 1, hengker: 2 };
+                const currentLevel = planHierarchy[currentPlan as keyof typeof planHierarchy] ?? 0;
+                const cardLevel = planHierarchy[plan.id as keyof typeof planHierarchy] ?? 0;
+
+                const isCurrentPlan = currentPlan === plan.id;
+                const isDowngrade = cardLevel < currentLevel;
+                const isUpgrade = cardLevel > currentLevel;
+                const isFreeCard = plan.id === 'free';
+
+                let buttonLabel = plan.buttonLabel;
+                let isDisabled = false;
+
+                if (isCurrentPlan) {
+                  buttonLabel = 'Plan Aktif';
+                  isDisabled = true;
+                } else if (isDowngrade || (isFreeCard && currentLevel > 0)) {
+                  buttonLabel = 'Plan Aktif: ' + currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1);
+                  isDisabled = true;
+                } else if (isUpgrade) {
+                  buttonLabel = `Upgrade ke ${plan.name}`;
+                }
+
+                return (
+                  <Button
+                    onClick={() => !isDisabled && onPlanSelect(plan.id, billingCycle)}
+                    disabled={isDisabled}
+                    className={cn(
+                      "w-full transition-all duration-200 font-schibsted font-bold",
+                      isDisabled
+                        ? "opacity-50 cursor-not-allowed"
+                        : "cursor-pointer",
+                      isFeatured && !isDisabled
+                        ? "bg-[var(--btn-bg)] hover:bg-[var(--btn-bg)]/90 text-[var(--btn-text)] shadow-lg shadow-black/20"
+                        : !isDisabled
+                          ? "bg-white dark:bg-[#1E1E1E] text-primary-black dark:text-[#F0F0F0] hover:bg-light-gray-bg dark:hover:bg-[#161616] border border-border-subtle dark:border-white/10"
+                          : "bg-gray-100 dark:bg-[#2A2A2A] text-gray-400 dark:text-[#666] border border-border-subtle dark:border-white/5"
+                    )}
+                    size="lg"
+                    aria-label={`Pilih paket ${plan.name}`}
+                  >
+                    {buttonLabel}
+                  </Button>
+                );
+              })()}
             </CardFooter>
           </Card>
         );
@@ -184,7 +217,7 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
                 scope="col"
                 className={cn(
                   "px-6 py-4 text-center text-sm font-semibold text-primary-black dark:text-[#F0F0F0] font-fustat whitespace-nowrap",
-                  plan.isPopular && "bg-black/5"
+                  plan.isPopular && "bg-black/5 dark:bg-white/5"
                 )}
               >
                 {plan.name}
@@ -194,7 +227,7 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
         </thead>
         <tbody className="divide-y divide-border-subtle bg-white dark:bg-[#1E1E1E] font-schibsted">
           {allFeatures.map((featureName, index) => (
-            <tr key={featureName} className={cn("transition-colors hover:bg-light-gray-bg dark:bg-[#161616]", index % 2 === 0 ? "bg-white dark:bg-[#1E1E1E]" : "bg-black/5")}>
+            <tr key={featureName} className={cn("transition-colors hover:bg-light-gray-bg dark:hover:bg-[#161616]", index % 2 === 0 ? "bg-white dark:bg-[#1E1E1E]" : "bg-black/5 dark:bg-white/5")}>
               <td className="px-6 py-3 text-left text-sm font-medium text-primary-black dark:text-[#F0F0F0] whitespace-nowrap">
                 {featureName}
               </td>
@@ -202,14 +235,14 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
                 const feature = plan.features.find(f => f.name === featureName);
                 const isIncluded = feature?.isIncluded ?? false;
                 const Icon = isIncluded ? Check : X;
-                const iconColor = isIncluded ? "text-primary-black dark:text-[#F0F0F0]" : "text-border-subtle";
+                const iconColor = isIncluded ? "text-primary-black dark:text-[#F0F0F0]" : "text-text-gray/50 dark:text-[#A0A0A0]/40";
 
                 return (
                   <td
                     key={`${plan.id}-${featureName}`}
                     className={cn(
                       "px-6 py-3 text-center transition-all duration-150",
-                      plan.isPopular && "bg-black/5"
+                      plan.isPopular && "bg-black/5 dark:bg-white/5"
                     )}
                   >
                     <Icon className={cn("h-5 w-5 mx-auto", iconColor)} aria-hidden="true" />
@@ -250,11 +283,55 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
   );
 };
 
-
+import { useSearchParams } from 'next/navigation';
+import { useUIStore } from '@/store';
+import { syncPaymentStatus } from '@/app/actions/payment';
 
 export default function PricingWrapper() {
   const [cycle, setCycle] = React.useState<BillingCycle>('annually');
+  const [currentPlan, setCurrentPlan] = React.useState<string>('free');
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const showToast = useUIStore(state => state.showToast);
+
+  // Fetch current plan on mount
+  React.useEffect(() => {
+    const fetchPlan = async () => {
+      try {
+        const res = await fetch('/api/user/plan');
+        if (res.ok) {
+          const data = await res.json();
+          setCurrentPlan(data.plan || 'free');
+        }
+      } catch {
+        // Not logged in or error — default to free
+      }
+    };
+    fetchPlan();
+  }, []);
+
+  // Sync payment status when redirected back from Midtrans
+  React.useEffect(() => {
+    const orderId = searchParams.get('order_id');
+    const payment = searchParams.get('payment');
+    const txStatus = searchParams.get('transaction_status');
+
+    if (orderId && (payment === 'success' || txStatus === 'settlement' || txStatus === 'capture')) {
+      const sync = async () => {
+        try {
+          const res = await syncPaymentStatus(orderId);
+          if (res.success && res.plan) {
+            setCurrentPlan(res.plan);
+            showToast(`Berhasil upgrade ke paket ${res.plan.charAt(0).toUpperCase() + res.plan.slice(1)}! Nikmati fitur premium Anda.`, 'success');
+            router.replace('/pricing');
+          }
+        } catch (e) {
+          console.error('Gagal sinkronisasi pembayaran:', e);
+        }
+      };
+      sync();
+    }
+  }, [searchParams, showToast, router]);
 
   const handleCycleChange = (newCycle: BillingCycle) => {
     setCycle(newCycle);
@@ -280,7 +357,7 @@ export default function PricingWrapper() {
         if (res.status === 401) {
           router.push('/login?redirect=/pricing');
         } else {
-          alert(data.error || 'Terjadi kesalahan saat memproses pembayaran.');
+          showToast(data.error || 'Terjadi kesalahan saat memproses pembayaran.', 'error');
         }
         return;
       }
@@ -291,7 +368,7 @@ export default function PricingWrapper() {
       }
     } catch (e: unknown) {
       console.error(e);
-      alert('Gagal menghubungi server.');
+      showToast('Gagal menghubungi server.', 'error');
     }
   };
 
@@ -301,6 +378,7 @@ export default function PricingWrapper() {
       billingCycle={cycle}
       onCycleChange={handleCycleChange}
       onPlanSelect={handlePlanSelect}
+      currentPlan={currentPlan}
     />
   );
 }

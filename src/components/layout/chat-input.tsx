@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -14,7 +14,27 @@ interface ChatInputProps {
 export function ChatInput({ className }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [focused, setFocused] = useState(false);
+  const [planStatus, setPlanStatus] = useState<{ plan: string; remaining: number | "unlimited" } | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: sub } = await supabase.from("subscriptions").select("plan").eq("user_id", user.id).single();
+      const { data: quota } = await supabase.from("quotas").select("prd_used, prd_limit").eq("user_id", user.id).single();
+
+      if (sub && quota) {
+        setPlanStatus({
+          plan: sub.plan,
+          remaining: quota.prd_limit === -1 ? "unlimited" : Math.max(0, quota.prd_limit - quota.prd_used)
+        });
+      }
+    };
+    fetchStatus();
+  }, []);
 
   const handleSend = async () => {
     if (!message.trim()) return;
@@ -49,14 +69,23 @@ export function ChatInput({ className }: ChatInputProps) {
         <div className="flex items-center justify-between px-2 mb-[12px]">
           <div className="flex items-center gap-3">
             <span className="font-schibsted text-[12px] font-medium text-white">
-              3 PRD Gratis
+              {!planStatus 
+                ? "3 PRD Gratis" 
+                : planStatus.plan === "hengker" 
+                  ? "Akses Unlimited ♾️" 
+                  : planStatus.plan === "pro" 
+                    ? `Sisa ${planStatus.remaining} PRD Pro` 
+                    : `Sisa ${planStatus.remaining} PRD Gratis`
+              }
             </span>
-            <Link
-              href="/pricing"
-              className="rounded-full bg-accent-green px-2.5 py-0.5 font-schibsted text-[10px] font-bold text-primary-black dark:text-[#F0F0F0] hover:opacity-90 transition-opacity uppercase tracking-wider cursor-pointer"
-            >
-              Upgrade
-            </Link>
+            {(!planStatus || planStatus.plan !== "hengker") && (
+              <Link
+                href="/pricing"
+                className="rounded-full bg-accent-green px-2.5 py-0.5 font-schibsted text-[10px] font-bold text-primary-black dark:text-[#F0F0F0] hover:opacity-90 transition-opacity uppercase tracking-wider cursor-pointer"
+              >
+                Upgrade
+              </Link>
+            )}
           </div>
         </div>
 

@@ -9,14 +9,14 @@ import { updateProfile, uploadAvatar } from "@/app/actions/settings";
 export const ProfileForm = memo(function ProfileForm({
   profile,
 }: {
-  profile: { full_name: string | null; avatar_url: string | null; email: string };
+  profile: { full_name: string | null; avatar_url: string | null; email: string; plan?: string };
 }) {
   const [uploading, setUploading] = useState(false);
 
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-4">
-        <div className="relative">
+        <div className="relative shrink-0">
           {profile.avatar_url ? (
             <Image
               src={profile.avatar_url}
@@ -54,8 +54,19 @@ export const ProfileForm = memo(function ProfileForm({
         </div>
 
         <div>
-          <h2 className="font-fustat text-lg font-bold">{profile.full_name || "User"}</h2>
-          <p className="text-sm text-text-gray dark:text-[#A0A0A0]">{profile.email}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="font-fustat text-lg font-bold">{profile.full_name || "User"}</h2>
+            <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
+              profile.plan === 'hengker' 
+                ? 'bg-orange-50 text-orange-700 ring-orange-600/20 dark:bg-orange-400/10 dark:text-orange-400 dark:ring-orange-400/20' 
+                : profile.plan === 'pro'
+                ? 'bg-yellow-50 text-yellow-800 ring-yellow-600/20 dark:bg-yellow-400/10 dark:text-yellow-500 dark:ring-yellow-400/20'
+                : 'bg-gray-50 text-gray-600 ring-gray-500/10 dark:bg-gray-400/10 dark:text-gray-400 dark:ring-gray-400/20'
+            }`}>
+              {profile.plan?.toUpperCase() || 'FREE'}
+            </span>
+          </div>
+          <p className="mt-1 text-sm text-text-gray dark:text-[#A0A0A0]">{profile.email}</p>
         </div>
       </div>
 

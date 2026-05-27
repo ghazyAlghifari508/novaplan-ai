@@ -165,8 +165,9 @@ export function PrdDetail({
     <div className="flex h-[calc(100vh-0px)] overflow-hidden">
       {/* 1. Left Panel: Project History Sidebar */}
       <div
+        id="print-hide-sidebar"
         style={{ width: `${leftWidth}px`, background: "var(--bg-surface)" }}
-        className="shrink-0 border-r border-[var(--border-subtle)] flex flex-col relative group/left-sidebar"
+        className="shrink-0 border-r border-[var(--border-subtle)] flex flex-col relative group/left-sidebar print:hidden"
       >
         {/* Resize Handle */}
         <div
@@ -234,7 +235,7 @@ export function PrdDetail({
       >
         {projectId && latestVersion ? (
           <>
-            <div className="flex items-center justify-between border-b border-[var(--border-subtle)] px-6 py-3">
+            <div id="print-hide-topbar" className="flex items-center justify-between border-b border-[var(--border-subtle)] px-6 py-3 print:hidden">
               <div className="flex items-center gap-4">
                 <h1 className="font-fustat text-lg font-bold">{projectName}</h1>
                 <PrdActions projectId={projectId} currentName={projectName || ""} />
@@ -270,7 +271,7 @@ export function PrdDetail({
                     "flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
                     isChatOpen
                       ? "btn-primary"
-                      : "bg-light-gray-bg dark:bg-[#161616] text-text-gray dark:text-[#A0A0A0] hover:text-primary-black dark:text-[#F0F0F0]",
+                      : "bg-light-gray-bg dark:bg-[#161616] text-text-gray dark:text-[#A0A0A0] hover:bg-black/5 dark:hover:bg-white/10 hover:text-primary-black dark:hover:text-[#F0F0F0]",
                   )}
                 >
                   <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
@@ -293,7 +294,7 @@ export function PrdDetail({
           </>
         ) : isGeneratingPRD ? (
           <>
-            <div className="flex items-center justify-between border-b border-[var(--border-subtle)] px-6 py-3">
+            <div className="flex items-center justify-between border-b border-[var(--border-subtle)] px-6 py-3 print:hidden">
               <div className="flex items-center gap-4">
                 <h1 className="font-fustat text-lg font-bold animate-pulse">
                   Menyusun PRD...
@@ -324,12 +325,13 @@ export function PrdDetail({
 
       {/* 3. Right Panel: Chat Panel */}
       <div
+        id="print-hide-chat"
         style={{
           width: isChatOpen ? `${rightWidth}px` : "0px",
           background: "var(--bg-elevated)",
         }}
         className={cn(
-          "shrink-0 border-l border-[var(--border-subtle)] relative group/right-sidebar",
+          "shrink-0 border-l border-[var(--border-subtle)] relative group/right-sidebar print:hidden",
           !isDraggingRight && "transition-all duration-300",
           !isChatOpen && "overflow-hidden border-none",
         )}
@@ -353,7 +355,7 @@ export function PrdDetail({
       </div>
 
       {/* Mobile Right Panel Overlay */}
-      <div className="xl:hidden">
+      <div className="xl:hidden print:hidden">
         {isChatOpen && (
           <div className="fixed bottom-0 left-0 right-0 z-40 h-[60vh] rounded-t-2xl border border-border-subtle dark:border-white/10 bg-white dark:bg-[#1E1E1E] shadow-xl">
             <div className="flex items-center justify-between border-b border-border-subtle dark:border-white/10 px-4 py-2">

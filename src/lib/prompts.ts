@@ -37,7 +37,7 @@ When generating a PRD, you MUST follow this exact structure and provide deep det
 
 <!-- SECTION: User Flow -->
 ## 5. User Flow
-[Provide detailed step-by-step text-based flowcharts or logical steps for at least 3 main user journeys. Example: Flow Pendaftaran, Flow Pembelian, dll.]
+[Provide detailed step-by-step text-based flowcharts or logical steps for at least 3 main user journeys. Example: Flow Pendaftaran, Flow Pembelian, dll. IMPORTANT: Use plain text arrows like " -> " or " => " ONLY. DO NOT USE LaTeX math syntax like $\rightarrow$ or \rightarrow.]
 <!-- /SECTION -->
 
 <!-- SECTION: Architecture & Tech Stack -->
@@ -56,13 +56,8 @@ When generating a PRD, you MUST follow this exact structure and provide deep det
 [Design System, UI/UX philosophy, API constraints, third-party integrations, rate limits, etc.]
 <!-- /SECTION -->
 
-<!-- SECTION: Fase Pengerjaan -->
-## 9. Fase Pengerjaan
-[Break down the development into realistic phases (Phase 1: Foundation, Phase 2: MVP, etc.) with estimated timelines and tasks.]
-<!-- /SECTION -->
-
 <!-- SECTION: Risiko & Mitigasi -->
-## 10. Risiko & Mitigasi
+## 9. Risiko & Mitigasi
 [Provide a table of potential risks, probability, impact, and mitigation strategies.]
 <!-- /SECTION -->
 
@@ -91,6 +86,6 @@ Wrap updated sections in:
 export const GENERATION_STEPS = [
   "Menganalisis kebutuhan produk...",
   "Merancang arsitektur sistem...",
-  "Menyusun fase pengerjaan...",
+  "Menyusun database schema...",
   "Memfinalisasi dokumen PRD...",
 ];

@@ -34,6 +34,7 @@ export function ChatPanel({
   const [limitErrorMsg, setLimitErrorMsg] = useState("");
   const isSubmittingRef = useRef(false);
   const autoSubmitAttemptedRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const showToast = useUIStore((s) => s.showToast);
 
   // Close limit modal on Escape key
@@ -88,11 +89,18 @@ export function ChatPanel({
 
     const body: Record<string, unknown> = {
       message: trimmed,
-      mode: "chat",
+      mode: projectId ? "revise" : "generate",
     };
 
     if (conversationId) body.conversationId = conversationId;
     if (projectId) body.projectId = projectId;
+
+    if (body.mode === "generate" || body.mode === "revise") {
+      setGeneratingPRD(true);
+    }
+
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
     let fullContent = "";
     try {
@@ -100,6 +108,7 @@ export function ChatPanel({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
+        signal: abortController.signal,
       });
 
       if (!response.ok) {
@@ -111,12 +120,7 @@ export function ChatPanel({
           setLimitErrorMsg(err.error || "Limit tercapai");
           setShowLimitModal(true);
         } else {
-          addMessage({
-            id: crypto.randomUUID(),
-            role: "assistant",
-            content: err.error || "Terjadi kesalahan",
-            timestamp: Date.now(),
-          });
+          showToast(err.error || "Terjadi kesalahan", "error");
         }
         return;
       }
@@ -142,7 +146,11 @@ export function ChatPanel({
 
             if (parsed.type === "delta") {
               fullContent += parsed.content;
-              setStreamingContent(fullContent);
+              if (body.mode === "generate" || body.mode === "revise") {
+                setStreamingPRDContent(fullContent);
+              } else {
+                setStreamingContent(fullContent);
+              }
             } else if (parsed.type === "done") {
               if (parsed.conversationId) {
                 setConversationId(parsed.conversationId);
@@ -152,13 +160,8 @@ export function ChatPanel({
               }
             } else if (parsed.type === "error") {
               fullContent = "";
-              addMessage({
-                id: crypto.randomUUID(),
-                role: "assistant",
-                content: parsed.error || "Gagal memproses pesan. Silakan coba lagi.",
-                timestamp: Date.now(),
-              });
-              showToast("Gagal memproses pesan. Silakan coba lagi.", "error");
+              const errorMsg = parsed.error || "Gagal memproses pesan. Silakan coba lagi.";
+              showToast(errorMsg, "error");
               return;
             }
           } catch {
@@ -173,17 +176,24 @@ export function ChatPanel({
         content: fullContent,
         timestamp: Date.now(),
       });
-    } catch {
-      addMessage({
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: "Terjadi kesalahan koneksi.",
-        timestamp: Date.now(),
-      });
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === "AbortError") {
+        showToast("Proses dihentikan.", "info");
+      } else {
+        showToast("Terjadi kesalahan koneksi.", "error");
+      }
     } finally {
       setStreaming(false);
+      setGeneratingPRD(false);
       setStreamingContent("");
       isSubmittingRef.current = false;
+      abortControllerRef.current = null;
+    }
+  };
+
+  const handleCancel = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
     }
   };
 
@@ -216,12 +226,16 @@ export function ChatPanel({
       if (conversationId) body.conversationId = conversationId;
       if (projectId) body.projectId = projectId;
 
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+
       let fullContent = "";
       try {
         const response = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
+          signal: abortController.signal,
         });
 
         if (!response.ok) {
@@ -234,12 +248,7 @@ export function ChatPanel({
             setLimitErrorMsg(err.error || "Limit tercapai");
             setShowLimitModal(true);
           } else {
-            addMessage({
-              id: crypto.randomUUID(),
-              role: "assistant",
-              content: err.error || "Terjadi kesalahan",
-              timestamp: Date.now(),
-            });
+            showToast(err.error || "Terjadi kesalahan", "error");
           }
           return;
         }
@@ -279,22 +288,11 @@ export function ChatPanel({
                 }
               } else if (parsed.type === "error") {
                 fullContent = "";
-                addMessage({
-                  id: crypto.randomUUID(),
-                  role: "assistant",
-                  content:
-                    parsed.error ||
-                    (chatMode === "generate" || chatMode === "revise"
-                      ? "Gagal menyusun PRD. Silakan coba lagi."
-                      : "Gagal memproses pesan. Silakan coba lagi."),
-                  timestamp: Date.now(),
-                });
-                showToast(
-                  chatMode === "generate" || chatMode === "revise"
+                const errorMsg = parsed.error ||
+                  (chatMode === "generate" || chatMode === "revise"
                     ? "Gagal menyusun PRD. Silakan coba lagi."
-                    : "Gagal memproses pesan. Silakan coba lagi.",
-                  "error",
-                );
+                    : "Gagal memproses pesan. Silakan coba lagi.");
+                showToast(errorMsg, "error");
                 setGeneratingPRD(false);
                 setStreamingPRDContent("");
                 return;
@@ -332,13 +330,12 @@ export function ChatPanel({
             timestamp: Date.now(),
           });
         }
-      } catch {
-        addMessage({
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content: "Terjadi kesalahan koneksi.",
-          timestamp: Date.now(),
-        });
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name === "AbortError") {
+          showToast("Proses dihentikan.", "info");
+        } else {
+          showToast("Terjadi kesalahan koneksi.", "error");
+        }
       } finally {
         setStreaming(false);
         setStreamingContent("");
@@ -350,6 +347,7 @@ export function ChatPanel({
           setGeneratingPRD(false);
         }
         isSubmittingRef.current = false;
+        abortControllerRef.current = null;
       }
     },
     [
@@ -426,7 +424,7 @@ export function ChatPanel({
       </div>
 
       <div className="border-t border-[var(--border-subtle)] p-4">
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-end">
           <textarea
             ref={inputRef}
             value={input}
@@ -444,19 +442,29 @@ export function ChatPanel({
             disabled={isStreaming}
           />
           <button
-            onClick={handleSend}
-            disabled={!input.trim() || isStreaming}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg btn-primary transition-all hover:opacity-80 disabled:opacity-30"
+            onClick={isStreaming ? handleCancel : handleSend}
+            disabled={!isStreaming && (!input.trim() || isSubmittingRef.current)}
+            className={cn(
+              "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-all disabled:opacity-30",
+              isStreaming ? "bg-red-500 hover:bg-red-600 text-white" : "btn-primary hover:opacity-80"
+            )}
+            title={isStreaming ? "Hentikan Proses" : "Kirim Pesan"}
           >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path
-                d="M2 8L14 8M10 4L14 8L10 12"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            {isStreaming ? (
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                <rect x="3" y="3" width="10" height="10" rx="1" />
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path
+                  d="M2 8L14 8M10 4L14 8L10 12"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            )}
           </button>
         </div>
       </div>

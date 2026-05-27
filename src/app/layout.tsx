@@ -33,7 +33,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "NovaPlan — AI PRD Generator",
+    default: "NovaPlan - AI PRD Generator",
     template: "%s | NovaPlan",
   },
   description:
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     "NovaPlan",
   ],
   openGraph: {
-    title: "NovaPlan — AI PRD Generator",
+    title: "NovaPlan - AI PRD Generator",
     description:
       "Dari ide ke PRD profesional dalam 5 menit. Generate PRD lengkap dengan AI.",
     url: "https://novaplan.ai",

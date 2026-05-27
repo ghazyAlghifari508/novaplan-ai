@@ -8,16 +8,16 @@
     "hash": "402a86bdd4890001fdc687fa23e40157"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\middleware.ts": {
-    "mtime": 1778518945.4775195,
-    "hash": "5a866382698f1634f490a13fa7912b61"
+    "mtime": 1779876952.7002757,
+    "hash": "06f55bf86edeb85a3b30f529f24b9017"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\next-env.d.ts": {
     "mtime": 1778405977.285287,
     "hash": "a64595e6014adce3002d3bf762d2dbeb"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\next.config.ts": {
-    "mtime": 1778646436.8318586,
-    "hash": "50c58e78c5d4db82ecf8870cecf547cb"
+    "mtime": 1779902310.176152,
+    "hash": "cb57d681825ac8341b176b3026626b36"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\playwright.config.ts": {
     "mtime": 1778537260.9905152,
@@ -38,6 +38,10 @@
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\sentry.server.config.ts": {
     "mtime": 1778539216.0482638,
     "hash": "2528bc6df918d5328ce791cf9ca5087f"
+  },
+  "C:\\Coding\\Web Development\\Next\\novaplan_ai\\test-db.mjs": {
+    "mtime": 1779898113.151734,
+    "hash": "9f42129b995c56d4f81dbfd1071fc0aa"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\vitest.config.ts": {
     "mtime": 1778537243.2256136,
@@ -80,15 +84,15 @@
     "hash": "3df036ea6329dad170c4423338417341"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\error.tsx": {
-    "mtime": 1778539334.5772595,
+    "mtime": 1779875926.7763379,
     "hash": "c8c1eece5a6ff4e57bf123cb0acc477f"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\layout.tsx": {
-    "mtime": 1778636772.4201734,
-    "hash": "3f16ad7fb879ffc327eaef05f75a8fde"
+    "mtime": 1779900173.8059397,
+    "hash": "8a93e17d0ac4c3671a6c03c6857b0914"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\loading.tsx": {
-    "mtime": 1778429020.3642793,
+    "mtime": 1779875935.335644,
     "hash": "2e8655e6d82e9fad4140147196e1cc6f"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\not-found.tsx": {
@@ -108,20 +112,20 @@
     "hash": "f50c5dbb1e9ac79a402c8d3fe53452f9"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\actions\\auth.ts": {
-    "mtime": 1778420359.5940104,
-    "hash": "45c44a625d9882872678df6ffa3891aa"
+    "mtime": 1779874601.0575087,
+    "hash": "8be6a17ffbc1787d4c53603d58a76f14"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\actions\\notifications.ts": {
     "mtime": 1778506688.6126163,
     "hash": "a7058633ee41e5dac0b281efa7a1b5fb"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\actions\\payment.ts": {
-    "mtime": 1778444213.2280238,
-    "hash": "738c735bf454e986f25a5d4a2d63ab81"
+    "mtime": 1779908181.9965696,
+    "hash": "141c8568b2cd843fc3f632f2647ca6aa"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\actions\\prd.ts": {
-    "mtime": 1778436631.1304827,
-    "hash": "993b8578216587947d970eb529546780"
+    "mtime": 1779874603.1173215,
+    "hash": "c254df56bc85ed514be1bb023bbf5cc7"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\actions\\settings.ts": {
     "mtime": 1778446422.9876223,
@@ -132,16 +136,20 @@
     "hash": "2a2821f69477ef2630d5534b53798b79"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\api\\chat\\route.ts": {
-    "mtime": 1779251551.057591,
-    "hash": "fdb9f513c552eaadc5ca5b924b6f7bce"
+    "mtime": 1779911574.8296537,
+    "hash": "af203e9d76a8a1737d1823a519d88ac0"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\api\\feedback\\route.ts": {
     "mtime": 1778539334.5772595,
     "hash": "4870ea3e29c6e05ee41e542624701dc2"
   },
+  "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\api\\payments\\create\\route.ts": {
+    "mtime": 1779905403.9432442,
+    "hash": "8d9ba7b1fd12da10c30b1fd8725a9f52"
+  },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\api\\payments\\webhook\\route.ts": {
-    "mtime": 1778444223.744606,
-    "hash": "19b2ef89b01a770010b0cdf18b1f0e0b"
+    "mtime": 1779899305.2977946,
+    "hash": "2d17dd74978ec354703e8ca46c449c55"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\api\\pdf\\route.ts": {
     "mtime": 1778522380.9645395,
@@ -154,6 +162,10 @@
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\api\\report-error\\route.ts": {
     "mtime": 1778539334.5772595,
     "hash": "83ee2770608bf5e091195698bbeef9e8"
+  },
+  "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\api\\user\\plan\\route.ts": {
+    "mtime": 1779908208.7233236,
+    "hash": "ba9e500a2f732d9771d6b44bfbc48f65"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\api\\v1\\docs\\route.ts": {
     "mtime": 1778537754.5945663,
@@ -172,16 +184,8 @@
     "hash": "2a8b1a9891a0a857b1abae411058c7d3"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\auth\\callback\\route.ts": {
-    "mtime": 1778420032.9673522,
-    "hash": "9ae9d4c574c75da8de17d62e7b1b820f"
-  },
-  "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\dashboard\\page.tsx": {
-    "mtime": 1778995934.8177354,
-    "hash": "130b2dd71be79fa68d1694012adde94b"
-  },
-  "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\dashboard\\chat\\page.tsx": {
-    "mtime": 1778995934.9834216,
-    "hash": "a575019d0082d3b69f13cbc10ab5d92a"
+    "mtime": 1779874599.0230918,
+    "hash": "ad1e784ecf4ac5956c2e15988555aa50"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\forgot-password\\page.tsx": {
     "mtime": 1778419995.9622471,
@@ -200,160 +204,140 @@
     "hash": "475bac1e734583488015eebd4aaadea2"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\prd\\share\\[token]\\page.tsx": {
-    "mtime": 1778444490.1777616,
-    "hash": "83fd7bb954afbf9aa117bc51a12c11ed"
+    "mtime": 1779875154.1711414,
+    "hash": "b2b99909adc3ae6a41cb9b446f3dae7d"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\prd\\[id]\\error.tsx": {
-    "mtime": 1778437218.4038098,
-    "hash": "51151931510f7efcccb60ea042f02388"
+    "mtime": 1779883218.7384074,
+    "hash": "97b272b11cc1024f97f1470dacffa019"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\prd\\[id]\\loading.tsx": {
-    "mtime": 1778437058.2716732,
-    "hash": "2d409c03d637a1c7f4ebf61cfaaaf15f"
+    "mtime": 1779875154.1721702,
+    "hash": "0969ee4c7b71951c2fda8418e0925c91"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\prd\\[id]\\page.tsx": {
     "mtime": 1778996089.2608514,
     "hash": "a09070ee92493dfc4b5eb290322e1c26"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\pricing\\page.tsx": {
-    "mtime": 1778621874.0144384,
-    "hash": "b563c7f2718f4ccc29c8c6810546f661"
+    "mtime": 1779904278.5087478,
+    "hash": "44ffefd6d050f10a2285ee4e73980e98"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\register\\page.tsx": {
-    "mtime": 1778623092.3271117,
-    "hash": "2c1e793d8a93e172ceade2ad7a85c10c"
+    "mtime": 1779875154.1737158,
+    "hash": "76e488d7fb0f07a83692b1d74d326232"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\reset-password\\page.tsx": {
     "mtime": 1778420367.916304,
     "hash": "a014f6c084cb82a0c7a12a39cde7ff75"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\settings\\layout.tsx": {
-    "mtime": 1778446425.9687734,
-    "hash": "f062eac282af0f64a6be8b731921e2b9"
+    "mtime": 1779876674.4960098,
+    "hash": "5a9f69c3a5968d09316cae6595c8c5c7"
+  },
+  "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\settings\\loading.tsx": {
+    "mtime": 1779876981.0520995,
+    "hash": "92d7381e258f55ee86b75757efc521a0"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\settings\\page.tsx": {
     "mtime": 1778720752.6534648,
     "hash": "62854c3d1b83fc7902c1cde803a89d77"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\settings\\account\\page.tsx": {
-    "mtime": 1778446122.9065652,
-    "hash": "9a0483b3f013d41a3c570e661bbb0fdf"
+    "mtime": 1779875154.1742268,
+    "hash": "c7af3646ece3d0aaef72e1377a54a235"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\settings\\api\\page.tsx": {
-    "mtime": 1778797598.1335664,
-    "hash": "a3aaf64b91e4dd98be581af6a137b2c2"
+    "mtime": 1779876395.5197575,
+    "hash": "5aa9f5cb4fa79ad557638a7eba9dd2e1"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\settings\\billing\\page.tsx": {
-    "mtime": 1778647223.3920105,
-    "hash": "c7fa45789238e8f4149e18200cfbf0fb"
+    "mtime": 1779875154.1747377,
+    "hash": "82cb493dc5990be4a737fb4a3187b6f1"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\settings\\feedback\\page.tsx": {
-    "mtime": 1778539358.665578,
-    "hash": "4e47679d2b006cf5ee40e34a348f8c25"
+    "mtime": 1779875154.1752553,
+    "hash": "39b7ce5603d77a143b794a82d2c4ecd2"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\settings\\notifications\\page.tsx": {
-    "mtime": 1778517944.1857488,
-    "hash": "e12f279ba36574ef9030033b5234e508"
+    "mtime": 1779875154.1757636,
+    "hash": "b070254fae740d24d082729ed568b352"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\settings\\profile\\page.tsx": {
-    "mtime": 1778797627.9966054,
-    "hash": "6093bb693685777e7bc9ed132662c282"
+    "mtime": 1779904307.7998462,
+    "hash": "a556a15456dd2f93360045adeae1d2e0"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\settings\\templates\\page.tsx": {
-    "mtime": 1778797616.7486224,
-    "hash": "3fe14f76e73090db84fd172274901c42"
+    "mtime": 1779876403.490202,
+    "hash": "6ab4d7aafd8effb3fa39f93f54789fd0"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\setup\\page.tsx": {
-    "mtime": 1778657120.3438816,
-    "hash": "e12b54e35ce6f8f9e48f3252b0c05518"
+    "mtime": 1779875154.177334,
+    "hash": "48554e7bfc3b58d492011ae03d13aff2"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\setup\\setup-client.tsx": {
-    "mtime": 1779250875.6149642,
-    "hash": "25a02cfca1c1540a803ae5b0c69f2013"
+    "mtime": 1779875477.2921784,
+    "hash": "89a28656b5a83bf5ddfe26993a31e4f4"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\setup\\manual\\manual-setup-client.tsx": {
-    "mtime": 1779250870.6168108,
-    "hash": "199e146b8b970fc136b7eb93d22d2906"
+    "mtime": 1779875433.734412,
+    "hash": "1c89041af5da7288d6bdb429791d2b98"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\setup\\manual\\page.tsx": {
-    "mtime": 1778657150.3871894,
-    "hash": "1947f5fe4b6488fbf6db60c02a3df69d"
+    "mtime": 1779875154.1768253,
+    "hash": "afcfa4c917e83ceb8aa022cfdce4a8fb"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\auth\\index.ts": {
     "mtime": 1778419786.4491267,
     "hash": "1d737a14ff7ba4330f751cc7edfbcdc3"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\auth\\login-form.tsx": {
-    "mtime": 1778635465.087713,
-    "hash": "959620ade022bd2899669af47c99a47a"
+    "mtime": 1779886347.461416,
+    "hash": "fe4549207b71976dce8f01c1b8fb0c60"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\auth\\onboarding-form.tsx": {
-    "mtime": 1778996183.9565785,
-    "hash": "5db01c6218cd97d83949af3a22a92f5c"
+    "mtime": 1779875477.297419,
+    "hash": "aee7c974fa6c5887e79dfca4bc5fa2e4"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\auth\\register-form.tsx": {
     "mtime": 1778623122.4190195,
     "hash": "8fdd6490e22607d7bfc85ad5a13b1bc5"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\chat\\chat-bubble.tsx": {
-    "mtime": 1778800491.613846,
-    "hash": "bc987d0507f7d8891d6a2b3607436cd6"
+    "mtime": 1779875793.4779556,
+    "hash": "391e5f13f7ed1660bf8df2be0c0f50c3"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\chat\\chat-panel.tsx": {
-    "mtime": 1779250998.91265,
-    "hash": "5049a1fc6dc4e2654b9889fb0d2152f9"
+    "mtime": 1779913781.1766155,
+    "hash": "8d3eaf74b1f4104292e50a4a114a5382"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\chat\\generation-progress.tsx": {
-    "mtime": 1778645148.9289634,
-    "hash": "b14621dd0d3e9f2aba07b515d6f427f1"
+    "mtime": 1779875433.737663,
+    "hash": "aab6fd96c185b66cf1c627eeef2d7856"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\chat\\index.ts": {
     "mtime": 1778433401.6102517,
     "hash": "41ca0d1d48d3a46f3eab64ad78cd3b1a"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\chat\\mode-selector.tsx": {
-    "mtime": 1778645131.2350876,
-    "hash": "d4b32c8c7ad2dd8a0c8709cd262c5e93"
+    "mtime": 1779875154.180402,
+    "hash": "dcb786fe57c27d72279e7d8f900f76b3"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\chat\\preference-form.tsx": {
-    "mtime": 1778433253.4106743,
-    "hash": "ccb98dca7331a2e1ad3f062e16b0a7a4"
+    "mtime": 1779875477.2979355,
+    "hash": "c79abc424799bad7409d4a33355c90d0"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\chat\\typing-indicator.tsx": {
-    "mtime": 1778645189.098937,
-    "hash": "9bf376279e1faa54ecccff6cd5fd8ff9"
-  },
-  "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\dashboard\\analytics-section.tsx": {
-    "mtime": 1778533403.0372958,
-    "hash": "450dc329df9583ab9b18a13efa7d817c"
-  },
-  "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\dashboard\\dashboard-client.tsx": {
-    "mtime": 1778645179.7279727,
-    "hash": "124b5edbbf996c939df43c111ae34fd8"
-  },
-  "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\dashboard\\filter-bar.tsx": {
-    "mtime": 1778441813.5945537,
-    "hash": "34dcf27a1fae7331fcb07c812feb077c"
-  },
-  "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\dashboard\\index.ts": {
-    "mtime": 1778532199.3785784,
-    "hash": "5b536aca9f4d5ce2c141fee2eef79248"
-  },
-  "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\dashboard\\prd-card.tsx": {
-    "mtime": 1778441964.4783576,
-    "hash": "d567853b5b82f27ae9b3bf580a7d32b7"
-  },
-  "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\dashboard\\stats-bar.tsx": {
-    "mtime": 1778645167.1558542,
-    "hash": "be9aa787db81e48045e51d5b5afbdb5e"
+    "mtime": 1779875154.180913,
+    "hash": "636d66fbce366a865669ab82d4f418c0"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\layout\\chat-input.tsx": {
-    "mtime": 1778996074.3301077,
-    "hash": "663cdc279097b8efe2d011f9b3791de3"
+    "mtime": 1779912301.28398,
+    "hash": "aa54e36eb3a95e79a4cdf6bfcdff8bdc"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\layout\\footer.tsx": {
-    "mtime": 1778551026.557188,
-    "hash": "68379f2f1ea7ae087fdb3bdeac3546ee"
+    "mtime": 1779875154.1814282,
+    "hash": "38d3c46571d07eaf3af956fbcce2b952"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\layout\\grid-background.tsx": {
     "mtime": 1778801069.654957,
@@ -368,8 +352,8 @@
     "hash": "e6f3bf73ab906b0528b601569d2f68c6"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\layout\\navbar.tsx": {
-    "mtime": 1778996074.702173,
-    "hash": "98974d50e99f2cd3f163d0667bca6236"
+    "mtime": 1779875477.2990136,
+    "hash": "3003cd991c6dc563e9a09fdba93c3c65"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\layout\\video-background.tsx": {
     "mtime": 1778550691.8769596,
@@ -380,116 +364,116 @@
     "hash": "f994781c8378f8856856dcf4b56ba1d2"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\prd\\prd-actions.tsx": {
-    "mtime": 1778436868.117517,
-    "hash": "539d0adae606d1e97e47ed4cb3bc6820"
+    "mtime": 1779875154.1819487,
+    "hash": "8e5a629e60ac399367d26dfdce5f771e"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\prd\\prd-detail.tsx": {
-    "mtime": 1778996074.5653193,
-    "hash": "d1b173103ea3a3a60a16fb358ae0cf61"
+    "mtime": 1779911942.2772038,
+    "hash": "ba2c2b10ef33477217a179de8df96bed"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\prd\\prd-viewer.tsx": {
-    "mtime": 1778797542.9827409,
-    "hash": "abb64de17f95f6fa7c04ab515c2325fc"
+    "mtime": 1779911094.9282005,
+    "hash": "9e0a1054f97f5534638d3aad363b7800"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\prd\\table-of-contents.tsx": {
-    "mtime": 1778437244.3225064,
-    "hash": "4baab3a78c23e42f86575a9fd636d0f8"
+    "mtime": 1779912039.8108993,
+    "hash": "3fd5f17b0ca49fa4131782adfa30a307"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\prd\\version-history.tsx": {
-    "mtime": 1778526420.5205722,
-    "hash": "ffdbf9bf4c336d11b5d13f71dd2dbce3"
+    "mtime": 1779875914.230109,
+    "hash": "c4a72f32738f02de0f3598635a494e68"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\pricing\\index.ts": {
     "mtime": 1778444398.3124602,
     "hash": "d64182bb3574f02740c9f39dec9d2f89"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\pricing\\pricing-cards.tsx": {
-    "mtime": 1778552151.7341766,
-    "hash": "fbfb9da777b0c5a05ad13ddbe725c57a"
+    "mtime": 1779875433.740856,
+    "hash": "c12bf6e0f031a781f5a124914f878a18"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\pricing\\snap-button.tsx": {
     "mtime": 1778444766.6529787,
     "hash": "a5e742661cb6a9a19a91405bcb87c656"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\settings\\account-form.tsx": {
-    "mtime": 1778996183.9857585,
-    "hash": "9c8e2298574fbd345dbd7a8097280805"
+    "mtime": 1779875642.9662547,
+    "hash": "de540e0238486c2e4e3ae3beb43eb970"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\settings\\api-keys-form.tsx": {
-    "mtime": 1778996074.677804,
-    "hash": "0d554d68e7d41438fcc1873396d9dadc"
+    "mtime": 1779875477.3005953,
+    "hash": "ac58e95131f3aa1064546339f7df23da"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\settings\\feedback-form.tsx": {
-    "mtime": 1778645064.5716186,
-    "hash": "c132cdcef516035ec0c6fff87ea43f43"
+    "mtime": 1779875477.3005953,
+    "hash": "2ca14753093c5f46a66c8315ab7ffc9c"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\settings\\index.ts": {
     "mtime": 1778539358.6778262,
     "hash": "5d7cb0d54ff6034ff7f023a187311203"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\settings\\notifications-form.tsx": {
-    "mtime": 1778996184.0112822,
-    "hash": "785f5600bedc3a936f8cfaf5eb06bf7c"
+    "mtime": 1779875154.1861231,
+    "hash": "6fa83e682a9149b16da3a2266b9edf96"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\settings\\profile-form.tsx": {
-    "mtime": 1778996184.0323033,
-    "hash": "cfa04da486ddd780605717c3bae02bb1"
+    "mtime": 1779904323.0860665,
+    "hash": "a3730d2107dcfefe206c85823dde4810"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\settings\\settings-client.tsx": {
-    "mtime": 1778800463.9200797,
-    "hash": "9c4098ef543f421d574d378cf01e8399"
+    "mtime": 1779875601.1270523,
+    "hash": "975321d0b4d4c80145e4375a5e41d768"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\settings\\templates-form.tsx": {
-    "mtime": 1778533555.915266,
-    "hash": "1359d7314dc8aaeb5e26378028864640"
+    "mtime": 1779875477.3016284,
+    "hash": "0a2d71a0464f2328220a0583b8c97dcc"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\ui\\badge.tsx": {
     "mtime": 1778409797.3804617,
     "hash": "3bc4c755ef753388f6ce521e382c79a6"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\ui\\button.tsx": {
-    "mtime": 1778622752.5110948,
-    "hash": "6338cc429b4af0fcfb27a699a21069bf"
+    "mtime": 1779875626.567005,
+    "hash": "0e67051d046c62510bbe7c14057fdb49"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\ui\\card.tsx": {
-    "mtime": 1778621837.9979503,
-    "hash": "48e231e8fa6234c22afc44f78221e684"
+    "mtime": 1779875154.1871545,
+    "hash": "b97e3c25e55dd00e5a7b726a0563b1da"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\ui\\index.ts": {
     "mtime": 1778409853.1453986,
     "hash": "e71c1c8e6ec5f24cf9aa76dfd925d50e"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\ui\\input.tsx": {
-    "mtime": 1778409789.0516434,
-    "hash": "7244bf8b62016f220904eb2174982e8b"
+    "mtime": 1779875154.1876676,
+    "hash": "36d583a0f12d9347c8b72319c18abae1"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\ui\\not-found-1.tsx": {
-    "mtime": 1778800503.1459966,
-    "hash": "873a424f4d92ebaf7119a398aadeb2d3"
+    "mtime": 1779875802.023441,
+    "hash": "7baa136cf7b494b161f26865ac1f2409"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\ui\\pricing-card.tsx": {
-    "mtime": 1778622351.3550625,
-    "hash": "16e2172f10d6b6647a9984c5dd118fb5"
+    "mtime": 1779905376.0994298,
+    "hash": "00defa8d25ea26ed7b2c41943ff0deb0"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\ui\\scroll-reveal.tsx": {
     "mtime": 1778552064.0902784,
     "hash": "71c0d2b323bc8194bc25b59177acc818"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\ui\\sign-in.tsx": {
-    "mtime": 1778798089.3418305,
-    "hash": "99604e574cef1c51ac8e2148ebe327a8"
+    "mtime": 1779883233.7695882,
+    "hash": "066442c47718c67031b8327c195f4de1"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\ui\\textarea.tsx": {
-    "mtime": 1778409813.6460893,
-    "hash": "b067426bc63fef0981b25fcb8a557c02"
+    "mtime": 1779875154.1887155,
+    "hash": "0d8b9f4ec02d4bb17ae5a1a3a8e32cf9"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\ui\\theme-toggle.tsx": {
-    "mtime": 1778797392.4014828,
-    "hash": "8d1ab58c59bdee8b0998ba3f7334da2b"
+    "mtime": 1779877236.214299,
+    "hash": "fd709f99109e35d6ed70edbf0b107f5e"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\ui\\toast.tsx": {
-    "mtime": 1778797582.879845,
-    "hash": "152fdddcaf2ac6660b6684f76a6c520c"
+    "mtime": 1779875953.929883,
+    "hash": "c7d0c239c0eed2f169a15ef9da4d5da3"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\components\\ui\\toggle-group.tsx": {
     "mtime": 1778621835.9793732,
@@ -508,36 +492,36 @@
     "hash": "02b94780b047840c3faf04b531554488"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\lib\\auth.ts": {
-    "mtime": 1778517858.1527462,
-    "hash": "50ec77406e05d543d17f29c9c1d9d524"
+    "mtime": 1779908199.7139018,
+    "hash": "dfd495b924a6554b70aa89faadaa6205"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\lib\\constants.test.ts": {
     "mtime": 1778537345.7846599,
     "hash": "e8b036d1af470af3b6a3fe62284cd34a"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\lib\\constants.ts": {
-    "mtime": 1778714116.1789284,
+    "mtime": 1779913150.5466294,
     "hash": "041ce4365cdcdbe16e124306fb6e8bf3"
   },
-  "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\lib\\dashboard-data.ts": {
-    "mtime": 1778441314.3037431,
-    "hash": "d67b75e9390238dd28bcba0f3655822b"
-  },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\lib\\openrouter.ts": {
-    "mtime": 1779250893.5370524,
-    "hash": "d28847668940845646975908d202fa47"
+    "mtime": 1779913793.7863307,
+    "hash": "808b9e5fa68afafd77bcd5983cfcce3e"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\lib\\prd-merger.ts": {
     "mtime": 1778432804.1257918,
     "hash": "71b861cf2831f4ee9ba504b4610043e3"
+  },
+  "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\lib\\pricing-data.ts": {
+    "mtime": 1779888386.8545365,
+    "hash": "3b16620d6793e9164bb948d85b8a1f8d"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\lib\\prompt-handoff.ts": {
     "mtime": 1779250864.5038638,
     "hash": "0374be695aae42c38bca55fb25b0957f"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\lib\\prompts.ts": {
-    "mtime": 1778711806.7305608,
-    "hash": "a845f10c4fe271c36ea9042580d1550d"
+    "mtime": 1779910257.8500001,
+    "hash": "21ca39a9b3828935ca1075adf466e1ab"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\lib\\quota.test.ts": {
     "mtime": 1778537355.394199,
@@ -563,13 +547,17 @@
     "mtime": 1778409517.3139064,
     "hash": "4a28e2dfb9405948c0f224f6f851f8e2"
   },
+  "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\lib\\supabase\\admin.ts": {
+    "mtime": 1779899268.9167044,
+    "hash": "3207cefad819f9e20d48ad427adc3102"
+  },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\lib\\supabase\\client.ts": {
     "mtime": 1778409254.337303,
     "hash": "0a71a399c6284acb29af83930ac1def7"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\lib\\supabase\\middleware.ts": {
-    "mtime": 1778409313.5566747,
-    "hash": "ed0cf6bbac752028be74a0725b6c1b5a"
+    "mtime": 1779874577.8277304,
+    "hash": "2981bf513a7329ddabb602b92e1080d2"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\lib\\supabase\\server.ts": {
     "mtime": 1778409280.141467,
@@ -587,9 +575,13 @@
     "mtime": 1778464889.6536639,
     "hash": "ec2119ccb5c392b7a64021574a84b280"
   },
+  "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\types\\midtrans-client.d.ts": {
+    "mtime": 1779888055.2003596,
+    "hash": "004a07a8187ee3b0d372791ec6de59d0"
+  },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\AGENTS.md": {
-    "mtime": 1778540098.2317953,
-    "hash": "2ed67c68f28bc1ef95ac24167431d7e8"
+    "mtime": 1779913402.1128423,
+    "hash": "5d73886f33eedaf718ecb95bfcf8a39b"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\LAUNCH.md": {
     "mtime": 1778608066.2499638,
@@ -600,8 +592,8 @@
     "hash": "1d828caa996e2f76d21a3d81ca195663"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\README.md": {
-    "mtime": 1778414136.1176167,
-    "hash": "4c4711128c01348ce0a1a031e5d8d9d8"
+    "mtime": 1779883640.9900396,
+    "hash": "3c6745c355378be9696bbec20e7c540e"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\public\\file.svg": {
     "mtime": 1778405977.0657513,

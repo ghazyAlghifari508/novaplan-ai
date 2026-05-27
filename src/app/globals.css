@@ -284,3 +284,61 @@ a {
 @utility animate-delay-1000 { animation-delay: 1000ms; }
 @utility animate-delay-1200 { animation-delay: 1200ms; }
 @utility animate-delay-1400 { animation-delay: 1400ms; }
+
+/* ============================================
+   Print / PDF Export Styles
+   ============================================ */
+@media print {
+  /* Hide UI elements using nuclear specificity */
+  #print-hide-sidebar,
+  #print-hide-chat,
+  #print-hide-topbar,
+  #print-hide-viewer-topbar,
+  aside, 
+  nav, 
+  header,
+  .sticky.top-0,
+  button,
+  .xl\:hidden {
+    display: none !important;
+  }
+
+  /* Reset layout constraints (fix for squished content) */
+  html, body, .flex, .flex-1, .h-full, .h-screen, .overflow-y-auto, .overflow-hidden {
+    display: block !important;
+    height: auto !important;
+    width: auto !important;
+    overflow: visible !important;
+    position: static !important;
+  }
+
+  /* Reset page backgrounds for printing */
+  body, html, .dark body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Expand content to full width */
+  .prd-content {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Better page breaks */
+  h1, h2, h3, h4 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  table, pre, blockquote {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Ensure text is dark enough for PDF */
+  .prd-content, .prd-content p, .prd-content li, .prd-content td, .prd-content th {
+    color: #000 !important;
+  }
+}

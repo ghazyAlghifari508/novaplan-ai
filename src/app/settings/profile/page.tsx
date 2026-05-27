@@ -1,9 +1,10 @@
-import { requireAuth, getUserProfile } from "@/lib/auth";
+import { requireAuth, getUserProfile, getUserPlan } from "@/lib/auth";
 import { ProfileForm } from "@/components/settings/profile-form";
 
 export default async function ProfilePage() {
   const user = await requireAuth();
   const profile = await getUserProfile();
+  const plan = await getUserPlan();
 
   return (
     <div
@@ -16,6 +17,7 @@ export default async function ProfilePage() {
           full_name: profile?.full_name || null,
           avatar_url: profile?.avatar_url || null,
           email: user.email!,
+          plan,
         }}
       />
     </div>

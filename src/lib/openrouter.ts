@@ -23,16 +23,21 @@ const OPENROUTER_HEADERS = {
 
 export async function* streamChat(
   messages: ChatMessage[],
-  model?: string,
+  model?: string | string[],
   signal?: AbortSignal,
 ): AsyncGenerator<string, void, undefined> {
   const selectedModel = model || AI_MODELS.primary;
 
-  const requestBody = {
-    model: selectedModel,
+  const requestBody: Record<string, unknown> = {
     stream: true,
     messages,
   };
+
+  if (Array.isArray(selectedModel)) {
+    requestBody.models = selectedModel;
+  } else {
+    requestBody.model = selectedModel;
+  }
 
   const response = await fetch(OPENROUTER_API_URL, {
     method: "POST",

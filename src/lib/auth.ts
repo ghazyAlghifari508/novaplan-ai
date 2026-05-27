@@ -5,8 +5,8 @@ import { cache } from "react";
 
 export const getUser = cache(async () => {
   const supabase = await createClient();
-  const { data } = await supabase.auth.getSession();
-  return data.session?.user || null;
+  const { data } = await supabase.auth.getUser();
+  return data.user || null;
 });
 
 export async function requireAuth() {
@@ -36,13 +36,14 @@ export const getUserQuota = cache(async () => {
   if (!user) return null;
 
   const supabase = await createClient();
-  const { data: quota } = await supabase
+  const { data: quotas } = await supabase
     .from("quotas")
     .select("*")
     .eq("user_id", user.id)
-    .single();
+    .order("created_at", { ascending: false })
+    .limit(1);
 
-  return quota;
+  return quotas?.[0] || null;
 });
 
 export const getUserPlan = cache(async (): Promise<Plan> => {
@@ -50,11 +51,12 @@ export const getUserPlan = cache(async (): Promise<Plan> => {
   if (!user) return "free";
 
   const supabase = await createClient();
-  const { data: subscription } = await supabase
+  const { data: subscriptions } = await supabase
     .from("subscriptions")
     .select("plan")
     .eq("user_id", user.id)
-    .single();
+    .order("created_at", { ascending: false })
+    .limit(1);
 
-  return (subscription?.plan as Plan) || "free";
+  return (subscriptions?.[0]?.plan as Plan) || "free";
 });

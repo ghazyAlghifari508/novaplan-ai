@@ -47,25 +47,9 @@ export const PrdViewer = memo(function PrdViewer({
     showToast("PRD di-download", "success");
   };
 
-  const handleDownloadPdf = async () => {
-    try {
-      const response = await fetch("/api/pdf", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content, title: projectName }),
-      });
-      if (!response.ok) throw new Error("Failed");
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `PRD_${projectName.replace(/\s+/g, "_")}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast("PDF di-download", "success");
-    } catch {
-      showToast("Gagal generate PDF", "error");
-    }
+  const handleDownloadPdf = () => {
+    // We use the browser's native print-to-pdf functionality 
+    window.print();
   };
 
   return (
@@ -79,7 +63,8 @@ export const PrdViewer = memo(function PrdViewer({
 
       <div className="flex-1 overflow-y-auto relative">
         <div
-          className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--border-subtle)] px-8 py-4"
+          id="print-hide-viewer-topbar"
+          className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--border-subtle)] px-8 py-4 print:hidden"
           style={{ background: "var(--bg-page)" }}
         >
           <h1 className="font-fustat text-xl font-bold">{projectName}</h1>
@@ -105,7 +90,7 @@ export const PrdViewer = memo(function PrdViewer({
                 variant="ghost"
                 size="sm"
                 onClick={handleDownloadPdf}
-                className="flex items-center gap-1.5"
+                className="flex items-center gap-1.5 cursor-pointer"
               >
                 <Download size={16} /> Download .pdf
               </Button>
@@ -147,7 +132,7 @@ export const PrdViewer = memo(function PrdViewer({
               },
             }}
           >
-            {content}
+            {content.replace(/<!--[\s\S]*?-->/g, "")}
           </Markdown>
         </article>
       </div>

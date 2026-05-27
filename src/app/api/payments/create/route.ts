@@ -29,6 +29,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Plan gratis tidak memerlukan pembayaran.' }, { status: 400 });
     }
 
+    // Check current subscription to prevent invalid purchases
+    const { data: currentSub } = await supabase
+      .from('subscriptions')
+      .select('plan, status')
+      .eq('user_id', user.id)
+      .single();
+
+    const currentPlan = (currentSub?.status === 'active' ? currentSub.plan : 'free') as string;
+    const planHierarchy: Record<string, number> = { free: 0, pro: 1, hengker: 2 };
+    const currentLevel = planHierarchy[currentPlan] ?? 0;
+    const targetLevel = planHierarchy[planId] ?? 0;
+
+    if (currentLevel >= targetLevel) {
+      return NextResponse.json(
+        { error: `Anda sudah berlangganan paket ${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)}. Tidak bisa membeli paket yang sama atau lebih rendah.` },
+        { status: 400 }
+      );
+    }
+
     const orderId = `ORDER-${user.id.substring(0, 8)}-${Date.now()}`;
 
     // Use service role key if available to bypass RLS for inserts
@@ -77,7 +96,7 @@ export async function POST(req: Request) {
       custom_field2: cycle,
       custom_field3: user.id,
       callbacks: {
-        finish: `${origin}/pricing?payment=success`
+        finish: `${origin}/pricing?payment=success&order_id=${orderId}`
       }
     };
 

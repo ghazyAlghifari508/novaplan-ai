@@ -199,48 +199,39 @@ export async function POST(req: NextRequest) {
             ? [AI_MODELS.premium, ...AI_MODEL_CHAIN]
             : [...AI_MODEL_CHAIN];
 
-        // Try each model in sequence until one works
+        // OpenRouter restricts 'models' array to max 3 items
+        const chunkSize = 3;
         let streamGenerator: AsyncGenerator<string, void, undefined> | null = null;
-        let lastError = "";
         let firstChunk = "";
+        let lastError = "";
 
-        for (const model of modelsToTry) {
+        for (let i = 0; i < modelsToTry.length; i += chunkSize) {
+          const chunk = modelsToTry.slice(i, i + chunkSize);
           const abortController = new AbortController();
-          const gen = streamChat(fullMessages, model, abortController.signal);
-          activeAbortController = abortController;
-          activeStreamGenerator = gen;
-
+          const gen = streamChat(fullMessages, chunk, abortController.signal);
+          
           try {
-            // Test the generator by getting the first chunk
             const first = await gen.next();
 
-            // If the stream ends immediately without yielding anything, it's a silent failure
-            // OpenRouter sometimes returns 200 OK but an empty stream or a JSON error
-            if (first.done) {
-              throw new Error(
-                `Model ${model} mengembalikan respons kosong atau error tersembunyi.`,
-              );
-            }
-
-            if (typeof first.value !== "string" || !first.value) {
-              throw new Error(`Model ${model} tidak menghasilkan konten.`);
+            if (first.done || typeof first.value !== "string" || !first.value) {
+              throw new Error(`Respons kosong dari chunk model.`);
             }
 
             firstChunk = first.value;
             streamGenerator = gen;
-            break; // Success, use this model
+            activeAbortController = abortController;
+            activeStreamGenerator = gen;
+            break; // Success, use this generator
           } catch (e) {
             lastError = e instanceof Error ? e.message : String(e);
             abortController.abort();
             await gen.return().catch(() => {});
-            continue; // Try next model
+            continue; // Try next chunk
           }
         }
 
         if (!streamGenerator) {
-          throw new Error(
-            `Semua model AI sedang tidak tersedia. Coba lagi dalam beberapa menit. (${lastError})`,
-          );
+          throw new Error(`Semua model AI sedang tidak tersedia. Coba lagi dalam beberapa menit. (${lastError})`);
         }
 
         await recordRequest(user.id, "ai_generate");
@@ -321,7 +312,7 @@ export async function POST(req: NextRequest) {
           if (messagesError) throw messagesError;
         }
 
-        if (mode === "generate" && conversationIdToUse) {
+        if ((mode === "generate" || mode === "revise") && conversationIdToUse) {
           const { data: conv } = await supabase
             .from("conversations")
             .select("project_id")
@@ -329,13 +320,34 @@ export async function POST(req: NextRequest) {
             .single();
 
           if (conv?.project_id) {
-            const shareToken = generateShareToken();
+            let nextVersion = 1;
+            
+            if (mode === "revise") {
+              const { data: latestVersion } = await supabase
+                .from("prd_versions")
+                .select("version")
+                .eq("project_id", conv.project_id)
+                .order("version", { ascending: false })
+                .limit(1)
+                .single();
+                
+              if (latestVersion) {
+                nextVersion = latestVersion.version + 1;
+              }
+            } else {
+              // For new generation, we want a share token
+              const shareToken = generateShareToken();
+              await supabase
+                .from("projects")
+                .update({ share_token: shareToken })
+                .eq("id", conv.project_id);
+            }
 
             const { error: prdVersionError } = await supabase.from("prd_versions").insert({
               project_id: conv.project_id,
-              version: 1,
+              version: nextVersion,
               content: fullResponse,
-              change_summary: "Initial PRD generation",
+              change_summary: mode === "generate" ? "Initial PRD generation" : message.substring(0, 50) + "...",
             });
 
             if (prdVersionError) throw prdVersionError;
@@ -344,7 +356,6 @@ export async function POST(req: NextRequest) {
               .from("projects")
               .update({
                 status: "completed",
-                share_token: shareToken,
                 updated_at: new Date().toISOString(),
               })
               .eq("id", conv.project_id);
@@ -352,7 +363,9 @@ export async function POST(req: NextRequest) {
             if (projectUpdateError) throw projectUpdateError;
 
             try {
-              await incrementPrdCount(user.id);
+              if (mode === "generate") {
+                await incrementPrdCount(user.id);
+              }
             } catch (err) {
               console.error("Failed to increment PRD count for user", user.id, err);
             }
