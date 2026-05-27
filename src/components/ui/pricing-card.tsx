@@ -10,24 +10,7 @@ import { Check, X } from "lucide-react";
 
 // --- 1. Typescript Interfaces (API) ---
 
-type BillingCycle = 'monthly' | 'annually';
-
-interface Feature {
-  name: string;
-  isIncluded: boolean;
-  tooltip?: string;
-}
-
-interface PriceTier {
-  id: string;
-  name: string;
-  description: string;
-  priceMonthly: number;
-  priceAnnually: number;
-  isPopular: boolean;
-  buttonLabel: string;
-  features: Feature[];
-}
+import { type BillingCycle, type Feature, type PriceTier, novaPlanPlans } from '@/lib/pricing-data';
 
 interface PricingComponentProps extends React.HTMLAttributes<HTMLDivElement> {
   plans: [PriceTier, PriceTier, PriceTier];
@@ -170,7 +153,7 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
               <Button
                 onClick={() => onPlanSelect(plan.id, billingCycle)}
                 className={cn(
-                  "w-full transition-all duration-200 font-schibsted font-bold",
+                  "w-full transition-all duration-200 font-schibsted font-bold cursor-pointer",
                   isFeatured
                     ? "bg-[var(--btn-bg)] hover:bg-[var(--btn-bg)]/90 text-[var(--btn-text)] shadow-lg shadow-black/20"
                     : "bg-white dark:bg-[#1E1E1E] text-primary-black dark:text-[#F0F0F0] hover:bg-light-gray-bg dark:bg-[#161616] border border-border-subtle dark:border-white/10"
@@ -267,59 +250,7 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
   );
 };
 
-export const novaPlanPlans: [PriceTier, PriceTier, PriceTier] = [
-  {
-    id: 'free',
-    name: 'Free',
-    description: 'Cocok untuk pemula yang ingin mencoba NovaPlan.',
-    priceMonthly: 0,
-    priceAnnually: 0,
-    isPopular: false,
-    buttonLabel: 'Mulai Gratis',
-    features: [
-      { name: '3 PRD per bulan', isIncluded: true },
-      { name: 'Export ke Markdown', isIncluded: true },
-      { name: 'Model AI Standar (Llama)', isIncluded: true },
-      { name: 'Export ke PDF & Notion', isIncluded: false },
-      { name: 'Kolaborasi Tim', isIncluded: false },
-      { name: 'Prioritas Support', isIncluded: false },
-    ],
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    description: 'Untuk Product Manager dan tim yang butuh kecepatan.',
-    priceMonthly: 49000,
-    priceAnnually: 470000,
-    isPopular: true,
-    buttonLabel: 'Pilih Pro',
-    features: [
-      { name: 'Unlimited PRD', isIncluded: true },
-      { name: 'Export ke Markdown', isIncluded: true },
-      { name: 'Model AI Lanjutan (GPT-4o)', isIncluded: true },
-      { name: 'Export ke PDF & Notion', isIncluded: true },
-      { name: 'Kolaborasi Tim', isIncluded: false },
-      { name: 'Prioritas Support', isIncluded: true },
-    ],
-  },
-  {
-    id: 'hengker',
-    name: 'Hengker',
-    description: 'Fitur penuh untuk perusahaan dan kolaborasi skala besar.',
-    priceMonthly: 149000,
-    priceAnnually: 1430000,
-    isPopular: false,
-    buttonLabel: 'Pilih Hengker',
-    features: [
-      { name: 'Unlimited PRD', isIncluded: true },
-      { name: 'Export ke Markdown', isIncluded: true },
-      { name: 'Model AI Custom', isIncluded: true },
-      { name: 'Export ke PDF & Notion', isIncluded: true },
-      { name: 'Kolaborasi Tim', isIncluded: true },
-      { name: 'Prioritas Support (24/7)', isIncluded: true },
-    ],
-  },
-];
+
 
 export default function PricingWrapper() {
   const [cycle, setCycle] = React.useState<BillingCycle>('annually');

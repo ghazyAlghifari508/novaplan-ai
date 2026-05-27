@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import midtransClient from 'midtrans-client';
 import { createClient } from '@/lib/supabase/server';
-import { novaPlanPlans } from '@/components/ui/pricing-card';
+import { novaPlanPlans } from '@/lib/pricing-data';
 
 export async function POST(req: Request) {
   try {
