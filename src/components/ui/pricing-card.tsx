@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -322,14 +323,49 @@ export const novaPlanPlans: [PriceTier, PriceTier, PriceTier] = [
 
 export default function PricingWrapper() {
   const [cycle, setCycle] = React.useState<BillingCycle>('annually');
+  const [loading, setLoading] = React.useState(false);
+  const router = useRouter();
 
   const handleCycleChange = (newCycle: BillingCycle) => {
     setCycle(newCycle);
   };
 
-  const handlePlanSelect = (planId: string, currentCycle: BillingCycle) => {
-    console.log(`Plan selected: ${planId}, Cycle: ${currentCycle}`);
-    // Integrasikan dengan router.push atau fungsi pembayaran nanti
+  const handlePlanSelect = async (planId: string, currentCycle: BillingCycle) => {
+    if (planId === 'free') {
+      router.push('/');
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      const res = await fetch('/api/payments/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ planId, cycle: currentCycle })
+      });
+      const data = await res.json();
+      
+      if (!res.ok) {
+        if (res.status === 401) {
+          router.push('/login?redirect=/pricing');
+        } else {
+          alert(data.error || 'Terjadi kesalahan saat memproses pembayaran.');
+        }
+        return;
+      }
+      
+      // Redirect to Midtrans snap
+      if (data.redirect_url) {
+        window.location.href = data.redirect_url;
+      }
+    } catch (e: any) {
+      console.error(e);
+      alert('Gagal menghubungi server.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
