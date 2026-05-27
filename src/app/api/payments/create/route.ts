@@ -37,6 +37,20 @@ export async function POST(req: Request) {
 
     const orderId = `ORDER-${user.id.substring(0, 8)}-${Date.now()}`;
 
+    // Record the pending payment in the database so the webhook can process it later
+    const { error: dbError } = await supabase.from('payments').insert({
+      user_id: user.id,
+      amount: price,
+      status: 'pending',
+      midtrans_order_id: orderId,
+      payment_method: 'midtrans',
+    });
+
+    if (dbError) {
+      console.error('Database Error:', dbError);
+      return NextResponse.json({ error: 'Gagal membuat catatan pembayaran.' }, { status: 500 });
+    }
+
     const origin = req.headers.get('origin') || 'https://novaplan-ai.vercel.app';
     const parameters = {
       transaction_details: {

@@ -9,8 +9,8 @@ const MIDTRANS_API = "https://api.sandbox.midtrans.com/v2";
 
 const PLAN_PRICES: Record<Plan, number> = {
   free: 0,
-  pro: 25000,
-  hengker: 100000,
+  pro: 49000,
+  hengker: 149000,
 };
 
 export async function createTransaction(plan: Plan, isYearly: boolean) {
