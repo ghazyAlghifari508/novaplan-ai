@@ -38,15 +38,13 @@ export function Navbar() {
 
     checkUser();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === "SIGNED_OUT") {
-          setUser(null);
-        } else if (session?.user) {
-          setUser({ email: session.user.email! });
-        }
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") {
+        setUser(null);
+      } else if (session?.user) {
+        setUser({ email: session.user.email! });
       }
-    );
+    });
 
     return () => {
       authListener?.subscription.unsubscribe();
@@ -86,8 +84,7 @@ export function Navbar() {
               </Link>
               <Link
                 href="/login"
-                className="flex h-[40px] w-[101px] items-center justify-center rounded-lg bg-primary-black font-schibsted text-[16px] font-medium hover:opacity-90 transition-opacity"
-                style={{ color: "#ffffff" }}
+                className="flex h-[40px] w-[101px] items-center justify-center rounded-lg btn-primary font-schibsted text-[16px] font-medium hover:opacity-90 transition-opacity"
               >
                 Log In
               </Link>
@@ -96,8 +93,7 @@ export function Navbar() {
             <>
               <Link
                 href="/prd"
-                className="flex h-[40px] px-6 items-center justify-center rounded-lg bg-primary-black font-schibsted text-[16px] font-medium hover:opacity-90 transition-opacity"
-                style={{ color: "#ffffff" }}
+                className="flex h-[40px] px-6 items-center justify-center rounded-lg btn-primary font-schibsted text-[16px] font-medium hover:opacity-90 transition-opacity"
               >
                 Workspace
               </Link>
@@ -138,10 +134,7 @@ export function Navbar() {
                         className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors hover:bg-[var(--bg-hover)]"
                         style={{ color: "var(--text-primary)" }}
                       >
-                        <Settings
-                          size={18}
-                          style={{ color: "var(--text-muted)" }}
-                        />
+                        <Settings size={18} style={{ color: "var(--text-muted)" }} />
                         Profile / Setting
                       </Link>
                       <Link
@@ -150,10 +143,7 @@ export function Navbar() {
                         className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors hover:bg-[var(--bg-hover)]"
                         style={{ color: "var(--text-primary)" }}
                       >
-                        <CreditCard
-                          size={18}
-                          style={{ color: "var(--text-muted)" }}
-                        />
+                        <CreditCard size={18} style={{ color: "var(--text-muted)" }} />
                         Pricing
                       </Link>
                       <div

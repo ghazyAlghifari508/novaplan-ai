@@ -33,5 +33,5 @@ export async function completeOnboarding(formData: FormData) {
     .eq("id", user.id);
 
   revalidatePath("/");
-  redirect("/dashboard");
+  redirect("/");
 }

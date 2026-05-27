@@ -49,17 +49,17 @@ export const SettingsClient = memo(function SettingsClient({
                 className={cn(
                   "flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] font-medium transition-all duration-200",
                   isActive
-                    ? "bg-primary-black shadow-md"
+                    ? "bg-[var(--btn-bg)] shadow-md"
                     : "hover:bg-[var(--bg-hover)]"
                 )}
                 style={{
-                  color: isActive ? "#ffffff" : "var(--text-secondary)",
+                  color: isActive ? "var(--btn-text)" : "var(--text-secondary)",
                 }}
               >
                 <Icon
                   size={18}
                   style={{
-                    color: isActive ? "#ffffff" : "var(--text-muted)",
+                    color: isActive ? "var(--btn-text)" : "var(--text-muted)",
                   }}
                 />
                 <span>{item.label}</span>

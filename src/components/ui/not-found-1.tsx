@@ -104,8 +104,7 @@ export function NotFound({
                 </button>
                 <button
                   onClick={onHomeClick}
-                  className="w-full md:w-fit inline-flex items-center justify-center rounded-lg bg-primary-black px-5 py-2.5 text-sm font-medium font-schibsted hover:opacity-90 transition-opacity"
-                  style={{ color: "#ffffff" }}
+                  className="w-full md:w-fit inline-flex items-center justify-center rounded-lg btn-primary px-5 py-2.5 text-sm font-medium font-schibsted hover:opacity-90 transition-opacity"
                 >
                   {homeButtonText}
                 </button>

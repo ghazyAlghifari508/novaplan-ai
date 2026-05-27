@@ -31,13 +31,13 @@ export default async function SharedPrdPage({
   if (!latestVersion) notFound();
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="border-b border-border-subtle px-6 py-4">
+    <div className="min-h-screen bg-white dark:bg-[#1E1E1E]">
+      <div className="border-b border-border-subtle dark:border-white/10 px-6 py-4">
         <div className="mx-auto flex max-w-4xl items-center justify-between">
           <Link href="/" className="font-schibsted text-xl font-semibold tracking-tight">
             NovaPlan
           </Link>
-          <span className="rounded-full bg-light-gray-bg px-3 py-1 text-xs text-text-gray">
+          <span className="rounded-full bg-light-gray-bg dark:bg-[#161616] px-3 py-1 text-xs text-text-gray dark:text-[#A0A0A0]">
             Shared View
           </span>
         </div>

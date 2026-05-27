@@ -20,8 +20,7 @@ export default async function ApiKeysPage() {
         </p>
         <Link
           href="/pricing"
-          className="mt-4 inline-flex rounded-lg bg-primary-black px-4 py-2 text-sm font-medium transition-colors hover:opacity-90"
-          style={{ color: "white" }}
+          className="mt-4 inline-flex rounded-lg btn-primary px-4 py-2 text-sm font-medium transition-colors hover:opacity-90"
         >
           Upgrade ke Hengker
         </Link>

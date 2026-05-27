@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* ============================================
    NovaPlan Design System - Fustat, Schibsted Grotesk, Inter, JetBrains Mono
@@ -123,6 +124,11 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+.btn-primary {
+  background-color: var(--btn-bg) !important;
+  color: var(--btn-text) !important;
 }
 
 /* Scrollbar styling */

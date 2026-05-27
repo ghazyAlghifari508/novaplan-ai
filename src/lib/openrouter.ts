@@ -24,6 +24,7 @@ const OPENROUTER_HEADERS = {
 export async function* streamChat(
   messages: ChatMessage[],
   model?: string,
+  signal?: AbortSignal,
 ): AsyncGenerator<string, void, undefined> {
   const selectedModel = model || AI_MODELS.primary;
 
@@ -37,6 +38,7 @@ export async function* streamChat(
     method: "POST",
     headers: OPENROUTER_HEADERS,
     body: JSON.stringify(requestBody),
+    signal,
   });
 
   if (!response.ok) {
@@ -50,31 +52,35 @@ export async function* streamChat(
   const decoder = new TextDecoder();
   let buffer = "";
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
 
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() || "";
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
 
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed || !trimmed.startsWith("data: ")) continue;
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || !trimmed.startsWith("data: ")) continue;
 
-      const data = trimmed.slice(6);
-      if (data === "[DONE]") return;
+        const data = trimmed.slice(6);
+        if (data === "[DONE]") return;
 
-      try {
-        const parsed: OpenRouterResponse = JSON.parse(data);
-        const content = parsed.choices?.[0]?.delta?.content;
-        if (content) {
-          yield content;
+        try {
+          const parsed: OpenRouterResponse = JSON.parse(data);
+          const content = parsed.choices?.[0]?.delta?.content;
+          if (content) {
+            yield content;
+          }
+        } catch {
+          continue;
         }
-      } catch {
-        continue;
       }
     }
+  } finally {
+    await reader.cancel().catch(() => {});
   }
 }
 

@@ -51,8 +51,8 @@ export const FeedbackForm = memo(function FeedbackForm() {
               onClick={() => setType(t)}
               className={`rounded-lg border px-3 py-1.5 text-xs font-medium capitalize transition-colors flex items-center gap-1.5 ${
                 type === t
-                  ? "border-primary-black bg-primary-black text-white"
-                  : "border-border-subtle bg-white text-text-gray hover:border-primary-black"
+                  ? "border-primary-black btn-primary"
+                  : "border-border-subtle dark:border-white/10 bg-white dark:bg-[#1E1E1E] text-text-gray dark:text-[#A0A0A0] hover:border-primary-black"
               }`}
             >
               {t === "bug" ? <><Bug size={14} /> Bug Report</> : t === "feature" ? <><Sparkles size={14} /> Fitur Baru</> : <><MessageSquare size={14} /> Umum</>}
@@ -74,7 +74,7 @@ export const FeedbackForm = memo(function FeedbackForm() {
                 : "Ceritakan pengalamanmu menggunakan NovaPlan..."
           }
           rows={4}
-          className="w-full rounded-lg border border-border-subtle bg-white px-4 py-3 text-sm placeholder:text-text-gray/50 focus:border-primary-black focus:outline-none focus:ring-2 focus:ring-primary-black/5"
+          className="w-full rounded-lg border border-border-subtle dark:border-white/10 bg-white dark:bg-[#1E1E1E] px-4 py-3 text-sm placeholder:text-text-gray dark:text-[#A0A0A0]/50 focus:border-primary-black focus:outline-none focus:ring-2 focus:ring-primary-black/5"
         />
       </div>
 

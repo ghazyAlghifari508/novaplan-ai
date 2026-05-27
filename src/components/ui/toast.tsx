@@ -19,7 +19,7 @@ export function Toast() {
   const variants = {
     success: "bg-accent-green text-black",
     error: "bg-red-600 text-white",
-    info: "bg-primary-black text-white",
+    info: "btn-primary",
   };
 
   return (
@@ -29,7 +29,6 @@ export function Toast() {
           "rounded-lg px-5 py-3 text-sm font-medium shadow-lg",
           variants[toastType || "info"]
         )}
-        style={{ color: "white" }}
       >
         {toastMessage}
       </div>

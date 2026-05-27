@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function PricingPage() {
   return (
-    <div className="flex flex-col min-h-screen bg-white">
+    <div className="flex flex-col min-h-screen bg-white dark:bg-[#1E1E1E]">
       <Navbar />
       <main className="flex-grow pt-24 pb-12">
         <PricingWrapper />

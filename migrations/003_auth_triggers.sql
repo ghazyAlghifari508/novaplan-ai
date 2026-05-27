@@ -1,11 +1,16 @@
--- Auth Trigger for NovaPlan (DEBUG VERSION)
+-- Auth Trigger for NovaPlan
 -- File: migrations/003_auth_triggers.sql
 
 -- Function to handle new user signup
+-- Conflict targets are safe here because this trigger only provisions first-time
+-- signup rows; an existing row means the user was already provisioned.
+CREATE UNIQUE INDEX IF NOT EXISTS subscriptions_user_id_key
+  ON public.subscriptions (user_id);
+
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger
 LANGUAGE plpgsql
-SECURITY DEFINER SET search_path = public
+SECURITY DEFINER SET search_path = ''
 AS $$
 DECLARE
   default_plan text := 'free';
@@ -13,34 +18,24 @@ DECLARE
 BEGIN
   monthly_reset := date_trunc('month', now()) + interval '1 month';
 
-  BEGIN
-    INSERT INTO public.users (id, email, full_name, avatar_url, provider, role)
-    VALUES (
-      new.id,
-      new.email,
-      COALESCE(new.raw_user_meta_data ->> 'full_name', new.raw_user_meta_data ->> 'name', ''),
-      COALESCE(new.raw_user_meta_data ->> 'avatar_url', new.raw_user_meta_data ->> 'picture', ''),
-      COALESCE(new.raw_app_meta_data ->> 'provider', 'email'),
-      'user'
-    );
+  INSERT INTO public.users (id, email, full_name, avatar_url, provider, role)
+  VALUES (
+    new.id,
+    new.email,
+    COALESCE(new.raw_user_meta_data ->> 'full_name', new.raw_user_meta_data ->> 'name', ''),
+    COALESCE(new.raw_user_meta_data ->> 'avatar_url', new.raw_user_meta_data ->> 'picture', ''),
+    COALESCE(new.raw_app_meta_data ->> 'provider', 'email'),
+    'user'
+  )
+  ON CONFLICT (id) DO NOTHING;
 
-    INSERT INTO public.subscriptions (user_id, plan, status, current_period_start, current_period_end)
-    VALUES (new.id, default_plan, 'active', now(), monthly_reset);
+  INSERT INTO public.subscriptions (user_id, plan, status, current_period_start, current_period_end)
+  VALUES (new.id, default_plan, 'active', now(), monthly_reset)
+  ON CONFLICT (user_id) DO NOTHING;
 
-    INSERT INTO public.quotas (user_id, plan, prd_used, prd_limit, revision_used, revision_limit, reset_at)
-    VALUES (new.id, default_plan, 0, 3, 0, 3, monthly_reset);
-    
-  EXCEPTION WHEN OTHERS THEN
-    -- DEBUG: Save the exact SQL error into the user's metadata so we can read it from the frontend!
-    -- This also prevents the "Database error saving new user" crash.
-    UPDATE auth.users 
-    SET raw_user_meta_data = jsonb_set(
-      COALESCE(raw_user_meta_data, '{}'::jsonb), 
-      '{trigger_error}', 
-      to_jsonb(SQLERRM)
-    )
-    WHERE id = new.id;
-  END;
+  INSERT INTO public.quotas (user_id, plan, prd_used, prd_limit, revision_used, revision_limit, reset_at)
+  VALUES (new.id, default_plan, 0, 3, 0, 3, monthly_reset)
+  ON CONFLICT (user_id) DO NOTHING;
 
   RETURN new;
 END;

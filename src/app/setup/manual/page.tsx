@@ -10,7 +10,7 @@ export default async function ManualSetupPage() {
   await requireAuth();
 
   return (
-    <div className="flex min-h-[calc(100vh-64px)] w-full justify-center bg-light-gray-bg py-16">
+    <div className="flex min-h-screen w-full justify-center bg-light-gray-bg dark:bg-[#161616] py-16">
       <Suspense fallback={<div>Loading...</div>}>
         <ManualSetupClient />
       </Suspense>

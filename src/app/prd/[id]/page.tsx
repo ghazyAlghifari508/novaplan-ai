@@ -11,23 +11,27 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const supabase = await createClient();
   const { id } = await params;
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { title: "PRD" };
+  }
 
   const { data: project } = await supabase
     .from("projects")
     .select("name")
     .eq("id", id)
-    .single();
+    .eq("user_id", user.id)
+    .maybeSingle();
 
   return {
     title: project?.name || "PRD",
   };
 }
 
-export default async function PrdPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function PrdPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await requireAuth();
   const plan = await getUserPlan();
   const quota = await getUserQuota();

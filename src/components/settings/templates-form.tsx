@@ -62,9 +62,9 @@ export const TemplatesForm = memo(function TemplatesForm({ templates }: Template
 
   return (
     <div className="space-y-8">
-      <div className="rounded-xl border border-border-subtle bg-light-gray-bg p-5">
+      <div className="rounded-xl border border-border-subtle dark:border-white/10 bg-light-gray-bg dark:bg-[#161616] p-5">
         <h3 className="font-fustat text-base font-bold">Buat Template Baru</h3>
-        <p className="mt-1 text-sm text-text-gray">
+        <p className="mt-1 text-sm text-text-gray dark:text-[#A0A0A0]">
           Pilih section PRD yang ingin kamu gunakan sebagai struktur template.
         </p>
 
@@ -101,8 +101,8 @@ export const TemplatesForm = memo(function TemplatesForm({ templates }: Template
                   onClick={() => toggleSection(section)}
                   className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
                     selectedSections.includes(section)
-                      ? "border-primary-black bg-primary-black text-white"
-                      : "border-border-subtle bg-white text-text-gray hover:border-primary-black"
+                      ? "border-primary-black btn-primary"
+                      : "border-border-subtle dark:border-white/10 bg-white dark:bg-[#1E1E1E] text-text-gray dark:text-[#A0A0A0] hover:border-primary-black"
                   }`}
                 >
                   {section}
@@ -119,7 +119,7 @@ export const TemplatesForm = memo(function TemplatesForm({ templates }: Template
         </div>
       </div>
 
-      <hr className="border-border-subtle" />
+      <hr className="border-border-subtle dark:border-white/10" />
 
       <div>
         <h3 className="font-fustat text-base font-bold">
@@ -127,20 +127,20 @@ export const TemplatesForm = memo(function TemplatesForm({ templates }: Template
         </h3>
 
         {templates.length === 0 ? (
-          <p className="mt-2 text-sm text-text-gray">Belum ada template.</p>
+          <p className="mt-2 text-sm text-text-gray dark:text-[#A0A0A0]">Belum ada template.</p>
         ) : (
           <div className="mt-4 space-y-3">
             {templates.map((t) => (
               <div
                 key={t.id}
-                className="flex items-center justify-between rounded-lg border border-border-subtle bg-white p-4"
+                className="flex items-center justify-between rounded-lg border border-border-subtle dark:border-white/10 bg-white dark:bg-[#1E1E1E] p-4"
               >
                 <div>
                   <p className="font-medium text-sm">{t.name}</p>
                   {t.description && (
-                    <p className="text-xs text-text-gray mt-0.5">{t.description}</p>
+                    <p className="text-xs text-text-gray dark:text-[#A0A0A0] mt-0.5">{t.description}</p>
                   )}
-                  <p className="text-xs text-text-gray mt-1">
+                  <p className="text-xs text-text-gray dark:text-[#A0A0A0] mt-1">
                     {t.structure?.length || 0} section
                   </p>
                 </div>

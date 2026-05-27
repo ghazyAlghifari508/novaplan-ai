@@ -31,8 +31,8 @@ export async function deletePrd(projectId: string) {
     .eq("id", projectId)
     .eq("user_id", user.id);
 
-  revalidatePath("/dashboard");
-  redirect("/dashboard");
+  revalidatePath("/");
+  redirect("/");
 }
 
 export async function duplicatePrd(projectId: string) {
@@ -78,6 +78,6 @@ export async function duplicatePrd(projectId: string) {
     });
   }
 
-  revalidatePath("/dashboard");
+  revalidatePath("/");
   redirect(`/prd/${newProject.id}`);
 }

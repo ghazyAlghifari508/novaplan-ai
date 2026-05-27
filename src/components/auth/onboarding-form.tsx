@@ -78,7 +78,7 @@ export function OnboardingForm() {
       .eq("id", data.user.id);
 
     setUser({ id: data.user.id, email: data.user.email! });
-    router.push("/dashboard");
+    router.push("/");
   };
 
   return (
@@ -89,7 +89,7 @@ export function OnboardingForm() {
           {step === 2 && "Apa peran kamu?"}
           {step === 3 && "Apa tujuan kamu?"}
         </h1>
-        <p className="mt-2 text-text-gray">
+        <p className="mt-2 text-text-gray dark:text-[#A0A0A0]">
           {step === 1 && "Kami akan menyapa kamu dengan nama ini"}
           {step === 2 && "Supaya kami bisa menyesuaikan pengalaman"}
           {step === 3 && "Bisa pilih lebih dari satu"}
@@ -122,8 +122,8 @@ export function OnboardingForm() {
               }}
               className={`rounded-lg border p-4 text-left transition-all ${
                 role === r.value
-                  ? "border-primary-black bg-primary-black text-white"
-                  : "border-border-subtle hover:border-primary-black/30"
+                  ? "border-primary-black btn-primary"
+                  : "border-border-subtle dark:border-white/10 hover:border-primary-black/30"
               }`}
             >
               {r.label}
@@ -140,8 +140,8 @@ export function OnboardingForm() {
               onClick={() => toggleTujuan(g.value)}
               className={`rounded-lg border p-4 text-left transition-all ${
                 tujuan.includes(g.value)
-                  ? "border-primary-black bg-primary-black text-white"
-                  : "border-border-subtle hover:border-primary-black/30"
+                  ? "border-primary-black btn-primary"
+                  : "border-border-subtle dark:border-white/10 hover:border-primary-black/30"
               }`}
             >
               {g.label}
@@ -151,9 +151,7 @@ export function OnboardingForm() {
       )}
 
       {error && (
-        <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
-          {error}
-        </div>
+        <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>
       )}
 
       <div className="flex items-center gap-3">
@@ -162,17 +160,15 @@ export function OnboardingForm() {
             <div
               key={s}
               className={`h-1 flex-1 rounded-full transition-all ${
-                s <= step ? "bg-primary-black" : "bg-light-gray-bg"
+                s <= step ? "bg-[var(--btn-bg)]" : "bg-light-gray-bg dark:bg-[#161616]"
               }`}
             />
           ))}
         </div>
         {step < 3 ? (
-          <Button onClick={handleNext} size="md">
-            Lanjut
-          </Button>
+          <Button onClick={handleNext}>Lanjut</Button>
         ) : (
-          <Button onClick={handleSubmit} size="md" isLoading={loading}>
+          <Button onClick={handleSubmit} isLoading={loading}>
             Selesai
           </Button>
         )}

@@ -37,12 +37,12 @@ export function ChatBubble({
         className={cn(
           "max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
           isUser
-            ? "bg-primary-black rounded-br-md"
+            ? "bg-[var(--btn-bg)] rounded-br-md"
             : "rounded-bl-md",
         )}
         style={
           isUser
-            ? { color: "#ffffff" }
+            ? { color: "var(--btn-text)" }
             : { background: "var(--bg-surface)", color: "var(--text-primary)" }
         }
       >
@@ -55,8 +55,8 @@ export function ChatBubble({
       </div>
 
       {isUser && (
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-black">
-          <span className="text-xs" style={{ color: "#ffffff" }}>U</span>
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--btn-bg)]">
+          <span className="text-xs" style={{ color: "var(--btn-text)" }}>U</span>
         </div>
       )}
     </motion.div>

@@ -29,7 +29,7 @@ export function PrdActions({
           setShowRename(!showRename);
           setTimeout(() => inputRef.current?.focus(), 50);
         }}
-        className="rounded-lg px-3 py-1.5 text-xs font-medium text-text-gray transition-colors hover:bg-light-gray-bg"
+        className="rounded-lg px-3 py-1.5 text-xs font-medium text-text-gray dark:text-[#A0A0A0] transition-colors hover:bg-light-gray-bg dark:bg-[#161616]"
       >
         Rename
       </button>
@@ -37,7 +37,7 @@ export function PrdActions({
       <form action={duplicatePrd.bind(null, projectId)}>
         <button
           type="submit"
-          className="rounded-lg px-3 py-1.5 text-xs font-medium text-text-gray transition-colors hover:bg-light-gray-bg"
+          className="rounded-lg px-3 py-1.5 text-xs font-medium text-text-gray dark:text-[#A0A0A0] transition-colors hover:bg-light-gray-bg dark:bg-[#161616]"
         >
           Duplicate
         </button>
@@ -71,7 +71,7 @@ export function PrdActions({
           <button
             type="button"
             onClick={() => setShowRename(false)}
-            className="text-xs text-text-gray hover:text-primary-black"
+            className="text-xs text-text-gray dark:text-[#A0A0A0] hover:text-primary-black dark:text-[#F0F0F0]"
           >
             Cancel
           </button>
@@ -91,7 +91,7 @@ export function PrdActions({
           </form>
           <button
             onClick={() => setShowDelete(false)}
-            className="text-xs text-text-gray hover:text-primary-black"
+            className="text-xs text-text-gray dark:text-[#A0A0A0] hover:text-primary-black dark:text-[#F0F0F0]"
           >
             Batal
           </button>

@@ -53,14 +53,14 @@ export function PreferenceForm({ onSubmit }: PreferenceFormProps) {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="max-h-[60vh] space-y-6 overflow-y-auto rounded-xl border border-border-subtle bg-white p-6"
+      className="max-h-[60vh] space-y-6 overflow-y-auto rounded-xl border border-border-subtle dark:border-white/10 bg-white dark:bg-[#1E1E1E] p-6"
     >
       <div className="flex items-center gap-2">
         {[0, 1, 2, 3].map((s) => (
           <div
             key={s}
             className={`h-1 flex-1 rounded-full transition-all ${
-              s <= step ? "bg-primary-black" : "bg-light-gray-bg"
+              s <= step ? "bg-[var(--btn-bg)]" : "bg-light-gray-bg dark:bg-[#161616]"
             }`}
           />
         ))}
@@ -115,8 +115,8 @@ export function PreferenceForm({ onSubmit }: PreferenceFormProps) {
                   onClick={() => togglePlatform(p)}
                   className={`rounded-lg border px-4 py-2 text-sm transition-all ${
                     platform.includes(p)
-                      ? "border-primary-black bg-primary-black text-white"
-                      : "border-border-subtle hover:border-primary-black/30"
+                      ? "border-primary-black btn-primary"
+                      : "border-border-subtle dark:border-white/10 hover:border-primary-black/30"
                   }`}
                 >
                   {p}
@@ -175,8 +175,8 @@ export function PreferenceForm({ onSubmit }: PreferenceFormProps) {
                   onClick={() => setTeamSize(t)}
                   className={`rounded-lg border px-4 py-2 text-sm transition-all ${
                     teamSize === t
-                      ? "border-primary-black bg-primary-black text-white"
-                      : "border-border-subtle hover:border-primary-black/30"
+                      ? "border-primary-black btn-primary"
+                      : "border-border-subtle dark:border-white/10 hover:border-primary-black/30"
                   }`}
                 >
                   {t}
@@ -195,8 +195,8 @@ export function PreferenceForm({ onSubmit }: PreferenceFormProps) {
                   onClick={() => setTimeline(t)}
                   className={`rounded-lg border px-4 py-2 text-sm transition-all ${
                     timeline === t
-                      ? "border-primary-black bg-primary-black text-white"
-                      : "border-border-subtle hover:border-primary-black/30"
+                      ? "border-primary-black btn-primary"
+                      : "border-border-subtle dark:border-white/10 hover:border-primary-black/30"
                   }`}
                 >
                   {t}
@@ -225,8 +225,8 @@ export function PreferenceForm({ onSubmit }: PreferenceFormProps) {
                   onClick={() => setLanguage(l)}
                   className={`rounded-lg border px-4 py-2 text-sm transition-all ${
                     language === l
-                      ? "border-primary-black bg-primary-black text-white"
-                      : "border-border-subtle hover:border-primary-black/30"
+                      ? "border-primary-black btn-primary"
+                      : "border-border-subtle dark:border-white/10 hover:border-primary-black/30"
                   }`}
                 >
                   {l}

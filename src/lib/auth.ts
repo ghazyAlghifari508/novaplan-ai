@@ -1,12 +1,13 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Plan } from "@/types/database";
+import { cache } from "react";
 
-export async function getUser() {
+export const getUser = cache(async () => {
   const supabase = await createClient();
-  const { data } = await supabase.auth.getUser();
-  return data.user;
-}
+  const { data } = await supabase.auth.getSession();
+  return data.session?.user || null;
+});
 
 export async function requireAuth() {
   const user = await getUser();
@@ -16,7 +17,7 @@ export async function requireAuth() {
   return user;
 }
 
-export async function getUserProfile() {
+export const getUserProfile = cache(async () => {
   const user = await getUser();
   if (!user) return null;
 
@@ -28,9 +29,9 @@ export async function getUserProfile() {
     .single();
 
   return profile;
-}
+});
 
-export async function getUserQuota() {
+export const getUserQuota = cache(async () => {
   const user = await getUser();
   if (!user) return null;
 
@@ -42,9 +43,9 @@ export async function getUserQuota() {
     .single();
 
   return quota;
-}
+});
 
-export async function getUserPlan(): Promise<Plan> {
+export const getUserPlan = cache(async (): Promise<Plan> => {
   const user = await getUser();
   if (!user) return "free";
 
@@ -56,4 +57,4 @@ export async function getUserPlan(): Promise<Plan> {
     .single();
 
   return (subscription?.plan as Plan) || "free";
-}
+});

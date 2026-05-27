@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useChatStore } from "@/store";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { useChatStore, useUIStore } from "@/store";
 import { ChatBubble } from "./chat-bubble";
 import { TypingIndicator } from "./typing-indicator";
 import { GenerationProgress } from "./generation-progress";
 import { cn } from "@/lib/utils";
+import { consumePendingPrdPrompt } from "@/lib/prompt-handoff";
 import Link from "next/link";
 import { AlertCircle, X } from "lucide-react";
 
@@ -15,26 +15,26 @@ interface ChatPanelProps {
   conversationId?: string;
   className?: string;
   onProjectCreated?: (projectId: string) => void;
+  enableAutoSubmit?: boolean;
 }
-
-// Shared variable outside component to prevent multiple instances from auto-submitting
-let lastAutoSubmitTime = 0;
 
 export function ChatPanel({
   projectId,
   conversationId: initialConversationId,
   className,
   onProjectCreated,
+  enableAutoSubmit = true,
 }: ChatPanelProps) {
   const [input, setInput] = useState("");
   const [conversationId, setConversationId] = useState(initialConversationId);
   const [streamingContent, setStreamingContent] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [limitErrorMsg, setLimitErrorMsg] = useState("");
+  const isSubmittingRef = useRef(false);
+  const autoSubmitAttemptedRef = useRef(false);
+  const showToast = useUIStore((s) => s.showToast);
 
   // Close limit modal on Escape key
   useEffect(() => {
@@ -60,35 +60,6 @@ export function ChatPanel({
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, streamingContent]);
-
-  // Auto-submit prompt from URL if present
-  useEffect(() => {
-    const prompt = searchParams.get("prompt");
-    const mode = searchParams.get("mode");
-    if (prompt && !isStreaming && messages.length === 0) {
-      // Prevent multiple instances (desktop/mobile) and StrictMode from firing simultaneously
-      const now = Date.now();
-      if (now - lastAutoSubmitTime < 1000) return;
-      lastAutoSubmitTime = now;
-
-      // Clear prompt from URL immediately to avoid re-triggering
-      const url = new URL(window.location.href);
-      url.searchParams.delete("prompt");
-      url.searchParams.delete("mode");
-      router.replace(url.pathname + url.search);
-      
-      if (mode === "auto") {
-        setGeneratingPRD(true);
-        const autoMessage = `Generate PRD lengkap berdasarkan informasi berikut:\n\n${prompt}\n\nGunakan section markers sesuai standar.`;
-        handleSendWithMessage(autoMessage, "generate", prompt);
-      } else {
-        // Auto-send the prompt
-        handleSendWithMessage(prompt, "chat");
-      }
-    }
-  }, [searchParams, router, isStreaming, messages.length]);
-
-  const isSubmittingRef = useRef(false);
 
   // Sync ref with isStreaming state to ensure we can send again when streaming finishes
   useEffect(() => {
@@ -135,7 +106,7 @@ export function ChatPanel({
         const err = await response.json();
         setStreaming(false);
         isSubmittingRef.current = false;
-        
+
         if (response.status === 403 || response.status === 429) {
           setLimitErrorMsg(err.error || "Limit tercapai");
           setShowLimitModal(true);
@@ -180,7 +151,15 @@ export function ChatPanel({
                 onProjectCreated(parsed.projectId);
               }
             } else if (parsed.type === "error") {
-              fullContent = parsed.error;
+              fullContent = "";
+              addMessage({
+                id: crypto.randomUUID(),
+                role: "assistant",
+                content: parsed.error || "Gagal memproses pesan. Silakan coba lagi.",
+                timestamp: Date.now(),
+              });
+              showToast("Gagal memproses pesan. Silakan coba lagi.", "error");
+              return;
             }
           } catch {
             continue;
@@ -208,190 +187,237 @@ export function ChatPanel({
     }
   };
 
-  const handleSendWithMessage = async (
-    msg: string,
-    chatMode: "chat" | "generate" | "revise" = "chat",
-    displayMessage?: string | null
-  ) => {
-    if (isSubmittingRef.current) return;
-    isSubmittingRef.current = true;
+  const handleSendWithMessage = useCallback(
+    async (
+      msg: string,
+      chatMode: "chat" | "generate" | "revise" = "chat",
+      displayMessage?: string | null,
+    ) => {
+      if (isSubmittingRef.current) return;
+      isSubmittingRef.current = true;
 
-    if (displayMessage !== null) {
-      addMessage({
-        id: crypto.randomUUID(),
-        role: "user",
-        content: displayMessage || msg,
-        timestamp: Date.now(),
-      });
-    }
-
-    setStreaming(true);
-    setStreamingContent("");
-
-    const body: Record<string, unknown> = {
-      message: msg,
-      mode: chatMode,
-    };
-
-    if (conversationId) body.conversationId = conversationId;
-    if (projectId) body.projectId = projectId;
-
-    let fullContent = "";
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      if (!response.ok) {
-        const err = await response.json();
-        setStreaming(false);
-        setGeneratingPRD(false);
-        isSubmittingRef.current = false;
-
-        if (response.status === 403 || response.status === 429) {
-          setLimitErrorMsg(err.error || "Limit tercapai");
-          setShowLimitModal(true);
-        } else {
-          addMessage({
-            id: crypto.randomUUID(),
-            role: "assistant",
-            content: err.error || "Terjadi kesalahan",
-            timestamp: Date.now(),
-          });
-        }
-        return;
-      }
-
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      while (reader) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
-
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          const data = line.slice(6);
-
-          try {
-            const parsed = JSON.parse(data);
-
-            if (parsed.type === "delta") {
-              fullContent += parsed.content;
-              if (chatMode === "generate" || chatMode === "revise") {
-                setStreamingPRDContent(fullContent);
-              } else {
-                setStreamingContent(fullContent);
-              }
-            } else if (parsed.type === "done") {
-              if (parsed.conversationId) {
-                setConversationId(parsed.conversationId);
-              }
-              if (parsed.projectId && onProjectCreated && !projectId) {
-                onProjectCreated(parsed.projectId);
-              }
-            } else if (parsed.type === "error") {
-              fullContent = "";
-              addMessage({
-                id: crypto.randomUUID(),
-                role: "assistant",
-                content: `Gagal generate PRD: ${parsed.error || "Terjadi kesalahan pada AI model."}`,
-                timestamp: Date.now(),
-              });
-              setGeneratingPRD(false);
-              setStreamingPRDContent("");
-              return;
-            }
-          } catch {
-            continue;
-          }
-        }
-      }
-
-      if (chatMode === "generate" || chatMode === "revise") {
-        if (fullContent.trim()) {
-          addMessage({
-            id: crypto.randomUUID(),
-            role: "assistant",
-            content: "Selesai menyusun PRD.",
-            timestamp: Date.now(),
-          });
-        } else {
-          addMessage({
-            id: crypto.randomUUID(),
-            role: "assistant",
-            content: "Gagal menyusun PRD. AI tidak menghasilkan konten. Silakan coba lagi.",
-            timestamp: Date.now(),
-          });
-          setGeneratingPRD(false);
-          setStreamingPRDContent("");
-        }
-      } else {
+      if (displayMessage !== null) {
         addMessage({
           id: crypto.randomUUID(),
-          role: "assistant",
-          content: fullContent,
+          role: "user",
+          content: displayMessage || msg,
           timestamp: Date.now(),
         });
       }
-    } catch {
-      addMessage({
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: "Terjadi kesalahan koneksi.",
-        timestamp: Date.now(),
-      });
-    } finally {
-      setStreaming(false);
+
+      setStreaming(true);
       setStreamingContent("");
-      // Don't clear PRD streaming state here for generate/revise modes.
-      // The content must stay visible until the page navigates to /prd/[id].
-      // It will be cleared when the new page mounts and the component unmounts.
-      if (chatMode !== "generate" && chatMode !== "revise") {
-        setStreamingPRDContent("");
-        setGeneratingPRD(false);
+
+      const body: Record<string, unknown> = {
+        message: msg,
+        mode: chatMode,
+      };
+
+      if (conversationId) body.conversationId = conversationId;
+      if (projectId) body.projectId = projectId;
+
+      let fullContent = "";
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+          const err = await response.json();
+          setStreaming(false);
+          setGeneratingPRD(false);
+          isSubmittingRef.current = false;
+
+          if (response.status === 403 || response.status === 429) {
+            setLimitErrorMsg(err.error || "Limit tercapai");
+            setShowLimitModal(true);
+          } else {
+            addMessage({
+              id: crypto.randomUUID(),
+              role: "assistant",
+              content: err.error || "Terjadi kesalahan",
+              timestamp: Date.now(),
+            });
+          }
+          return;
+        }
+
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (reader) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            const data = line.slice(6);
+
+            try {
+              const parsed = JSON.parse(data);
+
+              if (parsed.type === "delta") {
+                fullContent += parsed.content;
+                if (chatMode === "generate" || chatMode === "revise") {
+                  setStreamingPRDContent(fullContent);
+                } else {
+                  setStreamingContent(fullContent);
+                }
+              } else if (parsed.type === "done") {
+                if (parsed.conversationId) {
+                  setConversationId(parsed.conversationId);
+                }
+                if (parsed.projectId && onProjectCreated && !projectId) {
+                  onProjectCreated(parsed.projectId);
+                }
+              } else if (parsed.type === "error") {
+                fullContent = "";
+                addMessage({
+                  id: crypto.randomUUID(),
+                  role: "assistant",
+                  content:
+                    parsed.error ||
+                    (chatMode === "generate" || chatMode === "revise"
+                      ? "Gagal menyusun PRD. Silakan coba lagi."
+                      : "Gagal memproses pesan. Silakan coba lagi."),
+                  timestamp: Date.now(),
+                });
+                showToast(
+                  chatMode === "generate" || chatMode === "revise"
+                    ? "Gagal menyusun PRD. Silakan coba lagi."
+                    : "Gagal memproses pesan. Silakan coba lagi.",
+                  "error",
+                );
+                setGeneratingPRD(false);
+                setStreamingPRDContent("");
+                return;
+              }
+            } catch {
+              continue;
+            }
+          }
+        }
+
+        if (chatMode === "generate" || chatMode === "revise") {
+          if (fullContent.trim()) {
+            addMessage({
+              id: crypto.randomUUID(),
+              role: "assistant",
+              content: "Selesai menyusun PRD.",
+              timestamp: Date.now(),
+            });
+          } else {
+            addMessage({
+              id: crypto.randomUUID(),
+              role: "assistant",
+              content:
+                "Gagal menyusun PRD. AI tidak menghasilkan konten. Silakan coba lagi.",
+              timestamp: Date.now(),
+            });
+            setGeneratingPRD(false);
+            setStreamingPRDContent("");
+          }
+        } else {
+          addMessage({
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: fullContent,
+            timestamp: Date.now(),
+          });
+        }
+      } catch {
+        addMessage({
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: "Terjadi kesalahan koneksi.",
+          timestamp: Date.now(),
+        });
+      } finally {
+        setStreaming(false);
+        setStreamingContent("");
+        // Don't clear PRD streaming state here for generate/revise modes.
+        // The content must stay visible until the page navigates to /prd/[id].
+        // It will be cleared when the new page mounts and the component unmounts.
+        if (chatMode !== "generate" && chatMode !== "revise") {
+          setStreamingPRDContent("");
+          setGeneratingPRD(false);
+        }
+        isSubmittingRef.current = false;
       }
-      isSubmittingRef.current = false;
+    },
+    [
+      addMessage,
+      conversationId,
+      onProjectCreated,
+      projectId,
+      setGeneratingPRD,
+      setStreaming,
+      setStreamingPRDContent,
+      showToast,
+    ],
+  );
+
+  useEffect(() => {
+    if (
+      !enableAutoSubmit ||
+      isStreaming ||
+      messages.length > 0 ||
+      autoSubmitAttemptedRef.current
+    ) {
+      return;
     }
-  };
+
+    const pending = consumePendingPrdPrompt();
+    if (!pending) return;
+
+    autoSubmitAttemptedRef.current = true;
+
+    if (pending.mode === "auto") {
+      setGeneratingPRD(true);
+      const autoMessage = `Generate PRD lengkap berdasarkan informasi berikut:\n\n${pending.prompt}\n\nGunakan section markers sesuai standar.`;
+      void handleSendWithMessage(autoMessage, "generate", pending.prompt);
+    } else {
+      void handleSendWithMessage(pending.prompt, "chat");
+    }
+  }, [
+    enableAutoSubmit,
+    handleSendWithMessage,
+    isStreaming,
+    messages.length,
+    setGeneratingPRD,
+  ]);
 
   return (
     <div
-      className={cn("flex h-full flex-col border-l border-[var(--border-subtle)]", className)}
+      className={cn(
+        "flex h-full flex-col border-l border-[var(--border-subtle)]",
+        className,
+      )}
       style={{ background: "var(--bg-elevated)" }}
     >
       <div className="border-b border-[var(--border-subtle)] px-4 py-3">
         <div className="flex items-center gap-2">
           <div className="h-2 w-2 rounded-full bg-accent-green" />
-          <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>NovaPlan AI</span>
+          <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+            NovaPlan AI
+          </span>
         </div>
       </div>
 
-      <div
-        ref={scrollRef}
-        className="flex-1 space-y-4 overflow-y-auto p-4"
-      >
+      <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto p-4">
         {messages.map((msg) => (
-          <ChatBubble
-            key={msg.id}
-            role={msg.role}
-            content={msg.content}
-          />
+          <ChatBubble key={msg.id} role={msg.role} content={msg.content} />
         ))}
 
         {isStreaming && streamingContent && (
-          <ChatBubble
-            role="assistant"
-            content={streamingContent}
-            isStreaming
-          />
+          <ChatBubble role="assistant" content={streamingContent} isStreaming />
         )}
 
         {isStreaming && !streamingContent && <TypingIndicator />}
@@ -420,15 +446,9 @@ export function ChatPanel({
           <button
             onClick={handleSend}
             disabled={!input.trim() || isStreaming}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-black transition-all hover:opacity-80 disabled:opacity-30 dark:bg-white"
-            style={{ color: "white" }}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg btn-primary transition-all hover:opacity-80 disabled:opacity-30"
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-            >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path
                 d="M2 8L14 8M10 4L14 8L10 12"
                 stroke="currentColor"
@@ -448,7 +468,7 @@ export function ChatPanel({
           onClick={() => setShowLimitModal(false)}
         >
           <div
-            className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200"
+            className="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6">
@@ -458,16 +478,16 @@ export function ChatPanel({
                 </div>
                 <button
                   onClick={() => setShowLimitModal(false)}
-                  className="text-text-gray hover:text-primary-black transition-colors"
+                  className="text-text-gray dark:text-[#A0A0A0] hover:text-primary-black dark:text-[#F0F0F0] transition-colors"
                 >
                   <X size={20} />
                 </button>
               </div>
 
-              <h3 className="font-fustat text-xl font-bold text-primary-black mb-2 mt-2">
+              <h3 className="font-fustat text-xl font-bold text-primary-black dark:text-[#F0F0F0] mb-2 mt-2">
                 Limit Tercapai
               </h3>
-              <p className="font-schibsted text-text-gray text-sm mb-6 leading-relaxed">
+              <p className="font-schibsted text-text-gray dark:text-[#A0A0A0] text-sm mb-6 leading-relaxed">
                 {limitErrorMsg}
               </p>
 
@@ -475,14 +495,13 @@ export function ChatPanel({
                 <Link
                   href="/pricing"
                   onClick={() => setShowLimitModal(false)}
-                  className="w-full py-3 px-4 bg-primary-black text-center font-schibsted font-bold text-sm rounded-lg hover:opacity-90 transition-opacity"
-                  style={{ color: "white" }}
+                  className="w-full py-3 px-4 btn-primary text-center font-schibsted font-bold text-sm rounded-lg hover:opacity-90 transition-opacity"
                 >
                   🚀 Upgrade ke Hengker
                 </Link>
                 <button
                   onClick={() => setShowLimitModal(false)}
-                  className="w-full py-3 px-4 bg-light-gray-bg text-primary-black text-center font-schibsted font-medium text-sm rounded-lg hover:bg-border-subtle transition-colors"
+                  className="w-full py-3 px-4 bg-light-gray-bg dark:bg-[#161616] text-primary-black dark:text-[#F0F0F0] text-center font-schibsted font-medium text-sm rounded-lg hover:bg-border-subtle transition-colors"
                 >
                   Nanti Saja
                 </button>

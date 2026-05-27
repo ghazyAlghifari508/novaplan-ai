@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { saveSetupPrompt } from "@/lib/prompt-handoff";
 
 interface ChatInputProps {
   className?: string;
@@ -17,19 +18,21 @@ export function ChatInput({ className }: ChatInputProps) {
 
   const handleSend = async () => {
     if (!message.trim()) return;
-    
+
     const supabase = createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
+    saveSetupPrompt(message.trim());
+
     if (!user) {
-      const redirectUrl = `/setup?prompt=${encodeURIComponent(message)}`;
+      const redirectUrl = "/setup";
       router.push(`/login?redirect=${encodeURIComponent(redirectUrl)}`);
       return;
     }
 
-    router.push(`/setup?prompt=${encodeURIComponent(message)}`);
+    router.push("/setup");
   };
 
   return (
@@ -48,7 +51,10 @@ export function ChatInput({ className }: ChatInputProps) {
             <span className="font-schibsted text-[12px] font-medium text-white">
               3 PRD Gratis
             </span>
-            <Link href="/pricing" className="rounded-full bg-accent-green px-2.5 py-0.5 font-schibsted text-[10px] font-bold text-primary-black hover:opacity-90 transition-opacity uppercase tracking-wider cursor-pointer">
+            <Link
+              href="/pricing"
+              className="rounded-full bg-accent-green px-2.5 py-0.5 font-schibsted text-[10px] font-bold text-primary-black dark:text-[#F0F0F0] hover:opacity-90 transition-opacity uppercase tracking-wider cursor-pointer"
+            >
               Upgrade
             </Link>
           </div>
@@ -79,7 +85,7 @@ export function ChatInput({ className }: ChatInputProps) {
           {/* Bottom row inside input area */}
           <div className="flex items-center justify-end mt-2">
             <div className="flex items-center gap-4">
-              <span className="text-[12px] text-text-gray font-schibsted">
+              <span className="text-[12px] text-text-gray dark:text-[#A0A0A0] font-schibsted">
                 {message.length.toLocaleString()}/3,000
               </span>
               <button
@@ -88,12 +94,24 @@ export function ChatInput({ className }: ChatInputProps) {
                 className={cn(
                   "flex h-[36px] w-[36px] items-center justify-center rounded-full transition-all duration-200",
                   message.trim()
-                    ? "bg-primary-black text-white hover:opacity-90"
-                    : "bg-[#f8f8f8] text-text-gray/40",
+                    ? "btn-primary hover:opacity-90"
+                    : "bg-[#f8f8f8] dark:bg-[#1A1A1A] text-text-gray dark:text-[#A0A0A0]/40",
                 )}
               >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M7 11.5V2.5M7 2.5L2.5 7M7 2.5L11.5 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 14 14"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M7 11.5V2.5M7 2.5L2.5 7M7 2.5L11.5 7"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </button>
             </div>

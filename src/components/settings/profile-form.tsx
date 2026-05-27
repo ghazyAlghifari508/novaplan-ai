@@ -26,11 +26,11 @@ export const ProfileForm = memo(function ProfileForm({
               className="h-16 w-16 rounded-full object-cover"
             />
           ) : (
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-light-gray-bg text-2xl text-text-gray">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-light-gray-bg dark:bg-[#161616] text-2xl text-text-gray dark:text-[#A0A0A0]">
               {profile.full_name?.charAt(0) || profile.email.charAt(0)}
             </div>
           )}
-          <label className="absolute -bottom-1 -right-1 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-primary-black text-white text-xs shadow hover:bg-text-gray">
+          <label className="absolute -bottom-1 -right-1 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full btn-primary text-xs shadow hover:bg-text-gray">
             +
             <input
               type="file"
@@ -54,10 +54,8 @@ export const ProfileForm = memo(function ProfileForm({
         </div>
 
         <div>
-          <h2 className="font-fustat text-lg font-bold">
-            {profile.full_name || "User"}
-          </h2>
-          <p className="text-sm text-text-gray">{profile.email}</p>
+          <h2 className="font-fustat text-lg font-bold">{profile.full_name || "User"}</h2>
+          <p className="text-sm text-text-gray dark:text-[#A0A0A0]">{profile.email}</p>
         </div>
       </div>
 
@@ -76,7 +74,7 @@ export const ProfileForm = memo(function ProfileForm({
           <select
             name="role"
             defaultValue="user"
-            className="h-11 w-full rounded-lg border border-border-subtle bg-white px-4 text-sm focus:border-primary-black focus:outline-none focus:ring-2 focus:ring-primary-black/5"
+            className="h-11 w-full rounded-lg border border-border-subtle dark:border-white/10 bg-white dark:bg-[#1E1E1E] px-4 text-sm focus:border-primary-black focus:outline-none focus:ring-2 focus:ring-primary-black/5"
           >
             <option value="pm">Product Manager</option>
             <option value="developer">Software Developer</option>
@@ -87,9 +85,7 @@ export const ProfileForm = memo(function ProfileForm({
           </select>
         </div>
 
-        <Button type="submit" size="md">
-          Simpan Perubahan
-        </Button>
+        <Button type="submit">Simpan Perubahan</Button>
       </form>
     </div>
   );

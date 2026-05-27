@@ -38,7 +38,7 @@ export function VersionHistory({
   if (versions.length <= 1) {
     return (
       <div className={cn("p-4", className)}>
-        <p className="text-xs text-text-gray">Belum ada revisi</p>
+        <p className="text-xs text-text-gray dark:text-[#A0A0A0]">Belum ada revisi</p>
       </div>
     );
   }
@@ -58,7 +58,7 @@ export function VersionHistory({
     <div className={cn("space-y-1", className)}>
       <button
         onClick={() => setExpanded(!expanded)}
-        className="mb-2 flex w-full items-center justify-between text-sm font-medium text-text-gray hover:text-primary-black"
+        className="mb-2 flex w-full items-center justify-between text-sm font-medium text-text-gray dark:text-[#A0A0A0] hover:text-primary-black dark:text-[#F0F0F0]"
       >
         <span>Version History ({versions.length})</span>
         <svg
@@ -86,8 +86,8 @@ export function VersionHistory({
                   className={cn(
                     "w-full rounded-lg px-3 py-2 text-left text-sm transition-colors",
                     selected === v.version
-                      ? "bg-primary-black text-white"
-                      : "hover:bg-light-gray-bg text-text-gray",
+                      ? "btn-primary"
+                      : "hover:bg-light-gray-bg dark:bg-[#161616] text-text-gray dark:text-[#A0A0A0]",
                   )}
                 >
                   <div className="flex items-center justify-between">
@@ -112,8 +112,8 @@ export function VersionHistory({
               </div>
             ))
           ) : (
-            <div className="rounded-lg bg-light-gray-bg p-3 text-center">
-              <p className="text-xs text-text-gray">
+            <div className="rounded-lg bg-light-gray-bg dark:bg-[#161616] p-3 text-center">
+              <p className="text-xs text-text-gray dark:text-[#A0A0A0]">
                 Upgrade ke Pro untuk melihat history revisi
               </p>
             </div>
@@ -123,14 +123,14 @@ export function VersionHistory({
 
       {diffMode && diffVersions && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="max-h-[80vh] w-full max-w-3xl overflow-auto rounded-xl bg-white p-6">
+          <div className="max-h-[80vh] w-full max-w-3xl overflow-auto rounded-xl bg-white dark:bg-[#1E1E1E] p-6">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="font-fustat text-lg font-bold">
                 Diff: v{diffVersions[0].version} vs v{diffVersions[1].version}
               </h3>
               <button
                 onClick={() => setDiffMode(false)}
-                className="text-text-gray hover:text-primary-black"
+                className="text-text-gray dark:text-[#A0A0A0] hover:text-primary-black dark:text-[#F0F0F0]"
               >
                 Tutup
               </button>
@@ -154,7 +154,7 @@ function VersionCompareLinks({
 }) {
   return (
     <div className="px-3 pb-2">
-      <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wide text-text-gray">
+      <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wide text-text-gray dark:text-[#A0A0A0]">
         Bandingkan dengan
       </p>
       <div className="flex flex-wrap gap-1.5">
@@ -168,7 +168,7 @@ function VersionCompareLinks({
                 const currentV = versions.find((vv) => vv.version === selectedVersion);
                 if (currentV) onDiff(currentV, v);
               }}
-              className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] text-white transition-colors hover:bg-white/20"
+              className="rounded-md bg-white/10 dark:bg-black/10 px-2 py-0.5 text-[10px] text-[var(--btn-text)] transition-colors hover:bg-white/20 dark:hover:bg-black/20"
             >
               v{v.version}
             </button>
@@ -191,9 +191,9 @@ export function VersionDiff({ v1, v2 }: { v1: PrdVersion; v2: PrdVersion }) {
           key={i}
           className={cn(
             "rounded px-2 py-1",
-            part.type === "removed" && "bg-red-50 text-red-700",
-            part.type === "added" && "bg-green-50 text-green-700",
-            part.type === "unchanged" && "text-text-gray",
+            part.type === "removed" && "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400",
+            part.type === "added" && "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400",
+            part.type === "unchanged" && "text-text-gray dark:text-[#A0A0A0]",
           )}
         >
           {part.type === "removed" && "- "}

@@ -5,11 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { updateEmail, updatePassword, deleteAccount } from "@/app/actions/settings";
 
-export const AccountForm = memo(function AccountForm({
-  email,
-}: {
-  email: string;
-}) {
+export const AccountForm = memo(function AccountForm({ email }: { email: string }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteText, setDeleteText] = useState("");
 
@@ -26,10 +22,10 @@ export const AccountForm = memo(function AccountForm({
             placeholder="email@baru.com"
           />
         </div>
-        <Button type="submit" size="md">Update Email</Button>
+        <Button type="submit">Update Email</Button>
       </form>
 
-      <hr className="border-border-subtle" />
+      <hr className="border-border-subtle dark:border-white/10" />
 
       <form action={updatePassword} className="space-y-5">
         <h3 className="font-fustat text-base font-bold">Ganti Password</h3>
@@ -43,15 +39,15 @@ export const AccountForm = memo(function AccountForm({
             required
           />
         </div>
-        <Button type="submit" size="md">Update Password</Button>
+        <Button type="submit">Update Password</Button>
       </form>
 
-      <hr className="border-border-subtle" />
+      <hr className="border-border-subtle dark:border-white/10" />
 
-      <div className="space-y-4 rounded-xl border-2 border-red-200 bg-red-50 p-6">
+      <div className="space-y-4 rounded-xl border-2 border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/10 p-6">
         <div>
-          <h3 className="font-fustat text-base font-bold text-red-700">Danger Zone</h3>
-          <p className="mt-1 text-sm text-red-600">
+          <h3 className="font-fustat text-base font-bold text-red-700 dark:text-red-400">Danger Zone</h3>
+          <p className="mt-1 text-sm text-red-600 dark:text-red-300">
             Hapus akun secara permanen. Semua data PRD dan chat akan dihapus.
           </p>
         </div>
@@ -60,20 +56,20 @@ export const AccountForm = memo(function AccountForm({
           <button
             type="button"
             onClick={() => setConfirmDelete(true)}
-            className="rounded-lg border-2 border-red-300 px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-100"
+            className="rounded-lg border-2 border-red-300 dark:border-red-800/50 px-4 py-2 text-sm font-medium text-red-700 dark:text-red-400 transition-colors hover:bg-red-100 dark:hover:bg-red-900/20"
           >
             Hapus Akun Saya
           </button>
         ) : (
           <div className="space-y-3">
-            <p className="text-sm text-red-700">
+            <p className="text-sm text-red-700 dark:text-red-400">
               Ketik <strong>HAPUS</strong> untuk konfirmasi
             </p>
             <Input
               value={deleteText}
               onChange={(e) => setDeleteText(e.target.value)}
               placeholder="Ketik HAPUS"
-              className="max-w-xs border-red-300"
+              className="max-w-xs border-red-300 dark:border-red-800/50 dark:bg-red-900/10 dark:text-white"
             />
             <form action={deleteAccount}>
               <button

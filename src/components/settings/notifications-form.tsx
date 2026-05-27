@@ -15,7 +15,7 @@ export const NotificationsForm = memo(function NotificationsForm({
   return (
     <form action={updateNotificationPreferences} className="space-y-8">
       <div className="space-y-5">
-        <label className="flex items-start gap-3 rounded-lg border border-border-subtle bg-white p-4 cursor-pointer transition-colors hover:bg-light-gray-bg">
+        <label className="flex items-start gap-3 rounded-lg border border-border-subtle dark:border-white/10 bg-white dark:bg-[#1E1E1E] p-4 cursor-pointer transition-colors hover:bg-light-gray-bg dark:bg-[#161616]">
           <input
             type="checkbox"
             name="quota_warning"
@@ -24,13 +24,13 @@ export const NotificationsForm = memo(function NotificationsForm({
           />
           <div>
             <p className="font-medium text-sm">Peringatan Quota</p>
-            <p className="text-xs text-text-gray mt-0.5">
+            <p className="text-xs text-text-gray dark:text-[#A0A0A0] mt-0.5">
               Dapatkan notifikasi saat quota PRD mendekati batas
             </p>
           </div>
         </label>
 
-        <label className="flex items-start gap-3 rounded-lg border border-border-subtle bg-white p-4 cursor-pointer transition-colors hover:bg-light-gray-bg">
+        <label className="flex items-start gap-3 rounded-lg border border-border-subtle dark:border-white/10 bg-white dark:bg-[#1E1E1E] p-4 cursor-pointer transition-colors hover:bg-light-gray-bg dark:bg-[#161616]">
           <input
             type="checkbox"
             name="prd_completed"
@@ -39,13 +39,13 @@ export const NotificationsForm = memo(function NotificationsForm({
           />
           <div>
             <p className="font-medium text-sm">PRD Selesai</p>
-            <p className="text-xs text-text-gray mt-0.5">
+            <p className="text-xs text-text-gray dark:text-[#A0A0A0] mt-0.5">
               Notifikasi ketika PRD berhasil digenerate
             </p>
           </div>
         </label>
 
-        <label className="flex items-start gap-3 rounded-lg border border-border-subtle bg-white p-4 cursor-pointer transition-colors hover:bg-light-gray-bg">
+        <label className="flex items-start gap-3 rounded-lg border border-border-subtle dark:border-white/10 bg-white dark:bg-[#1E1E1E] p-4 cursor-pointer transition-colors hover:bg-light-gray-bg dark:bg-[#161616]">
           <input
             type="checkbox"
             name="payment_updates"
@@ -54,13 +54,13 @@ export const NotificationsForm = memo(function NotificationsForm({
           />
           <div>
             <p className="font-medium text-sm">Update Pembayaran</p>
-            <p className="text-xs text-text-gray mt-0.5">
+            <p className="text-xs text-text-gray dark:text-[#A0A0A0] mt-0.5">
               Konfirmasi pembayaran dan update subscription
             </p>
           </div>
         </label>
 
-        <label className="flex items-start gap-3 rounded-lg border border-border-subtle bg-white p-4 cursor-pointer transition-colors hover:bg-light-gray-bg">
+        <label className="flex items-start gap-3 rounded-lg border border-border-subtle dark:border-white/10 bg-white dark:bg-[#1E1E1E] p-4 cursor-pointer transition-colors hover:bg-light-gray-bg dark:bg-[#161616]">
           <input
             type="checkbox"
             name="product_updates"
@@ -69,16 +69,14 @@ export const NotificationsForm = memo(function NotificationsForm({
           />
           <div>
             <p className="font-medium text-sm">Update Produk</p>
-            <p className="text-xs text-text-gray mt-0.5">
+            <p className="text-xs text-text-gray dark:text-[#A0A0A0] mt-0.5">
               Info fitur baru dan update NovaPlan
             </p>
           </div>
         </label>
       </div>
 
-      <Button type="submit" size="md">
-        Simpan Preferensi
-      </Button>
+      <Button type="submit">Simpan Preferensi</Button>
     </form>
   );
 });

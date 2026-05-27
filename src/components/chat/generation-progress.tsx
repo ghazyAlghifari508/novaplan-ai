@@ -40,12 +40,12 @@ export function GenerationProgress({ isActive }: GenerationProgressProps) {
               animate={{ scale: [1, 1.5, 1] }}
               transition={{ duration: 1, repeat: Infinity }}
             />
-            <span className="text-sm text-text-gray">AI sedang bekerja...</span>
+            <span className="text-sm text-text-gray dark:text-[#A0A0A0]">AI sedang bekerja...</span>
           </div>
 
-          <div className="h-2 w-full max-w-md overflow-hidden rounded-full bg-light-gray-bg">
+          <div className="h-2 w-full max-w-md overflow-hidden rounded-full bg-light-gray-bg dark:bg-[#161616]">
             <motion.div
-              className="h-full rounded-full bg-primary-black"
+              className="h-full rounded-full bg-[var(--btn-bg)]"
               animate={{
                 width: ["0%", "25%", "50%", "75%", "100%"],
               }}
@@ -59,17 +59,17 @@ export function GenerationProgress({ isActive }: GenerationProgressProps) {
                 key={step}
                 className={`flex items-center gap-2 text-sm transition-all duration-500 ${
                   index <= currentStep
-                    ? "text-primary-black"
-                    : "text-text-gray/30"
+                    ? "text-primary-black dark:text-[#F0F0F0]"
+                    : "text-text-gray dark:text-[#A0A0A0]/30"
                 }`}
               >
                 <span className="w-5 flex justify-center">
                   {index < currentStep ? (
                     <CheckCircle2 size={16} className="text-accent-green" />
                   ) : index === currentStep ? (
-                    <Loader2 size={16} className="animate-spin text-primary-black" />
+                    <Loader2 size={16} className="animate-spin text-primary-black dark:text-[#F0F0F0]" />
                   ) : (
-                    <Circle size={16} className="text-text-gray/30" />
+                    <Circle size={16} className="text-text-gray dark:text-[#A0A0A0]/30" />
                   )}
                 </span>
                 {step}

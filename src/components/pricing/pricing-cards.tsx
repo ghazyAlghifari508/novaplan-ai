@@ -25,7 +25,7 @@ const TIERS: Tier[] = [
     plan: "free",
     name: "Gratis",
     icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-text-gray">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-text-gray dark:text-[#A0A0A0]">
         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
         <path d="M9 14v-4"></path>
         <path d="M12 14v-4"></path>
@@ -109,18 +109,18 @@ export const PricingCards = memo(function PricingCards() {
     <div className="mx-auto max-w-6xl px-6 py-16">
       <ScrollReveal className="mb-12 text-center">
         <h1 className="font-fustat text-4xl font-bold">Pilih Plan</h1>
-        <p className="mt-3 text-text-gray">
+        <p className="mt-3 text-text-gray dark:text-[#A0A0A0]">
           Mulai gratis, upgrade kapan saja sesuai kebutuhan
         </p>
 
-        <div className="mt-8 inline-flex rounded-xl bg-light-gray-bg p-1">
+        <div className="mt-8 inline-flex rounded-xl bg-light-gray-bg dark:bg-[#161616] p-1">
           <button
             onClick={() => setBilling("monthly")}
             className={cn(
               "rounded-lg px-6 py-2 text-sm font-medium transition-all",
               billing === "monthly"
-                ? "bg-white text-primary-black shadow-sm"
-                : "text-text-gray",
+                ? "bg-white dark:bg-[#1E1E1E] text-primary-black dark:text-[#F0F0F0] shadow-sm"
+                : "text-text-gray dark:text-[#A0A0A0]",
             )}
           >
             Bulanan
@@ -130,8 +130,8 @@ export const PricingCards = memo(function PricingCards() {
             className={cn(
               "rounded-lg px-6 py-2 text-sm font-medium transition-all",
               billing === "yearly"
-                ? "bg-white text-primary-black shadow-sm"
-                : "text-text-gray",
+                ? "bg-white dark:bg-[#1E1E1E] text-primary-black dark:text-[#F0F0F0] shadow-sm"
+                : "text-text-gray dark:text-[#A0A0A0]",
             )}
           >
             Tahunan
@@ -151,11 +151,11 @@ export const PricingCards = memo(function PricingCards() {
               "relative flex flex-col rounded-2xl border p-8 transition-all",
               tier.popular
                 ? "border-primary-black shadow-lg scale-[1.02]"
-                : "border-border-subtle",
+                : "border-border-subtle dark:border-white/10",
             )}
           >
             {tier.popular && (
-              <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary-black px-4 py-1 text-xs font-medium text-white">
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[var(--btn-bg)] px-4 py-1 text-xs font-medium text-[var(--btn-text)]">
                 Paling Populer
               </span>
             )}
@@ -172,7 +172,7 @@ export const PricingCards = memo(function PricingCards() {
                     : formatCurrency(getPrice(tier))}
                 </span>
                 {tier.price > 0 && (
-                  <span className="text-text-gray">
+                  <span className="text-text-gray dark:text-[#A0A0A0]">
                     /{isYearly ? "tahun" : "bulan"}
                   </span>
                 )}
@@ -198,7 +198,7 @@ export const PricingCards = memo(function PricingCards() {
                     </svg>
                   ) : (
                     <svg
-                      className="h-5 w-5 shrink-0 text-text-gray/25"
+                      className="h-5 w-5 shrink-0 text-text-gray dark:text-[#A0A0A0]/25"
                       fill="none"
                       viewBox="0 0 16 16"
                       stroke="currentColor"
@@ -212,7 +212,7 @@ export const PricingCards = memo(function PricingCards() {
                     </svg>
                   )}
                   <span
-                    className={cn(f.included ? "text-primary-black" : "text-text-gray/40")}
+                    className={cn(f.included ? "text-primary-black dark:text-[#F0F0F0]" : "text-text-gray dark:text-[#A0A0A0]/40")}
                   >
                     {f.text}
                   </span>
