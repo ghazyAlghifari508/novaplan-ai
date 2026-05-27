@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import midtransClient from 'midtrans-client';
+
 import { createClient } from '@/lib/supabase/server';
 import { novaPlanPlans } from '@/lib/pricing-data';
 
@@ -28,12 +28,6 @@ export async function POST(req: Request) {
     if (price === 0) {
       return NextResponse.json({ error: 'Plan gratis tidak memerlukan pembayaran.' }, { status: 400 });
     }
-
-    const snap = new midtransClient.Snap({
-      isProduction: false,
-      serverKey: process.env.MIDTRANS_SERVER_KEY_SANDBOX || '',
-      clientKey: process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY_SANDBOX || ''
-    });
 
     const orderId = `ORDER-${user.id.substring(0, 8)}-${Date.now()}`;
 
@@ -77,7 +71,27 @@ export async function POST(req: Request) {
       }
     };
 
-    const transaction = await snap.createTransaction(parameters);
+    const serverKey = process.env.MIDTRANS_SERVER_KEY_SANDBOX || '';
+    const authString = Buffer.from(`${serverKey}:`).toString('base64');
+    
+    const response = await fetch('https://app.sandbox.midtrans.com/snap/v1/transactions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Basic ${authString}`,
+        'X-Override-Notification': `${origin}/api/payments/webhook`
+      },
+      body: JSON.stringify(parameters)
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('Midtrans API Error:', errText);
+      return NextResponse.json({ error: 'Gagal membuat sesi pembayaran Midtrans.' }, { status: 500 });
+    }
+
+    const transaction = await response.json();
     return NextResponse.json({ redirect_url: transaction.redirect_url, token: transaction.token });
   } catch (error: unknown) {
     console.error('Midtrans Error:', error);
