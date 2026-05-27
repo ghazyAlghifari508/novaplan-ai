@@ -61,8 +61,9 @@ export async function POST(req: Request) {
 
     const transaction = await snap.createTransaction(parameters);
     return NextResponse.json({ redirect_url: transaction.redirect_url, token: transaction.token });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Midtrans Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

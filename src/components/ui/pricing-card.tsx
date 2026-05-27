@@ -323,7 +323,6 @@ export const novaPlanPlans: [PriceTier, PriceTier, PriceTier] = [
 
 export default function PricingWrapper() {
   const [cycle, setCycle] = React.useState<BillingCycle>('annually');
-  const [loading, setLoading] = React.useState(false);
   const router = useRouter();
 
   const handleCycleChange = (newCycle: BillingCycle) => {
@@ -337,7 +336,6 @@ export default function PricingWrapper() {
     }
     
     try {
-      setLoading(true);
       const res = await fetch('/api/payments/create', {
         method: 'POST',
         headers: {
@@ -360,11 +358,9 @@ export default function PricingWrapper() {
       if (data.redirect_url) {
         window.location.href = data.redirect_url;
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
       alert('Gagal menghubungi server.');
-    } finally {
-      setLoading(false);
     }
   };
 
