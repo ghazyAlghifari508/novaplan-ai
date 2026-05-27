@@ -309,7 +309,7 @@ export const novaPlanPlans: [PriceTier, PriceTier, PriceTier] = [
     priceMonthly: 149000,
     priceAnnually: 1430000,
     isPopular: false,
-    buttonLabel: 'Hubungi Sales',
+    buttonLabel: 'Pilih Hengker',
     features: [
       { name: 'Unlimited PRD', isIncluded: true },
       { name: 'Export ke Markdown', isIncluded: true },
