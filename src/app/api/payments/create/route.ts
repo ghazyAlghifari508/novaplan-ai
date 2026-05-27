@@ -37,6 +37,7 @@ export async function POST(req: Request) {
 
     const orderId = `ORDER-${user.id.substring(0, 8)}-${Date.now()}`;
 
+    const origin = req.headers.get('origin') || 'https://novaplan-ai.vercel.app';
     const parameters = {
       transaction_details: {
         order_id: orderId,
@@ -56,7 +57,10 @@ export async function POST(req: Request) {
       ],
       custom_field1: planId,
       custom_field2: cycle,
-      custom_field3: user.id
+      custom_field3: user.id,
+      callbacks: {
+        finish: `${origin}/pricing?payment=success`
+      }
     };
 
     const transaction = await snap.createTransaction(parameters);
