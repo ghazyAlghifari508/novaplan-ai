@@ -268,8 +268,8 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
 
 export const novaPlanPlans: [PriceTier, PriceTier, PriceTier] = [
   {
-    id: 'starter',
-    name: 'Starter',
+    id: 'free',
+    name: 'Free',
     description: 'Cocok untuk pemula yang ingin mencoba NovaPlan.',
     priceMonthly: 0,
     priceAnnually: 0,
@@ -302,8 +302,8 @@ export const novaPlanPlans: [PriceTier, PriceTier, PriceTier] = [
     ],
   },
   {
-    id: 'enterprise',
-    name: 'Enterprise',
+    id: 'hengker',
+    name: 'Hengker',
     description: 'Fitur penuh untuk perusahaan dan kolaborasi skala besar.',
     priceMonthly: 149000,
     priceAnnually: 1430000,
