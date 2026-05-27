@@ -5,7 +5,7 @@ declare module 'midtrans-client' {
       serverKey: string;
       clientKey: string;
     });
-    createTransaction(parameters: any): Promise<any>;
+    createTransaction(parameters: Record<string, unknown>): Promise<{ redirect_url: string; token: string; [key: string]: unknown }>;
   }
   
   export class CoreApi {
@@ -14,6 +14,6 @@ declare module 'midtrans-client' {
       serverKey: string;
       clientKey: string;
     });
-    charge(parameters: any): Promise<any>;
+    charge(parameters: Record<string, unknown>): Promise<Record<string, unknown>>;
   }
 }
