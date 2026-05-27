@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     try {
       const { getAdminClient } = await import('@/lib/supabase/admin');
       dbClient = getAdminClient();
-    } catch (e) {
+    } catch {
       console.warn("Service Role Key not found, falling back to authenticated client.");
     }
 
