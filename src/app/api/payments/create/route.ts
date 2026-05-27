@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     // Use service role key if available to bypass RLS for inserts
     let dbClient = supabase;
     if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      const { createClient: createSupabaseClient } = require('@supabase/supabase-js');
+      const { createClient: createSupabaseClient } = await import('@supabase/supabase-js');
       dbClient = createSupabaseClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY
