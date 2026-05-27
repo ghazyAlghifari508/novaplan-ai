@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+
 import { requireAuth } from "@/lib/auth";
 import type { Plan } from "@/types/database";
 
@@ -15,7 +15,9 @@ const PLAN_PRICES: Record<Plan, number> = {
 
 export async function createTransaction(plan: Plan, isYearly: boolean) {
   const user = await requireAuth();
-  const supabase = await createClient();
+  
+  const { getAdminClient } = await import('@/lib/supabase/admin');
+  const adminSupabase = getAdminClient();
 
   const basePrice = PLAN_PRICES[plan];
   if (!basePrice || plan === "free") {
@@ -61,9 +63,10 @@ export async function createTransaction(plan: Plan, isYearly: boolean) {
 
   const data = await response.json();
 
-  await supabase.from("payments").insert({
+  await adminSupabase.from("payments").insert({
     user_id: user.id,
     amount,
+    currency: 'IDR',
     status: "pending",
     midtrans_order_id: orderId,
     payment_method: "midtrans",
@@ -73,7 +76,8 @@ export async function createTransaction(plan: Plan, isYearly: boolean) {
 }
 
 export async function handlePaymentSuccess(orderId: string) {
-  const supabase = await createClient();
+  const { getAdminClient } = await import('@/lib/supabase/admin');
+  const supabase = getAdminClient();
 
   const { data: payment } = await supabase
     .from("payments")

@@ -33,12 +33,11 @@ export async function POST(req: Request) {
 
     // Use service role key if available to bypass RLS for inserts
     let dbClient = supabase;
-    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      const { createClient: createSupabaseClient } = await import('@supabase/supabase-js');
-      dbClient = createSupabaseClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY
-      );
+    try {
+      const { getAdminClient } = await import('@/lib/supabase/admin');
+      dbClient = getAdminClient();
+    } catch (e) {
+      console.warn("Service Role Key not found, falling back to authenticated client.");
     }
 
     // Record the pending payment in the database so the webhook can process it later

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+
 import { handlePaymentSuccess } from "@/app/actions/payment";
 import crypto from "crypto";
 
@@ -30,7 +30,8 @@ export async function POST(req: NextRequest) {
   }
 
   if (transaction_status === "expire" || transaction_status === "cancel") {
-    const supabase = await createClient();
+    const { getAdminClient } = await import("@/lib/supabase/admin");
+    const supabase = getAdminClient();
     await supabase
       .from("payments")
       .update({ status: "failed" })
