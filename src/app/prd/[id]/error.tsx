@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 export default function PrdError({
   reset,
 }: {
@@ -18,12 +20,12 @@ export default function PrdError({
           >
             Coba Lagi
           </button>
-          <a
+          <Link
             href="/"
             className="rounded-lg border border-border-subtle dark:border-white/10 px-6 py-3 text-sm font-medium hover:bg-light-gray-bg dark:bg-[#161616]"
           >
             Kembali ke Beranda
-          </a>
+          </Link>
         </div>
       </div>
     </div>

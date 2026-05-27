@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // --- HELPER COMPONENTS (ICONS) ---
 
@@ -49,7 +50,7 @@ const GlassInputWrapper = ({ children, isError }: { children: React.ReactNode, i
 
 const TestimonialCard = ({ testimonial, delay }: { testimonial: Testimonial, delay: string }) => (
   <div className={`animate-testimonial ${delay} flex items-start gap-3 rounded-3xl bg-black/40 backdrop-blur-xl border border-white/20 p-5 w-64 text-white`}>
-    <img src={testimonial.avatarSrc} className="h-10 w-10 object-cover rounded-2xl bg-white" alt="avatar" />
+    <Image src={testimonial.avatarSrc} width={40} height={40} className="h-10 w-10 object-cover rounded-2xl bg-white" alt="avatar" />
     <div className="text-sm leading-snug">
       <p className="flex items-center gap-1 font-semibold">{testimonial.name}</p>
       <p className="text-white/70 text-xs">{testimonial.handle}</p>
