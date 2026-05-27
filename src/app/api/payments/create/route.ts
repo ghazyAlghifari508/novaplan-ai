@@ -31,10 +31,21 @@ export async function POST(req: Request) {
 
     const orderId = `ORDER-${user.id.substring(0, 8)}-${Date.now()}`;
 
+    // Use service role key if available to bypass RLS for inserts
+    let dbClient = supabase;
+    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      const { createClient: createSupabaseClient } = require('@supabase/supabase-js');
+      dbClient = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY
+      );
+    }
+
     // Record the pending payment in the database so the webhook can process it later
-    const { error: dbError } = await supabase.from('payments').insert({
+    const { error: dbError } = await dbClient.from('payments').insert({
       user_id: user.id,
       amount: price,
+      currency: 'IDR',
       status: 'pending',
       midtrans_order_id: orderId,
       payment_method: 'midtrans',
@@ -42,7 +53,7 @@ export async function POST(req: Request) {
 
     if (dbError) {
       console.error('Database Error:', dbError);
-      return NextResponse.json({ error: 'Gagal membuat catatan pembayaran.' }, { status: 500 });
+      return NextResponse.json({ error: `Gagal membuat catatan pembayaran: ${dbError.message}` }, { status: 500 });
     }
 
     const origin = req.headers.get('origin') || 'https://novaplan-ai.vercel.app';
