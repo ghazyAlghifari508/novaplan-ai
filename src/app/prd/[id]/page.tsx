@@ -61,6 +61,18 @@ export default async function PrdPage({ params }: { params: Promise<{ id: string
     .limit(1)
     .single();
 
+  let initialMessages: Array<any> = [];
+  if (conversation?.id) {
+    const { data: msgs } = await supabase
+      .from("messages")
+      .select("id, role, content, created_at")
+      .eq("conversation_id", conversation.id)
+      .order("created_at", { ascending: true })
+      .limit(50);
+      
+    if (msgs) initialMessages = msgs;
+  }
+
   const { data: projects } = await supabase
     .from("projects")
     .select("id, name, status, updated_at")
@@ -79,6 +91,7 @@ export default async function PrdPage({ params }: { params: Promise<{ id: string
       projects={projects || []}
       plan={plan}
       revisionLimit={quota?.revision_limit ?? undefined}
+      initialMessages={initialMessages}
     />
   );
 }

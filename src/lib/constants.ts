@@ -3,23 +3,45 @@ export const APP_DESCRIPTION =
   "Dari ide ke PRD profesional dalam 5 menit, bukan 5 hari.";
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-export const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
+// NVIDIA NIM API
+export const NVIDIA_NIM_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
 
-export const AI_MODELS = {
-  primary: "meta-llama/llama-3.3-70b-instruct:free",
-  fallback: "google/gemma-4-31b-it:free",
-  premium: "nvidia/nemotron-3-super-120b-a12b:free",
+/**
+ * Model tiers for NovaPlan AI (NVIDIA NIM)
+ *
+ * FREE    → Fast, lightweight models (8B and under)
+ * PRO     → High-quality, fast mid-tier models (70B, 27B)
+ * HENGKER → Flagship models (405B, Large) and all Pro models
+ */
+export const AI_MODELS_BY_PLAN = {
+  free: [
+    "meta/llama-3.1-8b-instruct",            // Sangat cepat, kualitas bagus untuk draft
+    "meta/llama-3.2-3b-instruct",            // Sangat ringan dan responsif
+  ],
+  pro: [
+    "meta/llama-3.3-70b-instruct",           // Sangat cerdas dan cepat (Rekomendasi Utama)
+    "google/gemma-2-27b-it",                 // Model Google yang efisien dan solid
+    "mistralai/mixtral-8x22b-instruct-v0.1", // Mixture of Experts, ngebut dan cerdas
+  ],
+  hengker: [
+    "meta/llama-3.1-405b-instruct",          // Model Meta terbesar, sangat pintar
+    "mistralai/mistral-large-2-instruct",    // Flagship Mistral, reasoning tinggi
+    "qwen/qwen2.5-72b-instruct",             // Flagship Qwen yang sangat cepat
+    "meta/llama-3.3-70b-instruct",           // Solid fallback
+    "google/gemma-2-27b-it",                 // Solid fallback
+    "mistralai/mixtral-8x22b-instruct-v0.1", // Solid fallback
+  ],
 } as const;
 
-// Fallback chain: tried in order if previous model is rate-limited
-export const AI_MODEL_CHAIN = [
-  "meta-llama/llama-3.3-70b-instruct:free",
-  "google/gemma-4-31b-it:free",
-  "nvidia/nemotron-3-super-120b-a12b:free",
-  "qwen/qwen3-coder:free",
-  "nousresearch/hermes-3-llama-3.1-405b:free",
-  "google/gemma-4-26b-a4b-it:free",
-] as const;
+// Primary/fallback shorthands used by ai-client.ts & chat/route.ts
+export const AI_MODELS = {
+  primary: AI_MODELS_BY_PLAN.free[0],
+  fallback: AI_MODELS_BY_PLAN.free[1],
+  premium: AI_MODELS_BY_PLAN.pro[0],
+} as const;
+
+// Chain used for fallback in chat route (free tier default chain)
+export const AI_MODEL_CHAIN = AI_MODELS_BY_PLAN.free;
 
 export const RATE_LIMITS = {
   free: 5,

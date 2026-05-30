@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, startTransition } from "react";
 import { useChatStore, useUIStore } from "@/store";
 import { ChatBubble } from "./chat-bubble";
 import { TypingIndicator } from "./typing-indicator";
-import { GenerationProgress } from "./generation-progress";
 import { cn } from "@/lib/utils";
 import { consumePendingPrdPrompt } from "@/lib/prompt-handoff";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AlertCircle, X } from "lucide-react";
 
 interface ChatPanelProps {
@@ -36,6 +36,7 @@ export function ChatPanel({
   const autoSubmitAttemptedRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const showToast = useUIStore((s) => s.showToast);
+  const router = useRouter();
 
   // Close limit modal on Escape key
   useEffect(() => {
@@ -69,7 +70,7 @@ export function ChatPanel({
     }
   }, [isStreaming]);
 
-  const handleSend = async () => {
+  const handleSend = async (overrideMode?: "chat" | "revise") => {
     const trimmed = input.trim();
     if (!trimmed || isStreaming || isSubmittingRef.current) return;
 
@@ -87,10 +88,20 @@ export function ChatPanel({
     setStreaming(true);
     setStreamingContent("");
 
+    const resolvedMode = overrideMode || (projectId ? "revise" : "generate");
+
     const body: Record<string, unknown> = {
       message: trimmed,
-      mode: projectId ? "revise" : "generate",
+      mode: resolvedMode,
+      preferences: {},
     };
+
+    if (typeof window !== "undefined") {
+      const selectedModel = sessionStorage.getItem("novaplan:selected-model");
+      if (selectedModel) {
+        body.preferences = { model: selectedModel };
+      }
+    }
 
     if (conversationId) body.conversationId = conversationId;
     if (projectId) body.projectId = projectId;
@@ -170,12 +181,36 @@ export function ChatPanel({
         }
       }
 
-      addMessage({
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: fullContent,
-        timestamp: Date.now(),
-      });
+      if (body.mode === "generate" || body.mode === "revise") {
+        if (fullContent.trim()) {
+          addMessage({
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: "Selesai menyusun PRD.",
+            timestamp: Date.now(),
+          });
+          if (body.mode === "revise") {
+            router.refresh();
+          }
+        } else {
+          addMessage({
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content:
+              "Gagal menyusun PRD. AI tidak menghasilkan konten. Silakan coba lagi.",
+            timestamp: Date.now(),
+          });
+          setGeneratingPRD(false);
+          setStreamingPRDContent("");
+        }
+      } else {
+        addMessage({
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: fullContent,
+          timestamp: Date.now(),
+        });
+      }
     } catch (err: unknown) {
       if (err instanceof Error && err.name === "AbortError") {
         showToast("Proses dihentikan.", "info");
@@ -217,6 +252,10 @@ export function ChatPanel({
 
       setStreaming(true);
       setStreamingContent("");
+
+      if (chatMode === "generate" || chatMode === "revise") {
+        setGeneratingPRD(true);
+      }
 
       const body: Record<string, unknown> = {
         message: msg,
@@ -303,6 +342,8 @@ export function ChatPanel({
           }
         }
 
+        // The full content is already in the chat history if it was generating,
+        // but we'll add a clean final message just in case they navigate away.
         if (chatMode === "generate" || chatMode === "revise") {
           if (fullContent.trim()) {
             addMessage({
@@ -311,6 +352,11 @@ export function ChatPanel({
               content: "Selesai menyusun PRD.",
               timestamp: Date.now(),
             });
+            if (chatMode === "revise") {
+              startTransition(() => {
+                router.refresh();
+              });
+            }
           } else {
             addMessage({
               id: crypto.randomUUID(),
@@ -419,12 +465,10 @@ export function ChatPanel({
         )}
 
         {isStreaming && !streamingContent && <TypingIndicator />}
-
-        <GenerationProgress isActive={isGeneratingPRD} />
       </div>
 
       <div className="border-t border-[var(--border-subtle)] p-4">
-        <div className="flex gap-2 items-end">
+        <div className="flex gap-2 items-center">
           <textarea
             ref={inputRef}
             value={input}
@@ -435,37 +479,73 @@ export function ChatPanel({
                 handleSend();
               }
             }}
-            placeholder="Ketik pesan atau revisi PRD..."
-            className="flex-1 resize-none rounded-lg border border-[var(--border-subtle)] px-4 py-2.5 text-sm outline-none transition-all focus:border-[var(--border-medium)]"
+            placeholder={projectId ? "Ketik pesan atau instruksi revisi PRD..." : "Ceritakan ide produkmu..."}
+            className="flex-1 resize-none rounded-lg border border-[var(--border-subtle)] px-4 py-2.5 text-sm outline-none transition-all focus:border-[var(--border-medium)] min-h-[44px]"
             style={{ background: "var(--bg-input)", color: "var(--text-primary)" }}
             rows={2}
             disabled={isStreaming}
           />
-          <button
-            onClick={isStreaming ? handleCancel : handleSend}
-            disabled={!isStreaming && (!input.trim() || isSubmittingRef.current)}
-            className={cn(
-              "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-all disabled:opacity-30",
-              isStreaming ? "bg-red-500 hover:bg-red-600 text-white" : "btn-primary hover:opacity-80"
-            )}
-            title={isStreaming ? "Hentikan Proses" : "Kirim Pesan"}
-          >
-            {isStreaming ? (
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                <rect x="3" y="3" width="10" height="10" rx="1" />
-              </svg>
-            ) : (
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path
-                  d="M2 8L14 8M10 4L14 8L10 12"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            )}
-          </button>
+          {projectId ? (
+            <div className="flex flex-col gap-1.5 shrink-0">
+              {isStreaming ? (
+                <button
+                  onClick={handleCancel}
+                  className="flex h-10 w-full items-center justify-center rounded-lg bg-red-500 hover:bg-red-600 text-white transition-all px-3 text-xs font-medium"
+                  title="Hentikan Proses"
+                >
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" className="mr-1">
+                    <rect x="3" y="3" width="10" height="10" rx="1" />
+                  </svg>
+                  Stop
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => handleSend("chat")}
+                    disabled={!input.trim() || isSubmittingRef.current}
+                    className="flex h-[26px] items-center justify-center rounded-md bg-light-gray-bg dark:bg-[#2A2A2A] text-text-gray dark:text-[#A0A0A0] hover:text-primary-black dark:hover:text-[#F0F0F0] hover:bg-black/5 dark:hover:bg-white/10 transition-all disabled:opacity-30 px-3 text-xs font-medium border border-transparent"
+                    title="Kirim Chat Biasa"
+                  >
+                    Kirim Chat
+                  </button>
+                  <button
+                    onClick={() => handleSend("revise")}
+                    disabled={!input.trim() || isSubmittingRef.current}
+                    className="flex h-[26px] items-center justify-center rounded-md btn-primary transition-all disabled:opacity-30 px-3 text-xs font-medium"
+                    title="Update isi PRD"
+                  >
+                    Update PRD
+                  </button>
+                </>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={isStreaming ? handleCancel : () => handleSend()}
+              disabled={!isStreaming && (!input.trim() || isSubmittingRef.current)}
+              className={cn(
+                "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-all disabled:opacity-30",
+                isStreaming ? "bg-red-500 hover:bg-red-600 text-white" : "btn-primary hover:opacity-80"
+              )}
+              title={isStreaming ? "Hentikan Proses" : "Generate PRD"}
+            >
+              {isStreaming ? (
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                  <rect x="3" y="3" width="10" height="10" rx="1" />
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M2 8L14 8M10 4L14 8L10 12"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
+            </button>
+          )}
         </div>
       </div>
 

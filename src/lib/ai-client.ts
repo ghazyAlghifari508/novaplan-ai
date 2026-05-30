@@ -1,11 +1,11 @@
-import { AI_MODELS, OPENROUTER_API_URL } from "@/lib/constants";
+import { AI_MODELS, NVIDIA_NIM_API_URL } from "@/lib/constants";
 
 interface ChatMessage {
   role: "system" | "user" | "assistant";
   content: string;
 }
 
-interface OpenRouterResponse {
+interface NvidiaNimResponse {
   id: string;
   choices: Array<{
     delta: { content?: string };
@@ -14,41 +14,35 @@ interface OpenRouterResponse {
   model: string;
 }
 
-const OPENROUTER_HEADERS = {
-  Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-  "HTTP-Referer": "https://novaplan.ai",
-  "X-Title": "NovaPlan",
+const NVIDIA_NIM_HEADERS = {
+  Authorization: `Bearer ${process.env.NVIDIA_NIM_API_KEY}`,
   "Content-Type": "application/json",
 };
 
 export async function* streamChat(
   messages: ChatMessage[],
-  model?: string | string[],
+  model?: string,
   signal?: AbortSignal,
 ): AsyncGenerator<string, void, undefined> {
   const selectedModel = model || AI_MODELS.primary;
 
   const requestBody: Record<string, unknown> = {
+    model: selectedModel,
     stream: true,
     messages,
+    max_tokens: 8192,
   };
 
-  if (Array.isArray(selectedModel)) {
-    requestBody.models = selectedModel;
-  } else {
-    requestBody.model = selectedModel;
-  }
-
-  const response = await fetch(OPENROUTER_API_URL, {
+  const response = await fetch(NVIDIA_NIM_API_URL, {
     method: "POST",
-    headers: OPENROUTER_HEADERS,
+    headers: NVIDIA_NIM_HEADERS,
     body: JSON.stringify(requestBody),
     signal,
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`OpenRouter API error (${response.status}): ${errorText}`);
+    throw new Error(`NVIDIA NIM API error (${response.status}): ${errorText}`);
   }
 
   const reader = response.body?.getReader();
@@ -74,7 +68,7 @@ export async function* streamChat(
         if (data === "[DONE]") return;
 
         try {
-          const parsed: OpenRouterResponse = JSON.parse(data);
+          const parsed: NvidiaNimResponse = JSON.parse(data);
           const content = parsed.choices?.[0]?.delta?.content;
           if (content) {
             yield content;
@@ -99,16 +93,17 @@ export async function completeChat(
     model: selectedModel,
     stream: false,
     messages,
+    max_tokens: 8192,
   };
 
-  const response = await fetch(OPENROUTER_API_URL, {
+  const response = await fetch(NVIDIA_NIM_API_URL, {
     method: "POST",
-    headers: OPENROUTER_HEADERS,
+    headers: NVIDIA_NIM_HEADERS,
     body: JSON.stringify(requestBody),
   });
 
   if (!response.ok) {
-    throw new Error(`OpenRouter API error: ${response.status}`);
+    throw new Error(`NVIDIA NIM API error: ${response.status}`);
   }
 
   const data = await response.json();

@@ -30,12 +30,14 @@ export default async function BillingPage() {
                 {subscription?.status === "active" ? "Aktif" : "Tidak aktif"}
               </p>
             </div>
-            <Link
-              href="/pricing"
-              className="rounded-lg border border-border-subtle dark:border-white/10 px-4 py-2 text-sm font-medium hover:bg-light-gray-bg dark:bg-[#161616]"
-            >
-              Upgrade
-            </Link>
+            {subscription?.plan !== "hengker" && (
+              <Link
+                href="/pricing"
+                className="rounded-lg border border-border-subtle dark:border-white/10 px-4 py-2 text-sm font-medium hover:bg-light-gray-bg dark:bg-[#161616]"
+              >
+                Upgrade
+              </Link>
+            )}
           </div>
 
           {quota && (

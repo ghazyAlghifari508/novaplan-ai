@@ -54,6 +54,7 @@ interface ChatState {
   setActiveProject: (projectId: string | null) => void;
   setStreamingPRDContent: (content: string) => void;
   updateLastMessage: (content: string) => void;
+  setMessages: (messages: ChatMessage[]) => void;
   resetChat: () => void;
 }
 
@@ -88,6 +89,7 @@ export const useChatStore = create<ChatState>((set) => ({
       }
       return { messages };
     }),
+  setMessages: (messages) => set({ messages }),
   resetChat: () => set(chatInitialState),
 }));
 

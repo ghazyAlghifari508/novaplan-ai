@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, memo } from "react";
+import { useState, useRef, useEffect, memo } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import { TableOfContents } from "./table-of-contents";
+import { Mermaid } from "./mermaid";
 import { Button } from "@/components/ui/button";
 import { useUIStore } from "@/store";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,20 @@ export const PrdViewer = memo(function PrdViewer({
   const [copied, setCopied] = useState(false);
   const showToast = useUIStore((s) => s.showToast);
   const features = FEATURES[plan];
+  
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll logic when new content arrives
+  useEffect(() => {
+    if (scrollRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+      // If we're within 150px of the bottom, auto scroll down to follow new content
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 150;
+      if (isNearBottom) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }
+    }
+  }, [content]);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(content);
@@ -55,13 +70,13 @@ export const PrdViewer = memo(function PrdViewer({
   return (
     <div className={cn("flex h-full", className)}>
       <aside
-        className="sticky top-0 hidden h-[calc(100vh-0px)] w-64 shrink-0 border-r border-[var(--border-subtle)] p-6 overflow-y-auto xl:block"
+        className="hidden h-full w-64 shrink-0 border-r border-[var(--border-subtle)] p-6 overflow-y-auto xl:block"
         style={{ background: "var(--bg-page)" }}
       >
         <TableOfContents content={content} />
       </aside>
 
-      <div className="flex-1 overflow-y-auto relative">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto relative scroll-smooth">
         <div
           id="print-hide-viewer-topbar"
           className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--border-subtle)] px-8 py-4 print:hidden"
@@ -128,6 +143,17 @@ export const PrdViewer = memo(function PrdViewer({
                   <h4 id={id} {...props}>
                     {children}
                   </h4>
+                );
+              },
+              code: ({ inline, className, children, ...props }: any) => {
+                const match = /language-(\w+)/.exec(className || "");
+                if (!inline && match && match[1] === "mermaid") {
+                  return <Mermaid chart={String(children).replace(/\n$/, "")} />;
+                }
+                return (
+                  <code className={className} {...props}>
+                    {children}
+                  </code>
                 );
               },
             }}

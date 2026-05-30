@@ -1,11 +1,11 @@
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { streamChat } from "@/lib/openrouter";
+import { streamChat } from "@/lib/ai-client";
 import { validateApiKey } from "@/app/actions/api-keys";
 import { checkApiKeyRateLimit, recordApiKeyRequest } from "@/lib/api-rate-limit";
 import { PRD_SYSTEM_PROMPT } from "@/lib/prompts";
 import { generateShareToken } from "@/lib/utils";
-import { AI_MODELS } from "@/lib/constants";
+import { AI_MODELS_BY_PLAN } from "@/lib/constants";
 
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
@@ -48,6 +48,20 @@ export async function POST(req: NextRequest) {
 
   if (!description?.trim()) {
     return new Response(JSON.stringify({ error: "description is required" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  if (description.length > 3000) {
+    return new Response(JSON.stringify({ error: "description is too long (maximum 3000 characters)" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  if (name && name.length > 100) {
+    return new Response(JSON.stringify({ error: "name is too long (maximum 100 characters)" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
@@ -102,7 +116,9 @@ export async function POST(req: NextRequest) {
       let fullResponse = "";
 
       try {
-        const model = plan === "hengker" ? AI_MODELS.premium : AI_MODELS.primary;
+        // Use best model available for user's plan (first in the list)
+        const planModels = AI_MODELS_BY_PLAN[plan as keyof typeof AI_MODELS_BY_PLAN] ?? AI_MODELS_BY_PLAN.free;
+        const model = planModels[0];
 
         for await (const chunk of streamChat(messages, model)) {
           fullResponse += chunk;
@@ -142,9 +158,21 @@ export async function POST(req: NextRequest) {
           conversationId: conversation?.id,
         })}\n\n`));
       } catch (error) {
+        console.error("[API v1/generate] Streaming Error:", error);
+
+        // Attempt rollback if we created a project and conversation but failed mid-stream
+        if (project?.id) {
+          try {
+            console.warn(`[API v1/generate] Rolling back project ${project.id} due to failure`);
+            await supabase.from("projects").delete().eq("id", project.id);
+          } catch (rollbackErr) {
+            console.error("[API v1/generate] Rollback failed:", rollbackErr);
+          }
+        }
+
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({
           type: "error",
-          error: error instanceof Error ? error.message : "Unknown error",
+          error: "Internal Server Error",
         })}\n\n`));
       } finally {
         controller.close();

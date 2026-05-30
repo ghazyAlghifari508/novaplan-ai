@@ -85,11 +85,16 @@ export async function handlePaymentSuccess(orderId: string) {
 
   const { data: payment } = await supabase
     .from("payments")
-    .select("user_id, amount")
+    .select("user_id, amount, status")
     .eq("midtrans_order_id", orderId)
     .single();
 
   if (!payment) return;
+  
+  if (payment.status === "success") {
+    console.log(`Payment ${orderId} already processed, skipping quota reset.`);
+    return { plan: "already_processed" as Plan, payment };
+  }
 
   // Determine plan by matching exact amounts from pricing-data (single source of truth)
   const hengkerPlan = novaPlanPlans.find((p) => p.id === "hengker");

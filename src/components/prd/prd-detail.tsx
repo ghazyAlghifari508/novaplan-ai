@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { PrdViewer } from "./prd-viewer";
 import { VersionHistory } from "./version-history";
@@ -10,7 +10,7 @@ import { useChatStore, useUIStore } from "@/store";
 import { cn } from "@/lib/utils";
 import type { PrdVersion, Plan } from "@/types/database";
 import Link from "next/link";
-import { Infinity as InfinityIcon, FileText, X, Trash2 } from "lucide-react";
+import { Infinity as InfinityIcon, FileText, X, Trash2, PanelRightClose, MessageSquare } from "lucide-react";
 
 interface ProjectMeta {
   id: string;
@@ -29,6 +29,7 @@ interface PrdDetailProps {
   plan?: Plan;
   revisionLimit?: number;
   projects?: ProjectMeta[];
+  initialMessages?: Array<{ id: string; role: string; content: string; created_at: string }>;
 }
 
 export function PrdDetail({
@@ -41,6 +42,7 @@ export function PrdDetail({
   plan = "free",
   revisionLimit,
   projects = [],
+  initialMessages = [],
 }: PrdDetailProps) {
   const [currentContent, setCurrentContent] = useState(latestVersion?.content || "");
   const [isChatOpen, setIsChatOpen] = useState(initialChatOpen);
@@ -55,6 +57,7 @@ export function PrdDetail({
   const [isDraggingRight, setIsDraggingRight] = useState(false);
 
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const {
     isGeneratingPRD,
     streamingPRDContent,
@@ -66,6 +69,29 @@ export function PrdDetail({
   useEffect(() => {
     setLocalProjects(projects);
   }, [projects]);
+
+  const { setMessages } = useChatStore();
+
+  useEffect(() => {
+    const store = useChatStore.getState();
+    // Only update messages if we are switching to a different project
+    if (store.activeProjectId !== (projectId || null)) {
+      store.setActiveProject(projectId || null);
+      
+      if (initialMessages && initialMessages.length > 0) {
+        setMessages(
+          initialMessages.map((m) => ({
+            id: m.id,
+            role: m.role as "user" | "assistant" | "system",
+            content: m.content,
+            timestamp: new Date(m.created_at).getTime(),
+          }))
+        );
+      } else {
+        setMessages([]); // Clear chat when there are no initial messages (like clicking "Baru")
+      }
+    }
+  }, [projectId, initialMessages, setMessages]);
 
   // If latestVersion updates, update content
   useEffect(() => {
@@ -83,13 +109,6 @@ export function PrdDetail({
     }
   }, [projectId, latestVersion, setGeneratingPRD, setStreamingPRDContent]);
 
-  // Clean up streaming state on unmount
-  useEffect(() => {
-    return () => {
-      setGeneratingPRD(false);
-      setStreamingPRDContent("");
-    };
-  }, [setGeneratingPRD, setStreamingPRDContent]);
 
   // Handle resizing logic
   useEffect(() => {
@@ -126,7 +145,9 @@ export function PrdDetail({
   };
 
   const handleProjectCreated = (newProjectId: string) => {
-    router.push(`/prd/${newProjectId}`);
+    startTransition(() => {
+      router.push(`/prd/${newProjectId}`);
+    });
   };
 
   const requestDeleteProject = (e: React.MouseEvent, id: string) => {
@@ -268,15 +289,13 @@ export function PrdDetail({
                 <button
                   onClick={() => setIsChatOpen(!isChatOpen)}
                   className={cn(
-                    "flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+                    "flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
                     isChatOpen
                       ? "btn-primary"
                       : "bg-light-gray-bg dark:bg-[#161616] text-text-gray dark:text-[#A0A0A0] hover:bg-black/5 dark:hover:bg-white/10 hover:text-primary-black dark:hover:text-[#F0F0F0]",
                   )}
                 >
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M2 1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h9.586a2 2 0 0 1 1.414.586l2 2V2a1 1 0 0 0-1-1H2zm12-1a2 2 0 0 1 2 2v11.793a1 1 0 0 1-1.65.759L11.172 11H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12z" />
-                  </svg>
+                  {isChatOpen ? <PanelRightClose size={16} /> : <MessageSquare size={16} />}
                   {isChatOpen ? "Hide Chat" : "Chat"}
                 </button>
               </div>
@@ -290,21 +309,30 @@ export function PrdDetail({
               }
               projectName={projectName || ""}
               plan={plan}
+              className="flex-1 overflow-hidden"
             />
           </>
         ) : isGeneratingPRD ? (
           <>
             <div className="flex items-center justify-between border-b border-[var(--border-subtle)] px-6 py-3 print:hidden">
               <div className="flex items-center gap-4">
-                <h1 className="font-fustat text-lg font-bold animate-pulse">
-                  Menyusun PRD...
-                </h1>
+                <div className="flex items-center gap-2">
+                  <h1 className="font-fustat text-lg font-bold">
+                    NovaPlan AI Sedang Mengetik PRD...
+                  </h1>
+                  <span className="flex gap-1 mt-1">
+                    <span className="w-1.5 h-1.5 bg-accent-green rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></span>
+                    <span className="w-1.5 h-1.5 bg-accent-green rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></span>
+                    <span className="w-1.5 h-1.5 bg-accent-green rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></span>
+                  </span>
+                </div>
               </div>
             </div>
             <PrdViewer
-              content={streamingPRDContent || "Menyiapkan kerangka dokumen..."}
+              content={streamingPRDContent || "Mohon tunggu sebentar..."}
               projectName="Menyusun PRD..."
               plan={plan}
+              className="flex-1 overflow-hidden"
             />
           </>
         ) : (

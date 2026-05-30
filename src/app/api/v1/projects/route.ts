@@ -43,13 +43,14 @@ export async function GET(req: NextRequest) {
 
   const { data: projects, count, error } = await supabase
     .from("projects")
-    .select("*", { count: "exact" })
+    .select("id, name, status, mode, created_at, updated_at, share_token", { count: "exact" })
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
   if (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error("[API v1/projects] Supabase Error:", error);
+    return new Response(JSON.stringify({ error: "Internal Server Error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });

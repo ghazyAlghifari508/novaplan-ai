@@ -14,7 +14,7 @@ export async function POST(req: Request) {
 
     const { planId, cycle } = await req.json();
 
-    if (!planId || !cycle) {
+    if (!planId || !cycle || (cycle !== 'monthly' && cycle !== 'annually')) {
       return NextResponse.json({ error: 'Plan atau cycle tidak valid.' }, { status: 400 });
     }
 
@@ -123,8 +123,7 @@ export async function POST(req: Request) {
     const transaction = await response.json();
     return NextResponse.json({ redirect_url: transaction.redirect_url, token: transaction.token });
   } catch (error: unknown) {
-    console.error('Midtrans Error:', error);
-    const msg = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error('Midtrans/System Error:', error);
+    return NextResponse.json({ error: 'Terjadi kesalahan pada sistem pembayaran. Silakan coba lagi.' }, { status: 500 });
   }
 }

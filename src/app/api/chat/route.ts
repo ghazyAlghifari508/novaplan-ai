@@ -1,11 +1,15 @@
+export const dynamic = "force-dynamic";
+export const maxDuration = 60; // Allow long generations
+
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { streamChat } from "@/lib/openrouter";
-import { PRD_SYSTEM_PROMPT } from "@/lib/prompts";
+import { streamChat } from "@/lib/ai-client";
+import { PRD_SYSTEM_PROMPT, PRD_REVISION_PROMPT } from "@/lib/prompts";
 import { checkRateLimit, recordRequest } from "@/lib/rate-limit";
 import { checkQuota, incrementPrdCount } from "@/lib/quota";
 import { generateShareToken } from "@/lib/utils";
-import { AI_MODELS, AI_MODEL_CHAIN } from "@/lib/constants";
+import { AI_MODELS_BY_PLAN } from "@/lib/constants";
+import type { Plan } from "@/types/database";
 
 function deriveProjectName(message: string) {
   let cleanMsg = message.replace(
@@ -95,7 +99,7 @@ export async function POST(req: NextRequest) {
     .eq("user_id", user.id)
     .single();
 
-  const plan = subscription?.plan || "free";
+  const plan = (subscription?.plan || "free") as Plan;
 
   const body = await req.json();
   const {
@@ -162,6 +166,20 @@ export async function POST(req: NextRequest) {
   }> = [];
 
   if (conversationIdToUse) {
+    const { data: convCheck } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("id", conversationIdToUse)
+      .eq("user_id", user.id)
+      .single();
+
+    if (!convCheck) {
+      return new Response(JSON.stringify({ error: "Conversation not found or unauthorized" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     const { data: messages } = await supabase
       .from("messages")
       .select("role, content")
@@ -176,9 +194,39 @@ export async function POST(req: NextRequest) {
       })) || [];
   }
 
+  let systemPrompt = PRD_SYSTEM_PROMPT;
+
+  if (mode === "revise" && projectIdToUse) {
+    const { data: projCheck } = await supabase
+      .from("projects")
+      .select("id")
+      .eq("id", projectIdToUse)
+      .eq("user_id", user.id)
+      .single();
+
+    if (!projCheck) {
+      return new Response(JSON.stringify({ error: "Project not found or unauthorized" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const { data: latestVersion } = await supabase
+      .from("prd_versions")
+      .select("content")
+      .eq("project_id", projectIdToUse)
+      .order("version", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (latestVersion?.content) {
+      systemPrompt = `${PRD_REVISION_PROMPT}\n\nCURRENT PRD CONTENT:\n\n${latestVersion.content}`;
+    }
+  }
+
   const fullMessages: Array<{ role: "system" | "user" | "assistant"; content: string }> =
     [
-      { role: "system", content: PRD_SYSTEM_PROMPT },
+      { role: "system", content: systemPrompt },
       ...conversationHistory,
       { role: "user" as const, content: message },
     ];
@@ -194,21 +242,41 @@ export async function POST(req: NextRequest) {
       let createdConversationId: string | undefined;
 
       try {
-        const modelsToTry =
-          plan === "hengker"
-            ? [AI_MODELS.premium, ...AI_MODEL_CHAIN]
-            : [...AI_MODEL_CHAIN];
+        // Pick the model pool based on user's plan
+        let modelsToTry = [...(AI_MODELS_BY_PLAN[plan as Plan] as readonly string[])];
 
-        // OpenRouter restricts 'models' array to max 3 items
-        const chunkSize = 3;
+        // If user selected a specific model and they are allowed to use it (it's in their pool),
+        // prioritize it by putting it at the front of the array.
+        const requestedModel = preferences?.model as string | undefined;
+        if (requestedModel) {
+          // Check if the requested model is actually available to them in any tier up to their plan
+          // Since modelsToTry only contains the highest tier, we need to allow any model from their tier or lower.
+          const tierOrder: Plan[] = ["free", "pro", "hengker"];
+          const userTierIdx = tierOrder.indexOf(plan as Plan);
+          
+          let isAllowed = false;
+          for (let i = 0; i <= userTierIdx; i++) {
+            if ((AI_MODELS_BY_PLAN[tierOrder[i]] as readonly string[]).includes(requestedModel)) {
+              isAllowed = true;
+              break;
+            }
+          }
+
+          if (isAllowed) {
+            // Remove from current position if it exists, and prepend
+            modelsToTry = [requestedModel, ...modelsToTry.filter(m => m !== requestedModel)];
+          }
+        }
+
+        // Try each model sequentially for fallback
         let streamGenerator: AsyncGenerator<string, void, undefined> | null = null;
         let firstChunk = "";
         let lastError = "";
 
-        for (let i = 0; i < modelsToTry.length; i += chunkSize) {
-          const chunk = modelsToTry.slice(i, i + chunkSize);
+        for (let i = 0; i < modelsToTry.length; i++) {
+          const modelToTry = modelsToTry[i];
           const abortController = new AbortController();
-          const gen = streamChat(fullMessages, chunk, abortController.signal);
+          const gen = streamChat(fullMessages, modelToTry, abortController.signal);
           
           try {
             const first = await gen.next();
