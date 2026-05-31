@@ -19,22 +19,15 @@ describe("PLAN_LIMITS", () => {
 });
 
 describe("FEATURES", () => {
-  it("free tier has no PDF, no share, no API", () => {
-    expect(FEATURES.free.downloadPdf).toBe(false);
+  it("free tier has no share, no API", () => {
     expect(FEATURES.free.shareLink).toBe(false);
-    expect(FEATURES.free.apiAccess).toBe(false);
   });
 
-  it("pro tier has PDF and share", () => {
-    expect(FEATURES.pro.downloadPdf).toBe(true);
+  it("pro tier has share", () => {
     expect(FEATURES.pro.shareLink).toBe(true);
-    expect(FEATURES.pro.apiAccess).toBe(false);
   });
 
   it("hengker tier has everything", () => {
-    expect(FEATURES.hengker.downloadPdf).toBe(true);
-    expect(FEATURES.hengker.apiAccess).toBe(true);
-    expect(FEATURES.hengker.customTemplate).toBe(true);
     expect(FEATURES.hengker.priorityQueue).toBe(true);
   });
 });

@@ -50,7 +50,9 @@ const GlassInputWrapper = ({ children, isError }: { children: React.ReactNode, i
 
 const TestimonialCard = ({ testimonial, delay }: { testimonial: Testimonial, delay: string }) => (
   <div className={`animate-testimonial ${delay} flex items-start gap-3 rounded-3xl bg-black/40 backdrop-blur-xl border border-white/20 p-5 w-64 text-white`}>
-    <Image src={testimonial.avatarSrc} width={40} height={40} className="h-10 w-10 object-cover rounded-2xl bg-white" alt="avatar" />
+    <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-white">
+      <Image src={testimonial.avatarSrc} fill className="object-cover" alt="avatar" sizes="40px" />
+    </div>
     <div className="text-sm leading-snug">
       <p className="flex items-center gap-1 font-semibold">{testimonial.name}</p>
       <p className="text-white/70 text-xs">{testimonial.handle}</p>

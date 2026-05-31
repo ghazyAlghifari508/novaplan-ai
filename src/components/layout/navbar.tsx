@@ -69,22 +69,22 @@ export function Navbar() {
           <ThemeToggle />
 
           {isLoading ? (
-            <div className="flex items-center gap-3 ml-1">
-              <div className="h-[40px] w-[82px] rounded-lg bg-black/5 dark:bg-white/5 animate-pulse" />
-              <div className="h-[40px] w-[101px] rounded-lg bg-black/5 dark:bg-white/5 animate-pulse" />
+            <div className="flex items-center gap-2 sm:gap-3 ml-1">
+              <div className="h-[36px] sm:h-[40px] w-[60px] sm:w-[82px] rounded-lg bg-black/5 dark:bg-white/5 animate-pulse" />
+              <div className="h-[36px] sm:h-[40px] w-[80px] sm:w-[101px] rounded-lg bg-black/5 dark:bg-white/5 animate-pulse" />
             </div>
           ) : !user ? (
             <>
               <Link
                 href="/register"
-                className="flex h-[40px] w-[82px] items-center justify-center rounded-lg bg-transparent font-schibsted text-[16px] font-medium transition-colors hover:bg-[var(--bg-hover)]"
+                className="flex h-[36px] sm:h-[40px] px-3 sm:px-4 items-center justify-center rounded-lg bg-transparent font-schibsted text-[14px] sm:text-[16px] font-medium transition-colors hover:bg-[var(--bg-hover)]"
                 style={{ color: "var(--text-primary)" }}
               >
                 Sign Up
               </Link>
               <Link
                 href="/login"
-                className="flex h-[40px] w-[101px] items-center justify-center rounded-lg btn-primary font-schibsted text-[16px] font-medium hover:opacity-90 transition-opacity"
+                className="flex h-[36px] sm:h-[40px] px-4 sm:px-6 items-center justify-center rounded-lg btn-primary font-schibsted text-[14px] sm:text-[16px] font-medium hover:opacity-90 transition-opacity"
               >
                 Log In
               </Link>
@@ -93,14 +93,14 @@ export function Navbar() {
             <>
               <Link
                 href="/prd"
-                className="flex h-[40px] px-6 items-center justify-center rounded-lg btn-primary font-schibsted text-[16px] font-medium hover:opacity-90 transition-opacity"
+                className="flex h-[36px] sm:h-[40px] px-4 sm:px-6 items-center justify-center rounded-lg btn-primary font-schibsted text-[14px] sm:text-[16px] font-medium hover:opacity-90 transition-opacity"
               >
                 Workspace
               </Link>
               <div className="relative">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex h-[40px] w-[40px] items-center justify-center rounded-full transition-colors border border-[var(--border-subtle)] hover:bg-[var(--bg-hover)]"
+                  className="flex h-[36px] w-[36px] sm:h-[40px] sm:w-[40px] items-center justify-center rounded-full transition-colors border border-[var(--border-subtle)] hover:bg-[var(--bg-hover)]"
                   style={{ background: "var(--bg-hover)" }}
                 >
                   <User size={20} style={{ color: "var(--text-secondary)" }} />

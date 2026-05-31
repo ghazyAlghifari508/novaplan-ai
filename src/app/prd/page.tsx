@@ -25,6 +25,7 @@ export default async function PrdIndexPage() {
       projects={projects || []}
       plan={plan}
       revisionLimit={quota?.revision_limit ?? undefined}
+      user={user}
     />
   );
 }

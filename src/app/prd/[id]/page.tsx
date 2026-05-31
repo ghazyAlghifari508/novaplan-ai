@@ -92,6 +92,7 @@ export default async function PrdPage({ params }: { params: Promise<{ id: string
       plan={plan}
       revisionLimit={quota?.revision_limit ?? undefined}
       initialMessages={initialMessages}
+      user={user}
     />
   );
 }

@@ -10,6 +10,8 @@ import { Lock, ChevronDown, Smartphone, Monitor, Check, Sparkles, Bot } from "lu
 import { SiMeta, SiAnthropic, SiGooglegemini } from "@icons-pack/react-simple-icons";
 import type { Plan } from "@/types/database";
 
+const MIN_PROMPT_LENGTH = 20;
+
 const ALL_MODELS = [
   { id: "meta/llama-3.1-8b-instruct", label: "Llama 3.1 (8B)", tier: "free" as Plan },
   { id: "meta/llama-3.2-3b-instruct", label: "Llama 3.2 (3B)", tier: "free" as Plan },
@@ -50,6 +52,7 @@ export function ChatInput({ className }: ChatInputProps) {
   const [focused, setFocused] = useState(false);
   const [planStatus, setPlanStatus] = useState<{ plan: Plan; remaining: number | "unlimited" } | null>(null);
   const [isMobileMode, setIsMobileMode] = useState(false);
+  const [promptError, setPromptError] = useState("");
   
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
   const [selectedModel, setSelectedModel] = useState(ALL_MODELS[0].id);
@@ -95,6 +98,12 @@ export function ChatInput({ className }: ChatInputProps) {
 
   const handleSend = async () => {
     if (!message.trim()) return;
+
+    if (message.trim().length < MIN_PROMPT_LENGTH) {
+      setPromptError(`Deskripsikan produkmu lebih detail (minimal ${MIN_PROMPT_LENGTH} karakter) agar AI bisa menghasilkan PRD yang berkualitas.`);
+      return;
+    }
+    setPromptError("");
 
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -291,7 +300,7 @@ export function ChatInput({ className }: ChatInputProps) {
             </div>
 
             <div className="flex items-center gap-3">
-              <span className="text-[12px] text-text-gray dark:text-[#A0A0A0] font-schibsted">
+              <span className={cn("text-[12px] font-schibsted", message.trim().length > 0 && message.trim().length < MIN_PROMPT_LENGTH ? "text-red-500" : "text-text-gray dark:text-[#A0A0A0]")}>
                 {message.length.toLocaleString()}/3,000
               </span>
               <button
@@ -318,6 +327,15 @@ export function ChatInput({ className }: ChatInputProps) {
             </div>
           </div>
         </div>
+
+        {/* Prompt error message */}
+        {promptError && (
+          <div className="px-3 pb-2">
+            <p className="text-[12px] text-red-500 font-schibsted animate-in fade-in slide-in-from-top-1 duration-200">
+              {promptError}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

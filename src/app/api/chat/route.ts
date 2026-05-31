@@ -12,26 +12,32 @@ import { AI_MODELS_BY_PLAN } from "@/lib/constants";
 import type { Plan } from "@/types/database";
 
 function deriveProjectName(message: string) {
-  let cleanMsg = message.replace(
-    /Generate PRD lengkap berdasarkan informasi berikut:\s*/gi,
-    "",
-  );
+  let cleanMsg = message;
+
+  // Strip meta tags like `[: Web App]` or `[E-commerce: Mobile App]`
+  cleanMsg = cleanMsg.replace(/^\[.*?\]\s*/i, "");
+
+  // Strip standard template boilerplate
+  cleanMsg = cleanMsg.replace(/Generate PRD lengkap berdasarkan informasi berikut:\s*/gi, "");
   cleanMsg = cleanMsg.replace(/\s*Gunakan section markers sesuai standar./gi, "");
-  cleanMsg = cleanMsg.replace(
-    /buatkan gw prd untuk membuat|tolong buatkan prd untuk|buatkan prd untuk|buatkan prd|bikin prd/gi,
-    "",
-  );
-  cleanMsg = cleanMsg.replace(/\b(?:aplikasi|website|platform|sistem)\b/gi, "");
+
+  // Strip conversational fillers
+  cleanMsg = cleanMsg.replace(/(tolong|coba|bantu)?\s*(buatkan|bikin|generate|tuliskan)\s*(gw|saya|kami)?\s*(sebuah|satu)?\s*(prd|dokumen prd|dokumen)\s*(untuk|buat|tentang)?\s*(membuat|membangun|bikin)?/gi, "");
+  cleanMsg = cleanMsg.replace(/\b(?:aplikasi|website|platform|sistem|web)\b/gi, "");
+
   cleanMsg = cleanMsg.replace(/\s+/g, " ").trim();
 
-  if (cleanMsg.length < 3) return "Untitled PRD";
+  if (cleanMsg.length < 3) return "Project Baru";
 
   const words = cleanMsg.split(" ");
-  let projectName = words.slice(0, 6).join(" ");
-  if (words.length > 6) projectName += "...";
-  projectName = projectName.charAt(0).toUpperCase() + projectName.slice(1);
+  // Take max 4 words for a cleaner title
+  let projectName = words.slice(0, 4).join(" ");
+  if (words.length > 4) projectName += "...";
+  
+  // Capitalize first letter of each word
+  projectName = projectName.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 
-  return projectName.trim().length < 3 ? "Untitled PRD" : projectName;
+  return projectName.trim().length < 3 ? "Project Baru" : projectName;
 }
 
 async function rollbackStreamInserts({

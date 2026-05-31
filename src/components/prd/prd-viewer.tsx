@@ -62,10 +62,6 @@ export const PrdViewer = memo(function PrdViewer({
     showToast("PRD di-download", "success");
   };
 
-  const handleDownloadPdf = () => {
-    // We use the browser's native print-to-pdf functionality 
-    window.print();
-  };
 
   return (
     <div className={cn("flex h-full", className)}>
@@ -100,16 +96,7 @@ export const PrdViewer = memo(function PrdViewer({
             >
               <Download size={16} /> Download .md
             </Button>
-            {features.downloadPdf && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleDownloadPdf}
-                className="flex items-center gap-1.5 cursor-pointer"
-              >
-                <Download size={16} /> Download .pdf
-              </Button>
-            )}
+
           </div>
         </div>
 

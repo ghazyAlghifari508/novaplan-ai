@@ -30,7 +30,7 @@ export async function* streamChat(
     model: selectedModel,
     stream: true,
     messages,
-    max_tokens: 8192,
+    max_tokens: 16384,
   };
 
   const response = await fetch(NVIDIA_NIM_API_URL, {
@@ -93,7 +93,7 @@ export async function completeChat(
     model: selectedModel,
     stream: false,
     messages,
-    max_tokens: 8192,
+    max_tokens: 16384,
   };
 
   const response = await fetch(NVIDIA_NIM_API_URL, {

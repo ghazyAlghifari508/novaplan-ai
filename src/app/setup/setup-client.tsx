@@ -10,8 +10,13 @@ export function SetupClient() {
   const promptRef = useRef("");
 
   useEffect(() => {
-    promptRef.current = getSetupPrompt();
-  }, []);
+    const prompt = getSetupPrompt();
+    if (!prompt || prompt.trim() === "") {
+      router.push("/");
+      return;
+    }
+    promptRef.current = prompt;
+  }, [router]);
 
   const handleAutoSelect = () => {
     savePendingPrdPrompt(promptRef.current, "auto");

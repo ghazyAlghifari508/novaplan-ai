@@ -16,6 +16,7 @@ interface ChatPanelProps {
   className?: string;
   onProjectCreated?: (projectId: string) => void;
   enableAutoSubmit?: boolean;
+  inputDisabled?: boolean;
 }
 
 export function ChatPanel({
@@ -24,6 +25,7 @@ export function ChatPanel({
   className,
   onProjectCreated,
   enableAutoSubmit = true,
+  inputDisabled = false,
 }: ChatPanelProps) {
   const [input, setInput] = useState("");
   const [conversationId, setConversationId] = useState(initialConversationId);
@@ -70,9 +72,25 @@ export function ChatPanel({
     }
   }, [isStreaming]);
 
+  const MIN_PROMPT_LENGTH = 20;
+
   const handleSend = async (overrideMode?: "chat" | "revise") => {
     const trimmed = input.trim();
     if (!trimmed || isStreaming || isSubmittingRef.current) return;
+
+    const resolvedMode = overrideMode || (projectId ? "revise" : "generate");
+
+    // Validate minimum prompt length for new PRD generation
+    if (resolvedMode === "generate" && trimmed.length < MIN_PROMPT_LENGTH) {
+      addMessage({
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: `Deskripsikan produkmu lebih detail (minimal ${MIN_PROMPT_LENGTH} karakter) agar saya bisa menghasilkan PRD yang berkualitas. Contoh: *"Buatkan PRD untuk aplikasi e-commerce fashion yang mendukung payment gateway dan tracking pengiriman."*`,
+        timestamp: Date.now(),
+      });
+      setInput("");
+      return;
+    }
 
     isSubmittingRef.current = true;
     const messageId = crypto.randomUUID();
@@ -88,7 +106,6 @@ export function ChatPanel({
     setStreaming(true);
     setStreamingContent("");
 
-    const resolvedMode = overrideMode || (projectId ? "revise" : "generate");
 
     const body: Record<string, unknown> = {
       message: trimmed,
@@ -479,11 +496,14 @@ export function ChatPanel({
                 handleSend();
               }
             }}
-            placeholder={projectId ? "Ketik pesan atau instruksi revisi PRD..." : "Ceritakan ide produkmu..."}
-            className="flex-1 resize-none rounded-lg border border-[var(--border-subtle)] px-4 py-2.5 text-sm outline-none transition-all focus:border-[var(--border-medium)] min-h-[44px]"
+            placeholder={inputDisabled ? "Pilih proyek dari daftar atau buat baru dari beranda" : projectId ? "Ketik pesan atau instruksi revisi PRD..." : "Ceritakan ide produkmu..."}
+            className={cn(
+              "flex-1 resize-none rounded-lg border border-[var(--border-subtle)] px-4 py-2.5 text-sm outline-none transition-all focus:border-[var(--border-medium)] min-h-[44px]",
+              inputDisabled && "cursor-not-allowed opacity-70"
+            )}
             style={{ background: "var(--bg-input)", color: "var(--text-primary)" }}
             rows={2}
-            disabled={isStreaming}
+            disabled={isStreaming || inputDisabled}
           />
           {projectId ? (
             <div className="flex flex-col gap-1.5 shrink-0">
@@ -522,7 +542,7 @@ export function ChatPanel({
           ) : (
             <button
               onClick={isStreaming ? handleCancel : () => handleSend()}
-              disabled={!isStreaming && (!input.trim() || isSubmittingRef.current)}
+              disabled={!isStreaming && (!input.trim() || isSubmittingRef.current || inputDisabled)}
               className={cn(
                 "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-all disabled:opacity-30",
                 isStreaming ? "bg-red-500 hover:bg-red-600 text-white" : "btn-primary hover:opacity-80"
