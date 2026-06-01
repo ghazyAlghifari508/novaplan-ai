@@ -63,6 +63,21 @@ export const PrdViewer = memo(function PrdViewer({
   };
 
 
+  // Membersihkan sisa tag markdown (misal ```markdown di awal dan ``` di akhir)
+  // yang sering kali ditambahkan secara otomatis oleh AI
+  const getCleanContent = () => {
+    let cleaned = content.replace(/<!--[\s\S]*?-->/g, "").trim();
+    // Cek apakah teks diawali dengan ```markdown atau ```md atau sekadar ``` (tapi bukan mermaid)
+    const match = cleaned.match(/^```(markdown|md)?\s*\n/i);
+    if (match) {
+      cleaned = cleaned.substring(match[0].length);
+      if (cleaned.endsWith("```")) {
+        cleaned = cleaned.substring(0, cleaned.length - 3);
+      }
+    }
+    return cleaned.trim();
+  };
+
   return (
     <div className={cn("flex h-full", className)}>
       <aside
@@ -145,7 +160,7 @@ export const PrdViewer = memo(function PrdViewer({
               },
             }}
           >
-            {content.replace(/<!--[\s\S]*?-->/g, "")}
+            {getCleanContent()}
           </Markdown>
         </article>
       </div>
