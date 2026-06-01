@@ -6,6 +6,7 @@ import { ChatBubble } from "./chat-bubble";
 import { TypingIndicator } from "./typing-indicator";
 import { ModelDropdown } from "./model-dropdown";
 import { LimitModal } from "./limit-modal";
+import { ResumeErrorModal } from "./resume-error-modal";
 import { cn } from "@/lib/utils";
 import { consumePendingPrdPrompt } from "@/lib/prompt-handoff";
 import { useRouter } from "next/navigation";
@@ -50,6 +51,10 @@ export function ChatPanel({
   const [streamingContent, setStreamingContent] = useState("");
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [limitErrorMsg, setLimitErrorMsg] = useState("");
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [resumeErrorMsg, setResumeErrorMsg] = useState("");
+  const [partialContentStore, setPartialContentStore] = useState("");
+  const [originalMessageStore, setOriginalMessageStore] = useState("");
   const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL_ID);
   const [userPlan, setUserPlan] = useState<Plan>("free");
 
@@ -126,6 +131,8 @@ export function ChatPanel({
       chatMode: string,
       /** The original user message, used to restore input on error */
       originalMessage: string,
+      /** If this is a resume call, the previous partial content */
+      existingPartialContent: string = "",
     ) => {
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
@@ -175,10 +182,11 @@ export function ChatPanel({
 
               if (parsed.type === "delta") {
                 fullContent += parsed.content;
-                if (chatMode === "generate" || chatMode === "revise") {
-                  setStreamingPRDContent(fullContent);
+                const displayContent = existingPartialContent ? existingPartialContent + fullContent : fullContent;
+                if (chatMode === "generate" || chatMode === "revise" || chatMode === "resume") {
+                  setStreamingPRDContent(displayContent);
                 } else {
-                  setStreamingContent(fullContent);
+                  setStreamingContent(displayContent);
                 }
               } else if (parsed.type === "done") {
                 if (parsed.conversationId) {
@@ -189,9 +197,20 @@ export function ChatPanel({
                 }
               } else if (parsed.type === "error") {
                 const errorMsg = parsed.error ||
-                  (chatMode === "generate" || chatMode === "revise"
+                  (chatMode === "generate" || chatMode === "revise" || chatMode === "resume"
                     ? "Gagal menyusun PRD. Silakan coba lagi."
                     : "Gagal memproses pesan. Silakan coba lagi.");
+
+                // If error occurs during PRD generation and we already have some partial content
+                const currentDisplayContent = existingPartialContent ? existingPartialContent + fullContent : fullContent;
+                if ((chatMode === "generate" || chatMode === "revise" || chatMode === "resume") && currentDisplayContent.length > 0) {
+                  setGeneratingPRD(false);
+                  setResumeErrorMsg(errorMsg);
+                  setPartialContentStore(currentDisplayContent);
+                  setOriginalMessageStore(originalMessage);
+                  setShowResumeModal(true);
+                  return; // Don't add chat bubble, let user interact with modal
+                }
 
                 showToast(errorMsg, "error");
                 addMessage({
@@ -212,15 +231,16 @@ export function ChatPanel({
         }
 
         // ── Post-stream: add final message ──
-        if (chatMode === "generate" || chatMode === "revise") {
-          if (fullContent.trim()) {
+        if (chatMode === "generate" || chatMode === "revise" || chatMode === "resume") {
+          const finalDisplayContent = existingPartialContent ? existingPartialContent + fullContent : fullContent;
+          if (finalDisplayContent.trim()) {
             addMessage({
               id: crypto.randomUUID(),
               role: "assistant",
               content: "Selesai menyusun PRD.",
               timestamp: Date.now(),
             });
-            if (chatMode === "revise") {
+            if (chatMode === "revise" || chatMode === "resume") {
               startTransition(() => { router.refresh(); });
             }
           } else {
@@ -250,7 +270,7 @@ export function ChatPanel({
         setStreaming(false);
         setStreamingContent("");
         setGeneratingPRD(false);
-        if (chatMode !== "generate" && chatMode !== "revise") {
+        if (chatMode !== "generate" && chatMode !== "revise" && chatMode !== "resume") {
           setStreamingPRDContent("");
         }
         isSubmittingRef.current = false;
@@ -296,6 +316,34 @@ export function ChatPanel({
     if (resolvedMode === "generate" || resolvedMode === "revise") setGeneratingPRD(true);
 
     await streamApiCall(body, resolvedMode, trimmed);
+  };
+
+  /**
+   * Handle resuming a broken PRD generation from the modal.
+   */
+  const handleResumePRD = async (newModelId: string) => {
+    setSelectedModel(newModelId);
+    sessionStorage.setItem("novaplan:selected-model", newModelId);
+    setShowResumeModal(false);
+
+    if (isSubmittingRef.current || !partialContentStore) return;
+
+    isSubmittingRef.current = true;
+    setStreaming(true);
+    setGeneratingPRD(true);
+    // DO NOT CLEAR setStreamingPRDContent! We want the partial text to remain visible.
+    
+    const body: Record<string, unknown> = {
+      message: originalMessageStore,
+      mode: "resume",
+      partialContent: partialContentStore,
+      preferences: { model: newModelId }
+    };
+
+    if (conversationId) body.conversationId = conversationId;
+    if (projectId) body.projectId = projectId;
+
+    await streamApiCall(body, "resume", originalMessageStore, partialContentStore);
   };
 
   /**
@@ -431,6 +479,16 @@ export function ChatPanel({
         isOpen={showLimitModal}
         onClose={() => setShowLimitModal(false)}
         errorMessage={limitErrorMsg}
+      />
+
+      {/* Resume PRD Modal */}
+      <ResumeErrorModal
+        isOpen={showResumeModal}
+        onClose={() => setShowResumeModal(false)}
+        onResume={handleResumePRD}
+        errorMessage={resumeErrorMsg}
+        userPlan={userPlan}
+        currentModelId={selectedModel}
       />
     </div>
   );
