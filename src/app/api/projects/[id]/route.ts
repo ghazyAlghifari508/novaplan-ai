@@ -42,6 +42,38 @@ export async function DELETE(
       );
     }
 
+    // Implementasi manual cascading delete untuk menghindari foreign key constraint error
+    // jika aturan ON DELETE CASCADE belum disetup di Supabase.
+
+    // 1. Ambil ID conversation terkait project ini
+    const { data: convs } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("project_id", projectId);
+
+    const convIds = convs?.map((c) => c.id) || [];
+
+    // 2. Hapus messages yang terkait dengan conversation tersebut
+    if (convIds.length > 0) {
+      await supabase
+        .from("messages")
+        .delete()
+        .in("conversation_id", convIds);
+    }
+
+    // 3. Hapus conversations
+    await supabase
+      .from("conversations")
+      .delete()
+      .eq("project_id", projectId);
+
+    // 4. Hapus riwayat prd_versions
+    await supabase
+      .from("prd_versions")
+      .delete()
+      .eq("project_id", projectId);
+
+    // 5. Terakhir, hapus project utamanya
     const { data: deletedRows, error } = await supabase
       .from("projects")
       .delete()
