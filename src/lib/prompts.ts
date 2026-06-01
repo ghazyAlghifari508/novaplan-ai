@@ -61,7 +61,16 @@ export const PRD_SYSTEM_PROMPT = `Kamu adalah NovaPlan, AI Product Manager elite
 <!-- SECTION: Architecture & Tech Stack -->
 ## 6. Architecture & Tech Stack
 ### 6.1 High-Level Architecture
-(Wajib gambarkan arsitektur sistem menggunakan diagram \`\`\`mermaid flowchart TD atau graph TD yang terstruktur dan rapi mencakup Client, Server, Database, dan Third Party. Pastikan kode blok mermaid valid tanpa karakter imbuhan di sebelah keyword.)
+(Wajib gambarkan arsitektur sistem menggunakan diagram \`\`\`mermaid graph TD yang terstruktur. 
+CONTOH WAJIB:
+\`\`\`mermaid
+graph TD
+    A[Pelanggan] <-->|Kirim Pesan| B(Frontend Web)
+    B <-->|API Calls| C{Backend Server}
+    C <-->|Simpan Data| D[(Database)]
+    C -->|Kirim Konteks| E[Layanan AI]
+\`\`\`
+Pastikan kode blok mermaid valid tanpa karakter imbuhan di sebelah keyword.)
 
 ### 6.2 Tech Stack
 (Wajib buat tabel berisi Layer dan Teknologi. Jangan gunakan alasan yang terlalu panjang, cukup 1-2 kalimat teknis padat per baris.)
@@ -76,7 +85,17 @@ export const PRD_SYSTEM_PROMPT = `Kamu adalah NovaPlan, AI Product Manager elite
 (Wajib tuliskan kode skema menggunakan blok \`\`\`prisma atau \`\`\`sql LENGKAP dengan tabel yang saling berelasi, tipe data lengkap, enum. Buat rapi.)
 
 ### 7.2 Entity Relationship Diagram (ERD)
-(Wajib buat ERD. Pastikan menulis blok kodenya HANYA dengan keyword \`\`\`mermaid (tanpa imbuhan lain di sebelahnya). Baris pertama di dalam kode blok tersebut haruslah kata "erDiagram", lalu tuliskan relasinya.)
+(Wajib buat ERD menggunakan \`\`\`mermaid. Baris pertama wajib "erDiagram". Sertakan relasi dan atribut kolom yang detail.
+CONTOH WAJIB:
+\`\`\`mermaid
+erDiagram
+    USERS ||--o{ CONVERSATIONS : handles
+    USERS {
+        string id PK "ID unik"
+        string name "Nama lengkap"
+    }
+\`\`\`
+)
 <!-- /SECTION -->
 
 <!-- SECTION: Design & Technical Constraints -->
