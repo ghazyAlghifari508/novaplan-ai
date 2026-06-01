@@ -327,13 +327,13 @@ export function PrdDetail({
             </div>
 
             <PrdViewer
-              content={isGeneratingPRD && streamingPRDContent ? streamingPRDContent : currentContent}
+              content={(isGeneratingPRD || streamingPRDContent) ? streamingPRDContent : currentContent}
               projectName={projectName || ""}
               plan={plan}
               className="flex-1 overflow-hidden"
             />
           </>
-        ) : isGeneratingPRD ? (
+        ) : (isGeneratingPRD || streamingPRDContent) ? (
           <>
             <div className="flex items-center justify-between border-b border-[var(--border-subtle)] px-4 sm:px-6 py-3 print:hidden">
               <div className="flex items-center gap-3">
@@ -341,16 +341,20 @@ export function PrdDetail({
                   <HamburgerIcon />
                 </button>
                 <div className="flex items-center gap-2">
-                  <h1 className="font-fustat text-sm sm:text-lg font-bold">NovaPlan AI Sedang Mengetik PRD...</h1>
-                  <span className="flex gap-1 mt-1">
-                    <span className="w-1.5 h-1.5 bg-accent-green rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <span className="w-1.5 h-1.5 bg-accent-green rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <span className="w-1.5 h-1.5 bg-accent-green rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                  </span>
+                  <h1 className="font-fustat text-sm sm:text-lg font-bold">
+                    {isGeneratingPRD ? "NovaPlan AI Sedang Mengetik PRD..." : "Generate Terhenti (PRD Tersimpan Sebagian)"}
+                  </h1>
+                  {isGeneratingPRD && (
+                    <span className="flex gap-1 mt-1">
+                      <span className="w-1.5 h-1.5 bg-accent-green rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="w-1.5 h-1.5 bg-accent-green rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="w-1.5 h-1.5 bg-accent-green rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
-            <PrdViewer content={streamingPRDContent || "Mohon tunggu sebentar..."} projectName="Menyusun PRD..." plan={plan} className="flex-1 overflow-hidden" />
+            <PrdViewer content={streamingPRDContent || "Mohon tunggu sebentar..."} projectName={isGeneratingPRD ? "Menyusun PRD..." : "Gagal Generate"} plan={plan} className="flex-1 overflow-hidden" />
           </>
         ) : (
           /* Empty State */

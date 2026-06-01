@@ -188,7 +188,6 @@ export function ChatPanel({
                   onProjectCreated(parsed.projectId);
                 }
               } else if (parsed.type === "error") {
-                fullContent = "";
                 const errorMsg = parsed.error ||
                   (chatMode === "generate" || chatMode === "revise"
                     ? "Gagal menyusun PRD. Silakan coba lagi."
@@ -203,7 +202,6 @@ export function ChatPanel({
                 });
 
                 setGeneratingPRD(false);
-                setStreamingPRDContent("");
                 setInput(originalMessage);
                 return;
               }
@@ -233,7 +231,6 @@ export function ChatPanel({
               timestamp: Date.now(),
             });
             setGeneratingPRD(false);
-            setStreamingPRDContent("");
           }
         } else {
           addMessage({
@@ -252,9 +249,9 @@ export function ChatPanel({
       } finally {
         setStreaming(false);
         setStreamingContent("");
+        setGeneratingPRD(false);
         if (chatMode !== "generate" && chatMode !== "revise") {
           setStreamingPRDContent("");
-          setGeneratingPRD(false);
         }
         isSubmittingRef.current = false;
         abortControllerRef.current = null;
@@ -286,6 +283,7 @@ export function ChatPanel({
     setInput("");
     setStreaming(true);
     setStreamingContent("");
+    setStreamingPRDContent("");
 
     const body: Record<string, unknown> = { message: trimmed, mode: resolvedMode, preferences: {} };
 
@@ -315,6 +313,7 @@ export function ChatPanel({
 
       setStreaming(true);
       setStreamingContent("");
+      setStreamingPRDContent("");
       if (chatMode === "generate" || chatMode === "revise") setGeneratingPRD(true);
 
       const body: Record<string, unknown> = { message: msg, mode: chatMode };

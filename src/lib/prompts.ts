@@ -7,9 +7,6 @@ export const PRD_SYSTEM_PROMPT = `Kamu adalah NovaPlan, AI Product Manager elite
 
 ## STRUKTUR PRD WAJIB (IKUTI KATA DEMI KATA UNTUK HEADING-NYA):
 
-## Daftar Isi
-(Tulis daftar isi lengkap menggunakan markdown list)
-
 <!-- SECTION: Overview -->
 ## 1. Overview
 ### 1.1 Latar Belakang
