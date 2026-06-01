@@ -15,6 +15,36 @@ import { createClient } from "@/lib/supabase/client";
 import { ALL_MODELS, DEFAULT_MODEL_ID } from "@/lib/model-config";
 
 // ─────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────
+
+function livePatchPrd(baseContent: string, streamContent: string): string {
+  if (!baseContent) return streamContent;
+
+  let patched = baseContent;
+  const regex = /:::UPDATE_SECTION\[(.*?)\]:::\s*([\s\S]*?)(?::::END_UPDATE:::|$)/g;
+  let match;
+  
+  // Karena regex global memiliki state lastIndex, kita bisa loop aman
+  while ((match = regex.exec(streamContent)) !== null) {
+    const sectionName = match[1].trim();
+    const newContent = match[2].trim();
+    
+    const escaped = sectionName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const sectionRegex = new RegExp(`<!-- SECTION: ${escaped} -->[\\s\\S]*?<!-- \\/SECTION -->`, 'gi');
+    
+    if (sectionRegex.test(patched)) {
+      patched = patched.replace(sectionRegex, `<!-- SECTION: ${sectionName} -->\n${newContent}\n<!-- /SECTION -->`);
+    }
+  }
+  return patched;
+}
+
+function cleanChatBubble(streamContent: string): string {
+  let cleaned = streamContent.replace(/:::UPDATE_SECTION\[(.*?)\]:::\s*([\s\S]*?)(?::::END_UPDATE:::|$)/g, "").trim();
+  if (!cleaned) return "Menerapkan revisi ke dokumen...";
+  return cleaned;
+}
 // Constants
 // ─────────────────────────────────────────────
 
@@ -31,6 +61,7 @@ interface ChatPanelProps {
   onProjectCreated?: (projectId: string) => void;
   enableAutoSubmit?: boolean;
   inputDisabled?: boolean;
+  currentPrdContent?: string;
 }
 
 // ─────────────────────────────────────────────
@@ -44,6 +75,7 @@ export function ChatPanel({
   onProjectCreated,
   enableAutoSubmit = true,
   inputDisabled = false,
+  currentPrdContent = "",
 }: ChatPanelProps) {
   // ── Local State ──
   const [input, setInput] = useState("");
@@ -185,8 +217,15 @@ export function ChatPanel({
                 const displayContent = existingPartialContent ? existingPartialContent + fullContent : fullContent;
                 if (chatMode === "generate" || chatMode === "resume") {
                   setStreamingPRDContent(displayContent);
+                } else if (chatMode === "revise") {
+                  // 1. Live patch PRD secara visual (di PRD Viewer)
+                  const patchedPrd = livePatchPrd(currentPrdContent, displayContent);
+                  setStreamingPRDContent(patchedPrd);
+                  
+                  // 2. Sembunyikan tag aneh dari Chat Bubble
+                  setStreamingContent(cleanChatBubble(displayContent));
                 } else {
-                  // For revise and chat mode, stream into chat bubble instead of PRD Viewer
+                  // For chat mode, stream into chat bubble instead of PRD Viewer
                   setStreamingContent(displayContent);
                 }
               } else if (parsed.type === "done") {
@@ -232,7 +271,7 @@ export function ChatPanel({
         }
 
         // ── Post-stream: add final message ──
-        if (chatMode === "generate" || chatMode === "resume") {
+        if (chatMode === "generate" || chatMode === "resume" || chatMode === "revise") {
           const finalDisplayContent = existingPartialContent ? existingPartialContent + fullContent : fullContent;
           if (finalDisplayContent.trim()) {
             addMessage({
@@ -241,7 +280,7 @@ export function ChatPanel({
               content: "Selesai menyusun PRD.",
               timestamp: Date.now(),
             });
-            if (chatMode === "resume") {
+            if (chatMode === "resume" || chatMode === "revise") {
               startTransition(() => { router.refresh(); });
             }
           } else {
@@ -254,16 +293,13 @@ export function ChatPanel({
             setGeneratingPRD(false);
           }
         } else {
-          // chatMode === 'revise' OR 'chat'
+          // chatMode === 'chat'
           addMessage({
             id: crypto.randomUUID(),
             role: "assistant",
             content: fullContent,
             timestamp: Date.now(),
           });
-          if (chatMode === "revise") {
-            startTransition(() => { router.refresh(); });
-          }
         }
       } catch (err: unknown) {
         if (err instanceof Error && err.name === "AbortError") {
@@ -275,7 +311,7 @@ export function ChatPanel({
         setStreaming(false);
         setStreamingContent("");
         setGeneratingPRD(false);
-        if (chatMode !== "generate" && chatMode !== "resume") {
+        if (chatMode !== "generate" && chatMode !== "resume" && chatMode !== "revise") {
           setStreamingPRDContent("");
         }
         isSubmittingRef.current = false;
@@ -310,6 +346,8 @@ export function ChatPanel({
     setStreamingContent("");
     if (resolvedMode !== "revise") {
       setStreamingPRDContent("");
+    } else {
+      setStreamingPRDContent(currentPrdContent);
     }
 
     const body: Record<string, unknown> = { message: trimmed, mode: resolvedMode, preferences: {} };
@@ -320,7 +358,7 @@ export function ChatPanel({
     }
     if (conversationId) body.conversationId = conversationId;
     if (projectId) body.projectId = projectId;
-    if (resolvedMode === "generate") setGeneratingPRD(true);
+    if (resolvedMode === "generate" || resolvedMode === "revise") setGeneratingPRD(true);
 
     await streamApiCall(body, resolvedMode, trimmed);
   };
@@ -370,8 +408,10 @@ export function ChatPanel({
       setStreamingContent("");
       if (chatMode !== "revise") {
         setStreamingPRDContent("");
+      } else {
+        setStreamingPRDContent(currentPrdContent);
       }
-      if (chatMode === "generate") setGeneratingPRD(true);
+      if (chatMode === "generate" || chatMode === "revise") setGeneratingPRD(true);
 
       const body: Record<string, unknown> = { message: msg, mode: chatMode };
       if (conversationId) body.conversationId = conversationId;

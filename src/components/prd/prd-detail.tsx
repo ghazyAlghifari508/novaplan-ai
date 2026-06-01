@@ -398,7 +398,7 @@ export function PrdDetail({
           <div className="absolute left-[-4px] top-0 bottom-0 w-2 cursor-col-resize hover:bg-[var(--btn-bg)]/20 z-10 transition-colors" onMouseDown={onStartDragRight} />
         )}
         <div className="h-full w-full">
-          <ChatPanel projectId={projectId} conversationId={conversationId} onProjectCreated={handleProjectCreated} className="w-full" inputDisabled={!projectId && !isGeneratingPRD} />
+          <ChatPanel projectId={projectId} conversationId={conversationId} onProjectCreated={handleProjectCreated} className="w-full" inputDisabled={!projectId && !isGeneratingPRD} currentPrdContent={currentContent} />
         </div>
       </div>
 
@@ -413,7 +413,7 @@ export function PrdDetail({
               </button>
             </div>
             <div className="h-[calc(60vh-44px)]">
-              <ChatPanel projectId={projectId} conversationId={conversationId} onProjectCreated={handleProjectCreated} className="w-full border-none" enableAutoSubmit={false} inputDisabled={!projectId && !isGeneratingPRD} />
+              <ChatPanel projectId={projectId} conversationId={conversationId} onProjectCreated={handleProjectCreated} className="w-full border-none" enableAutoSubmit={false} inputDisabled={!projectId && !isGeneratingPRD} currentPrdContent={currentContent} />
             </div>
           </div>
         )}
