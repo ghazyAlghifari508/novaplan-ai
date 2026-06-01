@@ -67,12 +67,35 @@ export const PrdViewer = memo(function PrdViewer({
   // yang sering kali ditambahkan secara otomatis oleh AI
   const getCleanContent = () => {
     let cleaned = content.replace(/<!--[\s\S]*?-->/g, "").trim();
-    // Cek apakah teks diawali dengan ```markdown atau ```md atau sekadar ``` (tapi bukan mermaid)
-    const match = cleaned.match(/^```(markdown|md)?\s*\n/i);
-    if (match) {
-      cleaned = cleaned.substring(match[0].length);
-      if (cleaned.endsWith("```")) {
-        cleaned = cleaned.substring(0, cleaned.length - 3);
+    
+    // Cari blok markdown pembungkus (contoh: AI menyelipkan "Berikut PRD-nya:\n```markdown\n...```")
+    const startMatch = cleaned.match(/```(?:markdown|md)\s*\n/i);
+    
+    if (startMatch) {
+      // Jika ```markdown ditemukan di bagian awal dokumen (<500 chars), anggap ini wrapper utama
+      if (startMatch.index !== undefined && startMatch.index < 500) {
+        const startIndex = startMatch.index + startMatch[0].length;
+        const lastIndex = cleaned.lastIndexOf("```");
+        
+        // Pastikan ``` penutup ada dan posisinya setelah pembuka
+        if (lastIndex > startIndex) {
+          cleaned = cleaned.substring(startIndex, lastIndex);
+        } else {
+          cleaned = cleaned.substring(startIndex);
+        }
+      }
+    } else {
+      // Jika tidak ada language tag tapi diawali ```
+      if (cleaned.startsWith("```\n")) {
+        const lastIndex = cleaned.lastIndexOf("```");
+        if (lastIndex > 3) {
+          cleaned = cleaned.substring(4, lastIndex);
+        }
+      } else if (cleaned.startsWith("```")) {
+        const lastIndex = cleaned.lastIndexOf("```");
+        if (lastIndex > 2) {
+          cleaned = cleaned.substring(3, lastIndex);
+        }
       }
     }
     return cleaned.trim();
