@@ -4,7 +4,6 @@ import { useState, useRef, useEffect, memo } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
-import { TableOfContents } from "./table-of-contents";
 import { Mermaid } from "./mermaid";
 import { Button } from "@/components/ui/button";
 import { useUIStore } from "@/store";
@@ -65,13 +64,6 @@ export const PrdViewer = memo(function PrdViewer({
 
   return (
     <div className={cn("flex h-full", className)}>
-      <aside
-        className="hidden h-full w-64 shrink-0 border-r border-[var(--border-subtle)] p-6 overflow-y-auto xl:block"
-        style={{ background: "var(--bg-page)" }}
-      >
-        <TableOfContents content={content} />
-      </aside>
-
       <div ref={scrollRef} className="flex-1 overflow-y-auto relative scroll-smooth">
         <div
           id="print-hide-viewer-topbar"
