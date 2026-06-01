@@ -58,12 +58,14 @@ export async function POST(req: NextRequest) {
     conversationId,
     projectId,
     mode = "chat",
+    partialContent,
     preferences,
   } = body as {
     message: string;
     conversationId?: string;
     projectId?: string;
-    mode?: "chat" | "generate" | "revise";
+    mode?: "chat" | "generate" | "revise" | "resume";
+    partialContent?: string;
     preferences?: Record<string, unknown>;
   };
 
@@ -131,11 +133,23 @@ export async function POST(req: NextRequest) {
   }
 
   // ── 6. Build messages & select models ──
-  const fullMessages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
-    { role: "system", content: systemPrompt },
-    ...conversationHistory,
-    { role: "user" as const, content: message },
-  ];
+  let fullMessages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [];
+
+  if (mode === "resume" && partialContent) {
+    fullMessages = [
+      { role: "system", content: systemPrompt },
+      ...conversationHistory,
+      { role: "user", content: message },
+      { role: "assistant", content: partialContent },
+      { role: "user", content: "Koneksi terputus. Lanjutkan penulisan dokumen tepat dari bagian terakhir teks di atas tanpa mengulang kalimat sebelumnya." }
+    ];
+  } else {
+    fullMessages = [
+      { role: "system", content: systemPrompt },
+      ...conversationHistory,
+      { role: "user" as const, content: message },
+    ];
+  }
 
   const modelsToTry = selectModels(plan, preferences?.model as string | undefined);
 
@@ -197,8 +211,15 @@ export async function POST(req: NextRequest) {
           await saveMessages(supabase, conversationIdToUse, message, assistantReply, plan);
         }
 
-        if ((mode === "generate" || mode === "revise") && conversationIdToUse) {
-          await savePrdVersion(supabase, conversationIdToUse, fullResponse, message, mode);
+        if ((mode === "generate" || mode === "revise" || mode === "resume") && conversationIdToUse) {
+          const finalPrdToSave = mode === "resume" && partialContent 
+            ? partialContent + fullResponse 
+            : fullResponse;
+            
+          // If resuming, we don't necessarily want to create a completely new message or we do?
+          // The current savePrdVersion creates a new version in project_versions.
+          // For resume, we still consider it a successful generation, so saving it as a new version is fine.
+          await savePrdVersion(supabase, conversationIdToUse, finalPrdToSave, message, mode === "resume" ? "generate" : mode);
 
           try {
             if (mode === "generate") {
