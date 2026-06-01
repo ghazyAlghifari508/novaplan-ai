@@ -42,3 +42,8 @@ graphify-out/cache/
 # vitest
 /coverage
 .vercel
+
+# local tooling
+.opencode
+.agent
+.agents
