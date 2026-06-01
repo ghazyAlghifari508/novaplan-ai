@@ -35,6 +35,22 @@ export function VersionHistory({
 
   const hasHistoryAccess = FEATURES[plan].versionHistory !== false;
 
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setExpanded(false);
+      }
+    };
+    if (expanded) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [expanded]);
+
   if (versions.length <= 1) {
     return (
       <div className={cn("p-4", className)}>
@@ -53,22 +69,6 @@ export function VersionHistory({
     setDiffVersions([v1, v2]);
     setDiffMode(true);
   };
-
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setExpanded(false);
-      }
-    };
-    if (expanded) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [expanded]);
 
   return (
     <div className={cn("relative", className)} ref={dropdownRef}>
