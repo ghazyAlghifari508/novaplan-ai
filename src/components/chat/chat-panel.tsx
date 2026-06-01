@@ -183,9 +183,10 @@ export function ChatPanel({
               if (parsed.type === "delta") {
                 fullContent += parsed.content;
                 const displayContent = existingPartialContent ? existingPartialContent + fullContent : fullContent;
-                if (chatMode === "generate" || chatMode === "revise" || chatMode === "resume") {
+                if (chatMode === "generate" || chatMode === "resume") {
                   setStreamingPRDContent(displayContent);
                 } else {
+                  // For revise and chat mode, stream into chat bubble instead of PRD Viewer
                   setStreamingContent(displayContent);
                 }
               } else if (parsed.type === "done") {
@@ -203,7 +204,7 @@ export function ChatPanel({
 
                 // If error occurs during PRD generation and we already have some partial content
                 const currentDisplayContent = existingPartialContent ? existingPartialContent + fullContent : fullContent;
-                if ((chatMode === "generate" || chatMode === "revise" || chatMode === "resume") && currentDisplayContent.length > 0) {
+                if ((chatMode === "generate" || chatMode === "resume") && currentDisplayContent.length > 0) {
                   setGeneratingPRD(false);
                   setResumeErrorMsg(errorMsg);
                   setPartialContentStore(currentDisplayContent);
@@ -231,7 +232,7 @@ export function ChatPanel({
         }
 
         // ── Post-stream: add final message ──
-        if (chatMode === "generate" || chatMode === "revise" || chatMode === "resume") {
+        if (chatMode === "generate" || chatMode === "resume") {
           const finalDisplayContent = existingPartialContent ? existingPartialContent + fullContent : fullContent;
           if (finalDisplayContent.trim()) {
             addMessage({
@@ -240,7 +241,7 @@ export function ChatPanel({
               content: "Selesai menyusun PRD.",
               timestamp: Date.now(),
             });
-            if (chatMode === "revise" || chatMode === "resume") {
+            if (chatMode === "resume") {
               startTransition(() => { router.refresh(); });
             }
           } else {
@@ -253,12 +254,16 @@ export function ChatPanel({
             setGeneratingPRD(false);
           }
         } else {
+          // chatMode === 'revise' OR 'chat'
           addMessage({
             id: crypto.randomUUID(),
             role: "assistant",
             content: fullContent,
             timestamp: Date.now(),
           });
+          if (chatMode === "revise") {
+            startTransition(() => { router.refresh(); });
+          }
         }
       } catch (err: unknown) {
         if (err instanceof Error && err.name === "AbortError") {
@@ -270,7 +275,7 @@ export function ChatPanel({
         setStreaming(false);
         setStreamingContent("");
         setGeneratingPRD(false);
-        if (chatMode !== "generate" && chatMode !== "revise" && chatMode !== "resume") {
+        if (chatMode !== "generate" && chatMode !== "resume") {
           setStreamingPRDContent("");
         }
         isSubmittingRef.current = false;
@@ -303,7 +308,9 @@ export function ChatPanel({
     setInput("");
     setStreaming(true);
     setStreamingContent("");
-    setStreamingPRDContent("");
+    if (resolvedMode !== "revise") {
+      setStreamingPRDContent("");
+    }
 
     const body: Record<string, unknown> = { message: trimmed, mode: resolvedMode, preferences: {} };
 
@@ -313,7 +320,7 @@ export function ChatPanel({
     }
     if (conversationId) body.conversationId = conversationId;
     if (projectId) body.projectId = projectId;
-    if (resolvedMode === "generate" || resolvedMode === "revise") setGeneratingPRD(true);
+    if (resolvedMode === "generate") setGeneratingPRD(true);
 
     await streamApiCall(body, resolvedMode, trimmed);
   };
@@ -361,8 +368,10 @@ export function ChatPanel({
 
       setStreaming(true);
       setStreamingContent("");
-      setStreamingPRDContent("");
-      if (chatMode === "generate" || chatMode === "revise") setGeneratingPRD(true);
+      if (chatMode !== "revise") {
+        setStreamingPRDContent("");
+      }
+      if (chatMode === "generate") setGeneratingPRD(true);
 
       const body: Record<string, unknown> = { message: msg, mode: chatMode };
       if (conversationId) body.conversationId = conversationId;

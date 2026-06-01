@@ -212,10 +212,41 @@ export async function POST(req: NextRequest) {
         }
 
         if ((mode === "generate" || mode === "revise" || mode === "resume") && conversationIdToUse) {
-          const finalPrdToSave = mode === "resume" && partialContent 
+          let finalPrdToSave = mode === "resume" && partialContent 
             ? partialContent + fullResponse 
             : fullResponse;
             
+          // Merge logic for "revise" mode (Block-Patching)
+          if (mode === "revise" && projectIdToUse) {
+            const currentPrd = await getLatestPrdContent(supabase, projectIdToUse);
+            if (currentPrd) {
+              const updateRegex = /:::UPDATE_SECTION\[(.*?)\]:::\s*([\s\S]*?)\s*:::END_UPDATE:::/g;
+              let match;
+              let mergedPrd = currentPrd;
+              let isMerged = false;
+              
+              while ((match = updateRegex.exec(fullResponse)) !== null) {
+                const sectionName = match[1].trim();
+                const newSectionContent = match[2].trim();
+                
+                // Escape special characters in sectionName for regex safety
+                const escapedSectionName = sectionName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const sectionRegex = new RegExp(`<!-- SECTION: ${escapedSectionName} -->[\\s\\S]*?<!-- \\/SECTION -->`, 'g');
+                
+                if (sectionRegex.test(mergedPrd)) {
+                  const replacement = `<!-- SECTION: ${sectionName} -->\n${newSectionContent}\n<!-- /SECTION -->`;
+                  mergedPrd = mergedPrd.replace(sectionRegex, replacement);
+                  isMerged = true;
+                }
+              }
+              
+              // If AI successfully used the patching format, save the merged PRD
+              if (isMerged) {
+                finalPrdToSave = mergedPrd;
+              }
+            }
+          }
+
           // If resuming, we don't necessarily want to create a completely new message or we do?
           // The current savePrdVersion creates a new version in project_versions.
           // For resume, we still consider it a successful generation, so saving it as a new version is fine.
