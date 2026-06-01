@@ -6,42 +6,18 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { saveSetupPrompt } from "@/lib/prompt-handoff";
-import { Lock, ChevronDown, Smartphone, Monitor, Check, Sparkles, Bot } from "lucide-react";
-import { SiMeta, SiAnthropic, SiGooglegemini } from "@icons-pack/react-simple-icons";
+import { Lock, ChevronDown, Smartphone, Monitor, Check } from "lucide-react";
 import type { Plan } from "@/types/database";
+import {
+  ALL_MODELS,
+  TIER_ORDER,
+  DEFAULT_MODEL_ID,
+  isModelUnlocked,
+  findModel,
+} from "@/lib/model-config";
+import { ModelIcon } from "@/components/ui/model-icon";
 
 const MIN_PROMPT_LENGTH = 20;
-
-const ALL_MODELS = [
-  { id: "meta/llama-3.1-8b-instruct", label: "Llama 3.1 (8B)", tier: "free" as Plan },
-  { id: "meta/llama-3.2-3b-instruct", label: "Llama 3.2 (3B)", tier: "free" as Plan },
-  { id: "meta/llama-3.3-70b-instruct", label: "Claude Sonnet 4.5", tier: "pro" as Plan },
-  { id: "google/gemma-2-27b-it", label: "Gemini Flash 3.5", tier: "pro" as Plan },
-  { id: "mistralai/mixtral-8x22b-instruct-v0.1", label: "Kimi K26", tier: "pro" as Plan },
-  { id: "meta/llama-3.1-405b-instruct", label: "Claude Opus 4.7", tier: "hengker" as Plan },
-  { id: "mistralai/mistral-large-2-instruct", label: "GPT 5.5", tier: "hengker" as Plan },
-  { id: "qwen/qwen2.5-72b-instruct", label: "Deepseek v4 Pro", tier: "hengker" as Plan },
-];
-
-const TIER_ORDER: Plan[] = ["free", "pro", "hengker"];
-
-const getModelIcon = (modelId: string, isLocked?: boolean) => {
-  let colorClass = "";
-  if (modelId === "meta/llama-3.3-70b-instruct" || modelId === "meta/llama-3.1-405b-instruct") colorClass = "text-[#D1A77E]"; // Claude
-  else if (modelId === "google/gemma-2-27b-it") colorClass = "text-[#8E75FF]"; // Gemini
-  else if (modelId === "mistralai/mistral-large-2-instruct") colorClass = "text-[#10A37F]"; // GPT
-  else if (modelId === "qwen/qwen2.5-72b-instruct") colorClass = "text-[#4D93E6]"; // Deepseek
-  else if (modelId === "mistralai/mixtral-8x22b-instruct-v0.1") colorClass = "text-indigo-400"; // Kimi
-  else if (modelId.startsWith("meta/")) colorClass = "text-[#0668E1]"; // Meta
-  
-  const className = cn(colorClass, isLocked && "opacity-40 grayscale");
-
-  if (modelId === "meta/llama-3.3-70b-instruct" || modelId === "meta/llama-3.1-405b-instruct") return <SiAnthropic size={12} className={className} />;
-  if (modelId === "google/gemma-2-27b-it") return <SiGooglegemini size={12} className={className} />;
-  if (modelId === "mistralai/mistral-large-2-instruct" || modelId === "mistralai/mixtral-8x22b-instruct-v0.1" || modelId === "qwen/qwen2.5-72b-instruct") return <Bot size={12} className={className} />;
-  if (modelId.startsWith("meta/")) return <SiMeta size={12} className={className} />;
-  return <Sparkles size={12} className={className} />;
-};
 
 interface ChatInputProps {
   className?: string;
@@ -55,7 +31,7 @@ export function ChatInput({ className }: ChatInputProps) {
   const [promptError, setPromptError] = useState("");
   
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
-  const [selectedModel, setSelectedModel] = useState(ALL_MODELS[0].id);
+  const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL_ID);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const router = useRouter();
@@ -125,14 +101,9 @@ export function ChatInput({ className }: ChatInputProps) {
   };
 
   const userPlan: Plan = planStatus?.plan ?? "free";
-  const selectedModelMeta = ALL_MODELS.find((m) => m.id === selectedModel) ?? ALL_MODELS[0];
+  const selectedModelMeta = findModel(selectedModel);
 
-  const isModelUnlocked = (modelTier: string, currentPlan: Plan) => {
-    if (currentPlan === "hengker") return true;
-    if (currentPlan === "pro" && (modelTier === "free" || modelTier === "pro")) return true;
-    if (currentPlan === "free" && modelTier === "free") return true;
-    return false;
-  };
+
 
   return (
     <div
@@ -236,7 +207,7 @@ export function ChatInput({ className }: ChatInputProps) {
                 onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
                 className="flex items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] px-2.5 py-1.5 text-[11px] font-medium font-schibsted text-text-gray hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
               >
-                {getModelIcon(selectedModel)}
+                <ModelIcon model={selectedModel} />
                 {selectedModelMeta.label}
                 <ChevronDown size={11} className={cn("transition-transform", isModelDropdownOpen && "rotate-180")} />
               </button>
@@ -281,7 +252,7 @@ export function ChatInput({ className }: ChatInputProps) {
                                 )}
                                 style={{ color: "var(--text-primary)" }}
                               >
-                                {getModelIcon(model.id, !unlocked)}
+                                <ModelIcon model={model.id} isLocked={!unlocked} />
                                 <span className="flex-1 text-left">{model.label}</span>
                                 {!unlocked ? (
                                   <Lock size={10} className="text-text-gray flex-shrink-0" />

@@ -20,16 +20,13 @@ export const AI_MODELS_BY_PLAN = {
   ],
   pro: [
     "meta/llama-3.3-70b-instruct",           // Sangat cerdas dan cepat (Rekomendasi Utama)
-    "google/gemma-2-27b-it",                 // Model Google yang efisien dan solid
-    "mistralai/mixtral-8x22b-instruct-v0.1", // Mixture of Experts, ngebut dan cerdas
+    "google/gemma-4-31b-it",                 // Model Google yang efisien dan solid
+    "mistralai/mixtral-8x22b-v0.1",          // Mixture of Experts, ngebut dan cerdas
   ],
   hengker: [
-    "meta/llama-3.1-405b-instruct",          // Model Meta terbesar, sangat pintar
-    "mistralai/mistral-large-2-instruct",    // Flagship Mistral, reasoning tinggi
-    "qwen/qwen2.5-72b-instruct",             // Flagship Qwen yang sangat cepat
-    "meta/llama-3.3-70b-instruct",           // Solid fallback
-    "google/gemma-2-27b-it",                 // Solid fallback
-    "mistralai/mixtral-8x22b-instruct-v0.1", // Solid fallback
+    "nvidia/llama-3.1-nemotron-ultra-253b-v1", // Model raksasa, sangat pintar
+    "mistralai/mistral-large-3-675b-instruct-2512", // Flagship Mistral, reasoning tinggi
+    "qwen/qwen3.5-122b-a10b",                // Flagship Qwen yang sangat cerdas
   ],
 } as const;
 
@@ -60,4 +57,32 @@ export const MIDTRANS_SANDBOX_SCRIPT =
 export const STORAGE_BUCKETS = {
   avatars: "avatars",
   prdFiles: "prd-files",
+} as const;
+
+// ─────────────────────────────────────────────
+// Chat Constants
+// ─────────────────────────────────────────────
+
+/** Minimum prompt length required for PRD generation */
+export const MIN_PROMPT_LENGTH = 20;
+
+// ─────────────────────────────────────────────
+// Session Storage Keys
+// ─────────────────────────────────────────────
+
+export const STORAGE_KEYS = {
+  selectedModel: "novaplan:selected-model",
+  pendingPrompt: "novaplan:pending-prompt",
+} as const;
+
+// ─────────────────────────────────────────────
+// User-Facing Error Messages (Indonesian)
+// ─────────────────────────────────────────────
+
+export const ERROR_MESSAGES = {
+  aiUnavailable: "Maaf, layanan AI sedang tidak tersedia atau sibuk. Silakan coba lagi dalam beberapa saat.",
+  prdFailed: "Gagal menyusun PRD. AI tidak menghasilkan konten. Silakan coba lagi.",
+  connectionError: "Terjadi kesalahan koneksi.",
+  processAborted: "Proses dihentikan.",
+  unknownError: "Terjadi kesalahan yang tidak diketahui.",
 } as const;

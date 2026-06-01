@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { FEATURES } from "@/types/database";
 import type { Plan } from "@/types/database";
@@ -54,11 +54,27 @@ export function VersionHistory({
     setDiffMode(true);
   };
 
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setExpanded(false);
+      }
+    };
+    if (expanded) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [expanded]);
+
   return (
-    <div className={cn("space-y-1", className)}>
+    <div className={cn("relative", className)} ref={dropdownRef}>
       <button
         onClick={() => setExpanded(!expanded)}
-        className="mb-2 flex w-full items-center justify-between text-sm font-medium text-text-gray dark:text-[#A0A0A0] hover:text-primary-black dark:text-[#F0F0F0]"
+        className="flex items-center gap-2 text-sm font-medium text-text-gray dark:text-[#A0A0A0] hover:text-primary-black dark:hover:text-[#F0F0F0]"
       >
         <span>Version History ({versions.length})</span>
         <svg
@@ -77,18 +93,21 @@ export function VersionHistory({
       </button>
 
       {expanded && (
-        <div className="space-y-1">
+        <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-[var(--border-subtle)] bg-white dark:bg-[#1E1E1E] p-2 shadow-xl space-y-1 max-h-96 overflow-y-auto">
           {hasHistoryAccess ? (
             versions.map((v) => (
-              <div key={v.id} className="group">
+              <div 
+                key={v.id} 
+                className={cn(
+                  "group flex flex-col rounded-lg transition-colors overflow-hidden",
+                  selected === v.version
+                    ? "btn-primary"
+                    : "hover:bg-light-gray-bg dark:hover:bg-[#161616] text-text-gray dark:text-[#A0A0A0]"
+                )}
+              >
                 <button
                   onClick={() => handleSelect(v)}
-                  className={cn(
-                    "w-full rounded-lg px-3 py-2 text-left text-sm transition-colors",
-                    selected === v.version
-                      ? "btn-primary"
-                      : "hover:bg-light-gray-bg dark:bg-[#161616] text-text-gray dark:text-[#A0A0A0]",
-                  )}
+                  className="w-full px-3 py-2 text-left text-sm"
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-medium">v{v.version}</span>
@@ -97,13 +116,13 @@ export function VersionHistory({
                     </span>
                   </div>
                   {v.change_summary && (
-                    <p className="mt-0.5 text-xs opacity-70 truncate">
+                    <p className="mt-0.5 text-xs opacity-70 line-clamp-2 leading-relaxed">
                       {v.change_summary}
                     </p>
                   )}
                 </button>
                 {selected === v.version && versions.length > 1 && (
-<VersionCompareLinks
+                  <VersionCompareLinks
                     versions={versions}
                     selectedVersion={v.version}
                     onDiff={handleDiff}
@@ -153,8 +172,9 @@ function VersionCompareLinks({
   onDiff: (v1: PrdVersion, v2: PrdVersion) => void;
 }) {
   return (
-    <div className="px-3 pb-2">
-      <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wide text-text-gray dark:text-[#A0A0A0]">
+    <div className="px-3 pb-3 pt-1">
+      <div className="h-px w-full bg-white/10 dark:bg-black/10 mb-2" />
+      <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wide opacity-80">
         Bandingkan dengan
       </p>
       <div className="flex flex-wrap gap-1.5">
@@ -168,7 +188,7 @@ function VersionCompareLinks({
                 const currentV = versions.find((vv) => vv.version === selectedVersion);
                 if (currentV) onDiff(currentV, v);
               }}
-              className="rounded-md bg-white/10 dark:bg-black/10 px-2 py-0.5 text-[10px] text-[var(--btn-text)] transition-colors hover:bg-white/20 dark:hover:bg-black/20"
+              className="rounded bg-white/20 dark:bg-black/20 px-2 py-0.5 text-[10px] transition-colors hover:bg-white/30 dark:hover:bg-black/30"
             >
               v{v.version}
             </button>

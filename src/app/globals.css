@@ -166,6 +166,10 @@ a {
   margin-bottom: 0.75rem;
 }
 
+.prd-content > :first-child {
+  margin-top: 0 !important;
+}
+
 .prd-content h3 {
   font-family: var(--font-fustat);
   font-size: 1.25rem;

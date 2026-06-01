@@ -100,7 +100,7 @@ export const PrdViewer = memo(function PrdViewer({
           </div>
         </div>
 
-        <article className="prd-content mx-auto max-w-3xl px-8 py-8">
+        <article className="prd-content mx-auto max-w-3xl px-8 pt-8 pb-16">
           <Markdown
             remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeHighlight]}

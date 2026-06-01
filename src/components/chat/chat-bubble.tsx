@@ -2,7 +2,6 @@
 
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
 
 interface ChatBubbleProps {
   role: "user" | "assistant" | "system";
@@ -25,13 +24,6 @@ export function ChatBubble({
       animate={{ opacity: 1, y: 0 }}
       className={cn("flex gap-3", isUser ? "justify-end" : "justify-start", className)}
     >
-      {!isUser && (
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-green/20"
-          style={{ color: "var(--text-primary)" }}
-        >
-          <Sparkles size={16} />
-        </div>
-      )}
 
       <div
         className={cn(
@@ -53,12 +45,6 @@ export function ChatBubble({
           )}
         </p>
       </div>
-
-      {isUser && (
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--btn-bg)]">
-          <span className="text-xs" style={{ color: "var(--btn-text)" }}>U</span>
-        </div>
-      )}
     </motion.div>
   );
 }
