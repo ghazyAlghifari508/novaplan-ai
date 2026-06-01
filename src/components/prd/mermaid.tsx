@@ -35,7 +35,7 @@ export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
         document.querySelectorAll('svg[id^="dmermaid-"], svg[id^="mermaid-"], div[id^="dmermaid-"]').forEach(el => el.remove());
         
         // Silently catch errors. These usually happen during AI text streaming because the Mermaid code is incomplete.
-        setSvg(`<div class="text-sm p-4 text-text-gray flex items-center justify-center animate-pulse border-b border-border-subtle dark:border-white/10 mb-2 pb-2">Menyusun diagram...</div><pre class="text-xs p-2 overflow-x-auto text-text-gray/70">${chart}</pre>`);
+        setSvg(`<div class="flex flex-col w-full max-w-full"><div class="text-sm p-4 text-text-gray flex items-center justify-center animate-pulse border-b border-border-subtle dark:border-white/10 mb-2 pb-2">Menyusun diagram...</div><pre class="text-xs p-2 overflow-x-auto text-text-gray/70 w-full whitespace-pre-wrap break-all">${chart}</pre></div>`);
       }
     };
 
