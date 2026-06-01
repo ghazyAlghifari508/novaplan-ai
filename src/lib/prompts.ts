@@ -100,7 +100,8 @@ Pengguna meminta perubahan spesifik pada PRD yang sudah ada. Konten PRD saat ini
 ## ATURAN MUTLAK REVISI (PENGHIANATAN ATURAN INI ADALAH KEGAGALAN FATAL):
 1. **LARANGAN HALUSINASI**: JANGAN PERNAH menambahkan fitur, layanan, integrasi, atau komponen yang TIDAK DIMINTA SECARA EKSPLISIT.
 2. **JANGAN MENULIS ULANG SELURUH DOKUMEN**: Ini adalah hal PALING PENTING. JANGAN menghasilkan seluruh dokumen PRD. Kamu HANYA boleh memberikan output untuk section yang berubah.
-3. **FORMAT PATCHING WAJIB**: Untuk setiap section yang kamu revisi, kamu WAJIB membungkusnya dengan penanda khusus berikut persis seperti contoh:
+3. **BERIKAN BALASAN CHAT (WAJIB)**: SEBELUM kamu memberikan blok revisi, kamu WAJIB memberikan kalimat balasan natural layaknya asisten (contoh: "Baik, pergantian tech stack ke Laravel sudah saya terapkan ke PRD.").
+4. **FORMAT PATCHING WAJIB**: SETELAH kalimat balasanmu, untuk setiap section yang kamu revisi, kamu WAJIB membungkus konten revisinya dengan penanda khusus berikut persis seperti contoh:
 
 :::UPDATE_SECTION[Nama Section Asli]:::
 <!-- SECTION: Nama Section Asli -->
@@ -109,7 +110,7 @@ Pengguna meminta perubahan spesifik pada PRD yang sudah ada. Konten PRD saat ini
 :::END_UPDATE:::
 
 Contoh penggunaan jika user meminta mengubah Tech Stack:
-Saya telah mengubah bagian Architecture. Berikut perubahannya:
+Baik, pergantian tech stack dari Next.js ke Laravel telah diterapkan pada bagian Architecture.
 
 :::UPDATE_SECTION[Architecture & Tech Stack]:::
 <!-- SECTION: Architecture & Tech Stack -->
@@ -119,8 +120,8 @@ Saya telah mengubah bagian Architecture. Berikut perubahannya:
 <!-- /SECTION -->
 :::END_UPDATE:::
 
-4. **PENGGUNAAN NAMA SECTION YANG TEPAT**: Pastikan nama section yang ditulis di dalam bracket \`[Nama Section Asli]\` SAMA PERSIS dengan penanda aslinya (Pilih salah satu: Overview, Goals & Success Metrics, Requirements, Core Features, User Flow, Architecture & Tech Stack, Database Schema, Design & Technical Constraints).
-5. **KONTEN LENGKAP DALAM BLOCK**: Meskipun kamu tidak menulis ulang seluruh PRD, di dalam block \`:::UPDATE_SECTION...\` kamu WAJIB menuliskan isi section tersebut secara UTUH dari awal sampai akhir section tersebut (termasuk semua sub-headingnya), jangan ada yang terpotong.`;
+5. **PENGGUNAAN NAMA SECTION YANG TEPAT**: Pastikan nama section yang ditulis di dalam bracket \`[Nama Section Asli]\` SAMA PERSIS dengan penanda aslinya (Pilih salah satu: Overview, Goals & Success Metrics, Requirements, Core Features, User Flow, Architecture & Tech Stack, Database Schema, Design & Technical Constraints).
+6. **KONTEN LENGKAP DALAM BLOCK**: Meskipun kamu tidak menulis ulang seluruh PRD, di dalam block \`:::UPDATE_SECTION...\` kamu WAJIB menuliskan isi section tersebut secara UTUH dari awal sampai akhir section tersebut (termasuk semua sub-headingnya), jangan ada yang terpotong.`;
 
 export const GENERATION_STEPS = [
   "Menganalisis kebutuhan & target pengguna...",
