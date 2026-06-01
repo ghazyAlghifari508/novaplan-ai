@@ -183,10 +183,16 @@ a {
   line-height: 1.75;
 }
 
-.prd-content ul,
+.prd-content ul {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+  list-style-type: disc;
+}
+
 .prd-content ol {
   margin-bottom: 1rem;
   padding-left: 1.5rem;
+  list-style-type: decimal;
 }
 
 .prd-content li {
