@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 
-import { createClient } from '@/lib/supabase/server';
+import { createServerInsforge } from '@/lib/insforge/server';
 import { novaPlanPlans } from '@/lib/pricing-data';
 
 export async function POST(req: Request) {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const insforge = await createServerInsforge();
+    const { data: { user } } = await insforge.auth.getCurrentUser();
 
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json({ error: 'Harap login terlebih dahulu untuk melakukan pembayaran.' }, { status: 401 });
     }
 
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     }
 
     // Check current subscription to prevent invalid purchases
-    const { data: currentSub } = await supabase
+    const { data: currentSub } = await insforge.database
       .from('subscriptions')
       .select('plan, status')
       .eq('user_id', user.id)
@@ -50,38 +50,38 @@ export async function POST(req: Request) {
 
     const orderId = `ORDER-${user.id.substring(0, 8)}-${Date.now()}`;
 
-    // Use service role key if available to bypass RLS for inserts
-    let dbClient = supabase;
+    // Use admin client to bypass RLS for inserts
+    let dbClient: any = insforge;
     try {
-      const { getAdminClient } = await import('@/lib/supabase/admin');
-      dbClient = getAdminClient();
+      const { getAdminInsforge } = await import('@/lib/insforge/admin');
+      dbClient = getAdminInsforge();
     } catch {
-      console.warn("Service Role Key not found, falling back to authenticated client.");
+      console.warn("API Key not found, falling back to authenticated client.");
     }
 
     // Record the pending payment in the database so the webhook can process it later
-    const { error: dbError } = await dbClient.from('payments').insert({
+    const { error: dbError } = await dbClient.database.from('payments').insert([{
       user_id: user.id,
       amount: price,
       currency: 'IDR',
       status: 'pending',
       midtrans_order_id: orderId,
       payment_method: 'midtrans',
-    });
+    }]);
 
     if (dbError) {
       console.error('Database Error:', dbError);
       return NextResponse.json({ error: `Gagal membuat catatan pembayaran: ${dbError.message}` }, { status: 500 });
     }
 
-    const origin = req.headers.get('origin') || 'https://novaplan-ai.vercel.app';
+    const origin = req.headers.get('origin') || 'https://novaplanai.vercel.app';
     const parameters = {
       transaction_details: {
         order_id: orderId,
         gross_amount: price
       },
       customer_details: {
-        first_name: user.user_metadata?.full_name || 'Customer',
+        first_name: user.profile?.name || 'Customer',
         email: user.email
       },
       item_details: [

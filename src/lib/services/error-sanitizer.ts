@@ -25,7 +25,7 @@ export function sanitizeErrorForClient(error: unknown): string {
   }
 
   // Database errors (don't expose details)
-  if (msg.includes("pgrst") || msg.includes("PostgrestError") || msg.includes("supabase")) {
+  if (msg.includes("pgrst") || msg.includes("PostgrestError") || msg.includes("insforge")) {
     return "Terjadi kesalahan pada server. Silakan coba lagi.";
   }
 

@@ -114,16 +114,21 @@ export function isModelUnlocked(modelTier: Plan, userPlan: Plan): boolean {
 }
 
 /**
+ * Return unlocked model IDs with the paid tier first, then lower tiers as fallback.
+ */
+export function getUnlockedModelIds(userPlan: Plan): string[] {
+  const userTierIndex = TIER_ORDER.indexOf(userPlan);
+  const allowedTiers = TIER_ORDER.slice(0, userTierIndex + 1).reverse();
+
+  return allowedTiers.flatMap((tier) =>
+    ALL_MODELS.filter((model) => model.tier === tier).map((model) => model.id),
+  );
+}
+
+/**
  * Find a model definition by its ID.
  * Returns the default model if not found.
  */
 export function findModel(modelId: string): ModelDefinition {
   return ALL_MODELS.find((m) => m.id === modelId) ?? ALL_MODELS[0];
-}
-
-/**
- * Get models filtered by tier.
- */
-export function getModelsByTier(tier: Plan): ModelDefinition[] {
-  return ALL_MODELS.filter((m) => m.tier === tier);
 }

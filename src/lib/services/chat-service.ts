@@ -3,7 +3,7 @@
  * Extracted from api/chat/route.ts to follow Single Responsibility Principle.
  */
 
-type SupabaseClient = any; // edge runtime doesn't support full type
+type InsForgeClient = any; // edge runtime doesn't support full type
 
 export interface ConversationMessage {
   role: "system" | "user" | "assistant";
@@ -14,12 +14,12 @@ export interface ConversationMessage {
  * Verify a conversation belongs to a user, then fetch its message history.
  */
 export async function getConversationHistory(
-  supabase: SupabaseClient,
+  insforge: InsForgeClient,
   conversationId: string,
   userId: string,
   limit = 20,
 ): Promise<{ messages: ConversationMessage[]; valid: boolean }> {
-  const { data: convCheck } = await supabase
+  const { data: convCheck } = await insforge.database
     .from("conversations")
     .select("id")
     .eq("id", conversationId)
@@ -30,7 +30,7 @@ export async function getConversationHistory(
     return { messages: [], valid: false };
   }
 
-  const { data: messages } = await supabase
+  const { data: messages } = await insforge.database
     .from("messages")
     .select("role, content")
     .eq("conversation_id", conversationId)
@@ -51,7 +51,7 @@ export async function getConversationHistory(
  * Create a new conversation (and optionally a project) if needed.
  */
 export async function ensureConversation(
-  supabase: SupabaseClient,
+  insforge: InsForgeClient,
   userId: string,
   projectId: string | undefined,
   projectName: string,
@@ -67,15 +67,15 @@ export async function ensureConversation(
   let createdConversationId: string | undefined;
 
   if (!projectIdToUse) {
-    const { data: newProject, error: projectError } = await supabase
+    const { data: newProject, error: projectError } = await insforge.database
       .from("projects")
-      .insert({
+      .insert([{
         user_id: userId,
         name: projectName,
         status: "draft",
         mode: preferences ? "manual" : "ai_auto",
         preferences: preferences || null,
-      })
+      }])
       .select("id")
       .single();
 
@@ -87,12 +87,12 @@ export async function ensureConversation(
     createdProjectId = newProject.id;
   }
 
-  const { data: newConv, error: conversationError } = await supabase
+  const { data: newConv, error: conversationError } = await insforge.database
     .from("conversations")
-    .insert({
+    .insert([{
       project_id: projectIdToUse,
       user_id: userId,
-    })
+    }])
     .select("id")
     .single();
 
@@ -100,7 +100,7 @@ export async function ensureConversation(
     throw conversationError || new Error("Failed to create conversation");
   }
 
-  conversationIdToUse = newConv.id;
+  const conversationIdToUse = newConv.id;
   createdConversationId = newConv.id;
 
   return {
@@ -115,13 +115,13 @@ export async function ensureConversation(
  * Save user and assistant messages to a conversation.
  */
 export async function saveMessages(
-  supabase: SupabaseClient,
+  insforge: InsForgeClient,
   conversationId: string,
   userMessage: string,
   assistantReply: string,
   plan: string,
 ): Promise<void> {
-  const { error } = await supabase.from("messages").insert([
+  const { error } = await insforge.database.from("messages").insert([
     {
       conversation_id: conversationId,
       role: "user",
@@ -143,13 +143,13 @@ export async function saveMessages(
  * Roll back database records created during a failed streaming attempt.
  */
 export async function rollbackStreamInserts(
-  supabase: SupabaseClient,
+  insforge: InsForgeClient,
   userId: string,
   createdConversationId?: string,
   createdProjectId?: string,
 ): Promise<void> {
   if (createdConversationId) {
-    const { error } = await supabase
+    const { error } = await insforge.database
       .from("conversations")
       .delete()
       .eq("id", createdConversationId)
@@ -158,7 +158,7 @@ export async function rollbackStreamInserts(
   }
 
   if (createdProjectId) {
-    const { error } = await supabase
+    const { error } = await insforge.database
       .from("projects")
       .delete()
       .eq("id", createdProjectId)
@@ -166,6 +166,3 @@ export async function rollbackStreamInserts(
     if (error) throw error;
   }
 }
-
-// Fix: need to declare the variable
-let conversationIdToUse: string;

@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createServerInsforge } from "@/lib/insforge/server";
 import type { Plan } from "@/types/database";
 import { cache } from "react";
 
 export const getUser = cache(async () => {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getUser();
+  const insforge = await createServerInsforge();
+  const { data } = await insforge.auth.getCurrentUser();
   return data.user || null;
 });
 
@@ -21,8 +21,8 @@ export const getUserProfile = cache(async () => {
   const user = await getUser();
   if (!user) return null;
 
-  const supabase = await createClient();
-  const { data: profile } = await supabase
+  const insforge = await createServerInsforge();
+  const { data: profile } = await insforge.database
     .from("users")
     .select("*")
     .eq("id", user.id)
@@ -35,8 +35,8 @@ export const getUserQuota = cache(async () => {
   const user = await getUser();
   if (!user) return null;
 
-  const supabase = await createClient();
-  const { data: quotas } = await supabase
+  const insforge = await createServerInsforge();
+  const { data: quotas } = await insforge.database
     .from("quotas")
     .select("*")
     .eq("user_id", user.id)
@@ -50,8 +50,8 @@ export const getUserPlan = cache(async (): Promise<Plan> => {
   const user = await getUser();
   if (!user) return "free";
 
-  const supabase = await createClient();
-  const { data: subscriptions } = await supabase
+  const insforge = await createServerInsforge();
+  const { data: subscriptions } = await insforge.database
     .from("subscriptions")
     .select("plan")
     .eq("user_id", user.id)

@@ -2,7 +2,7 @@ export const runtime = "edge";
 export const maxDuration = 60; // Allow long generations
 
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createServerInsforge } from "@/lib/insforge/server";
 import { PRD_SYSTEM_PROMPT, PRD_REVISION_PROMPT } from "@/lib/prompts";
 import { checkRateLimit, recordRequest } from "@/lib/rate-limit";
 import { checkQuota, incrementPrdCount } from "@/lib/quota";
@@ -30,8 +30,8 @@ import { sanitizeErrorForClient } from "@/lib/services/error-sanitizer";
 
 export async function POST(req: NextRequest) {
   // ── 1. Auth ──
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const insforge = await createServerInsforge();
+  const { data: { user } } = await insforge.auth.getCurrentUser();
 
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const { data: userRecord } = await supabase.from("users").select("id").eq("id", user.id).single();
+  const { data: userRecord } = await insforge.database.from("users").select("id").eq("id", user.id).single();
   if (!userRecord) {
     return new Response(JSON.stringify({ error: "User not found" }), {
       status: 404,
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
   }
 
   // ── 2. Parse request ──
-  const { data: subscription } = await supabase.from("subscriptions").select("plan").eq("user_id", user.id).single();
+  const { data: subscription } = await insforge.database.from("subscriptions").select("plan").eq("user_id", user.id).single();
   const plan = (subscription?.plan || "free") as Plan;
 
   const body = await req.json();
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
   let conversationHistory: Array<{ role: "system" | "user" | "assistant"; content: string }> = [];
 
   if (conversationIdToUse) {
-    const result = await getConversationHistory(supabase, conversationIdToUse, user.id);
+    const result = await getConversationHistory(insforge, conversationIdToUse, user.id);
     if (!result.valid) {
       return new Response(JSON.stringify({ error: "Conversation not found or unauthorized" }), {
         status: 403,
@@ -118,7 +118,7 @@ export async function POST(req: NextRequest) {
   let systemPrompt = PRD_SYSTEM_PROMPT;
 
   if (mode === "revise" && projectIdToUse) {
-    const { data: projCheck } = await supabase.from("projects").select("id").eq("id", projectIdToUse).eq("user_id", user.id).single();
+    const { data: projCheck } = await insforge.database.from("projects").select("id").eq("id", projectIdToUse).eq("user_id", user.id).single();
     if (!projCheck) {
       return new Response(JSON.stringify({ error: "Project not found or unauthorized" }), {
         status: 403,
@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const latestContent = await getLatestPrdContent(supabase, projectIdToUse);
+    const latestContent = await getLatestPrdContent(insforge, projectIdToUse);
     if (latestContent) {
       systemPrompt = `${PRD_REVISION_PROMPT}\n\nCURRENT PRD CONTENT:\n\n${latestContent}`;
     }
@@ -174,7 +174,7 @@ export async function POST(req: NextRequest) {
         // Create project/conversation if needed
         if (!conversationIdToUse) {
           const result = await ensureConversation(
-            supabase,
+            insforge,
             user.id,
             projectIdToUse,
             deriveProjectName(message),
@@ -208,7 +208,7 @@ export async function POST(req: NextRequest) {
 
         // ── Post-stream: save to database ──
         if (conversationIdToUse) {
-          await saveMessages(supabase, conversationIdToUse, message, assistantReply, plan);
+          await saveMessages(insforge, conversationIdToUse, message, assistantReply, plan);
         }
 
         if ((mode === "generate" || mode === "revise" || mode === "resume") && conversationIdToUse) {
@@ -218,7 +218,7 @@ export async function POST(req: NextRequest) {
             
           // Merge logic for "revise" mode (Block-Patching)
           if (mode === "revise" && projectIdToUse) {
-            const currentPrd = await getLatestPrdContent(supabase, projectIdToUse);
+            const currentPrd = await getLatestPrdContent(insforge, projectIdToUse);
             if (currentPrd) {
               const updateRegex = /:::UPDATE_SECTION\[(.*?)\]:::\s*([\s\S]*?)\s*:::END_UPDATE:::/g;
               let match;
@@ -247,10 +247,7 @@ export async function POST(req: NextRequest) {
             }
           }
 
-          // If resuming, we don't necessarily want to create a completely new message or we do?
-          // The current savePrdVersion creates a new version in project_versions.
-          // For resume, we still consider it a successful generation, so saving it as a new version is fine.
-          await savePrdVersion(supabase, conversationIdToUse, finalPrdToSave, message, mode === "resume" ? "generate" : mode);
+          await savePrdVersion(insforge, conversationIdToUse, finalPrdToSave, message, mode === "resume" ? "generate" : mode);
 
           try {
             if (mode === "generate") {
@@ -262,7 +259,7 @@ export async function POST(req: NextRequest) {
         }
 
         // ── Send done event ──
-        const resolvedProject = await resolveProjectId(supabase, projectIdToUse, conversationIdToUse);
+        const resolvedProject = await resolveProjectId(insforge, projectIdToUse, conversationIdToUse);
 
         controller.enqueue(
           encoder.encode(
@@ -277,7 +274,7 @@ export async function POST(req: NextRequest) {
       } catch (error) {
         // Rollback any created records
         try {
-          await rollbackStreamInserts(supabase, user.id, createdConversationId, createdProjectId);
+          await rollbackStreamInserts(insforge, user.id, createdConversationId, createdProjectId);
         } catch (rollbackError) {
           console.error("Failed to roll back chat stream inserts:", rollbackError);
         }

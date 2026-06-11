@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createServerInsforge } from "@/lib/insforge/server";
 import { requireAuth, getUserPlan, getUserQuota } from "@/lib/auth";
 import { PrdDetail } from "@/components/prd/prd-detail";
 import type { Metadata } from "next";
@@ -9,17 +9,15 @@ export async function generateMetadata({
 }: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const supabase = await createClient();
+  const insforge = await createServerInsforge();
   const { id } = await params;
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await insforge.auth.getCurrentUser();
 
   if (!user) {
     return { title: "PRD" };
   }
 
-  const { data: project } = await supabase
+  const { data: project } = await insforge.database
     .from("projects")
     .select("name")
     .eq("id", id)
@@ -35,10 +33,10 @@ export default async function PrdPage({ params }: { params: Promise<{ id: string
   const user = await requireAuth();
   const plan = await getUserPlan();
   const quota = await getUserQuota();
-  const supabase = await createClient();
+  const insforge = await createServerInsforge();
   const { id } = await params;
 
-  const { data: project } = await supabase
+  const { data: project } = await insforge.database
     .from("projects")
     .select("*")
     .eq("id", id)
@@ -47,13 +45,13 @@ export default async function PrdPage({ params }: { params: Promise<{ id: string
 
   if (!project) notFound();
 
-  const { data: versions } = await supabase
+  const { data: versions } = await insforge.database
     .from("prd_versions")
     .select("*")
     .eq("project_id", id)
     .order("version", { ascending: false });
 
-  const { data: conversation } = await supabase
+  const { data: conversation } = await insforge.database
     .from("conversations")
     .select("id")
     .eq("project_id", id)
@@ -63,7 +61,7 @@ export default async function PrdPage({ params }: { params: Promise<{ id: string
 
   let initialMessages: Array<any> = [];
   if (conversation?.id) {
-    const { data: msgs } = await supabase
+    const { data: msgs } = await insforge.database
       .from("messages")
       .select("id, role, content, created_at")
       .eq("conversation_id", conversation.id)
@@ -73,7 +71,7 @@ export default async function PrdPage({ params }: { params: Promise<{ id: string
     if (msgs) initialMessages = msgs;
   }
 
-  const { data: projects } = await supabase
+  const { data: projects } = await insforge.database
     .from("projects")
     .select("id, name, status, updated_at")
     .eq("user_id", user.id)

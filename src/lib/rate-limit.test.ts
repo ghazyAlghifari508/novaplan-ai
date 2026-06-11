@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 
-vi.mock("@/lib/supabase/server", () => ({
+vi.mock("@/lib/insforge/server", () => ({
   createClient: vi.fn(),
 }));
 

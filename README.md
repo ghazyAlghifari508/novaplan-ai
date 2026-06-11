@@ -1,94 +1,114 @@
-# NovaPlan AI — Product Requirements Document (PRD) & Developer Guide
+Branch note: `main` is the default branch and contains the latest stable release. For active development, use `dev`.
 
-## 1. Pendahuluan
-**NovaPlan AI** adalah platform *Software as a Service* (SaaS) mutakhir yang dirancang untuk membantu Product Manager, Developer, dan Entrepreneur dalam membuat *Product Requirements Document* (PRD) berstandar industri dalam hitungan menit. Memanfaatkan teknologi AI *generative* termutakhir melalui integrasi OpenRouter, NovaPlan mengotomatisasi proses penyusunan spesifikasi teknis dan bisnis yang biasanya memakan waktu berhari-hari.
+───────────────────────────────────────────────
+ ✧ ˖° 🚀 ✧ NovaPlan AI vers. 0.1.0
+───────────────────────────────────────────────
+**NovaPlan AI**
 
-## 2. Arsitektur Teknis & Stack
-Aplikasi ini dikembangkan dengan pendekatan arsitektur modern berbasis komponen dan fungsi-fungsi *serverless* untuk menjamin skalabilitas, kecepatan, dan pengalaman pengguna yang optimal.
+A modern SaaS workspace designed to help Product Managers, Developers, and Entrepreneurs craft industry-standard Product Requirements Documents (PRDs) in minutes. Leveraging state-of-the-art generative AI via OpenRouter, NovaPlan automates the drafting of technical and business specifications that typically take days.
 
-*   **Framework Utama**: Next.js 15 (App Router) dengan React 19.
-*   **Bahasa Pemrograman**: TypeScript (v5).
-*   **Desain Antarmuka**: Tailwind CSS v4 untuk penataan gaya yang *utility-first*, dipadukan dengan pustaka komponen UI modern (21st.dev & komponen kustom). Animasi interaktif dikelola menggunakan Framer Motion (v11).
-*   **Manajemen State & Data Fetching**: Zustand v5 (klien) dan TanStack Query v5 (pengelolaan *caching* dan siklus hidup data asinkron).
-*   **Backend & API**: Next.js API Routes (Serverless Functions) dan Server Actions untuk mutasi data yang aman.
-*   **Autentikasi & Database**: Supabase (PostgreSQL) menangani basis data relasional lengkap dengan *Row Level Security* (RLS) serta sistem autentikasi (Email/Password & Google OAuth 2.0).
-*   **Penyimpanan Media**: Supabase Storage untuk pengelolaan aset pengguna.
-*   **Mesin Kecerdasan Buatan (AI)**: OpenRouter API (menjalankan model termutakhir seperti Gemini Flash, Llama, dan Mistral).
-*   **Sistem Pembayaran**: Integrasi Midtrans Sandbox (SNAP) untuk *gateway* pembayaran berlangganan/kuota.
-*   **Infrastruktur & Deployment**: Vercel.
+### Features
+**AI Chat Engine** -- chat with any advanced model to brainstorm and generate specs.
+　Gemini Flash · Llama · Mistral · OpenRouter integration
+**PRD Viewer & Editor** -- instantly render and edit AI-generated PRDs.
+　markdown · syntax highlighting · Mermaid diagrams · live preview
+**Version Control** -- keep track of PRD revision history, never lose a draft.
+　automatic versioning · seamless rollback · diff tracking
+**Project Management** -- organize your PRDs into projects for seamless management.
+　workspaces · folders · search & filter
+**Secure & Fast** -- built for scale and speed with modern web technologies.
+　Next.js 16 · React 19 · InsForge RLS · Vercel Edge
+**Payment & Subscriptions** -- integrated payment gateway for Pro and Basic tiers.
+　Midtrans integration · quota tracking · automated billing
+**Works on mobile** -- looks and runs great on your phone, not just desktop.
+　responsive · fast UI · accessible
+**Extras** -- more to explore, happy if you give it a go!
+　dark mode · customizable profiles · secure auth
 
-## 3. Topologi & Skema Basis Data
-Infrastruktur data menggunakan PostgreSQL via Supabase dengan 9 entitas utama yang saling berelasi:
-1.  **`users`**: Profil dan preferensi akun pengguna.
-2.  **`subscriptions`**: Data paket berlangganan pengguna (Pro/Basic).
-3.  **`quotas`**: Pelacakan batas penggunaan AI (*rate-limiting* tingkat entitas).
-4.  **`projects`**: Wadah utama kolaborasi dan manajemen PRD.
-5.  **`prd_versions`**: Pencatatan riwayat revisi PRD (sistem *versioning*).
-6.  **`conversations`**: Sesi obrolan pengguna dengan asisten AI.
-7.  **`messages`**: Rincian log interaksi dan hasil *generate* di dalam `conversations`.
-8.  **`payments`**: Transaksi keuangan dan riwayat faktur Midtrans.
-9.  **`rate_limits`**: Pengelolaan keamanan *endpoint* publik dari potensi penyalahgunaan.
+### Quick Start
+Defaults work out of the box: clone, install, then configure your environment variables. 
 
-*(Catatan Keamanan: Semua tabel di atas dilindungi dengan kebijakan Row Level Security / RLS secara ketat).*
+```bash
+git clone https://github.com/ghazyAlghifari508/novaplan-ai.git
+cd novaplan-ai
+npm install
+cp .env.example .env.local
+```
 
-## 4. Struktur Direktori Proyek
+Edit `.env.local` to include your InsForge URL, Anon Key, OpenRouter API Key, and Midtrans credentials. Only edit `.env.local` for deployment-level overrides.
+
+```bash
+npm run dev
+```
+
+Open `http://localhost:3000` when the server is healthy.
+
+### Architecture & Tech Stack
+NovaPlan AI is built with a modern, serverless component-based architecture:
+*   **Core**: Next.js 16 (App Router) with React 19 and TypeScript.
+*   **Styling & UI**: Tailwind CSS v4, 21st.dev components, and Framer Motion for interactive micro-animations.
+*   **State & Fetching**: Zustand v5 for client state, TanStack Query v5 for data caching.
+*   **Backend & DB**: Next.js API Routes, Server Actions, and InsForge (PostgreSQL) with strict Row Level Security (RLS).
+
+### Database Schema
+The infrastructure uses PostgreSQL via InsForge with 9 core entities:
+1.  **`users`**: Account profiles and preferences.
+2.  **`subscriptions`**: Subscription tiers (Pro/Basic).
+3.  **`quotas`**: AI usage tracking and rate-limiting.
+4.  **`projects`**: Main containers for PRD management.
+5.  **`prd_versions`**: Revision history for documents.
+6.  **`conversations`**: AI chat sessions.
+7.  **`messages`**: Chat interactions and generation logs.
+8.  **`payments`**: Financial transactions and invoices.
+9.  **`rate_limits`**: Public endpoint abuse protection.
+
+### Directory Structure
 ```text
 novaplan_ai/
 ├── src/
-│   ├── app/                # Root aplikasi (App Router, middleware, API)
-│   ├── components/         
-│   │   ├── ui/             # Komponen visual dasar (Button, Card, Input)
-│   │   ├── auth/           # Formulir autentikasi & Onboarding
-│   │   ├── chat/           # Mesin interaksi AI (Chat panel, bubble, selector)
-│   │   ├── prd/            # Penampil dan pengelola dokumen PRD
-│   │   └── settings/       # Tampilan pengaturan akun & preferensi
-│   ├── lib/                # Konfigurasi eksternal (Supabase, OpenRouter)
-│   ├── store/              # State management global (Zustand)
-│   ├── types/              # Deklarasi tipe statis (TypeScript)
-│   └── hooks/              # Custom React Hooks
-├── migrations/             # Skrip migrasi SQL (struktur dan *trigger*)
-└── middleware.ts           # Interseptor rute (verifikasi sesi, proteksi area aman)
+│   ├── app/                # Next.js App Router (pages, layouts, api)
+│   ├── components/         # UI, Auth, Chat, PRD, and Settings components
+│   ├── lib/                # External configs (InsForge, OpenRouter)
+│   ├── store/              # Global state management (Zustand)
+│   └── types/              # TypeScript definitions
+├── migrations/             # SQL migration scripts
+└── middleware.ts           # Route interception and security
 ```
 
-## 5. Prasyarat & Panduan Instalasi Lokal
-Untuk menjalankan proyek ini di lingkungan pengembangan (*development*), pastikan mesin Anda memenuhi kriteria berikut:
-*   **Node.js**: Versi 18.17 atau yang lebih baru.
-*   **NPM / Yarn / Pnpm**: Package manager.
+### Security Notes
+NovaPlan AI handles sensitive business plans and PRDs. Treat it like a secure vault.
+*   Keep `.env.local` and `insforge/` secrets out of Git.
+*   Review `migrations/` before applying schema changes.
+*   Row Level Security (RLS) is strictly enforced on all InsForge tables. Ensure any new tables have RLS enabled and policies defined.
+*   Use `INSFORGE_API_KEY` exclusively on the server-side.
 
-**Langkah Instalasi:**
-1. Kloning repositori dan instal dependensi:
-   ```bash
-   npm install
-   ```
-2. Salin *template* *environment variables*:
-   ```bash
-   cp .env.example .env.local
-   ```
-3. Konfigurasikan variabel wajib (berdasarkan kredensial Supabase, OpenRouter, dan Midtrans Anda).
-4. Jalankan *development server*:
-   ```bash
-   npm run dev
-   ```
-   Aplikasi dapat diakses melalui `http://localhost:3000`.
+### Contributing
+Help is welcome! The best entry points are fresh-install testing, prompt engineering for better PRDs, UI polish, and bug fixes. 
+*   **Phase 0-5**: Foundation, Auth, Landing, Chat, PRD Viewer, Dashboard ✅ Completed
+*   **Phase 6**: Pricing & Payment ⏳ In Progress
+*   **Phase 7**: Profile Settings ✅ Completed
+*   **Phase 8-10**: QA, Launch, Graphify ⏳ Pending
 
-## 6. Integrasi Agent & Ekosistem AI
-Aplikasi ini dikembangkan dan dirancang agar selalu selaras dengan ekosistem AI Coding Assistant (*Agentic Coding*). *Skill* atau modul referensi yang direkomendasikan untuk pengembangan lanjutan meliputi:
-- `vercel-react-best-practices`
-- `supabase-postgres-best-practices`
+### License
+MIT License -- see `LICENSE` for details.
 
-## 7. Status Pengiriman Produk (Roadmap)
-Pengembangan proyek dibagi menjadi 10 fase terstruktur:
-*   **Fase 0 — Foundation & Setup**: ✅ Selesai
-*   **Fase 1 — Auth & User System**: ✅ Selesai
-*   **Fase 2 — Hero Page & Landing**: ✅ Selesai
-*   **Fase 3 — AI Chat Engine**: ✅ Selesai
-*   **Fase 4 — PRD Viewer & Editor**: ✅ Selesai
-*   **Fase 5 — Dashboard**: ✅ Selesai
-*   **Fase 6 — Pricing & Payment**: ⏳ *Dalam Pengerjaan*
-*   **Fase 7 — Pengaturan & Kustomisasi Profil**: ✅ Selesai
-*   **Fase 8 — QA & Pengujian Sistem**: ⏳ *Dalam Pengerjaan*
-*   **Fase 9 — Rilis Publik (Launch)**: ⏳ *Tertunda*
-*   **Fase 10 — Konfigurasi Graphify**: ⏳ *Tertunda*
-
----
-*Dokumentasi ini dikelola secara dinamis. Harap perbarui seiring dengan iterasi versi rilis perangkat lunak.*
+```text
+       !
+       !
+       ^
+      / \
+     /   \
+    |  O  |
+    |  O  |
+   /|  O  |\
+  / |  O  | \
+ |  |  O  |  |
+ |  |  O  |  |
+ \_/|_____|\_/
+    /  |  \
+   /___|___\
+    (_____)
+     |   |
+    /     \
+  NovaPlan AI
+```

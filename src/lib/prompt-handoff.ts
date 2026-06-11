@@ -24,16 +24,6 @@ export function getSetupPrompt() {
   return getStorage()?.getItem(SETUP_PROMPT_KEY) || "";
 }
 
-export function useClientPrompt() {
-  const [prompt, setPrompt] = useState("");
-
-  useEffect(() => {
-    setPrompt(getSetupPrompt());
-  }, []);
-
-  return prompt;
-}
-
 export function savePendingPrdPrompt(prompt: string, mode: PendingPrdPromptMode) {
   const payload: PendingPrdPrompt = {
     prompt,

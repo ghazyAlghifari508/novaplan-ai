@@ -1,12 +1,12 @@
 import { requireAuth } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { createServerInsforge } from "@/lib/insforge/server";
 import { NotificationsForm } from "@/components/settings/notifications-form";
 
 export default async function NotificationsPage() {
   await requireAuth();
-  const supabase = await createClient();
+  const insforge = await createServerInsforge();
 
-  const { data: preferences } = await supabase
+  const { data: preferences } = await insforge.database
     .from("notification_preferences")
     .select("*")
     .single();

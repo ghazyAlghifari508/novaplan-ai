@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createServerInsforge } from "@/lib/insforge/server";
 import { RATE_LIMITS, RATE_LIMIT_WINDOW_MS } from "@/lib/constants";
 
 export type RateLimitAction = "ai_generate" | "ai_revise" | "api_call";
@@ -8,7 +8,7 @@ export async function checkRateLimit(
   plan: string,
   action: RateLimitAction,
 ): Promise<{ allowed: boolean; remaining: number }> {
-  const supabase = await createClient();
+  const insforge = await createServerInsforge();
 
   const limit =
     action === "api_call"
@@ -17,7 +17,7 @@ export async function checkRateLimit(
 
   const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW_MS).toISOString();
 
-  const { count, error } = await supabase
+  const { count, error } = await insforge.database
     .from("rate_limits")
     .select("*", { count: "exact", head: true })
     .eq("user_id", userId)
@@ -41,12 +41,12 @@ export async function recordRequest(
   userId: string,
   action: RateLimitAction,
 ): Promise<void> {
-  const supabase = await createClient();
+  const insforge = await createServerInsforge();
 
-  await supabase.from("rate_limits").insert({
+  await insforge.database.from("rate_limits").insert([{
     user_id: userId,
     action,
     request_count: 1,
     window_start: new Date().toISOString(),
-  });
+  }]);
 }

@@ -11,7 +11,6 @@ import { cn } from "@/lib/utils";
 import { consumePendingPrdPrompt } from "@/lib/prompt-handoff";
 import { useRouter } from "next/navigation";
 import type { Plan } from "@/types/database";
-import { createClient } from "@/lib/supabase/client";
 import { ALL_MODELS, DEFAULT_MODEL_ID } from "@/lib/model-config";
 
 // ─────────────────────────────────────────────
@@ -121,11 +120,17 @@ export function ChatPanel({
       setSelectedModel(storedModel);
     }
     const fetchStatus = async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data: sub } = await supabase.from("subscriptions").select("plan").eq("user_id", user.id).single();
-      if (sub) setUserPlan(sub.plan as Plan);
+      try {
+        const res = await fetch("/api/user/plan", { cache: "no-store" });
+        if (!res.ok) return;
+
+        const data = await res.json();
+        if (data.authenticated) {
+          setUserPlan(data.plan as Plan);
+        }
+      } catch {
+        setUserPlan("free");
+      }
     };
     fetchStatus();
   }, []);
