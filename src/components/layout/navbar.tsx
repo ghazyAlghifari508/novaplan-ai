@@ -3,52 +3,49 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import { User, Settings, CreditCard, LogOut } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export function Navbar() {
-  const [user, setUser] = useState<{ email: string } | null>(null);
+  const [user, setUser] = useState<{ id: string; email: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const router = useRouter();
 
   const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    await fetch("/api/auth/sign-out", { method: "POST", credentials: "include" });
     setUser(null);
     router.push("/login");
     router.refresh();
   };
 
   useEffect(() => {
-    const supabase = createClient();
-
     const checkUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
+      try {
+        const response = await fetch("/api/auth/me", {
+          credentials: "include",
+          cache: "no-store",
+        });
 
-      if (error || !data.user) {
+        if (!response.ok) {
+          setUser(null);
+          return;
+        }
+
+        const result = await response.json();
+        if (result?.user?.id && result.user.email) {
+          setUser({ id: result.user.id, email: result.user.email });
+        } else {
+          setUser(null);
+        }
+      } catch {
         setUser(null);
-        await supabase.auth.signOut({ scope: "local" });
-      } else {
-        setUser({ email: data.user.email! });
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     checkUser();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_OUT") {
-        setUser(null);
-      } else if (session?.user) {
-        setUser({ email: session.user.email! });
-      }
-    });
-
-    return () => {
-      authListener?.subscription.unsubscribe();
-    };
   }, []);
 
   return (

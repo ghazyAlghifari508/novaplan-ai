@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { saveSetupPrompt } from "@/lib/prompt-handoff";
 import { Lock, ChevronDown, Smartphone, Monitor, Check } from "lucide-react";
@@ -44,19 +43,20 @@ export function ChatInput({ className }: ChatInputProps) {
     }
 
     const fetchStatus = async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      try {
+        const res = await fetch("/api/user/plan", { cache: "no-store" });
+        if (!res.ok) return;
 
-      const { data: sub } = await supabase.from("subscriptions").select("plan").eq("user_id", user.id).single();
-      const { data: quota } = await supabase.from("quotas").select("prd_used, prd_limit").eq("user_id", user.id).single();
-
-      if (sub && quota) {
-        const plan = sub.plan as Plan;
-        setPlanStatus({
-          plan,
-          remaining: quota.prd_limit === -1 ? "unlimited" : Math.max(0, quota.prd_limit - quota.prd_used),
-        });
+        const data = await res.json();
+        if (data.authenticated) {
+          const plan = data.plan as Plan;
+          setPlanStatus({
+            plan,
+            remaining: data.remaining === "unlimited" ? "unlimited" : Number(data.remaining ?? 0),
+          });
+        }
+      } catch {
+        setPlanStatus(null);
       }
     };
     fetchStatus();
@@ -81,9 +81,6 @@ export function ChatInput({ className }: ChatInputProps) {
     }
     setPromptError("");
 
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
     // Store model & platform preference alongside the prompt
     const enrichedPrompt = isMobileMode
       ? `[Platform: Mobile App]\n${message.trim()}`
@@ -92,7 +89,15 @@ export function ChatInput({ className }: ChatInputProps) {
     saveSetupPrompt(enrichedPrompt);
     sessionStorage.setItem("novaplan:selected-model", selectedModel);
 
-    if (!user) {
+    let isAuthenticated = false;
+    try {
+      const authRes = await fetch("/api/auth/me", { cache: "no-store" });
+      isAuthenticated = authRes.ok;
+    } catch {
+      isAuthenticated = false;
+    }
+
+    if (!isAuthenticated) {
       router.push(`/login?redirect=${encodeURIComponent("/setup")}`);
       return;
     }

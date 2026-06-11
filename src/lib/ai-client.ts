@@ -110,19 +110,3 @@ export async function completeChat(
   return data.choices?.[0]?.message?.content || "";
 }
 
-export type FallbackModel = keyof typeof AI_MODELS;
-
-export async function tryModels(
-  messages: ChatMessage[],
-  models: string[] = [AI_MODELS.primary, AI_MODELS.fallback],
-): Promise<AsyncGenerator<string, void, undefined>> {
-  for (const model of models) {
-    try {
-      return streamChat(messages, model);
-    } catch {
-      continue;
-    }
-  }
-
-  throw new Error("All models failed");
-}

@@ -47,3 +47,16 @@ graphify-out/cache/
 .opencode
 .agent
 .agents
+
+# InsForge & AI agent skills
+.insforge
+.augment
+.claude
+.cline
+.github/copilot*
+.kilocode
+.qoder
+.qwen
+.roo
+.trae
+.windsurf

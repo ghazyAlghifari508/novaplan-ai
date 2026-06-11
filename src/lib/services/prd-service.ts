@@ -5,7 +5,7 @@
 
 import { generateShareToken } from "@/lib/utils";
 
-type SupabaseClient = any; // edge runtime doesn't support full type
+type InsForgeClient = any; // edge runtime doesn't support full type
 
 /**
  * Derive a human-readable project name from the user's raw prompt.
@@ -58,13 +58,13 @@ export function deriveProjectName(message: string): string {
  * Save a PRD version and mark the project as completed.
  */
 export async function savePrdVersion(
-  supabase: SupabaseClient,
+  insforge: InsForgeClient,
   conversationId: string,
   fullResponse: string,
   userMessage: string,
   mode: "generate" | "revise",
 ): Promise<void> {
-  const { data: conv } = await supabase
+  const { data: conv } = await insforge.database
     .from("conversations")
     .select("project_id")
     .eq("id", conversationId)
@@ -75,7 +75,7 @@ export async function savePrdVersion(
   let nextVersion = 1;
 
   if (mode === "revise") {
-    const { data: latestVersion } = await supabase
+    const { data: latestVersion } = await insforge.database
       .from("prd_versions")
       .select("version")
       .eq("project_id", conv.project_id)
@@ -89,13 +89,13 @@ export async function savePrdVersion(
   } else {
     // For new generation, we want a share token
     const shareToken = generateShareToken();
-    await supabase
+    await insforge.database
       .from("projects")
       .update({ share_token: shareToken })
       .eq("id", conv.project_id);
   }
 
-  const { error: prdVersionError } = await supabase.from("prd_versions").insert({
+  const { error: prdVersionError } = await insforge.database.from("prd_versions").insert([{
     project_id: conv.project_id,
     version: nextVersion,
     content: fullResponse,
@@ -103,11 +103,11 @@ export async function savePrdVersion(
       mode === "generate"
         ? "Initial PRD generation"
         : userMessage.substring(0, 50) + "...",
-  });
+  }]);
 
   if (prdVersionError) throw prdVersionError;
 
-  const { error: projectUpdateError } = await supabase
+  const { error: projectUpdateError } = await insforge.database
     .from("projects")
     .update({
       status: "completed",
@@ -122,10 +122,10 @@ export async function savePrdVersion(
  * Get the latest PRD content for a project.
  */
 export async function getLatestPrdContent(
-  supabase: SupabaseClient,
+  insforge: InsForgeClient,
   projectId: string,
 ): Promise<string | null> {
-  const { data } = await supabase
+  const { data } = await insforge.database
     .from("prd_versions")
     .select("content")
     .eq("project_id", projectId)
@@ -140,14 +140,14 @@ export async function getLatestPrdContent(
  * Resolve the project ID from a conversation if not directly available.
  */
 export async function resolveProjectId(
-  supabase: SupabaseClient,
+  insforge: InsForgeClient,
   projectId: string | undefined,
   conversationId: string | undefined,
 ): Promise<string | undefined> {
   if (projectId) return projectId;
   if (!conversationId) return undefined;
 
-  const { data: convRecord } = await supabase
+  const { data: convRecord } = await insforge.database
     .from("conversations")
     .select("project_id")
     .eq("id", conversationId)

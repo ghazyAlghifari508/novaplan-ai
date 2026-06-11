@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { insforge } from "@/lib/insforge/client";
 import { SignInPage, Testimonial } from "@/components/ui/sign-in";
 
 const sampleTestimonials: Testimonial[] = [
@@ -58,13 +58,10 @@ export function RegisterForm() {
     setLoading(true);
     setError(null);
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await insforge.auth.signUp({
       email,
       password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
+      redirectTo: `${window.location.origin}/auth/callback`,
     });
 
     if (error) {
@@ -73,17 +70,16 @@ export function RegisterForm() {
       return;
     }
 
-    router.push("/onboarding");
+    if (data?.requireEmailVerification) {
+      // InsForge requires email verification — redirect to verification page
+      router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+    } else {
+      router.push("/onboarding");
+    }
   };
 
   const handleGoogleSignUp = async () => {
-    const supabase = createClient();
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
+    window.location.assign("/api/auth/oauth/google?next=/");
   };
 
   return (

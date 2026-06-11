@@ -1,11 +1,11 @@
-import { createClient } from "@/lib/supabase/server";
+import { createServerInsforge } from "@/lib/insforge/server";
 
 export async function checkQuota(
   userId: string,
 ): Promise<{ allowed: boolean; used: number; limit: number }> {
-  const supabase = await createClient();
+  const insforge = await createServerInsforge();
 
-  const { data: quota } = await supabase
+  const { data: quota } = await insforge.database
     .from("quotas")
     .select("prd_used, prd_limit, reset_at")
     .eq("user_id", userId)
@@ -27,17 +27,17 @@ export async function checkQuota(
 }
 
 export async function incrementPrdCount(userId: string): Promise<void> {
-  const supabase = await createClient();
+  const insforge = await createServerInsforge();
 
-  await supabase.rpc("increment_prd_used", { user_id_param: userId });
+  await insforge.database.rpc("increment_prd_used", { user_id_param: userId });
 }
 
 export async function checkRevisionQuota(
   userId: string,
 ): Promise<{ allowed: boolean; used: number; limit: number }> {
-  const supabase = await createClient();
+  const insforge = await createServerInsforge();
 
-  const { data: quota } = await supabase
+  const { data: quota } = await insforge.database
     .from("quotas")
     .select("revision_used, revision_limit")
     .eq("user_id", userId)

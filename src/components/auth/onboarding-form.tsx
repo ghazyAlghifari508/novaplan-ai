@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createClient } from "@/lib/supabase/client";
 import { useAuthStore } from "@/store";
 
 const ROLES = [
@@ -60,25 +59,36 @@ export function OnboardingForm() {
     }
 
     setLoading(true);
-    const supabase = createClient();
+    setError(null);
 
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) {
-      router.push("/login");
+    const response = await fetch("/api/auth/onboarding", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        fullName,
+        role,
+        goals: tujuan,
+      }),
+    });
+
+    const result = await response.json().catch(() => null);
+
+    if (response.status === 401) {
+      router.replace("/login");
       return;
     }
 
-    await supabase
-      .from("users")
-      .update({
-        full_name: fullName,
-        role,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", data.user.id);
+    if (!response.ok || !result?.user) {
+      setError(result?.message ?? "Gagal menyimpan onboarding.");
+      setLoading(false);
+      return;
+    }
 
-    setUser({ id: data.user.id, email: data.user.email! });
-    router.push("/");
+    setUser({ id: result.user.id, email: result.user.email });
+    window.location.assign("/");
   };
 
   return (

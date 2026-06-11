@@ -1,5 +1,5 @@
 import { requireAuth, getUserPlan, getUserQuota } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { createServerInsforge } from "@/lib/insforge/server";
 import { PrdDetail } from "@/components/prd/prd-detail";
 import type { Metadata } from "next";
 
@@ -11,10 +11,10 @@ export default async function PrdIndexPage() {
   const user = await requireAuth();
   const plan = await getUserPlan();
   const quota = await getUserQuota();
-  const supabase = await createClient();
+  const insforge = await createServerInsforge();
 
   // Fetch all user projects for the history sidebar
-  const { data: projects } = await supabase
+  const { data: projects } = await insforge.database
     .from("projects")
     .select("id, name, status, updated_at")
     .eq("user_id", user.id)

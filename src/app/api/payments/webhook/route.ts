@@ -30,9 +30,9 @@ export async function POST(req: NextRequest) {
   }
 
   if (transaction_status === "expire" || transaction_status === "cancel") {
-    const { getAdminClient } = await import("@/lib/supabase/admin");
-    const supabase = getAdminClient();
-    await supabase
+    const { getAdminInsforge } = await import("@/lib/insforge/admin");
+    const admin = getAdminInsforge();
+    await admin.database
       .from("payments")
       .update({ status: "failed" })
       .eq("midtrans_order_id", order_id);

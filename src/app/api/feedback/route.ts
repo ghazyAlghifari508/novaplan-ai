@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createServerInsforge } from "@/lib/insforge/server";
 import { getUser } from "@/lib/auth";
 import { Resend } from "resend";
 
@@ -17,12 +17,12 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const supabase = await createClient();
-  await supabase.from("feedback").insert({
+  const insforge = await createServerInsforge();
+  await insforge.database.from("feedback").insert([{
     user_id: user?.id || null,
     message: message.trim(),
     type: type || "general",
-  });
+  }]);
 
   if (resend && process.env.FEEDBACK_EMAIL) {
     await resend.emails.send({

@@ -4,26 +4,18 @@
  */
 
 import { streamChat, completeChat } from "@/lib/ai-client";
-import { AI_MODELS_BY_PLAN } from "@/lib/constants";
+import { ALL_MODELS, getUnlockedModelIds, isModelUnlocked } from "@/lib/model-config";
 import type { Plan } from "@/types/database";
 
 /**
  * Build an ordered list of models to try, with the user's preferred model first.
  */
 export function selectModels(plan: Plan, requestedModel?: string): string[] {
-  const modelsToTry = [...(AI_MODELS_BY_PLAN[plan] as readonly string[])];
+  const modelsToTry = getUnlockedModelIds(plan);
 
   if (requestedModel) {
-    const tierOrder: Plan[] = ["free", "pro", "hengker"];
-    const userTierIdx = tierOrder.indexOf(plan);
-
-    let isAllowed = false;
-    for (let i = 0; i <= userTierIdx; i++) {
-      if ((AI_MODELS_BY_PLAN[tierOrder[i]] as readonly string[]).includes(requestedModel)) {
-        isAllowed = true;
-        break;
-      }
-    }
+    const requestedModelMeta = ALL_MODELS.find((model) => model.id === requestedModel);
+    const isAllowed = requestedModelMeta ? isModelUnlocked(requestedModelMeta.tier, plan) : false;
 
     if (isAllowed) {
       return [requestedModel, ...modelsToTry.filter((m) => m !== requestedModel)];

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createServerInsforge } from "@/lib/insforge/server";
 import { PrdViewer } from "@/components/prd/prd-viewer";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -8,10 +8,10 @@ export default async function SharedPrdPage({
 }: {
   params: Promise<{ token: string }>;
 }) {
-  const supabase = await createClient();
+  const insforge = await createServerInsforge();
   const { token } = await params;
 
-  const { data: project } = await supabase
+  const { data: project } = await insforge.database
     .from("projects")
     .select("id, name, is_shared, share_token")
     .eq("share_token", token)
@@ -20,7 +20,7 @@ export default async function SharedPrdPage({
 
   if (!project) notFound();
 
-  const { data: latestVersion } = await supabase
+  const { data: latestVersion } = await insforge.database
     .from("prd_versions")
     .select("content")
     .eq("project_id", project.id)

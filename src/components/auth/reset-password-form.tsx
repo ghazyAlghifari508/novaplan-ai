@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createClient } from "@/lib/supabase/client";
+import { insforge } from "@/lib/insforge/client";
 
 export function ResetPasswordForm() {
   const [password, setPassword] = useState("");
@@ -13,6 +13,8 @@ export function ResetPasswordForm() {
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,11 +29,18 @@ export function ResetPasswordForm() {
       return;
     }
 
+    if (!token) {
+      setError("Token reset tidak ditemukan. Silakan minta link reset baru.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.updateUser({ password });
+    const { error } = await insforge.auth.resetPassword({
+      newPassword: password,
+      otp: token,
+    });
 
     if (error) {
       setError(error.message);
@@ -40,7 +49,7 @@ export function ResetPasswordForm() {
     }
 
     setMessage("Password berhasil diubah!");
-    setTimeout(() => router.push("/"), 2000);
+    setTimeout(() => router.push("/login"), 2000);
   };
 
   return (

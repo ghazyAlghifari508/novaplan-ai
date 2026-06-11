@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createServerInsforge } from "@/lib/insforge/server";
 import { checkRateLimit, recordRequest } from "@/lib/rate-limit";
 
 export async function DELETE(
@@ -7,10 +7,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const insforge = await createServerInsforge();
+    const { data: { user } } = await insforge.auth.getCurrentUser();
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -21,7 +19,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Project ID is required" }, { status: 400 });
     }
 
-    const { data: subscription } = await supabase
+    const { data: subscription } = await insforge.database
       .from("subscriptions")
       .select("plan")
       .eq("user_id", user.id)
@@ -42,39 +40,38 @@ export async function DELETE(
       );
     }
 
-    // Implementasi manual cascading delete untuk menghindari foreign key constraint error
-    // jika aturan ON DELETE CASCADE belum disetup di Supabase.
+    // Implementasi manual cascading delete
 
     // 1. Ambil ID conversation terkait project ini
-    const { data: convs } = await supabase
+    const { data: convs } = await insforge.database
       .from("conversations")
       .select("id")
       .eq("project_id", projectId);
 
-    const convIds = convs?.map((c) => c.id) || [];
+    const convIds = convs?.map((c: { id: string }) => c.id) || [];
 
     // 2. Hapus messages yang terkait dengan conversation tersebut
     if (convIds.length > 0) {
-      await supabase
+      await insforge.database
         .from("messages")
         .delete()
         .in("conversation_id", convIds);
     }
 
     // 3. Hapus conversations
-    await supabase
+    await insforge.database
       .from("conversations")
       .delete()
       .eq("project_id", projectId);
 
     // 4. Hapus riwayat prd_versions
-    await supabase
+    await insforge.database
       .from("prd_versions")
       .delete()
       .eq("project_id", projectId);
 
     // 5. Terakhir, hapus project utamanya
-    const { data: deletedRows, error } = await supabase
+    const { data: deletedRows, error } = await insforge.database
       .from("projects")
       .delete()
       .eq("id", projectId)

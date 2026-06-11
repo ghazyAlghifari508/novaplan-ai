@@ -1,16 +1,16 @@
 import { requireAuth } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { createServerInsforge } from "@/lib/insforge/server";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import Link from "next/link";
 
 export default async function BillingPage() {
   const user = await requireAuth();
-  const supabase = await createClient();
+  const insforge = await createServerInsforge();
 
   const [subResult, paymentsResult, quotaResult] = await Promise.all([
-    supabase.from("subscriptions").select("*").eq("user_id", user.id).single(),
-    supabase.from("payments").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
-    supabase.from("quotas").select("*").eq("user_id", user.id).single(),
+    insforge.database.from("subscriptions").select("*").eq("user_id", user.id).single(),
+    insforge.database.from("payments").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
+    insforge.database.from("quotas").select("*").eq("user_id", user.id).single(),
   ]);
 
   const subscription = subResult.data;
@@ -65,7 +65,7 @@ export default async function BillingPage() {
             <p className="text-sm text-text-gray dark:text-[#A0A0A0]">Belum ada pembayaran</p>
           ) : (
             <div className="space-y-3">
-              {payments.map((p) => (
+              {payments.map((p: any) => (
                 <div
                   key={p.id}
                   className="flex items-center justify-between rounded-lg border border-border-subtle dark:border-white/10 p-4 text-sm"

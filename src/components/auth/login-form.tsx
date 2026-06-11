@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { insforge } from "@/lib/insforge/client";
 import { SignInPage, Testimonial } from "@/components/ui/sign-in";
 
 const sampleTestimonials: Testimonial[] = [
@@ -48,8 +48,7 @@ export function LoginForm() {
         return;
     }
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await insforge.auth.signInWithPassword({
       email,
       password,
     });
@@ -60,18 +59,15 @@ export function LoginForm() {
       return;
     }
 
-    router.push(redirectTo);
-    router.refresh();
+    // Session is auto-managed by InsForge SDK (httpOnly cookie)
+    if (data?.accessToken) {
+      router.push(redirectTo);
+      router.refresh();
+    }
   };
 
   const handleGoogleLogin = async () => {
-    const supabase = createClient();
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${redirectTo}`,
-      },
-    });
+    window.location.assign(`/api/auth/oauth/google?next=${encodeURIComponent(redirectTo)}`);
   };
 
   return (

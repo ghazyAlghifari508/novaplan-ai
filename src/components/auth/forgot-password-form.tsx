@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createClient } from "@/lib/supabase/client";
+import { insforge } from "@/lib/insforge/client";
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
@@ -17,15 +17,15 @@ export function ForgotPasswordForm() {
     setError(null);
     setMessage(null);
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+    const { error } = await insforge.auth.sendResetPasswordEmail({
+      email,
+      redirectTo: `${window.location.origin}/reset-password`,
     });
 
     if (error) {
       setError(error.message);
     } else {
-      setMessage("Link reset password telah dikirim ke email kamu. Cek inbox dan spam.");
+      setMessage("Kode reset password telah dikirim ke email kamu. Cek inbox dan spam.");
     }
 
     setLoading(false);
@@ -36,7 +36,7 @@ export function ForgotPasswordForm() {
       <div className="text-center">
         <h1 className="font-fustat text-3xl font-bold">Lupa Password</h1>
         <p className="mt-2 text-text-gray dark:text-[#A0A0A0]">
-          Masukkan email untuk menerima link reset password
+          Masukkan email untuk menerima kode reset password
         </p>
       </div>
 
@@ -72,7 +72,7 @@ export function ForgotPasswordForm() {
         )}
 
         <Button type="submit" className="w-full" size="lg" isLoading={loading}>
-          Kirim Link Reset
+          Kirim Kode Reset
         </Button>
       </form>
     </div>
