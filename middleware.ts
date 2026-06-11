@@ -1,20 +1,46 @@
-import { updateSession, type CookieOptions, type CookieStore } from "@insforge/sdk/ssr";
+import { updateSession, type CookieOptions } from "@insforge/sdk/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 const PUBLIC_ROUTES = ["/", "/login", "/register", "/forgot-password", "/pricing"];
 const AUTH_ROUTES = ["/login", "/register"];
 
 export async function middleware(request: NextRequest) {
-  const response = NextResponse.next({ request });
+  let response = NextResponse.next({ request });
 
-  await updateSession({
+  const sessionResult = await updateSession({
     baseUrl: process.env.NEXT_PUBLIC_INSFORGE_URL!,
     anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY!,
-    requestCookies: createRequestCookieStore(request),
-    responseCookies: createResponseCookieStore(response),
+    requestCookies: {
+      get: (name) => request.cookies.get(name),
+      set: (nameOrOptions: string | ({ name: string; value: string } & CookieOptions), value?: string) => {
+        let name = typeof nameOrOptions === "string" ? nameOrOptions : nameOrOptions.name;
+        let val = typeof nameOrOptions === "string" ? (value ?? "") : nameOrOptions.value;
+        request.cookies.set(name, val);
+        // Re-create the response so the updated request.cookies are passed to Server Components
+        response = NextResponse.next({ request });
+      },
+      delete: (nameOrOptions: string | ({ name: string } & CookieOptions)) => {
+        let name = typeof nameOrOptions === "string" ? nameOrOptions : nameOrOptions.name;
+        request.cookies.delete(name);
+        response = NextResponse.next({ request });
+      }
+    },
+    responseCookies: {
+      get: (name) => response.cookies.get(name),
+      set: (nameOrOptions: string | ({ name: string; value: string } & CookieOptions), value?: string, options?: CookieOptions) => {
+        if (typeof nameOrOptions === "string") {
+          response.cookies.set(nameOrOptions, value ?? "", options);
+        } else {
+          response.cookies.set(nameOrOptions);
+        }
+      },
+      delete: (nameOrOptions: string | ({ name: string } & CookieOptions)) => {
+        response.cookies.delete(typeof nameOrOptions === "string" ? nameOrOptions : nameOrOptions.name);
+      }
+    },
   });
 
-  const token = request.cookies.get("insforge_access_token")?.value;
+  const token = sessionResult.accessToken ?? request.cookies.get("insforge_access_token")?.value;
   const isAuthenticated = token ? isTokenValid(token) : false;
 
   const pathname = request.nextUrl.pathname;
@@ -46,18 +72,15 @@ export async function middleware(request: NextRequest) {
 }
 
 /**
- * Lightweight JWT expiry check (no signature verification — that's done server-side).
+ * Lightweight JWT expiry check
  */
 function isTokenValid(token: string): boolean {
   try {
     const parts = token.split(".");
-    if (parts.length !== 3) {
-      return true; // Assume opaque token is valid and let the backend verify it!
-    }
+    if (parts.length !== 3) return true;
     const payload = JSON.parse(atob(parts[1]));
     return payload.exp * 1000 > Date.now();
   } catch {
-    // If we can't parse it, maybe it's not a JWT. Let the backend handle it!
     return true; 
   }
 }
@@ -67,48 +90,3 @@ export const config = {
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
-
-function createRequestCookieStore(request: NextRequest): CookieStore {
-  return {
-    get: (name: string) => request.cookies.get(name),
-    set: (
-      nameOrOptions: string | ({ name: string; value: string } & CookieOptions),
-      value?: string,
-    ) => {
-      if (typeof nameOrOptions === "string") {
-        request.cookies.set(nameOrOptions, value ?? "");
-        return;
-      }
-
-      request.cookies.set(nameOrOptions.name, nameOrOptions.value);
-    },
-    delete: (nameOrOptions: string | ({ name: string } & CookieOptions)) => {
-      request.cookies.delete(
-        typeof nameOrOptions === "string" ? nameOrOptions : nameOrOptions.name,
-      );
-    },
-  };
-}
-
-function createResponseCookieStore(response: NextResponse): CookieStore {
-  return {
-    get: (name: string) => response.cookies.get(name),
-    set: (
-      nameOrOptions: string | ({ name: string; value: string } & CookieOptions),
-      value?: string,
-      options?: CookieOptions,
-    ) => {
-      if (typeof nameOrOptions === "string") {
-        response.cookies.set(nameOrOptions, value ?? "", options);
-        return;
-      }
-
-      response.cookies.set(nameOrOptions);
-    },
-    delete: (nameOrOptions: string | ({ name: string } & CookieOptions)) => {
-      response.cookies.delete(
-        typeof nameOrOptions === "string" ? nameOrOptions : nameOrOptions.name,
-      );
-    },
-  };
-}

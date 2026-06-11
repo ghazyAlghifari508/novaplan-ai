@@ -9,6 +9,8 @@ interface PendingPrdPrompt {
   prompt: string;
   mode: PendingPrdPromptMode;
   createdAt: number;
+  /** Original user message for display in chat bubble (without template/tags) */
+  displayMessage?: string;
 }
 
 function getStorage() {
@@ -24,11 +26,12 @@ export function getSetupPrompt() {
   return getStorage()?.getItem(SETUP_PROMPT_KEY) || "";
 }
 
-export function savePendingPrdPrompt(prompt: string, mode: PendingPrdPromptMode) {
+export function savePendingPrdPrompt(prompt: string, mode: PendingPrdPromptMode, displayMessage?: string) {
   const payload: PendingPrdPrompt = {
     prompt,
     mode,
     createdAt: Date.now(),
+    displayMessage,
   };
 
   getStorage()?.setItem(PRD_PROMPT_KEY, JSON.stringify(payload));
@@ -49,6 +52,7 @@ export function consumePendingPrdPrompt(): PendingPrdPrompt | null {
       prompt: parsed.prompt,
       mode: parsed.mode,
       createdAt: parsed.createdAt || Date.now(),
+      displayMessage: parsed.displayMessage,
     };
   } catch {
     return null;
