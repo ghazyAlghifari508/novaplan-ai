@@ -19,7 +19,8 @@ export function SetupClient() {
   }, [router]);
 
   const handleAutoSelect = () => {
-    savePendingPrdPrompt(promptRef.current, "auto");
+    const originalMessage = sessionStorage.getItem("novaplan:original-message") || undefined;
+    savePendingPrdPrompt(promptRef.current, "auto", originalMessage);
     router.push("/prd");
   };
 

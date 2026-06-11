@@ -419,6 +419,10 @@ export function ChatPanel({
       if (chatMode === "generate" || chatMode === "revise") setGeneratingPRD(true);
 
       const body: Record<string, unknown> = { message: msg, mode: chatMode };
+      // Send the original user message for database storage (without template wrapping)
+      if (displayMessage && displayMessage !== msg) {
+        body.displayMessage = displayMessage;
+      }
       if (conversationId) body.conversationId = conversationId;
       if (projectId) body.projectId = projectId;
 
@@ -439,7 +443,9 @@ export function ChatPanel({
     if (pending.mode === "auto") {
       setGeneratingPRD(true);
       const autoMessage = `Generate PRD lengkap berdasarkan informasi berikut:\n\n${pending.prompt}\n\nGunakan section markers sesuai standar.`;
-      void handleSendWithMessage(autoMessage, "generate", pending.prompt);
+      // Use displayMessage (original user input) for the chat bubble, fallback to prompt
+      const bubbleMessage = pending.displayMessage || pending.prompt;
+      void handleSendWithMessage(autoMessage, "generate", bubbleMessage);
     } else {
       void handleSendWithMessage(pending.prompt, "chat");
     }

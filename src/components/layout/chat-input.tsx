@@ -82,11 +82,14 @@ export function ChatInput({ className }: ChatInputProps) {
     setPromptError("");
 
     // Store model & platform preference alongside the prompt
+    const originalMessage = message.trim();
     const enrichedPrompt = isMobileMode
-      ? `[Platform: Mobile App]\n${message.trim()}`
-      : `[Platform: Web App]\n${message.trim()}`;
+      ? `[Platform: Mobile App]\n${originalMessage}`
+      : `[Platform: Web App]\n${originalMessage}`;
 
     saveSetupPrompt(enrichedPrompt);
+    // Save original message for display in chat bubble (without platform tags)
+    sessionStorage.setItem("novaplan:original-message", originalMessage);
     sessionStorage.setItem("novaplan:selected-model", selectedModel);
 
     let isAuthenticated = false;

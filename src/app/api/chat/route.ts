@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const {
     message,
+    displayMessage,
     conversationId,
     projectId,
     mode = "chat",
@@ -62,6 +63,7 @@ export async function POST(req: NextRequest) {
     preferences,
   } = body as {
     message: string;
+    displayMessage?: string;
     conversationId?: string;
     projectId?: string;
     mode?: "chat" | "generate" | "revise" | "resume";
@@ -208,7 +210,7 @@ export async function POST(req: NextRequest) {
 
         // ── Post-stream: save to database ──
         if (conversationIdToUse) {
-          await saveMessages(insforge, conversationIdToUse, message, assistantReply, plan);
+          await saveMessages(insforge, conversationIdToUse, displayMessage || message, assistantReply, plan);
         }
 
         if ((mode === "generate" || mode === "revise" || mode === "resume") && conversationIdToUse) {
