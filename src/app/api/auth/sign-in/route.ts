@@ -1,6 +1,9 @@
 import { createServerClient, setAuthCookies } from "@insforge/sdk/ssr";
 import { NextRequest, NextResponse } from "next/server";
 import { authCookieSettings } from "@/lib/insforge/auth-cookies";
+import { createExtendedAuthTokens } from "@/lib/insforge/session-token";
+
+export const runtime = "nodejs";
 
 function getSafeNext(value: unknown) {
   if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//")) {
@@ -51,10 +54,12 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  setAuthCookies(response.cookies, {
+  const sessionTokens = createExtendedAuthTokens({
     accessToken: data.accessToken,
     refreshToken: data.refreshToken,
-  }, authCookieSettings);
+  }, data.user);
+
+  setAuthCookies(response.cookies, sessionTokens, authCookieSettings);
 
   return response;
 }

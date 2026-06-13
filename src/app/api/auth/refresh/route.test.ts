@@ -1,11 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { NextRequest } from "next/server";
 
-const signInWithPassword = vi.fn();
-const createServerClient = vi.fn(() => ({
-  auth: {
-    signInWithPassword,
-  },
-}));
+const refreshAuth = vi.fn();
 const setAuthCookies = vi.fn();
 const createExtendedAuthTokens = vi.fn((tokens) => ({
   ...tokens,
@@ -13,7 +9,7 @@ const createExtendedAuthTokens = vi.fn((tokens) => ({
 }));
 
 vi.mock("@insforge/sdk/ssr", () => ({
-  createServerClient,
+  refreshAuth,
   setAuthCookies,
 }));
 
@@ -31,63 +27,68 @@ vi.mock("@/lib/insforge/session-token", () => ({
   createExtendedAuthTokens,
 }));
 
-describe("POST /api/auth/sign-in", () => {
+describe("POST /api/auth/refresh", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.NEXT_PUBLIC_INSFORGE_URL = "https://example.insforge.app";
     process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY = "anon-key";
   });
 
-  it("sets SSR auth cookies when password sign-in succeeds", async () => {
-    signInWithPassword.mockResolvedValue({
+  it("returns and stores the extended access token after refresh", async () => {
+    refreshAuth.mockResolvedValue({
+      response: new Response(null, { status: 200 }),
       data: {
-        accessToken: "access-token",
-        refreshToken: "refresh-token",
+        accessToken: "short-access-token",
+        csrfToken: "csrf-token",
         user: {
           id: "user-1",
           email: "user@example.com",
         },
       },
+      accessToken: "short-access-token",
+      refreshToken: null,
       error: null,
     });
 
     const { POST } = await import("./route");
     const response = await POST(
-      new Request("http://localhost/api/auth/sign-in", {
+      new NextRequest("http://localhost/api/auth/refresh", {
         method: "POST",
-        body: JSON.stringify({
-          email: " user@example.com ",
-          password: "password123",
-          redirectTo: "/prd",
-        }),
-      }) as never,
+        headers: {
+          cookie: "insforge_refresh_token=existing-refresh-token",
+        },
+      }),
     );
 
     await expect(response.json()).resolves.toMatchObject({
-      redirectTo: "/prd",
+      accessToken: "extended-access-token",
+      csrfToken: "csrf-token",
       user: {
         id: "user-1",
         email: "user@example.com",
       },
     });
-    expect(createServerClient).toHaveBeenCalledWith({
+    expect(refreshAuth).toHaveBeenCalledWith({
       baseUrl: "https://example.insforge.app",
       anonKey: "anon-key",
-    });
-    expect(signInWithPassword).toHaveBeenCalledWith({
-      email: "user@example.com",
-      password: "password123",
+      request: expect.any(NextRequest),
+      cookies: expect.anything(),
+      options: {
+        refreshToken: {
+          maxAge: 60 * 60 * 24 * 30,
+        },
+      },
     });
     expect(createExtendedAuthTokens).toHaveBeenCalledWith({
-      accessToken: "access-token",
-      refreshToken: "refresh-token",
+      accessToken: "short-access-token",
+      refreshToken: "existing-refresh-token",
     }, {
       id: "user-1",
       email: "user@example.com",
     });
     expect(setAuthCookies).toHaveBeenCalledWith(expect.anything(), {
       accessToken: "extended-access-token",
-      refreshToken: "refresh-token",
+      refreshToken: "existing-refresh-token",
     }, {
       options: {
         refreshToken: {
@@ -97,31 +98,26 @@ describe("POST /api/auth/sign-in", () => {
     });
   });
 
-  it("rejects successful auth responses that do not include a refresh token", async () => {
-    signInWithPassword.mockResolvedValue({
-      data: {
-        accessToken: "access-token",
-        user: {
-          id: "user-1",
-          email: "user@example.com",
-        },
-      },
-      error: null,
+  it("returns the SDK response when refresh fails", async () => {
+    const sdkResponse = new Response(JSON.stringify({ error: "AUTH_UNAUTHORIZED" }), { status: 401 });
+
+    refreshAuth.mockResolvedValue({
+      response: sdkResponse,
+      data: null,
+      accessToken: null,
+      refreshToken: null,
+      error: new Error("Unauthorized"),
     });
 
     const { POST } = await import("./route");
     const response = await POST(
-      new Request("http://localhost/api/auth/sign-in", {
+      new NextRequest("http://localhost/api/auth/refresh", {
         method: "POST",
-        body: JSON.stringify({
-          email: "user@example.com",
-          password: "password123",
-          redirectTo: "/prd",
-        }),
-      }) as never,
+      }),
     );
 
-    expect(response.status).toBe(401);
+    expect(response).toBe(sdkResponse);
+    expect(createExtendedAuthTokens).not.toHaveBeenCalled();
     expect(setAuthCookies).not.toHaveBeenCalled();
   });
 });

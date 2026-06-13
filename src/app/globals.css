@@ -124,12 +124,12 @@
   --btn-text: #ffffff;
   /* Dropdown */
   --dropdown-bg: #ffffff;
-  --shadow-inset: inset 0 0 0 1px var(--color-graphite);
-  --shadow-surface: inset 0 0 0 1px var(--color-graphite), 0 18px 48px rgba(9, 9, 11, 0.08);
-  --shadow-focus: inset 0 0 0 1px var(--color-snow), 0 18px 48px rgba(9, 9, 11, 0.1);
-  --shadow-overlay: inset 0 0 0 1px var(--color-graphite), 0 24px 64px rgba(9, 9, 11, 0.12);
+  --shadow-inset: inset 0 0 0 1px var(--color-iron);
+  --shadow-surface: inset 0 0 0 1px var(--color-iron), 0 18px 48px rgba(9, 9, 11, 0.08);
+  --shadow-focus: inset 0 0 0 1px var(--color-slate), 0 18px 48px rgba(9, 9, 11, 0.1);
+  --shadow-overlay: inset 0 0 0 1px var(--color-iron), 0 24px 64px rgba(9, 9, 11, 0.12);
   --shadow-linear-sm: 0 12px 32px rgba(9, 9, 11, 0.08);
-  --shadow-linear-inset: inset 0 0 0 1px var(--color-graphite);
+  --shadow-linear-inset: inset 0 0 0 1px var(--color-iron);
   --shadow-linear-button: 0 5px 2px rgba(0, 0, 0, 0.01), 0 3px 2px rgba(0, 0, 0, 0.04), 0 1px 1px rgba(0, 0, 0, 0.07), 0 0 1px rgba(0, 0, 0, 0.08);
   --shadow-linear-xl: 0 24px 64px rgba(9, 9, 11, 0.12);
   color-scheme: light;
