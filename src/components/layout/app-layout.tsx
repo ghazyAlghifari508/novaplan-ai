@@ -9,7 +9,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   
   // Hide navbar on auth pages to provide a clean full-screen experience
   const hideNavbarRoutes = ["/login", "/register", "/forgot-password", "/reset-password"];
-  const hideNavbar = hideNavbarRoutes.includes(pathname);
+  const hideNavbar = hideNavbarRoutes.includes(pathname) || pathname.startsWith("/settings");
   
   // Lock body scroll on workspace to prevent overscroll rubber-banding
   const isWorkspace = pathname.startsWith("/prd");
