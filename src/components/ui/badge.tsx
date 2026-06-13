@@ -14,10 +14,10 @@ export function Badge({
   className,
 }: BadgeProps) {
   const variants = {
-    default: "bg-dark-badge text-accent-green",
-    success: "bg-green-100 text-green-800",
-    warning: "bg-yellow-100 text-yellow-800",
-    info: "bg-blue-100 text-blue-800",
+    default: "bg-obsidian text-mist shadow-[var(--shadow-inset)]",
+    success: "bg-emerald/10 text-emerald shadow-[inset_0_0_0_1px_rgba(39,166,68,0.35)]",
+    warning: "bg-steel text-snow shadow-[inset_0_0_0_1px_var(--color-graphite)]",
+    info: "bg-indigo/10 text-mist shadow-[inset_0_0_0_1px_rgba(94,106,210,0.35)]",
   };
 
   const sizes = {
@@ -28,7 +28,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full font-medium",
+        "inline-flex items-center rounded-[2px] font-[510]",
         variants[variant],
         sizes[size],
         className

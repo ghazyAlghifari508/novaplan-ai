@@ -37,15 +37,15 @@ export function ChatBubble({
 
       <div
         className={cn(
-          "max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
+          "max-w-[80%] rounded-xl px-4 py-3 text-sm leading-relaxed shadow-[var(--shadow-inset)]",
           isUser
-            ? "bg-[var(--btn-bg)] rounded-br-md"
-            : "rounded-bl-md",
+            ? "rounded-br-md bg-[var(--btn-bg)] shadow-none"
+            : "rounded-bl-md bg-charcoal",
         )}
         style={
           isUser
             ? { color: "var(--btn-text)" }
-            : { background: "var(--bg-surface)", color: "var(--text-primary)" }
+            : { color: "var(--text-primary)" }
         }
       >
         <p className="whitespace-pre-wrap">

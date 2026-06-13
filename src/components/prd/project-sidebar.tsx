@@ -45,7 +45,7 @@ export function ProjectSidebarContent({
 }: ProjectSidebarProps) {
   if (projects.length === 0) {
     return (
-      <div className="p-4 text-center text-xs text-text-gray dark:text-[#A0A0A0]">
+      <div className="p-4 text-center text-xs text-fog">
         Belum ada proyek.
       </div>
     );
@@ -60,15 +60,15 @@ export function ProjectSidebarContent({
           className={cn(
             "group flex items-center justify-between w-full rounded-lg transition-colors relative",
             currentProjectId === p.id
-              ? "bg-black/5 font-medium text-primary-black dark:text-[#F0F0F0]"
-              : "text-text-gray dark:text-[#A0A0A0] hover:bg-black/5 hover:text-primary-black dark:text-[#F0F0F0]",
+              ? "bg-obsidian font-[510] text-snow shadow-[var(--shadow-inset)]"
+              : "text-fog hover:bg-white/5 hover:text-snow",
           )}
         >
           {renamingId === p.id ? (
             <form onSubmit={(e) => onRenameSubmit(e, p.id)} className="flex-1 px-2 py-1.5 flex items-center">
               <input
                 autoFocus
-                className="w-full text-sm font-schibsted bg-white dark:bg-[#2A2A2A] border border-blue-500 rounded px-2 py-1 focus:outline-none"
+                className="w-full rounded bg-steel px-2 py-1 font-inter text-sm text-snow shadow-[inset_0_0_0_1px_rgba(94,106,210,0.85)] focus:outline-none"
                 value={renameValue}
                 onChange={(e) => onRenameValueChange(e.target.value)}
                 onKeyDown={async (e) => {
@@ -88,14 +88,14 @@ export function ProjectSidebarContent({
               <Link
                 href={`/prd/${p.id}`}
                 onClick={onNavigate}
-                className="flex-1 block px-3 py-2.5 text-sm truncate font-schibsted"
+                className="block flex-1 truncate px-3 py-2.5 font-inter text-sm"
               >
                 {p.name}
               </Link>
               <button
                 onClick={(e) => onDeleteRequest(e, p.id)}
                 disabled={isDeletingId === p.id}
-                className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 mr-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-md disabled:opacity-50 flex-shrink-0"
+                className="mr-2 flex-shrink-0 rounded-md p-1.5 text-crimson opacity-0 transition-opacity hover:bg-crimson/10 group-hover:opacity-100 disabled:opacity-50"
                 title="Hapus proyek"
               >
                 <Trash2 size={14} />

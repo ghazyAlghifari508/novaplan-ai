@@ -25,20 +25,19 @@ export const SettingsClient = memo(function SettingsClient({
   const pathname = usePathname();
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen" style={{ background: "var(--bg-surface)" }}>
+    <div className="flex min-h-screen flex-col bg-onyx text-snow md:flex-row">
       {/* Sidebar - fixed on the left for desktop, top for mobile */}
       <aside
-        className="md:fixed left-0 top-0 md:bottom-0 w-full md:w-64 shrink-0 md:border-r border-b border-[var(--border-subtle)] flex flex-col font-schibsted z-40"
-        style={{ background: "var(--bg-elevated)" }}
+        className="left-0 top-0 z-40 flex w-full shrink-0 flex-col border-b border-graphite bg-charcoal font-inter md:fixed md:bottom-0 md:w-64 md:border-r"
       >
         <div className="p-4 md:p-8 md:pb-4 flex justify-between items-center md:block">
           <div>
-            <h1 className="text-xl md:text-2xl font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>Settings</h1>
-            <p className="mt-1 text-xs md:text-sm" style={{ color: "var(--text-secondary)" }}>Manage account preferences</p>
+            <h1 className="text-xl font-light text-snow md:text-2xl">Settings</h1>
+            <p className="mt-1 text-xs text-fog md:text-sm">Manage account preferences</p>
           </div>
           <Link
             href="/"
-            className="md:hidden flex items-center justify-center p-2 rounded-lg bg-black/5 dark:bg-white/5 text-text-gray"
+            className="flex items-center justify-center rounded-md bg-white/5 p-2 text-fog md:hidden"
           >
             <ArrowLeft size={20} />
           </Link>
@@ -53,34 +52,28 @@ export const SettingsClient = memo(function SettingsClient({
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-2 md:gap-3 rounded-xl px-3 md:px-4 py-2 md:py-3 text-[13px] md:text-[15px] font-medium transition-all duration-200 whitespace-nowrap",
+                  "flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-[13px] font-[510] transition-all duration-300 md:gap-3 md:px-4 md:py-3 md:text-[15px]",
                   isActive
-                    ? "bg-[var(--btn-bg)] shadow-md"
-                    : "hover:bg-[var(--bg-hover)]"
+                    ? "bg-obsidian text-snow shadow-[var(--shadow-inset)]"
+                    : "text-fog hover:bg-white/5 hover:text-snow"
                 )}
-                style={{
-                  color: isActive ? "var(--btn-text)" : "var(--text-secondary)",
-                }}
               >
                 <Icon
                   size={18}
-                  style={{
-                    color: isActive ? "var(--btn-text)" : "var(--text-muted)",
-                  }}
+                  className={isActive ? "text-mist" : "text-fog"}
                 />
                 <span>{item.label}</span>
               </Link>
             );
           })}
 
-          <div className="hidden md:block my-6 h-px w-full" style={{ background: "var(--border-subtle)" }} />
+          <div className="my-6 hidden h-px w-full bg-graphite md:block" />
 
           <Link
             href="/"
-            className="hidden md:flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] font-medium transition-all duration-200 hover:bg-[var(--bg-hover)]"
-            style={{ color: "var(--text-secondary)" }}
+            className="hidden items-center gap-3 rounded-md px-4 py-3 text-[15px] font-[510] text-fog transition-all duration-300 hover:bg-white/5 hover:text-snow md:flex"
           >
-            <ArrowLeft size={18} style={{ color: "var(--text-muted)" }} />
+            <ArrowLeft size={18} className="text-fog" />
             Back to Workspace
           </Link>
         </nav>

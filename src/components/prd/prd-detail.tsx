@@ -205,24 +205,24 @@ export function PrdDetail({
   // ── Render ──
 
   return (
-    <div className="flex h-[calc(100vh-0px)] overflow-hidden">
+    <div className="flex h-[calc(100dvh-3.5rem)] overflow-hidden bg-onyx text-snow">
       {/* ═══════════ 1. Left Panel: Desktop Sidebar ═══════════ */}
       <div
         id="print-hide-sidebar"
         style={{ width: `${leftWidth}px`, background: "var(--bg-surface)" }}
-        className="shrink-0 border-r border-[var(--border-subtle)] flex-col relative group/left-sidebar print:hidden hidden md:flex"
+        className="group/left-sidebar relative hidden shrink-0 flex-col border-r border-graphite print:hidden md:flex"
       >
         {/* Resize Handle */}
         <div
-          className="absolute right-[-4px] top-0 bottom-0 w-2 cursor-col-resize hover:bg-[var(--btn-bg)]/20 z-10 transition-colors"
+          className="absolute bottom-0 right-[-4px] top-0 z-10 w-2 cursor-col-resize transition-colors hover:bg-indigo/20"
           onMouseDown={onStartDragLeft}
         />
 
-        <div className="p-4 border-b border-border-subtle dark:border-white/10 flex items-center justify-between">
-          <span className="font-schibsted font-semibold text-sm">Histori PRD</span>
+        <div className="flex items-center justify-between border-b border-graphite p-4">
+          <span className="font-inter text-sm font-[510] text-mist">Histori PRD</span>
           <Link
             href="/"
-            className="flex h-8 items-center gap-1.5 rounded-lg btn-primary px-3 text-xs font-medium hover:opacity-90 transition-opacity"
+            className="btn-primary flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-[510] transition-all duration-300 hover:brightness-105 active:scale-[0.98]"
           >
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
               <path d="M8 2V14M2 8H14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -237,20 +237,20 @@ export function PrdDetail({
 
         {/* Profile Card */}
         {user && (
-          <div className="mt-auto p-3 border-t border-border-subtle dark:border-white/10 shrink-0">
-            <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer group">
-              <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold shrink-0">
+          <div className="mt-auto shrink-0 border-t border-graphite p-3">
+            <div className="group flex cursor-pointer items-center gap-3 rounded-md p-2 transition-colors hover:bg-white/5">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo/15 font-[510] text-mist shadow-[inset_0_0_0_1px_rgba(94,106,210,0.35)]">
                 {user.user_metadata?.full_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || "U"}
               </div>
               <div className="flex flex-col flex-1 min-w-0">
-                <span className="text-sm font-medium text-primary-black dark:text-[#F0F0F0] truncate">
+                <span className="truncate text-sm font-[510] text-snow">
                   {user.user_metadata?.full_name || "User"}
                 </span>
-                <span className="text-xs text-text-gray dark:text-[#A0A0A0] truncate">
+                <span className="truncate text-xs text-fog">
                   {plan.charAt(0).toUpperCase() + plan.slice(1)} Plan
                 </span>
               </div>
-              <Link href="/settings" className="p-1 rounded-md text-text-gray dark:text-[#A0A0A0] hover:text-primary-black dark:hover:text-white opacity-0 group-hover:opacity-100 transition-opacity">
+              <Link href="/settings" className="rounded-md p-1 text-fog opacity-0 transition-opacity hover:text-snow group-hover:opacity-100">
                 <Settings size={16} />
               </Link>
             </div>
@@ -262,17 +262,17 @@ export function PrdDetail({
       {isMobileSidebarOpen && (
         <div className="md:hidden print:hidden">
           <div
-            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
+            className="fixed inset-0 z-40 animate-in fade-in bg-black/70 duration-200"
             onClick={() => setIsMobileSidebarOpen(false)}
           />
-          <div className="fixed inset-y-0 left-0 z-50 w-3/4 max-w-sm bg-white dark:bg-[#1E1E1E] shadow-xl flex flex-col animate-in slide-in-from-left duration-200">
-            <div className="p-4 border-b border-border-subtle dark:border-white/10 flex items-center justify-between">
-              <span className="font-schibsted font-semibold text-sm">Histori PRD</span>
+          <div className="fixed inset-y-0 left-0 z-50 flex w-3/4 max-w-sm animate-in flex-col bg-charcoal shadow-[var(--shadow-overlay)] slide-in-from-left duration-200">
+            <div className="flex items-center justify-between border-b border-graphite p-4">
+              <span className="font-inter text-sm font-[510]">Histori PRD</span>
               <div className="flex items-center gap-2">
-                <Link href="/" className="flex h-8 items-center gap-1.5 rounded-lg btn-primary px-3 text-xs font-medium hover:opacity-90 transition-opacity">
+                <Link href="/" className="btn-primary flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-[510] transition-all hover:brightness-105">
                   Baru
                 </Link>
-                <button onClick={() => setIsMobileSidebarOpen(false)} className="p-2 text-text-gray dark:text-[#A0A0A0] hover:text-primary-black dark:hover:text-[#F0F0F0]">
+                <button onClick={() => setIsMobileSidebarOpen(false)} className="p-2 text-fog hover:text-snow">
                   <X size={18} />
                 </button>
               </div>
@@ -289,17 +289,17 @@ export function PrdDetail({
         {projectId && latestVersion ? (
           <>
             {/* Topbar */}
-            <div id="print-hide-topbar" className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[var(--border-subtle)] px-4 sm:px-6 py-3 print:hidden gap-3">
+            <div id="print-hide-topbar" className="flex flex-col justify-between gap-3 border-b border-graphite px-4 py-3 print:hidden sm:flex-row sm:items-center sm:px-6">
               <div className="flex items-center gap-3">
-                <button className="md:hidden p-1.5 -ml-1.5 text-text-gray hover:text-primary-black dark:text-[#A0A0A0] dark:hover:text-[#F0F0F0]" onClick={() => setIsMobileSidebarOpen(true)}>
+                <button className="-ml-1.5 p-1.5 text-fog hover:text-snow md:hidden" onClick={() => setIsMobileSidebarOpen(true)}>
                   <HamburgerIcon />
                 </button>
-                <h1 className="font-fustat text-base sm:text-lg font-bold truncate max-w-[200px] sm:max-w-xs">{projectName}</h1>
+                <h1 className="max-w-[200px] truncate font-inter text-base font-[510] sm:max-w-xs sm:text-lg">{projectName}</h1>
               </div>
 
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 pb-1 sm:pb-0">
                 {revisionLimit !== undefined && (
-                  <span className="flex items-center gap-1 rounded-full bg-light-gray-bg dark:bg-[#161616] px-3 py-1 text-xs font-medium text-text-gray dark:text-[#A0A0A0]">
+                  <span className="flex items-center gap-1 rounded-[2px] bg-charcoal px-3 py-1 text-xs font-[510] text-fog shadow-[var(--shadow-inset)]">
                     Revisi: {allVersions.length > 0 ? allVersions.length - 1 : 0}/
                     {revisionLimit === -1 ? <InfinityIcon size={12} strokeWidth={3} /> : revisionLimit}
                   </span>
@@ -313,10 +313,10 @@ export function PrdDetail({
                 <button
                   onClick={() => setIsChatOpen(!isChatOpen)}
                   className={cn(
-                    "flex items-center gap-1.5 sm:gap-2 whitespace-nowrap rounded-lg px-2.5 sm:px-3 py-1.5 text-xs font-medium transition-colors",
+                    "flex items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1.5 text-xs font-[510] transition-colors sm:gap-2 sm:px-3",
                     isChatOpen
                       ? "btn-primary"
-                      : "bg-light-gray-bg dark:bg-[#161616] text-text-gray dark:text-[#A0A0A0] hover:bg-black/5 dark:hover:bg-white/10 hover:text-primary-black dark:hover:text-[#F0F0F0]",
+                      : "bg-charcoal text-fog shadow-[var(--shadow-inset)] hover:bg-white/5 hover:text-snow",
                   )}
                 >
                   {isChatOpen ? <PanelRightClose size={14} className="sm:w-4 sm:h-4" /> : <MessageSquare size={14} className="sm:w-4 sm:h-4" />}
@@ -335,20 +335,20 @@ export function PrdDetail({
           </>
         ) : (isGeneratingPRD || streamingPRDContent) ? (
           <>
-            <div className="flex items-center justify-between border-b border-[var(--border-subtle)] px-4 sm:px-6 py-3 print:hidden">
+            <div className="flex items-center justify-between border-b border-graphite px-4 py-3 print:hidden sm:px-6">
               <div className="flex items-center gap-3">
-                <button className="md:hidden p-1.5 -ml-1.5 text-text-gray hover:text-primary-black dark:text-[#A0A0A0] dark:hover:text-[#F0F0F0]" onClick={() => setIsMobileSidebarOpen(true)}>
+                <button className="-ml-1.5 p-1.5 text-fog hover:text-snow md:hidden" onClick={() => setIsMobileSidebarOpen(true)}>
                   <HamburgerIcon />
                 </button>
                 <div className="flex items-center gap-2">
-                  <h1 className="font-fustat text-sm sm:text-lg font-bold">
+                  <h1 className="font-inter text-sm font-[510] sm:text-lg">
                     {isGeneratingPRD ? "NovaPlan AI Sedang Mengetik PRD..." : "Generate Terhenti (PRD Tersimpan Sebagian)"}
                   </h1>
                   {isGeneratingPRD && (
                     <span className="flex gap-1 mt-1">
-                      <span className="w-1.5 h-1.5 bg-accent-green rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                      <span className="w-1.5 h-1.5 bg-accent-green rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                      <span className="w-1.5 h-1.5 bg-accent-green rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald" style={{ animationDelay: "0ms" }} />
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald" style={{ animationDelay: "150ms" }} />
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald" style={{ animationDelay: "300ms" }} />
                     </span>
                   )}
                 </div>
@@ -360,22 +360,22 @@ export function PrdDetail({
           /* Empty State */
           <div className="flex-1 flex items-center justify-center p-4 sm:p-6">
             <div className="text-center max-w-lg">
-              <button className="md:hidden mx-auto mb-6 flex items-center gap-2 px-4 py-2 rounded-lg bg-light-gray-bg dark:bg-[#161616] text-sm font-medium" onClick={() => setIsMobileSidebarOpen(true)}>
+              <button className="mx-auto mb-6 flex items-center gap-2 rounded-md bg-charcoal px-4 py-2 text-sm font-[510] shadow-[var(--shadow-inset)] md:hidden" onClick={() => setIsMobileSidebarOpen(true)}>
                 <HamburgerIcon size={16} />
                 Buka Menu Proyek
               </button>
-              <div className="justify-center mb-6 text-text-gray dark:text-[#A0A0A0]/50 hidden sm:flex">
+              <div className="mb-6 hidden justify-center text-slate sm:flex">
                 <FileText size={64} strokeWidth={1} />
               </div>
-              <h2 className="font-fustat text-2xl font-bold mb-3">
+              <h2 className="mb-3 font-inter text-2xl font-light">
                 {localProjects.length > 0 ? "Pilih proyek" : "Belum ada proyek"}
               </h2>
-              <p className="text-text-gray dark:text-[#A0A0A0] font-schibsted leading-relaxed mb-6">
+              <p className="mb-6 font-inter leading-relaxed text-fog">
                 {localProjects.length > 0
                   ? "Pilih salah satu proyek dari daftar di samping untuk melihat PRD-nya."
                   : "Kamu belum punya proyek. Mulai buat PRD pertamamu dari beranda."}
               </p>
-              <Link href="/" className="inline-flex items-center gap-2 btn-primary px-6 py-3 rounded-xl font-schibsted font-medium text-sm hover:opacity-90 transition-opacity">
+              <Link href="/" className="btn-primary inline-flex items-center gap-2 rounded-md px-6 py-3 font-inter text-sm font-[510] transition-all hover:brightness-105">
                 <Home size={16} />
                 Mulai dari Beranda
               </Link>
@@ -389,13 +389,13 @@ export function PrdDetail({
         id="print-hide-chat"
         style={{ width: isChatOpen ? `${rightWidth}px` : "0px", background: "var(--bg-elevated)" }}
         className={cn(
-          "shrink-0 border-l border-[var(--border-subtle)] relative group/right-sidebar print:hidden hidden xl:block",
+          "group/right-sidebar relative hidden shrink-0 border-l border-graphite print:hidden xl:block",
           !isDraggingRight && "transition-all duration-300",
           !isChatOpen && "overflow-hidden border-none",
         )}
       >
         {isChatOpen && (
-          <div className="absolute left-[-4px] top-0 bottom-0 w-2 cursor-col-resize hover:bg-[var(--btn-bg)]/20 z-10 transition-colors" onMouseDown={onStartDragRight} />
+          <div className="absolute bottom-0 left-[-4px] top-0 z-10 w-2 cursor-col-resize transition-colors hover:bg-indigo/20" onMouseDown={onStartDragRight} />
         )}
         <div className="h-full w-full">
           <ChatPanel projectId={projectId} conversationId={conversationId} onProjectCreated={handleProjectCreated} className="w-full" inputDisabled={!projectId && !isGeneratingPRD} currentPrdContent={currentContent} />
@@ -405,10 +405,10 @@ export function PrdDetail({
       {/* ═══════════ 3.5 Mobile Chat Overlay ═══════════ */}
       <div className="xl:hidden print:hidden">
         {isChatOpen && (
-          <div className="fixed bottom-0 left-0 right-0 z-40 h-[60vh] rounded-t-2xl border border-border-subtle dark:border-white/10 bg-white dark:bg-[#1E1E1E] shadow-xl">
-            <div className="flex items-center justify-between border-b border-border-subtle dark:border-white/10 px-4 py-2">
-              <span className="text-sm font-medium">Chat</span>
-              <button onClick={() => setIsChatOpen(false)} className="text-text-gray dark:text-[#A0A0A0] hover:text-primary-black dark:text-[#F0F0F0]">
+          <div className="fixed bottom-0 left-0 right-0 z-40 h-[60vh] rounded-t-xl bg-charcoal shadow-[var(--shadow-overlay)]">
+            <div className="flex items-center justify-between border-b border-graphite px-4 py-2">
+              <span className="text-sm font-[510]">Chat</span>
+              <button onClick={() => setIsChatOpen(false)} className="text-fog hover:text-snow">
                 <X size={16} />
               </button>
             </div>

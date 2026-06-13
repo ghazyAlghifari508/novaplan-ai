@@ -50,57 +50,69 @@ export function Navbar() {
 
   return (
     <nav
-      className="fixed left-0 right-0 top-0 z-50 border-b border-[var(--border-subtle)]"
-      style={{ background: "var(--navbar-bg)", backdropFilter: "blur(12px)" }}
+      className="fixed left-0 right-0 top-0 z-40 h-14 border-b border-graphite bg-charcoal/95"
     >
-      <div className="mx-auto flex max-w-[1440px] items-center justify-between px-[120px] py-[16px] max-md:px-6">
+      <div className="mx-auto flex h-full max-w-[1200px] items-center justify-between px-6">
         <Link
           href="/"
-          className="font-schibsted text-[24px] font-semibold tracking-[-1.44px]"
-          style={{ color: "var(--text-primary)" }}
+          className="flex items-center gap-2 font-inter text-[15px] font-[510] text-snow"
         >
+          <span className="h-2 w-2 rounded-[2px] bg-snow shadow-[0_0_0_1px_var(--color-graphite)]" />
           NovaPlan
         </Link>
+
+        <div className="hidden items-center gap-1 md:flex">
+          <Link
+            href="/"
+            className="px-3 py-2 font-inter text-sm font-normal text-fog transition-colors duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:text-snow"
+          >
+            Home
+          </Link>
+          <Link
+            href="/pricing"
+            className="px-3 py-2 font-inter text-sm font-normal text-fog transition-colors duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:text-snow"
+          >
+            Pricing
+          </Link>
+          <Link
+            href="/prd"
+            className="px-3 py-2 font-inter text-sm font-normal text-fog transition-colors duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:text-snow"
+          >
+            Workspace
+          </Link>
+        </div>
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
 
           {isLoading ? (
-            <div className="flex items-center gap-2 sm:gap-3 ml-1">
-              <div className="h-[36px] sm:h-[40px] w-[60px] sm:w-[82px] rounded-lg bg-black/5 dark:bg-white/5 animate-pulse" />
-              <div className="h-[36px] sm:h-[40px] w-[80px] sm:w-[101px] rounded-lg bg-black/5 dark:bg-white/5 animate-pulse" />
+            <div className="ml-1 flex items-center gap-2 sm:gap-3">
+              <div className="h-8 w-[72px] animate-pulse rounded-md bg-white/5" />
+              <div className="h-8 w-[84px] animate-pulse rounded-md bg-white/5" />
             </div>
           ) : !user ? (
             <>
               <Link
                 href="/register"
-                className="flex h-[36px] sm:h-[40px] px-3 sm:px-4 items-center justify-center rounded-lg bg-transparent font-schibsted text-[14px] sm:text-[16px] font-medium transition-colors hover:bg-[var(--bg-hover)]"
-                style={{ color: "var(--text-primary)" }}
+                className="flex h-8 items-center justify-center rounded-full border border-snow/80 bg-transparent px-3.5 font-inter text-sm font-normal text-snow transition-colors duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-white/5"
               >
-                Sign Up
+                Register
               </Link>
               <Link
                 href="/login"
-                className="flex h-[36px] sm:h-[40px] px-4 sm:px-6 items-center justify-center rounded-lg btn-primary font-schibsted text-[14px] sm:text-[16px] font-medium hover:opacity-90 transition-opacity"
+                className="btn-primary flex h-8 items-center justify-center rounded-md px-4 font-inter text-sm font-[510] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:brightness-105 active:scale-[0.98]"
               >
                 Log In
               </Link>
             </>
           ) : (
             <>
-              <Link
-                href="/prd"
-                className="flex h-[36px] sm:h-[40px] px-4 sm:px-6 items-center justify-center rounded-lg btn-primary font-schibsted text-[14px] sm:text-[16px] font-medium hover:opacity-90 transition-opacity"
-              >
-                Workspace
-              </Link>
               <div className="relative">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex h-[36px] w-[36px] sm:h-[40px] sm:w-[40px] items-center justify-center rounded-full transition-colors border border-[var(--border-subtle)] hover:bg-[var(--bg-hover)]"
-                  style={{ background: "var(--bg-hover)" }}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-obsidian text-fog shadow-[var(--shadow-inset)] transition-colors duration-300 hover:text-snow"
                 >
-                  <User size={20} style={{ color: "var(--text-secondary)" }} />
+                  <User size={16} />
                 </button>
 
                 {isDropdownOpen && (
@@ -110,51 +122,39 @@ export function Navbar() {
                       onClick={() => setIsDropdownOpen(false)}
                     />
                     <div
-                      className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-[var(--border-subtle)] py-2 shadow-lg z-50 flex flex-col font-schibsted"
-                      style={{ background: "var(--dropdown-bg)" }}
+                      className="absolute right-0 top-full z-50 mt-2 flex w-56 flex-col overflow-hidden rounded-xl bg-obsidian py-2 font-inter shadow-[var(--shadow-overlay)]"
                     >
                       <div className="px-4 py-2 mb-1">
-                        <p
-                          className="text-sm font-medium truncate"
-                          style={{ color: "var(--text-primary)" }}
-                        >
+                        <p className="truncate text-sm font-[510] text-snow">
                           {user?.email}
                         </p>
                       </div>
-                      <div
-                        className="h-px w-full mb-1"
-                        style={{ background: "var(--border-subtle)" }}
-                      />
+                      <div className="mb-1 h-px w-full bg-graphite" />
                       <Link
                         href="/settings/profile"
                         onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors hover:bg-[var(--bg-hover)]"
-                        style={{ color: "var(--text-primary)" }}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-[510] text-mist transition-colors hover:bg-white/5 hover:text-snow"
                       >
-                        <Settings size={18} style={{ color: "var(--text-muted)" }} />
+                        <Settings size={16} className="text-fog" />
                         Profile / Setting
                       </Link>
                       <Link
                         href="/pricing"
                         onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors hover:bg-[var(--bg-hover)]"
-                        style={{ color: "var(--text-primary)" }}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-[510] text-mist transition-colors hover:bg-white/5 hover:text-snow"
                       >
-                        <CreditCard size={18} style={{ color: "var(--text-muted)" }} />
+                        <CreditCard size={16} className="text-fog" />
                         Pricing
                       </Link>
-                      <div
-                        className="my-1 h-px w-full"
-                        style={{ background: "var(--border-subtle)" }}
-                      />
+                      <div className="my-1 h-px w-full bg-graphite" />
                       <button
                         onClick={() => {
                           setIsDropdownOpen(false);
                           handleLogout();
                         }}
-                        className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-500 hover:bg-red-500/10 transition-colors text-left"
+                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-[510] text-crimson transition-colors hover:bg-crimson/10"
                       >
-                        <LogOut size={18} />
+                        <LogOut size={16} />
                         Log Out
                       </button>
                     </div>

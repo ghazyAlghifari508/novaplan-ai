@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 
 // --- HELPER COMPONENTS (ICONS) ---
 
@@ -41,22 +40,21 @@ interface SignInPageProps {
 // --- SUB-COMPONENTS ---
 
 const GlassInputWrapper = ({ children, isError }: { children: React.ReactNode, isError?: boolean }) => (
-  <div className={`rounded-2xl border ${isError ? 'border-red-500' : 'border-[var(--border-subtle)]'} backdrop-blur-sm transition-colors focus-within:border-[var(--border-medium)]`}
-    style={{ background: "var(--bg-input)" }}
+  <div className={`rounded-md ${isError ? 'shadow-[inset_0_0_0_1px_rgba(235,87,87,0.75)]' : 'shadow-[inset_0_0_0_1px_rgba(0,0,0,0.2)]'} bg-steel transition-shadow duration-300 focus-within:shadow-[inset_0_0_0_1px_rgba(94,106,210,0.85)]`}
   >
     {children}
   </div>
 );
 
 const TestimonialCard = ({ testimonial, delay }: { testimonial: Testimonial, delay: string }) => (
-  <div className={`animate-testimonial ${delay} flex items-start gap-3 rounded-3xl bg-black/40 backdrop-blur-xl border border-white/20 p-5 w-64 text-white`}>
-    <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-white">
-      <Image src={testimonial.avatarSrc} fill className="object-cover" alt="avatar" sizes="40px" />
-    </div>
+  <div className={`animate-testimonial ${delay} w-64 rounded-xl bg-charcoal p-5 text-left shadow-[inset_0_0_0_1px_rgb(35,37,42),0_2px_4px_rgba(0,0,0,0.4)]`}>
     <div className="text-sm leading-snug">
-      <p className="flex items-center gap-1 font-semibold">{testimonial.name}</p>
-      <p className="text-white/70 text-xs">{testimonial.handle}</p>
-      <p className="mt-1 text-white/90">{testimonial.text}</p>
+      <p className="flex items-center gap-2 font-[510] text-snow">
+        <span className="h-1.5 w-1.5 rounded-full bg-cyan" />
+        {testimonial.name}
+      </p>
+      <p className="text-xs text-slate">{testimonial.handle}</p>
+      <p className="mt-2 text-fog">{testimonial.text}</p>
     </div>
   </div>
 );
@@ -78,50 +76,49 @@ export const SignInPage: React.FC<SignInPageProps> = ({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const isRegister = mode === 'register';
 
-  const defaultTitle = isRegister ? "Buat Akun NovaPlan" : "Selamat Datang Kembali";
+  const defaultTitle = isRegister ? "Daftar NovaPlan" : "Masuk ke NovaPlan";
   const defaultDesc = isRegister ? "Mulai hasilkan PRD profesional dengan bantuan AI dalam hitungan menit." : "Akses akun Anda dan lanjutkan pekerjaan luar biasa bersama tim Anda.";
 
   return (
     <div
-      className={`h-[100dvh] flex flex-col font-schibsted w-[100dvw] ${isRegister ? 'md:flex-row-reverse' : 'md:flex-row'}`}
+      className={`flex min-h-[100dvh] w-[100dvw] flex-col bg-onyx font-inter ${isRegister ? 'md:flex-row-reverse' : 'md:flex-row'}`}
       style={{ background: "var(--bg-page)" }}
     >
       {/* Left column: sign-in form */}
-      <section className="flex-1 flex items-center justify-center p-8 overflow-y-auto">
+      <section className="flex-1 overflow-y-auto p-6 md:flex md:items-center md:justify-center md:p-8">
         <div className="w-full max-w-md">
           <div className="flex flex-col gap-6">
-            <Link href="/" className="animate-element animate-delay-100 font-fustat text-2xl font-bold tracking-tight mb-4 inline-block w-fit" style={{ color: "var(--text-primary)" }}>
+            <Link href="/" className="animate-element animate-delay-100 mb-4 inline-flex w-fit items-center gap-2 font-inter text-[15px] font-[510] text-snow">
+              <span className="h-2 w-2 rounded-[2px] bg-snow shadow-[0_0_0_1px_var(--color-graphite)]" />
               NovaPlan
             </Link>
             
-            <h1 className="animate-element animate-delay-100 text-4xl md:text-[40px] font-bold leading-tight font-fustat tracking-[-1px]" style={{ color: "var(--text-primary)" }}>
+            <h1 className="animate-element animate-delay-100 font-inter text-4xl font-light leading-tight text-snow md:text-[40px]">
               {title || defaultTitle}
             </h1>
-            <p className="animate-element animate-delay-200" style={{ color: "var(--text-secondary)" }}>
+            <p className="animate-element animate-delay-200 leading-relaxed text-fog">
               {description || defaultDesc}
             </p>
 
             <form className="space-y-5" onSubmit={onSubmit}>
               <div className="animate-element animate-delay-300">
-                <label className="text-sm font-semibold mb-1.5 block" style={{ color: "var(--text-primary)" }}>Alamat Email</label>
+                <label className="mb-1.5 block text-sm font-[510] text-mist">Alamat Email</label>
                 <GlassInputWrapper isError={!!error}>
                   <input name="email" type="email" placeholder="contoh@perusahaan.com" required disabled={loading}
-                    className="w-full bg-transparent text-sm p-4 rounded-2xl focus:outline-none placeholder:text-[var(--text-muted)]"
-                    style={{ color: "var(--text-primary)" }}
+                    className="w-full rounded-md bg-transparent p-3 text-sm text-snow placeholder:text-slate focus:outline-none"
                   />
                 </GlassInputWrapper>
               </div>
 
               <div className="animate-element animate-delay-400">
-                <label className="text-sm font-semibold mb-1.5 block" style={{ color: "var(--text-primary)" }}>Password</label>
+                <label className="mb-1.5 block text-sm font-[510] text-mist">Password</label>
                 <GlassInputWrapper isError={!!error}>
                   <div className="relative">
                     <input name="password" type={showPassword ? 'text' : 'password'} required disabled={loading} placeholder="Minimal 8 karakter"
-                      className="w-full bg-transparent text-sm p-4 pr-12 rounded-2xl focus:outline-none placeholder:text-[var(--text-muted)]"
-                      style={{ color: "var(--text-primary)" }}
+                      className="w-full rounded-md bg-transparent p-3 pr-12 text-sm text-snow placeholder:text-slate focus:outline-none"
                     />
                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-3 flex items-center outline-none">
-                      {showPassword ? <EyeOff className="w-5 h-5 text-text-gray hover:text-primary-black transition-colors" /> : <Eye className="w-5 h-5 text-text-gray hover:text-primary-black transition-colors" />}
+                      {showPassword ? <EyeOff className="h-5 w-5 text-fog transition-colors hover:text-snow" /> : <Eye className="h-5 w-5 text-fog transition-colors hover:text-snow" />}
                     </button>
                   </div>
                 </GlassInputWrapper>
@@ -129,12 +126,12 @@ export const SignInPage: React.FC<SignInPageProps> = ({
 
               {isRegister && (
                  <div className="animate-element animate-delay-400">
-                  <label className="text-sm font-semibold text-primary-black mb-1.5 block">Konfirmasi Password</label>
+                  <label className="mb-1.5 block text-sm font-[510] text-mist">Konfirmasi Password</label>
                   <GlassInputWrapper isError={!!error}>
                     <div className="relative">
-                      <input name="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} required disabled={loading} placeholder="Masukkan ulang password Anda" className="w-full bg-transparent text-sm p-4 pr-12 rounded-2xl focus:outline-none text-primary-black placeholder:text-text-gray/50" />
+                      <input name="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} required disabled={loading} placeholder="Masukkan ulang password Anda" className="w-full rounded-md bg-transparent p-3 pr-12 text-sm text-snow placeholder:text-slate focus:outline-none" />
                       <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-3 flex items-center outline-none">
-                        {showConfirmPassword ? <EyeOff className="w-5 h-5 text-text-gray hover:text-primary-black transition-colors" /> : <Eye className="w-5 h-5 text-text-gray hover:text-primary-black transition-colors" />}
+                        {showConfirmPassword ? <EyeOff className="h-5 w-5 text-fog transition-colors hover:text-snow" /> : <Eye className="h-5 w-5 text-fog transition-colors hover:text-snow" />}
                       </button>
                     </div>
                   </GlassInputWrapper>
@@ -145,19 +142,19 @@ export const SignInPage: React.FC<SignInPageProps> = ({
                 <div className="animate-element animate-delay-500 flex items-center justify-between text-sm">
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input type="checkbox" name="rememberMe" className="rounded border-border-subtle text-primary-black focus:ring-primary-black" />
-                    <span className="text-primary-black/90 font-medium">Ingat saya</span>
+                    <span className="font-[510] text-mist">Ingat saya</span>
                   </label>
-                  <Link href="/forgot-password" className="hover:underline text-text-gray font-medium transition-colors">Lupa password?</Link>
+                  <Link href="/forgot-password" className="font-[510] text-fog transition-colors hover:text-snow">Lupa password?</Link>
                 </div>
               )}
 
               {error && (
-                <div className="animate-element animate-delay-500 rounded-xl bg-red-50 p-4 text-sm text-red-700 font-medium border border-red-100">
+                <div className="animate-element animate-delay-500 rounded-md bg-crimson/10 p-4 text-sm font-[510] text-crimson shadow-[inset_0_0_0_1px_rgba(235,87,87,0.35)]">
                   {error}
                 </div>
               )}
 
-              <button type="submit" disabled={loading} className="animate-element animate-delay-600 w-full rounded-2xl bg-primary-black py-4 font-bold text-white hover:bg-primary-black/90 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+              <button type="submit" disabled={loading} className="animate-element animate-delay-600 btn-primary flex w-full items-center justify-center gap-2 rounded-md py-3 font-[510] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:brightness-105 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70">
                 {loading && (
                     <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -169,24 +166,22 @@ export const SignInPage: React.FC<SignInPageProps> = ({
             </form>
 
             <div className="animate-element animate-delay-700 relative flex items-center justify-center">
-              <span className="w-full border-t border-[var(--border-subtle)]"></span>
+              <span className="w-full border-t border-graphite"></span>
               <span
-                className="px-4 text-sm absolute font-medium"
-                style={{ background: "var(--bg-page)", color: "var(--text-secondary)" }}
+                className="absolute bg-onyx px-4 text-sm font-[510] text-fog"
               >Atau gunakan</span>
             </div>
 
             <button onClick={onGoogleSignIn} type="button" disabled={loading}
-              className="animate-element animate-delay-800 w-full flex items-center justify-center gap-3 border border-[var(--border-subtle)] rounded-2xl py-4 hover:bg-[var(--bg-hover)] font-semibold transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
-              style={{ color: "var(--text-primary)" }}
+              className="animate-element animate-delay-800 flex w-full items-center justify-center gap-3 rounded-md py-3 font-[510] text-snow shadow-[var(--shadow-inset)] transition-colors hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-70"
             >
                 <GoogleIcon />
                 Lanjutkan dengan Google
             </button>
 
-            <p className="animate-element animate-delay-900 text-center text-sm font-medium" style={{ color: "var(--text-secondary)" }}>
+            <p className="animate-element animate-delay-900 text-center text-sm font-[510] text-fog">
               {isRegister ? 'Sudah punya akun?' : 'Belum punya akun?'} {' '}
-              <Link href={isRegister ? '/login' : '/register'} className="underline hover:opacity-70 transition-opacity" style={{ color: "var(--text-primary)" }}>
+              <Link href={isRegister ? '/login' : '/register'} className="text-snow underline transition-opacity hover:opacity-70">
                 {isRegister ? 'Masuk di sini' : 'Daftar sekarang'}
               </Link>
             </p>
@@ -196,12 +191,15 @@ export const SignInPage: React.FC<SignInPageProps> = ({
 
       {/* Right column: hero image + testimonials */}
       {heroImageSrc && (
-        <section className="hidden md:block flex-1 relative p-4">
-          <div className="animate-slide-right animate-delay-300 absolute inset-4 rounded-[32px] bg-cover bg-center shadow-2xl" style={{ backgroundImage: `url(${heroImageSrc})` }}>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent rounded-[32px]"></div>
+        <section className="relative hidden flex-1 p-4 md:block">
+          <div
+            className="animate-slide-right animate-delay-300 absolute inset-4 rounded-xl bg-cover bg-center shadow-[var(--shadow-overlay)]"
+            style={{ backgroundImage: `url(${heroImageSrc})` }}
+          >
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
           </div>
           {testimonials.length > 0 && (
-            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-4 px-8 w-full justify-center z-10">
+            <div className="absolute bottom-12 left-1/2 z-10 flex w-full -translate-x-1/2 justify-center gap-4 px-8">
               <TestimonialCard testimonial={testimonials[0]} delay="animate-delay-1000" />
               {testimonials[1] && <div className="hidden xl:flex"><TestimonialCard testimonial={testimonials[1]} delay="animate-delay-1200" /></div>}
               {testimonials[2] && <div className="hidden 2xl:flex"><TestimonialCard testimonial={testimonials[2]} delay="animate-delay-1400" /></div>}

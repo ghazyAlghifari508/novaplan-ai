@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { insforge } from "@/lib/insforge/client";
 import { SignInPage, Testimonial } from "@/components/ui/sign-in";
 
 const sampleTestimonials: Testimonial[] = [
@@ -58,14 +57,22 @@ export function RegisterForm() {
     setLoading(true);
     setError(null);
 
-    const { data, error } = await insforge.auth.signUp({
-      email,
-      password,
-      redirectTo: `${window.location.origin}/auth/callback`,
+    const response = await fetch("/api/auth/sign-up", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        password,
+        redirectTo: `${window.location.origin}/auth/callback`,
+      }),
     });
+    const data = await response.json().catch(() => null);
 
-    if (error) {
-      setError(error.message);
+    if (!response.ok) {
+      setError(data?.message ?? "Gagal membuat akun.");
       setLoading(false);
       return;
     }
@@ -74,7 +81,8 @@ export function RegisterForm() {
       // InsForge requires email verification — redirect to verification page
       router.push(`/verify-email?email=${encodeURIComponent(email)}`);
     } else {
-      router.push("/onboarding");
+      router.refresh();
+      window.location.assign("/onboarding");
     }
   };
 

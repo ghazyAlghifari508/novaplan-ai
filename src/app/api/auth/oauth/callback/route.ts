@@ -1,5 +1,6 @@
 import { createServerClient, setAuthCookies } from "@insforge/sdk/ssr";
 import { NextRequest, NextResponse } from "next/server";
+import { authCookieSettings } from "@/lib/insforge/auth-cookies";
 
 function getSafeNext(value: unknown) {
   if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//")) {
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
   setAuthCookies(response.cookies, {
     accessToken: data.accessToken,
     refreshToken: data.refreshToken,
-  });
+  }, authCookieSettings);
   response.cookies.delete("insforge_code_verifier");
 
   return response;

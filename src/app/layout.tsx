@@ -1,23 +1,10 @@
 import type { Metadata } from "next";
-import { Fustat, Schibsted_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import { Providers } from "./providers";
 import { Toast } from "@/components/ui";
 import { Analytics } from "@vercel/analytics/react";
+import { AppLayout } from "@/components/layout";
 import "./globals.css";
-
-const fustat = Fustat({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-fustat",
-  display: "swap",
-});
-
-const schibstedGrotesk = Schibsted_Grotesk({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-schibsted",
-  display: "swap",
-});
 
 const inter = Inter({
   subsets: ["latin"],
@@ -68,12 +55,14 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${fustat.variable} ${schibstedGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+      className={`${inter.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
       <body className="antialiased">
         <Providers>
-          {children}
+          <AppLayout>
+            {children}
+          </AppLayout>
           <Analytics />
           <Toast />
         </Providers>

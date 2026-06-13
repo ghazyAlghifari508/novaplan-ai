@@ -22,6 +22,28 @@ interface ChatInputProps {
   className?: string;
 }
 
+function QualityBars({ quality }: { quality: number }) {
+  const color = quality <= 2 ? "bg-red-500" : quality === 3 ? "bg-amber-500" : "bg-emerald-500";
+  
+  return (
+    <div className="flex items-end gap-[2px] h-[12px] opacity-80" title={`Model Quality: ${quality}/5`}>
+      {[1, 2, 3, 4, 5].map((level) => (
+        <div 
+          key={level}
+          className={cn(
+            "w-[3px] rounded-[1px] transition-colors duration-300",
+            level <= quality ? color : "bg-graphite",
+            level === 1 ? "h-[4px]" : 
+            level === 2 ? "h-[6px]" : 
+            level === 3 ? "h-[8px]" : 
+            level === 4 ? "h-[10px]" : "h-[12px]"
+          )}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function ChatInput({ className }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [focused, setFocused] = useState(false);
@@ -116,17 +138,16 @@ export function ChatInput({ className }: ChatInputProps) {
   return (
     <div
       className={cn(
-        "mx-auto flex w-full max-w-[728px] flex-col rounded-[18px] backdrop-blur-xl transition-all duration-300",
-        focused ? "ring-2 ring-primary-black/10" : "",
+        "mx-auto flex w-full max-w-[728px] flex-col rounded-xl bg-charcoal p-1.5 shadow-[var(--shadow-surface)] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+        focused ? "shadow-[var(--shadow-focus)]" : "",
         className,
       )}
-      style={{ background: "rgba(0,0,0,0.24)" }}
     >
-      <div className="flex flex-1 flex-col p-[16px] gap-3">
+      <div className="flex flex-1 flex-col gap-3 rounded-[10px] bg-obsidian p-4">
         {/* Top row: Credit info + Mobile/Web toggle */}
         <div className="flex items-center justify-between px-2">
           <div className="flex items-center gap-3">
-            <span className="font-schibsted text-[12px] font-medium text-white">
+            <span className="font-inter text-[12px] font-[510] text-mist">
               {!planStatus
                 ? "3 PRD Gratis"
                 : planStatus.plan === "hengker"
@@ -138,7 +159,7 @@ export function ChatInput({ className }: ChatInputProps) {
             {(!planStatus || planStatus.plan !== "hengker") && (
               <Link
                 href="/pricing"
-                className="rounded-full bg-accent-green px-2.5 py-0.5 font-schibsted text-[10px] font-bold text-primary-black dark:text-[#F0F0F0] hover:opacity-90 transition-opacity uppercase tracking-wider cursor-pointer"
+                className="cursor-pointer rounded-[2px] px-2 py-0.5 font-inter text-[10px] font-[510] uppercase text-fog shadow-[var(--shadow-inset)] transition-colors duration-300 hover:bg-steel/70"
               >
                 Upgrade
               </Link>
@@ -147,17 +168,17 @@ export function ChatInput({ className }: ChatInputProps) {
 
           {/* Mobile / Web Segmented Control */}
           <div
-            className="flex items-center gap-0.5 rounded-full p-1 bg-black/5 dark:bg-white/10"
+            className="flex items-center gap-0.5 rounded-md bg-charcoal p-1 shadow-[var(--shadow-inset)]"
           >
             <button
               id="platform-toggle-mobile-label"
               onClick={() => setIsMobileMode(true)}
               title="Generate PRD untuk Mobile App"
               className={cn(
-                "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium font-schibsted transition-all duration-200",
+                "flex items-center gap-1.5 rounded px-2.5 py-1 font-inter text-[11px] font-[510] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
                 isMobileMode
-                  ? "bg-[#3A3A3A] text-white shadow-sm"
-                  : "text-black/60 hover:text-black/90 dark:text-white/50 dark:hover:text-white/80"
+                  ? "bg-steel text-snow"
+                  : "text-fog hover:text-snow"
               )}
             >
               <Smartphone size={12} />
@@ -168,10 +189,10 @@ export function ChatInput({ className }: ChatInputProps) {
               onClick={() => setIsMobileMode(false)}
               title="Generate PRD untuk Web App"
               className={cn(
-                "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium font-schibsted transition-all duration-200",
+                "flex items-center gap-1.5 rounded px-2.5 py-1 font-inter text-[11px] font-[510] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
                 !isMobileMode
-                  ? "bg-[#3A3A3A] text-white shadow-sm"
-                  : "text-black/60 hover:text-black/90 dark:text-white/50 dark:hover:text-white/80"
+                  ? "bg-steel text-snow"
+                  : "text-fog hover:text-snow"
               )}
             >
               <Monitor size={12} />
@@ -182,8 +203,7 @@ export function ChatInput({ className }: ChatInputProps) {
 
         {/* Main input area */}
         <div
-          className="flex flex-col rounded-[12px] shadow-sm border border-[var(--border-subtle)] relative focus-within:border-[var(--border-medium)] transition-colors"
-          style={{ background: "var(--bg-elevated)" }}
+          className="relative flex flex-col rounded-md bg-charcoal shadow-[var(--shadow-inset)] transition-shadow duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] focus-within:shadow-[var(--shadow-focus)]"
         >
           <textarea
             value={message}
@@ -201,8 +221,8 @@ export function ChatInput({ className }: ChatInputProps) {
                 ? "Jelaskan aplikasi mobile yang ingin kamu buat..."
                 : "Jelaskan produk yang ingin kamu buat..."
             }
-            className="w-full resize-none border-none bg-transparent font-schibsted text-[16px] outline-none px-3 pt-3 pb-2"
-            style={{ color: "var(--text-primary)", caretColor: "var(--text-primary)" }}
+            className="w-full resize-none border-none bg-transparent px-3 pb-2 pt-3 font-inter text-[15px] text-snow outline-none placeholder:text-slate"
+            style={{ caretColor: "var(--text-primary)" }}
             rows={3}
           />
 
@@ -213,7 +233,7 @@ export function ChatInput({ className }: ChatInputProps) {
               <button
                 id="model-selector-btn"
                 onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
-                className="flex items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] px-2.5 py-1.5 text-[11px] font-medium font-schibsted text-text-gray hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 font-inter text-[11px] font-[510] text-fog shadow-[var(--shadow-inset)] transition-colors duration-300 hover:bg-steel/70 hover:text-snow"
               >
                 <ModelIcon model={selectedModel} />
                 {selectedModelMeta.label}
@@ -222,27 +242,27 @@ export function ChatInput({ className }: ChatInputProps) {
 
               {isModelDropdownOpen && (
                 <div
-                  className="absolute bottom-full mb-2 left-0 z-50 w-52 rounded-xl border border-[var(--border-subtle)] shadow-2xl overflow-hidden flex flex-col"
-                  style={{ background: "var(--bg-elevated)" }}
+                  className="absolute bottom-full left-0 z-50 mb-2 flex w-[260px] flex-col overflow-hidden rounded-xl bg-obsidian shadow-[var(--shadow-overlay)]"
                 >
-                  <div className="overflow-y-auto" style={{ maxHeight: 220 }}>
+                  <div className="overflow-y-auto" style={{ maxHeight: 200 }}>
                     {TIER_ORDER.map((tier) => {
                       const tierModels = ALL_MODELS.filter((m) => m.tier === tier);
                       if (tierModels.length === 0) return null;
                       
                       const unlocked = isModelUnlocked(tier, userPlan);
                       
-                      const tierColor = tier === "free" ? "text-blue-500" : tier === "pro" ? "text-purple-500" : "text-amber-500";
+                      const tierColor = tier === "free" ? "text-fog" : tier === "pro" ? "text-indigo" : "text-mist";
                       
                       return (
                         <div key={tier}>
-                          <div className={cn("flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest font-schibsted sticky top-0 border-b border-[var(--border-subtle)]", tierColor)} style={{ background: "var(--bg-elevated)" }}>
+                          <div className={cn("sticky top-0 z-10 flex items-center gap-1.5 border-b border-graphite bg-obsidian px-3 py-1.5 font-inter text-[10px] font-[510] uppercase", tierColor)}>
                             {tier.toUpperCase()}
                             {!unlocked && <Lock size={9} />}
                           </div>
                           {tierModels.map((model) => {
                             const isSelected = selectedModel === model.id;
                             return (
+
                               <button
                                 key={model.id}
                                 onClick={() => {
@@ -252,21 +272,26 @@ export function ChatInput({ className }: ChatInputProps) {
                                 }}
                                 disabled={!unlocked}
                                 className={cn(
-                                  "w-full flex items-center gap-2.5 px-3 py-2 text-[12px] font-schibsted transition-colors",
+                                  "flex w-full items-center gap-2.5 px-3 py-2 font-inter text-[12px] transition-colors",
                                   unlocked
-                                    ? "hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
+                                    ? "cursor-pointer hover:bg-white/5"
                                     : "cursor-not-allowed opacity-40",
-                                  isSelected && "bg-black/5 dark:bg-white/10 font-medium"
+                                  isSelected && "bg-white/5 font-[510]"
                                 )}
                                 style={{ color: "var(--text-primary)" }}
                               >
                                 <ModelIcon model={model.id} isLocked={!unlocked} />
                                 <span className="flex-1 text-left">{model.label}</span>
-                                {!unlocked ? (
-                                  <Lock size={10} className="text-text-gray flex-shrink-0" />
-                                ) : isSelected ? (
-                                  <Check size={10} className="text-accent-green flex-shrink-0" />
-                                ) : null}
+                                <div className="flex items-center gap-3 shrink-0 ml-2">
+                                  <QualityBars quality={model.quality} />
+                                  {!unlocked ? (
+                                    <Lock size={10} className="flex-shrink-0 text-fog" />
+                                  ) : isSelected ? (
+                                    <Check size={10} className="flex-shrink-0 text-emerald-500" />
+                                  ) : (
+                                    <div className="w-[10px]" />
+                                  )}
+                                </div>
                               </button>
                             );
                           })}
@@ -279,7 +304,7 @@ export function ChatInput({ className }: ChatInputProps) {
             </div>
 
             <div className="flex items-center gap-3">
-              <span className={cn("text-[12px] font-schibsted", message.trim().length > 0 && message.trim().length < MIN_PROMPT_LENGTH ? "text-red-500" : "text-text-gray dark:text-[#A0A0A0]")}>
+              <span className={cn("font-inter text-[12px]", message.trim().length > 0 && message.trim().length < MIN_PROMPT_LENGTH ? "text-crimson" : "text-fog")}>
                 {message.length.toLocaleString()}/3,000
               </span>
               <button
@@ -287,10 +312,10 @@ export function ChatInput({ className }: ChatInputProps) {
                 onClick={handleSend}
                 disabled={!message.trim()}
                 className={cn(
-                  "flex h-[36px] w-[36px] items-center justify-center rounded-full transition-all duration-200",
+                  "flex h-9 w-9 items-center justify-center rounded-md transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]",
                   message.trim()
-                    ? "btn-primary hover:opacity-90"
-                    : "bg-[#f8f8f8] dark:bg-[#1A1A1A] text-text-gray dark:text-[#A0A0A0]/40",
+                    ? "btn-primary hover:brightness-105"
+                    : "bg-steel/40 text-slate",
                 )}
               >
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -310,7 +335,7 @@ export function ChatInput({ className }: ChatInputProps) {
         {/* Prompt error message */}
         {promptError && (
           <div className="px-3 pb-2">
-            <p className="text-[12px] text-red-500 font-schibsted animate-in fade-in slide-in-from-top-1 duration-200">
+            <p className="animate-in fade-in slide-in-from-top-1 font-inter text-[12px] text-crimson duration-200">
               {promptError}
             </p>
           </div>

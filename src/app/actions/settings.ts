@@ -6,6 +6,7 @@ import { createServerInsforge } from "@/lib/insforge/server";
 import { getAdminInsforge } from "@/lib/insforge/admin";
 import { requireAuth } from "@/lib/auth";
 import { cookies } from "next/headers";
+import { getAccessTokenCookieName, getRefreshTokenCookieName } from "@insforge/sdk/ssr";
 
 export async function updateProfile(formData: FormData) {
   const user = await requireAuth();
@@ -70,7 +71,8 @@ export async function deleteAccount() {
   await insforge.auth.signOut();
 
   const cookieStore = await cookies();
-  cookieStore.delete("insforge_access_token");
+  cookieStore.delete(getAccessTokenCookieName());
+  cookieStore.delete(getRefreshTokenCookieName());
 
   redirect("/");
 }

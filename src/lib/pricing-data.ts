@@ -31,8 +31,6 @@ export const novaPlanPlans: [PriceTier, PriceTier, PriceTier] = [
       { name: 'Export ke Markdown', isIncluded: true },
       { name: 'Akses Model Standar (Llama)', isIncluded: true },
       { name: 'Akses Model Pro & Hengker', isIncluded: false },
-      { name: 'Kolaborasi Tim', isIncluded: false },
-      { name: 'Prioritas Support', isIncluded: false },
     ],
   },
   {
@@ -48,14 +46,12 @@ export const novaPlanPlans: [PriceTier, PriceTier, PriceTier] = [
       { name: 'Export ke Markdown', isIncluded: true },
       { name: 'Akses Model Pro (Claude Sonnet, Gemini Flash, Kimi)', isIncluded: true },
       { name: 'Akses Model Hengker', isIncluded: false },
-      { name: 'Kolaborasi Tim', isIncluded: false },
-      { name: 'Prioritas Support', isIncluded: true },
     ],
   },
   {
     id: 'hengker',
     name: 'Hengker',
-    description: 'Fitur penuh untuk perusahaan dan kolaborasi skala besar.',
+    description: 'Fitur penuh untuk para profesional.',
     priceMonthly: 75000,
     priceAnnually: 720000,
     isPopular: false,
@@ -64,8 +60,6 @@ export const novaPlanPlans: [PriceTier, PriceTier, PriceTier] = [
       { name: 'Unlimited PRD', isIncluded: true },
       { name: 'Export ke Markdown', isIncluded: true },
       { name: 'Semua Model Pro + Hengker (GPT 5.5, Claude Opus, Deepseek v4)', isIncluded: true },
-      { name: 'Kolaborasi Tim', isIncluded: true },
-      { name: 'Prioritas Support (24/7)', isIncluded: true },
     ],
   },
 ];

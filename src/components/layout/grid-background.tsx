@@ -19,9 +19,9 @@ export function GridBackground({ className }: GridBackgroundProps) {
             "linear-gradient(to right, var(--grid-line) 1px, transparent 1px), linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px)",
           backgroundSize: "60px 60px",
           maskImage:
-            "radial-gradient(ellipse 100% 75% at 50% 0%, black 0%, transparent 100%)",
+            "radial-gradient(ellipse 90% 65% at 50% 0%, black 0%, transparent 100%)",
           WebkitMaskImage:
-            "radial-gradient(ellipse 100% 75% at 50% 0%, black 0%, transparent 100%)",
+            "radial-gradient(ellipse 90% 65% at 50% 0%, black 0%, transparent 100%)",
         }}
       />
 
@@ -30,19 +30,19 @@ export function GridBackground({ className }: GridBackgroundProps) {
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse 60% 40% at 50% -10%, var(--glow-color) 0%, transparent 70%)",
+            "radial-gradient(ellipse 70% 40% at 50% -15%, var(--grid-glow) 0%, transparent 68%)",
         }}
       />
 
       {/* CSS vars for light/dark */}
       <style>{`
         :root {
-          --grid-line: rgba(0, 0, 0, 0.18);
-          --glow-color: rgba(90, 225, 76, 0.08);
+          --grid-line: rgba(9, 9, 11, 0.15);
+          --grid-glow: rgba(9, 9, 11, 0.07);
         }
         .dark {
-          --grid-line: rgba(255, 255, 255, 0.14);
-          --glow-color: rgba(90, 225, 76, 0.07);
+          --grid-line: rgba(208, 214, 224, 0.15);
+          --grid-glow: rgba(247, 248, 248, 0.1);
         }
       `}</style>
     </div>

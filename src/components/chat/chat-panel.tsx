@@ -455,14 +455,14 @@ export function ChatPanel({
 
   return (
     <div
-      className={cn("flex h-full flex-col border-l border-[var(--border-subtle)]", className)}
+      className={cn("flex h-full flex-col border-l border-graphite", className)}
       style={{ background: "var(--bg-elevated)" }}
     >
       {/* Header */}
-      <div className="border-b border-[var(--border-subtle)] px-4 py-3">
+      <div className="border-b border-graphite px-4 py-3">
         <div className="flex items-center gap-2">
-          <div className="h-2 w-2 rounded-full bg-accent-green" />
-          <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>NovaPlan AI</span>
+          <div className="h-2 w-2 rounded-full bg-emerald" />
+          <span className="text-sm font-[510] text-snow">NovaPlan AI</span>
         </div>
       </div>
 
@@ -478,10 +478,9 @@ export function ChatPanel({
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-[var(--border-subtle)] p-4">
+      <div className="border-t border-graphite p-4">
         <div
-          className="flex flex-col rounded-[12px] shadow-sm border border-[var(--border-subtle)] relative focus-within:border-[var(--border-medium)] transition-colors"
-          style={{ background: "var(--bg-elevated)" }}
+          className="relative flex flex-col rounded-md bg-charcoal shadow-[var(--shadow-inset)] transition-shadow duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] focus-within:shadow-[inset_0_0_0_1px_rgba(94,106,210,0.85)]"
         >
           <textarea
             ref={inputRef}
@@ -495,7 +494,7 @@ export function ChatPanel({
             }}
             placeholder={isEffectivelyDisabled ? "Pilih proyek dari daftar atau buat baru dari beranda" : projectId ? "Ketik pesan atau instruksi revisi PRD..." : "Ceritakan ide produkmu..."}
             className={cn(
-              "w-full resize-none border-none bg-transparent font-schibsted text-[14px] outline-none px-3 pt-3 pb-2",
+              "w-full resize-none border-none bg-transparent px-3 pb-2 pt-3 font-inter text-[14px] text-snow outline-none placeholder:text-slate",
               isEffectivelyDisabled && "cursor-not-allowed opacity-70"
             )}
             style={{ color: "var(--text-primary)", caretColor: "var(--text-primary)" }}
@@ -515,8 +514,8 @@ export function ChatPanel({
               onClick={isStreaming ? handleCancel : () => handleSend()}
               disabled={!isStreaming && (!input.trim() || isSubmittingRef.current || isEffectivelyDisabled)}
               className={cn(
-                "flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-lg transition-all disabled:opacity-30",
-                isStreaming ? "bg-red-500 hover:bg-red-600 text-white" : "btn-primary hover:opacity-80"
+                "flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] disabled:opacity-30 active:scale-[0.98]",
+                isStreaming ? "bg-crimson text-white hover:bg-crimson/90" : "btn-primary hover:brightness-105"
               )}
               title={isStreaming ? "Hentikan Proses" : (projectId ? "Update PRD" : "Generate PRD")}
             >

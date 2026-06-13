@@ -104,7 +104,7 @@ export const PrdViewer = memo(function PrdViewer({
   return (
     <div className={cn("flex h-full", className)}>
       <aside
-        className="hidden h-full w-64 shrink-0 border-r border-[var(--border-subtle)] p-6 overflow-y-auto xl:block"
+        className="hidden h-full w-64 shrink-0 overflow-y-auto border-r border-graphite bg-onyx p-6 xl:block"
         style={{ background: "var(--bg-page)" }}
       >
         <TableOfContents content={content} />
@@ -113,10 +113,10 @@ export const PrdViewer = memo(function PrdViewer({
       <div ref={scrollRef} className="flex-1 overflow-y-auto relative scroll-smooth">
         <div
           id="print-hide-viewer-topbar"
-          className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--border-subtle)] px-8 py-4 print:hidden"
+          className="sticky top-0 z-10 flex items-center justify-between border-b border-graphite bg-onyx px-8 py-4 print:hidden"
           style={{ background: "var(--bg-page)" }}
         >
-          <h1 className="font-fustat text-xl font-bold">{projectName}</h1>
+          <h1 className="font-inter text-xl font-[510] text-snow">{projectName}</h1>
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
@@ -138,7 +138,7 @@ export const PrdViewer = memo(function PrdViewer({
           </div>
         </div>
 
-        <article className="prd-content mx-auto max-w-3xl px-8 pt-8 pb-16">
+        <article className="prd-content mx-auto max-w-3xl px-8 pb-16 pt-8 text-mist">
           <Markdown
             remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeHighlight]}

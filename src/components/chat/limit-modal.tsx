@@ -18,30 +18,30 @@ export function LimitModal({ isOpen, onClose, errorMessage }: LimitModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200"
+        className="w-full max-w-md overflow-hidden rounded-xl bg-obsidian shadow-[var(--shadow-overlay)] animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-6">
           <div className="flex items-start justify-between mb-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-crimson/10 text-crimson">
               <AlertCircle size={24} strokeWidth={2} />
             </div>
             <button
               onClick={onClose}
-              className="text-text-gray dark:text-[#A0A0A0] hover:text-primary-black dark:text-[#F0F0F0] transition-colors"
+              className="text-fog transition-colors hover:text-snow"
             >
               <X size={20} />
             </button>
           </div>
 
-          <h3 className="font-fustat text-xl font-bold text-primary-black dark:text-[#F0F0F0] mb-2 mt-2">
+          <h3 className="mb-2 mt-2 font-inter text-xl font-[510] text-snow">
             Limit Tercapai
           </h3>
-          <p className="font-schibsted text-text-gray dark:text-[#A0A0A0] text-sm mb-6 leading-relaxed">
+          <p className="mb-6 font-inter text-sm leading-relaxed text-fog">
             {errorMessage}
           </p>
 
@@ -49,13 +49,13 @@ export function LimitModal({ isOpen, onClose, errorMessage }: LimitModalProps) {
             <Link
               href="/pricing"
               onClick={onClose}
-              className="w-full py-3 px-4 btn-primary text-center font-schibsted font-bold text-sm rounded-lg hover:opacity-90 transition-opacity"
+              className="btn-primary w-full rounded-md px-4 py-3 text-center font-inter text-sm font-[510] transition-all hover:brightness-105"
             >
               🚀 Upgrade ke Hengker
             </Link>
             <button
               onClick={onClose}
-              className="w-full py-3 px-4 bg-light-gray-bg dark:bg-[#161616] text-primary-black dark:text-[#F0F0F0] text-center font-schibsted font-medium text-sm rounded-lg hover:bg-border-subtle transition-colors"
+              className="w-full rounded-md bg-charcoal px-4 py-3 text-center font-inter text-sm font-[510] text-mist shadow-[var(--shadow-inset)] transition-colors hover:bg-white/5"
             >
               Nanti Saja
             </button>

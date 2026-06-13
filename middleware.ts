@@ -1,5 +1,6 @@
 import { updateSession, type CookieOptions } from "@insforge/sdk/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { AUTH_REFRESH_LEEWAY_SECONDS, authCookieSettings } from "@/lib/insforge/auth-cookies";
 
 const PUBLIC_ROUTES = ["/", "/login", "/register", "/forgot-password", "/pricing"];
 const AUTH_ROUTES = ["/login", "/register"];
@@ -10,6 +11,8 @@ export async function middleware(request: NextRequest) {
   const sessionResult = await updateSession({
     baseUrl: process.env.NEXT_PUBLIC_INSFORGE_URL!,
     anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY!,
+    refreshLeewaySeconds: AUTH_REFRESH_LEEWAY_SECONDS,
+    ...authCookieSettings,
     requestCookies: {
       get: (name) => request.cookies.get(name),
       set: (nameOrOptions: string | ({ name: string; value: string } & CookieOptions), value?: string) => {
@@ -40,8 +43,7 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  const token = sessionResult.accessToken ?? request.cookies.get("insforge_access_token")?.value;
-  const isAuthenticated = token ? isTokenValid(token) : false;
+  const isAuthenticated = Boolean(sessionResult.accessToken);
 
   const pathname = request.nextUrl.pathname;
 
@@ -69,20 +71,6 @@ export async function middleware(request: NextRequest) {
   }
 
   return response;
-}
-
-/**
- * Lightweight JWT expiry check
- */
-function isTokenValid(token: string): boolean {
-  try {
-    const parts = token.split(".");
-    if (parts.length !== 3) return true;
-    const payload = JSON.parse(atob(parts[1]));
-    return payload.exp * 1000 > Date.now();
-  } catch {
-    return true; 
-  }
 }
 
 export const config = {

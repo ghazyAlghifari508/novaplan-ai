@@ -81,7 +81,7 @@ export default async function BillingPage() {
                       p.status === "success"
                         ? "bg-green-100 text-green-800"
                         : p.status === "pending"
-                          ? "bg-yellow-100 text-yellow-800"
+                          ? "bg-steel text-snow"
                           : "bg-red-100 text-red-800"
                     }`}
                   >

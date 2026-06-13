@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { insforge } from "@/lib/insforge/client";
 import { SignInPage, Testimonial } from "@/components/ui/sign-in";
 
 const sampleTestimonials: Testimonial[] = [
@@ -48,22 +47,28 @@ export function LoginForm() {
         return;
     }
 
-    const { data, error } = await insforge.auth.signInWithPassword({
-      email,
-      password,
+    const response = await fetch("/api/auth/sign-in", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        password,
+        redirectTo,
+      }),
     });
+    const result = await response.json().catch(() => null);
 
-    if (error) {
-      setError(error.message);
+    if (!response.ok) {
+      setError(result?.message ?? "Gagal login. Cek kembali email dan password.");
       setLoading(false);
       return;
     }
 
-    // Session is auto-managed by InsForge SDK (httpOnly cookie)
-    if (data?.accessToken) {
-      router.push(redirectTo);
-      router.refresh();
-    }
+    router.refresh();
+    window.location.assign(result?.redirectTo ?? redirectTo);
   };
 
   const handleGoogleLogin = async () => {

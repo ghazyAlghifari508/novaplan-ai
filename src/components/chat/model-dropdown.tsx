@@ -24,6 +24,28 @@ interface ModelDropdownProps {
   position?: "top" | "bottom";
 }
 
+function QualityBars({ quality }: { quality: number }) {
+  const color = quality <= 2 ? "bg-red-500" : quality === 3 ? "bg-amber-500" : "bg-emerald-500";
+  
+  return (
+    <div className="flex items-end gap-[2px] h-[12px] opacity-80" title={`Model Quality: ${quality}/5`}>
+      {[1, 2, 3, 4, 5].map((level) => (
+        <div 
+          key={level}
+          className={cn(
+            "w-[3px] rounded-[1px] transition-colors duration-300",
+            level <= quality ? color : "bg-graphite",
+            level === 1 ? "h-[4px]" : 
+            level === 2 ? "h-[6px]" : 
+            level === 3 ? "h-[8px]" : 
+            level === 4 ? "h-[10px]" : "h-[12px]"
+          )}
+        />
+      ))}
+    </div>
+  );
+}
+
 /**
  * Reusable dropdown for selecting AI models.
  * Used in both the PRD detail chat panel and the homepage chat input.
@@ -73,7 +95,7 @@ export function ModelDropdown({
         id="model-selector-btn"
         onClick={() => !isDisabled && setIsOpen(!isOpen)}
         disabled={isDisabled || isStreaming}
-        className="flex items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] px-2.5 py-1.5 text-[11px] font-medium font-schibsted text-text-gray hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
+        className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 font-inter text-[11px] font-[510] text-fog shadow-[var(--shadow-inset)] transition-colors hover:bg-white/5 hover:text-snow disabled:opacity-50"
       >
         <ModelIcon model={selectedModel} />
         {selectedModelMeta.label}
@@ -84,17 +106,16 @@ export function ModelDropdown({
         <div
           className={cn(
             positionClass,
-            "z-50 w-52 rounded-xl border border-[var(--border-subtle)] shadow-2xl overflow-hidden flex flex-col"
+            "z-50 flex w-[260px] flex-col overflow-hidden rounded-xl bg-obsidian shadow-[var(--shadow-overlay)]"
           )}
-          style={{ background: "var(--bg-elevated)" }}
         >
-          <div className="overflow-y-auto" style={{ maxHeight: 220 }}>
+          <div className="overflow-y-auto" style={{ maxHeight: 200 }}>
             {TIER_ORDER.map((tier) => {
               const modelsInTier = ALL_MODELS.filter((m) => m.tier === tier);
               if (modelsInTier.length === 0) return null;
               return (
                 <div key={tier} className="py-1">
-                  <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-text-gray/70">
+                  <div className="px-3 py-1 font-inter text-[10px] font-[510] uppercase text-slate">
                     {TIER_LABELS[tier]}
                   </div>
                   {modelsInTier.map((model) => {
@@ -105,20 +126,25 @@ export function ModelDropdown({
                         key={model.id}
                         onClick={() => handleModelSelect(model.id, isLocked)}
                         className={cn(
-                          "flex w-full items-center justify-between px-3 py-2 text-left text-[12px] font-medium font-schibsted transition-colors",
-                          isSelected ? "bg-black/5 dark:bg-white/10" : "hover:bg-black/5 dark:hover:bg-white/5",
+                          "flex w-full items-center justify-between px-3 py-2 text-left font-inter text-[12px] font-[510] transition-colors",
+                          isSelected ? "bg-white/5" : "hover:bg-white/5",
                           isLocked && "opacity-60"
                         )}
                       >
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
                           <ModelIcon model={model.id} isLocked={isLocked} />
-                          <span style={{ color: "var(--text-primary)" }}>{model.label}</span>
+                          <span style={{ color: "var(--text-primary)" }} className="truncate">{model.label}</span>
                         </div>
-                        {isLocked ? (
-                          <AlertCircle size={12} className="text-red-500" />
-                        ) : isSelected ? (
-                          <div className="h-1.5 w-1.5 rounded-full bg-accent-green" />
-                        ) : null}
+                        <div className="flex items-center gap-3 shrink-0 ml-2">
+                          <QualityBars quality={model.quality} />
+                          {isLocked ? (
+                            <AlertCircle size={12} className="text-red-500 shrink-0" />
+                          ) : isSelected ? (
+                            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+                          ) : (
+                            <div className="h-1.5 w-1.5 shrink-0 opacity-0" />
+                          )}
+                        </div>
                       </button>
                     );
                   })}

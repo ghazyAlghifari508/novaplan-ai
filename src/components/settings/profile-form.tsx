@@ -58,9 +58,9 @@ export const ProfileForm = memo(function ProfileForm({
             <h2 className="font-fustat text-lg font-bold">{profile.full_name || "User"}</h2>
             <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
               profile.plan === 'hengker' 
-                ? 'bg-orange-50 text-orange-700 ring-orange-600/20 dark:bg-orange-400/10 dark:text-orange-400 dark:ring-orange-400/20' 
+                ? 'bg-steel text-snow ring-graphite'
                 : profile.plan === 'pro'
-                ? 'bg-yellow-50 text-yellow-800 ring-yellow-600/20 dark:bg-yellow-400/10 dark:text-yellow-500 dark:ring-yellow-400/20'
+                ? 'bg-steel text-snow ring-graphite'
                 : 'bg-gray-50 text-gray-600 ring-gray-500/10 dark:bg-gray-400/10 dark:text-gray-400 dark:ring-gray-400/20'
             }`}>
               {profile.plan?.toUpperCase() || 'FREE'}

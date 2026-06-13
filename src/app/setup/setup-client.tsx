@@ -44,9 +44,9 @@ export function SetupClient() {
         {/* Auto Card */}
         <button
           onClick={handleAutoSelect}
-          className="group relative flex flex-col items-center p-8 rounded-2xl bg-white dark:bg-[#1E1E1E] border-2 border-border-subtle dark:border-white/10 hover:border-accent-green/50 hover:shadow-xl hover:shadow-accent-green/10 transition-all duration-300 text-left w-full focus:outline-none focus:ring-2 focus:ring-primary-black/20"
+          className="group relative flex w-full flex-col items-center rounded-2xl border-2 border-border-subtle bg-white p-8 text-left transition-all duration-300 hover:border-primary-black/40 hover:shadow-xl dark:border-white/10 dark:bg-[#1E1E1E] dark:hover:border-white/40"
         >
-          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-accent-green/20 text-accent-green-hover group-hover:scale-110 transition-transform duration-300">
+          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-light-gray-bg text-primary-black transition-transform duration-300 group-hover:scale-110 dark:bg-[#161616] dark:text-[#F0F0F0]">
             <Sparkles size={32} strokeWidth={2} />
           </div>
           <h2 className="font-fustat text-xl font-bold text-primary-black dark:text-[#F0F0F0] mb-3 text-center">

@@ -23,12 +23,12 @@ interface PricingComponentProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const FeatureItem: React.FC<{ feature: Feature }> = ({ feature }) => {
   const Icon = feature.isIncluded ? Check : X;
-  const iconColor = feature.isIncluded ? "text-primary-black dark:text-[#F0F0F0]" : "text-border-subtle";
+  const iconColor = feature.isIncluded ? "text-mist" : "text-slate/60";
 
   return (
     <li className="flex items-start space-x-3 py-2">
       <Icon className={cn("h-4 w-4 flex-shrink-0 mt-0.5", iconColor)} aria-hidden="true" />
-      <span className={cn("text-sm font-schibsted", feature.isIncluded ? "text-primary-black dark:text-[#F0F0F0]" : "text-text-gray dark:text-[#A0A0A0]/50")}>
+      <span className={cn("font-inter text-sm", feature.isIncluded ? "text-mist" : "text-slate")}>
         {feature.name}
       </span>
     </li>
@@ -54,16 +54,16 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
   const annualDiscountPercent = 20;
 
   const CycleToggle = (
-    <div className="flex justify-center mb-10 mt-2 font-schibsted">
-      <div className="flex border border-border-subtle dark:border-white/10 rounded-lg p-1 bg-light-gray-bg dark:bg-[#161616] items-center gap-1">
+    <div className="mb-10 mt-6 flex justify-center font-inter">
+      <div className="flex items-center gap-1 rounded-md bg-charcoal p-1 shadow-[var(--shadow-inset)]">
         <button
           onClick={() => onCycleChange('monthly')}
           aria-label="Monthly Billing"
           className={cn(
-            "px-6 py-1.5 text-sm font-medium rounded-md transition-colors",
+            "rounded px-6 py-1.5 text-sm font-[510] transition-colors",
             billingCycle === 'monthly'
-              ? "bg-white dark:bg-[#2C2C2C] text-primary-black dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10"
-              : "text-text-gray dark:text-[#A0A0A0] hover:text-primary-black dark:hover:text-white"
+              ? "bg-steel text-snow"
+              : "text-fog hover:text-snow"
           )}
         >
           Bulanan
@@ -72,14 +72,14 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
           onClick={() => onCycleChange('annually')}
           aria-label="Annual Billing"
           className={cn(
-            "px-6 py-1.5 text-sm font-medium rounded-md transition-colors relative",
+            "relative rounded px-6 py-1.5 text-sm font-[510] transition-colors",
             billingCycle === 'annually'
-              ? "bg-white dark:bg-[#2C2C2C] text-primary-black dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10"
-              : "text-text-gray dark:text-[#A0A0A0] hover:text-primary-black dark:hover:text-white"
+              ? "bg-steel text-snow"
+              : "text-fog hover:text-snow"
           )}
         >
           Tahunan
-          <span className="absolute -top-3 right-0 text-xs font-semibold text-primary-black bg-accent-green px-1.5 rounded-full whitespace-nowrap">
+          <span className="absolute -top-6 right-0 whitespace-nowrap rounded-[4px] bg-indigo/20 px-2 py-0.5 text-xs font-[510] text-mist shadow-[inset_0_0_0_1px_rgba(94,106,210,0.45)]">
             Hemat {annualDiscountPercent}%
           </span>
         </button>
@@ -90,7 +90,7 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
   const allFeatures = Array.from(new Set(plans.flatMap(p => p.features.map(f => f.name))));
   
   const PricingCards = (
-    <div className="grid gap-8 md:grid-cols-3 md:gap-6 lg:gap-8">
+    <div className="grid gap-6 md:grid-cols-3">
       {plans.map((plan) => {
         const isFeatured = plan.isPopular;
         const currentPrice = billingCycle === 'monthly' ? plan.priceMonthly : plan.priceAnnually;
@@ -103,48 +103,48 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
           <Card
             key={plan.id}
             className={cn(
-              "flex flex-col transition-all duration-300 shadow-md hover:shadow-lg",
-              isFeatured && "ring-2 ring-primary-black shadow-xl transform md:scale-[1.02] hover:scale-[1.04]"
+              "flex flex-col transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1",
+              isFeatured && "shadow-[inset_0_0_0_1px_rgba(94,106,210,0.8),var(--shadow-linear-xl)] md:scale-[1.02]"
             )}
           >
             <CardHeader className="p-6 pb-4 relative">
               {isFeatured && (
-                <div className="absolute top-0 left-0 w-full h-1 bg-[var(--btn-bg)] rounded-t-lg"></div>
+                <div className="absolute left-0 top-0 h-1 w-full rounded-t-xl bg-indigo"></div>
               )}
               <div className="flex justify-between items-start mt-2">
-                <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
+                <CardTitle className="text-2xl font-normal">{plan.name}</CardTitle>
                 {isFeatured && (
-                  <span className="text-xs font-semibold px-3 py-1 bg-accent-green text-primary-black dark:text-[#F0F0F0] rounded-full font-schibsted">
+                  <span className="rounded-[2px] bg-indigo/20 px-3 py-1 font-inter text-xs font-[510] text-mist shadow-[inset_0_0_0_1px_rgba(94,106,210,0.45)]">
                     Paling Laris
                   </span>
                 )}
               </div>
               <CardDescription className="text-sm mt-1">{plan.description}</CardDescription>
-              <div className="mt-4 font-schibsted">
-                <p className="text-4xl font-extrabold text-primary-black dark:text-[#F0F0F0]">
+              <div className="mt-4 font-inter">
+                <p className="text-4xl font-light text-snow">
                   {currentPrice === 0 ? "Gratis" : `Rp ${formatIdr(currentPrice)}`}
-                  {currentPrice !== 0 && <span className="text-base font-normal text-text-gray dark:text-[#A0A0A0] ml-1">{priceSuffix}</span>}
+                  {currentPrice !== 0 && <span className="ml-1 text-base font-normal text-fog">{priceSuffix}</span>}
                 </p>
                 {billingCycle === 'annually' && currentPrice > 0 && (
-                  <p className="text-xs text-text-gray dark:text-[#A0A0A0] mt-1 font-medium">
+                  <p className="mt-1 text-xs font-[510] text-fog">
                     Ditagih tahunan (Rp {formatIdr(plan.priceAnnually)})
                   </p>
                 )}
                 {billingCycle === 'annually' && currentPrice > 0 && (
-                    <p className="text-xs text-text-gray dark:text-[#A0A0A0] line-through opacity-70 mt-1">
+                    <p className="mt-1 text-xs text-slate line-through">
                         Rp {formatIdr(originalMonthlyPrice)}/bln
                     </p>
                 )}
               </div>
             </CardHeader>
             <CardContent className="flex-grow p-6 pt-0">
-              <h4 className="text-sm font-semibold mb-2 mt-4 text-primary-black dark:text-[#F0F0F0] font-fustat">Fitur Utama:</h4>
+              <h4 className="mb-2 mt-4 font-inter text-sm font-[510] text-snow">Fitur Utama:</h4>
               <ul className="list-none space-y-0">
                 {plan.features.slice(0, 5).map((feature) => (
                   <FeatureItem key={feature.name} feature={feature} />
                 ))}
                 {plan.features.length > 5 && (
-                    <li className="text-sm text-text-gray dark:text-[#A0A0A0] mt-2 font-schibsted">
+                    <li className="mt-2 font-inter text-sm text-fog">
                         + {plan.features.length - 5} fitur lainnya
                     </li>
                 )}
@@ -179,15 +179,15 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
                     onClick={() => !isDisabled && onPlanSelect(plan.id, billingCycle)}
                     disabled={isDisabled}
                     className={cn(
-                      "w-full transition-all duration-200 font-schibsted font-bold",
+                      "w-full font-inter font-[510] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
                       isDisabled
                         ? "opacity-50 cursor-not-allowed"
                         : "cursor-pointer",
                       isFeatured && !isDisabled
-                        ? "bg-[var(--btn-bg)] hover:bg-[var(--btn-bg)]/90 text-[var(--btn-text)] shadow-lg shadow-black/20"
+                          ? "btn-primary hover:brightness-105"
                         : !isDisabled
-                          ? "bg-white dark:bg-[#1E1E1E] text-primary-black dark:text-[#F0F0F0] hover:bg-light-gray-bg dark:hover:bg-[#161616] border border-border-subtle dark:border-white/10"
-                          : "bg-gray-100 dark:bg-[#2A2A2A] text-gray-400 dark:text-[#666] border border-border-subtle dark:border-white/5"
+                          ? "border border-snow/70 bg-transparent text-snow hover:bg-white/5"
+                          : "bg-steel/30 text-slate"
                     )}
                     size="lg"
                     aria-label={`Pilih paket ${plan.name}`}
@@ -204,11 +204,11 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
   );
 
   const ComparisonTable = (
-    <div className="mt-16 hidden md:block border border-border-subtle dark:border-white/10 rounded-lg overflow-x-auto shadow-sm">
-      <table className="min-w-full divide-y divide-border-subtle">
+    <div className="mt-16 hidden overflow-x-auto rounded-xl bg-obsidian shadow-[var(--shadow-inset)] md:block">
+      <table className="min-w-full divide-y divide-graphite">
         <thead>
-          <tr className="bg-light-gray-bg dark:bg-[#161616]">
-            <th scope="col" className="px-6 py-4 text-left text-sm font-semibold text-primary-black dark:text-[#F0F0F0] font-fustat w-[200px] whitespace-nowrap">
+          <tr className="bg-charcoal">
+            <th scope="col" className="w-[200px] whitespace-nowrap px-6 py-4 text-left font-inter text-sm font-[510] text-snow">
               Fitur Lengkap
             </th>
             {plans.map((plan) => (
@@ -216,8 +216,8 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
                 key={`th-${plan.id}`}
                 scope="col"
                 className={cn(
-                  "px-6 py-4 text-center text-sm font-semibold text-primary-black dark:text-[#F0F0F0] font-fustat whitespace-nowrap",
-                  plan.isPopular && "bg-black/5 dark:bg-white/5"
+                  "whitespace-nowrap px-6 py-4 text-center font-inter text-sm font-[510] text-snow",
+                  plan.isPopular && "bg-indigo/10"
                 )}
               >
                 {plan.name}
@@ -225,24 +225,24 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-border-subtle bg-white dark:bg-[#1E1E1E] font-schibsted">
+        <tbody className="divide-y divide-graphite bg-obsidian font-inter">
           {allFeatures.map((featureName, index) => (
-            <tr key={featureName} className={cn("transition-colors hover:bg-light-gray-bg dark:hover:bg-[#161616]", index % 2 === 0 ? "bg-white dark:bg-[#1E1E1E]" : "bg-black/5 dark:bg-white/5")}>
-              <td className="px-6 py-3 text-left text-sm font-medium text-primary-black dark:text-[#F0F0F0] whitespace-nowrap">
+            <tr key={featureName} className={cn("transition-colors hover:bg-white/5", index % 2 === 0 ? "bg-obsidian" : "bg-charcoal/60")}>
+              <td className="whitespace-nowrap px-6 py-3 text-left text-sm font-[510] text-mist">
                 {featureName}
               </td>
               {plans.map((plan) => {
                 const feature = plan.features.find(f => f.name === featureName);
                 const isIncluded = feature?.isIncluded ?? false;
                 const Icon = isIncluded ? Check : X;
-                const iconColor = isIncluded ? "text-primary-black dark:text-[#F0F0F0]" : "text-text-gray/50 dark:text-[#A0A0A0]/40";
+                const iconColor = isIncluded ? "text-mist" : "text-slate/60";
 
                 return (
                   <td
                     key={`${plan.id}-${featureName}`}
                     className={cn(
                       "px-6 py-3 text-center transition-all duration-150",
-                      plan.isPopular && "bg-black/5 dark:bg-white/5"
+                      plan.isPopular && "bg-indigo/10"
                     )}
                   >
                     <Icon className={cn("h-5 w-5 mx-auto", iconColor)} aria-hidden="true" />
@@ -257,12 +257,12 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
   );
 
   return (
-    <div className={cn("w-full py-12 md:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8", className)} {...props}>
+    <div className={cn("mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 md:py-20 lg:px-8", className)} {...props}>
       <header className="text-center mb-10">
-        <h2 className="text-[48px] font-bold tracking-[-2px] text-primary-black dark:text-[#F0F0F0] font-fustat leading-tight max-md:text-[36px]">
+        <h2 className="font-inter text-[40px] font-light leading-tight text-snow max-md:text-[36px] md:text-[48px]">
           Pilih Paket yang Sesuai
         </h2>
-        <p className="mt-3 text-[18px] text-text-gray dark:text-[#A0A0A0] max-w-2xl mx-auto font-schibsted leading-relaxed">
+        <p className="mx-auto mt-3 max-w-2xl font-inter text-[17px] leading-relaxed text-fog">
           Tingkatkan produktivitas tim Anda dengan dokumentasi produk yang lebih cepat dan terstruktur.
         </p>
       </header>
@@ -274,7 +274,7 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
       </section>
 
       <section aria-label="Feature Comparison Table" className="mt-16">
-        <h3 className="text-[48px] font-bold tracking-[-2px] leading-tight max-md:text-[36px] mb-6 hidden md:block text-center text-primary-black dark:text-[#F0F0F0] font-fustat">
+        <h3 className="mb-6 hidden text-center font-inter text-[48px] font-light leading-tight text-snow max-md:text-[36px] md:block">
           Perbandingan Fitur
         </h3>
         {ComparisonTable}

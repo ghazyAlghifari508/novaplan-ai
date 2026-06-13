@@ -18,12 +18,12 @@ export function ProjectContextMenu({ contextMenu, onRename, onDelete, onClose }:
 
   return (
     <div
-      className="fixed z-[100] bg-white dark:bg-[#1E1E1E] border border-border-subtle dark:border-white/10 rounded-lg shadow-xl w-40 py-1 font-schibsted"
+      className="fixed z-50 w-40 rounded-xl bg-obsidian py-1 font-inter shadow-[var(--shadow-overlay)]"
       style={{ top: contextMenu.y, left: contextMenu.x }}
       onClick={(e) => e.stopPropagation()}
     >
       <button
-        className="w-full text-left px-3 py-1.5 text-sm text-primary-black dark:text-[#F0F0F0] hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+        className="w-full px-3 py-1.5 text-left text-sm text-mist transition-colors hover:bg-white/5 hover:text-snow"
         onClick={() => {
           onRename(contextMenu.id, contextMenu.name);
           onClose();
@@ -34,13 +34,13 @@ export function ProjectContextMenu({ contextMenu, onRename, onDelete, onClose }:
       <form action={duplicatePrd.bind(null, contextMenu.id)}>
         <button
           type="submit"
-          className="w-full text-left px-3 py-1.5 text-sm text-primary-black dark:text-[#F0F0F0] hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+          className="w-full px-3 py-1.5 text-left text-sm text-mist transition-colors hover:bg-white/5 hover:text-snow"
         >
           Duplicate
         </button>
       </form>
       <button
-        className="w-full text-left px-3 py-1.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+        className="w-full px-3 py-1.5 text-left text-sm text-crimson transition-colors hover:bg-crimson/10"
         onClick={(e) => {
           onClose();
           onDelete(e, contextMenu.id);

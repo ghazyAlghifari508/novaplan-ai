@@ -17,8 +17,8 @@ export function Toast() {
   if (!toastMessage) return null;
 
   const variants = {
-    success: "bg-accent-green text-black",
-    error: "bg-red-600 text-white",
+    success: "bg-emerald text-white",
+    error: "bg-crimson text-white",
     info: "btn-primary",
   };
 
@@ -26,7 +26,7 @@ export function Toast() {
     <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-4 fade-in">
       <div
         className={cn(
-          "rounded-lg px-5 py-3 text-sm font-medium shadow-lg",
+        "rounded-md px-5 py-3 text-sm font-[510] shadow-[var(--shadow-overlay)]",
           variants[toastType || "info"]
         )}
       >

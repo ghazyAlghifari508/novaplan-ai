@@ -35,8 +35,16 @@ export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
         document.querySelectorAll('svg[id^="dmermaid-"], svg[id^="mermaid-"], div[id^="dmermaid-"]').forEach(el => el.remove());
         
         // Silently catch errors. These usually happen during AI text streaming because the Mermaid code is incomplete.
-        // We DO NOT print the raw ${chart} here to prevent Mermaid's global watcher from accidentally injecting an SVG into it.
-        setSvg(`<div class="flex flex-col w-full max-w-full"><div class="text-sm p-4 text-text-gray flex items-center justify-center animate-pulse border-b border-border-subtle dark:border-white/10 mb-2 pb-2">Menyusun diagram...</div></div>`);
+        // We show the raw code so that if it's a permanent syntax error after streaming finishes, the user can still read the logic.
+        const escapedChart = chart.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        setSvg(`
+          <div class="flex flex-col w-full max-w-full rounded-lg border border-dashed border-fog/30 bg-charcoal/30">
+            <div class="text-xs p-3 text-fog flex items-center justify-center border-b border-fog/20">
+              <span class="animate-pulse">Menyusun diagram... (Jika tidak tampil, AI melakukan kesalahan syntax)</span>
+            </div>
+            <pre class="p-4 text-[11px] overflow-x-auto text-slate font-berkeley-mono whitespace-pre leading-relaxed">${escapedChart}</pre>
+          </div>
+        `);
       }
     };
 
