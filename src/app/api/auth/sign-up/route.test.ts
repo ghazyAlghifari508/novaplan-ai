@@ -7,10 +7,6 @@ const createServerClient = vi.fn(() => ({
   },
 }));
 const setAuthCookies = vi.fn();
-const createExtendedAuthTokens = vi.fn((tokens) => ({
-  ...tokens,
-  accessToken: "extended-access-token",
-}));
 
 vi.mock("@insforge/sdk/ssr", () => ({
   createServerClient,
@@ -25,10 +21,6 @@ vi.mock("@/lib/insforge/auth-cookies", () => ({
       },
     },
   },
-}));
-
-vi.mock("@/lib/insforge/session-token", () => ({
-  createExtendedAuthTokens,
 }));
 
 describe("POST /api/auth/sign-up", () => {
@@ -80,15 +72,8 @@ describe("POST /api/auth/sign-up", () => {
       password: "password123",
       redirectTo: "http://localhost/auth/callback",
     });
-    expect(createExtendedAuthTokens).toHaveBeenCalledWith({
-      accessToken: "access-token",
-      refreshToken: "refresh-token",
-    }, {
-      id: "user-1",
-      email: "user@example.com",
-    });
     expect(setAuthCookies).toHaveBeenCalledWith(expect.anything(), {
-      accessToken: "extended-access-token",
+      accessToken: "access-token",
       refreshToken: "refresh-token",
     }, {
       options: {

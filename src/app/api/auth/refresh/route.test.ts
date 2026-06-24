@@ -2,15 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
 const refreshAuth = vi.fn();
-const setAuthCookies = vi.fn();
-const createExtendedAuthTokens = vi.fn((tokens) => ({
-  ...tokens,
-  accessToken: "extended-access-token",
-}));
 
 vi.mock("@insforge/sdk/ssr", () => ({
   refreshAuth,
-  setAuthCookies,
 }));
 
 vi.mock("@/lib/insforge/auth-cookies", () => ({
@@ -23,10 +17,6 @@ vi.mock("@/lib/insforge/auth-cookies", () => ({
   },
 }));
 
-vi.mock("@/lib/insforge/session-token", () => ({
-  createExtendedAuthTokens,
-}));
-
 describe("POST /api/auth/refresh", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -34,9 +24,11 @@ describe("POST /api/auth/refresh", () => {
     process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY = "anon-key";
   });
 
-  it("returns and stores the extended access token after refresh", async () => {
+  it("returns the SDK response so the backend stays the session authority", async () => {
+    const sdkResponse = new Response(null, { status: 200 });
+
     refreshAuth.mockResolvedValue({
-      response: new Response(null, { status: 200 }),
+      response: sdkResponse,
       data: {
         accessToken: "short-access-token",
         csrfToken: "csrf-token",
@@ -60,36 +52,12 @@ describe("POST /api/auth/refresh", () => {
       }),
     );
 
-    await expect(response.json()).resolves.toMatchObject({
-      accessToken: "extended-access-token",
-      csrfToken: "csrf-token",
-      user: {
-        id: "user-1",
-        email: "user@example.com",
-      },
-    });
+    expect(response).toBe(sdkResponse);
     expect(refreshAuth).toHaveBeenCalledWith({
       baseUrl: "https://example.insforge.app",
       anonKey: "anon-key",
       request: expect.any(NextRequest),
       cookies: expect.anything(),
-      options: {
-        refreshToken: {
-          maxAge: 60 * 60 * 24 * 30,
-        },
-      },
-    });
-    expect(createExtendedAuthTokens).toHaveBeenCalledWith({
-      accessToken: "short-access-token",
-      refreshToken: "existing-refresh-token",
-    }, {
-      id: "user-1",
-      email: "user@example.com",
-    });
-    expect(setAuthCookies).toHaveBeenCalledWith(expect.anything(), {
-      accessToken: "extended-access-token",
-      refreshToken: "existing-refresh-token",
-    }, {
       options: {
         refreshToken: {
           maxAge: 60 * 60 * 24 * 30,
@@ -117,7 +85,5 @@ describe("POST /api/auth/refresh", () => {
     );
 
     expect(response).toBe(sdkResponse);
-    expect(createExtendedAuthTokens).not.toHaveBeenCalled();
-    expect(setAuthCookies).not.toHaveBeenCalled();
   });
 });

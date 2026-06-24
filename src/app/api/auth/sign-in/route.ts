@@ -1,7 +1,6 @@
 import { createServerClient, setAuthCookies } from "@insforge/sdk/ssr";
 import { NextRequest, NextResponse } from "next/server";
 import { authCookieSettings } from "@/lib/insforge/auth-cookies";
-import { createExtendedAuthTokens } from "@/lib/insforge/session-token";
 
 export const runtime = "nodejs";
 
@@ -54,12 +53,18 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  const sessionTokens = createExtendedAuthTokens({
-    accessToken: data.accessToken,
-    refreshToken: data.refreshToken,
-  }, data.user);
-
-  setAuthCookies(response.cookies, sessionTokens, authCookieSettings);
+  // Persist the backend-issued tokens unchanged so InsForge remains the
+  // authority over session expiry/revocation. The session is extended via the
+  // SDK's refresh-token flow (middleware updateSession / refresh route), not by
+  // re-signing the access token with an overridden exp.
+  setAuthCookies(
+    response.cookies,
+    {
+      accessToken: data.accessToken,
+      refreshToken: data.refreshToken,
+    },
+    authCookieSettings,
+  );
 
   return response;
 }
