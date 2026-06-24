@@ -1,7 +1,7 @@
-# Graph Report - novaplan_ai  (2026-06-13)
+# Graph Report - novaplan_ai  (2026-06-24)
 
 ## Corpus Check
-- 148 files · ~42,620 words
+- 148 files · ~43,025 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary

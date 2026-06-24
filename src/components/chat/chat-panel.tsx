@@ -387,7 +387,10 @@ export function ChatPanel({
       message: originalMessageStore,
       mode: "resume",
       partialContent: partialContentStore,
-      preferences: { model: newModelId }
+      preferences: { model: newModelId },
+      // Ensure the user's clean prompt is persisted in the DB so the chat
+      // bubble never shows the internal AI template after page remount.
+      displayMessage: originalMessageStore,
     };
 
     if (conversationId) body.conversationId = conversationId;
@@ -426,7 +429,11 @@ export function ChatPanel({
       if (conversationId) body.conversationId = conversationId;
       if (projectId) body.projectId = projectId;
 
-      await streamApiCall(body, chatMode, msg);
+      // Pass the clean display message as `originalMessage` so that if the
+      // stream breaks mid-generation, `originalMessageStore` holds the user's
+      // original prompt — not the internal AI template wrapper. This prevents
+      // the template text from leaking into the chat bubble after a resume.
+      await streamApiCall(body, chatMode, displayMessage || msg);
     },
     [addMessage, conversationId, projectId, setGeneratingPRD, setStreaming, streamApiCall],
   );

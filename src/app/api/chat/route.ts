@@ -199,18 +199,40 @@ export async function POST(req: NextRequest) {
         }
 
         // ── Post-stream: generate assistant reply ──
+        // Only "chat" mode stores the model output verbatim as a chat message.
+        // PRD-producing modes (generate/revise/resume) must NOT persist their
+        // PRD text as a chat bubble — the PRD belongs in the center PRD panel
+        // (saved via savePrdVersion below), while the right-hand chat panel is
+        // reserved for revision conversation. "resume" previously fell through
+        // to the chat branch and leaked the full PRD into the chat panel.
         let assistantReply: string;
         if (mode === "revise") {
           assistantReply = await generateSummaryReply(message);
-        } else if (mode === "generate") {
+        } else if (mode === "generate" || mode === "resume") {
           assistantReply = "Selesai menyusun PRD awal.";
         } else {
           assistantReply = fullResponse;
         }
 
         // ── Post-stream: save to database ──
+        // For PRD-producing modes the `message` sent to the AI contains an
+        // internal template wrapper ("Generate PRD lengkap berdasarkan …
+        // Gunakan section markers …") that must never be persisted as a
+        // user-visible chat bubble. The client sends a clean `displayMessage`
+        // when available, but some entry-points (manual-setup, edge cases
+        // where sessionStorage is lost) omit it. As a defensive measure we
+        // strip the wrapper here so the DB always stores the user's original
+        // prompt regardless of the client path.
+        let userMessageToSave = displayMessage || message;
+        if ((mode === "generate" || mode === "resume") && !displayMessage) {
+          userMessageToSave = userMessageToSave
+            .replace(/^Generate PRD lengkap berdasarkan informasi berikut:\s*\n*/i, "")
+            .replace(/\n*Gunakan section markers sesuai standar\.\s*$/i, "")
+            .trim();
+        }
+
         if (conversationIdToUse) {
-          await saveMessages(insforge, conversationIdToUse, displayMessage || message, assistantReply, plan);
+          await saveMessages(insforge, conversationIdToUse, userMessageToSave, assistantReply, plan);
         }
 
         if ((mode === "generate" || mode === "revise" || mode === "resume") && conversationIdToUse) {
