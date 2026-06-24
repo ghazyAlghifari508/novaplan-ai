@@ -51,24 +51,25 @@ ${formData.additionalNotes}`;
     <div className="w-full max-w-2xl px-6">
       <Link
         href="/setup"
-        className="inline-flex items-center gap-2 text-sm font-medium text-text-gray dark:text-[#A0A0A0] hover:text-primary-black dark:text-[#F0F0F0] transition-colors mb-8 font-schibsted"
+        className="inline-flex items-center gap-2 text-sm font-[510] font-inter transition-colors mb-8 hover:opacity-80"
+        style={{ color: "var(--text-secondary)" }}
       >
         <ChevronLeft size={16} />
         Kembali ke pilihan
       </Link>
 
-      <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl border border-border-subtle dark:border-white/10 p-8 shadow-sm">
-        <h1 className="font-fustat text-2xl font-bold text-primary-black dark:text-[#F0F0F0] mb-2">
+      <div className="rounded-2xl border border-(--border-subtle) p-8 shadow-(--shadow-surface)" style={{ background: "var(--bg-card)" }}>
+        <h1 className="font-inter text-2xl font-[510] mb-2" style={{ color: "var(--text-primary)" }}>
           Detail Spesifikasi Aplikasi
         </h1>
-        <p className="font-schibsted text-text-gray dark:text-[#A0A0A0] mb-8 text-sm">
+        <p className="font-inter mb-8 text-sm" style={{ color: "var(--text-secondary)" }}>
           Semakin detail informasi yang kamu berikan, semakin akurat dan relevan PRD yang
           akan di-generate oleh AI.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="block font-schibsted text-sm font-medium text-primary-black dark:text-[#F0F0F0]">
+            <label className="block font-inter text-sm font-[510]" style={{ color: "var(--text-primary)" }}>
               Nama Aplikasi / Proyek
             </label>
             <input
@@ -77,18 +78,20 @@ ${formData.additionalNotes}`;
               value={formData.appName}
               onChange={(e) => setFormData({ ...formData, appName: e.target.value })}
               placeholder="Contoh: WarungKasir, GoMart, dll."
-              className="w-full rounded-lg border border-border-subtle dark:border-white/10 bg-light-gray-bg dark:bg-[#161616] px-4 py-3 font-schibsted text-sm outline-none transition-all focus:border-primary-black/30 focus:bg-white dark:bg-[#1E1E1E]"
+              className="w-full rounded-lg border border-(--border-subtle) px-4 py-3 font-inter text-sm outline-none transition-all focus:border-(--text-secondary) shadow-(--shadow-inset)"
+              style={{ background: "var(--bg-input)", color: "var(--text-primary)" }}
             />
           </div>
 
           <div className="space-y-2">
-            <label className="block font-schibsted text-sm font-medium text-primary-black dark:text-[#F0F0F0]">
+            <label className="block font-inter text-sm font-[510]" style={{ color: "var(--text-primary)" }}>
               Target Platform
             </label>
             <select
               value={formData.platform}
               onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
-              className="w-full rounded-lg border border-border-subtle dark:border-white/10 bg-light-gray-bg dark:bg-[#161616] px-4 py-3 font-schibsted text-sm outline-none transition-all focus:border-primary-black/30 focus:bg-white dark:bg-[#1E1E1E] appearance-none"
+              className="w-full rounded-lg border border-(--border-subtle) px-4 py-3 font-inter text-sm outline-none transition-all focus:border-(--text-secondary) appearance-none shadow-(--shadow-inset)"
+              style={{ background: "var(--bg-input)", color: "var(--text-primary)" }}
             >
               <option value="Web">Web Application</option>
               <option value="Mobile (iOS & Android)">Mobile (iOS & Android)</option>
@@ -102,7 +105,7 @@ ${formData.additionalNotes}`;
           </div>
 
           <div className="space-y-2">
-            <label className="block font-schibsted text-sm font-medium text-primary-black dark:text-[#F0F0F0]">
+            <label className="block font-inter text-sm font-[510]" style={{ color: "var(--text-primary)" }}>
               Target Pengguna (Audience)
             </label>
             <input
@@ -113,12 +116,13 @@ ${formData.additionalNotes}`;
                 setFormData({ ...formData, targetAudience: e.target.value })
               }
               placeholder="Contoh: Pemilik warung kelontong usia 30-50 tahun"
-              className="w-full rounded-lg border border-border-subtle dark:border-white/10 bg-light-gray-bg dark:bg-[#161616] px-4 py-3 font-schibsted text-sm outline-none transition-all focus:border-primary-black/30 focus:bg-white dark:bg-[#1E1E1E]"
+              className="w-full rounded-lg border border-(--border-subtle) px-4 py-3 font-inter text-sm outline-none transition-all focus:border-(--text-secondary) shadow-(--shadow-inset)"
+              style={{ background: "var(--bg-input)", color: "var(--text-primary)" }}
             />
           </div>
 
           <div className="space-y-2">
-            <label className="block font-schibsted text-sm font-medium text-primary-black dark:text-[#F0F0F0]">
+            <label className="block font-inter text-sm font-[510]" style={{ color: "var(--text-primary)" }}>
               Tech Stack yang Diinginkan (Opsional)
             </label>
             <input
@@ -128,12 +132,13 @@ ${formData.additionalNotes}`;
                 setFormData({ ...formData, techStack: e.target.value })
               }
               placeholder="Contoh: Next.js, Tailwind, MongoDB"
-              className="w-full rounded-lg border border-border-subtle dark:border-white/10 bg-light-gray-bg dark:bg-[#161616] px-4 py-3 font-schibsted text-sm outline-none transition-all focus:border-primary-black/30 focus:bg-white dark:bg-[#1E1E1E]"
+              className="w-full rounded-lg border border-(--border-subtle) px-4 py-3 font-inter text-sm outline-none transition-all focus:border-(--text-secondary) shadow-(--shadow-inset)"
+              style={{ background: "var(--bg-input)", color: "var(--text-primary)" }}
             />
           </div>
 
           <div className="space-y-2">
-            <label className="block font-schibsted text-sm font-medium text-primary-black dark:text-[#F0F0F0]">
+            <label className="block font-inter text-sm font-[510]" style={{ color: "var(--text-primary)" }}>
               Fitur Utama (Sebutkan poin-poinnya)
             </label>
             <textarea
@@ -142,12 +147,13 @@ ${formData.additionalNotes}`;
               onChange={(e) => setFormData({ ...formData, mainFeatures: e.target.value })}
               placeholder="Contoh:&#10;1. Pencatatan transaksi&#10;2. Manajemen stok barang&#10;3. Laporan harian"
               rows={4}
-              className="w-full resize-none rounded-lg border border-border-subtle dark:border-white/10 bg-light-gray-bg dark:bg-[#161616] px-4 py-3 font-schibsted text-sm outline-none transition-all focus:border-primary-black/30 focus:bg-white dark:bg-[#1E1E1E]"
+              className="w-full resize-none rounded-lg border border-(--border-subtle) px-4 py-3 font-inter text-sm outline-none transition-all focus:border-(--text-secondary) shadow-(--shadow-inset)"
+              style={{ background: "var(--bg-input)", color: "var(--text-primary)" }}
             />
           </div>
 
           <div className="space-y-2">
-            <label className="block font-schibsted text-sm font-medium text-primary-black dark:text-[#F0F0F0]">
+            <label className="block font-inter text-sm font-[510]" style={{ color: "var(--text-primary)" }}>
               Catatan Tambahan / Ide Awal
             </label>
             <textarea
@@ -157,14 +163,15 @@ ${formData.additionalNotes}`;
               }
               placeholder="Tulis konteks atau masalah apa yang ingin dipecahkan oleh aplikasi ini..."
               rows={3}
-              className="w-full resize-none rounded-lg border border-border-subtle dark:border-white/10 bg-light-gray-bg dark:bg-[#161616] px-4 py-3 font-schibsted text-sm outline-none transition-all focus:border-primary-black/30 focus:bg-white dark:bg-[#1E1E1E]"
+              className="w-full resize-none rounded-lg border border-(--border-subtle) px-4 py-3 font-inter text-sm outline-none transition-all focus:border-(--text-secondary) shadow-(--shadow-inset)"
+              style={{ background: "var(--bg-input)", color: "var(--text-primary)" }}
             />
           </div>
 
-          <div className="pt-4 border-t border-border-subtle dark:border-white/10">
+          <div className="pt-4 border-t border-(--border-subtle)">
             <button
               type="submit"
-              className="w-full rounded-lg bg-[var(--btn-bg)] py-3.5 font-schibsted text-sm font-bold text-[var(--btn-text)] transition-opacity hover:opacity-90"
+              className="w-full rounded-lg btn-primary py-3.5 font-inter text-sm font-[510] transition-opacity hover:opacity-90"
             >
               Mulai Generate PRD
             </button>

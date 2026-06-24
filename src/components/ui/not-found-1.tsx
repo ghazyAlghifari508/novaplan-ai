@@ -69,7 +69,7 @@ export function NotFound({
               <header className="flex flex-col items-center gap-4">
                 {/* Badge */}
                 <span
-                  className="inline-flex items-center gap-2 rounded-full border border-[var(--border-subtle)] px-3 py-1.5 text-sm font-medium font-schibsted"
+                  className="inline-flex items-center gap-2 rounded-full border border-[var(--border-subtle)] px-3 py-1.5 text-sm font-medium font-inter"
                   style={{ color: "var(--text-secondary)" }}
                 >
                   <span className="h-2 w-2 rounded-full" style={{ background: "var(--text-primary)" }} />
@@ -78,13 +78,13 @@ export function NotFound({
 
                 <div className="flex flex-col items-center gap-4 md:gap-6">
                   <h1
-                    className="text-center text-4xl md:text-6xl font-bold font-fustat"
+                    className="text-center text-4xl md:text-6xl font-inter font-[510]"
                     style={{ color: "var(--text-primary)" }}
                   >
                     {title}
                   </h1>
                   <p
-                    className="text-center text-lg md:text-xl font-schibsted"
+                    className="text-center text-lg md:text-xl font-inter"
                     style={{ color: "var(--text-secondary)" }}
                   >
                     {description}
@@ -96,7 +96,7 @@ export function NotFound({
               <div className="flex gap-3 flex-col md:flex-row w-full items-center justify-center">
                 <button
                   onClick={onBackClick}
-                  className="w-full md:w-fit inline-flex items-center justify-center gap-2 rounded-lg border border-[var(--border-subtle)] px-5 py-2.5 text-sm font-medium font-schibsted transition-colors hover:bg-[var(--bg-hover)]"
+                  className="w-full md:w-fit inline-flex items-center justify-center gap-2 rounded-lg border border-[var(--border-subtle)] px-5 py-2.5 text-sm font-[510] font-inter transition-colors hover:bg-(--bg-hover)"
                   style={{ background: "var(--bg-elevated)", color: "var(--text-primary)" }}
                 >
                   <ArrowLeft className="h-4 w-4" />
@@ -104,7 +104,7 @@ export function NotFound({
                 </button>
                 <button
                   onClick={onHomeClick}
-                  className="w-full md:w-fit inline-flex items-center justify-center rounded-lg btn-primary px-5 py-2.5 text-sm font-medium font-schibsted hover:opacity-90 transition-opacity"
+                  className="w-full md:w-fit inline-flex items-center justify-center rounded-lg btn-primary px-5 py-2.5 text-sm font-[510] font-inter hover:brightness-105 transition-all"
                 >
                   {homeButtonText}
                 </button>
@@ -113,25 +113,25 @@ export function NotFound({
 
             {/* Quick Links */}
             {links.length > 0 && (
-              <div className="flex flex-col divide-y divide-[var(--border-subtle)] w-full border-t border-b border-[var(--border-subtle)]">
+              <div className="flex flex-col divide-y divide-[var(--border-subtle)] w-full border-t border-b border-[var(--border-subtle)] mt-8">
                 {links.map((link) => (
                   <Link
                     href={link.href}
                     key={link.title}
-                    className="py-5 flex items-start md:items-center gap-4 md:gap-5 flex-col md:flex-row hover:bg-[var(--bg-hover)] transition-colors rounded-lg px-2"
+                    className="py-5 flex items-start md:items-center gap-4 md:gap-5 flex-col md:flex-row hover:bg-(--bg-hover) transition-colors rounded-lg px-2"
                   >
                     <div
-                      className="border border-[var(--border-subtle)] p-2.5 md:p-3 rounded-lg"
+                      className="border border-[var(--border-subtle)] p-2.5 md:p-3 rounded-lg shadow-[var(--shadow-inset)]"
                       style={{ background: "var(--bg-elevated)" }}
                     >
                       <link.icon className="size-5 md:size-6" style={{ color: "var(--text-primary)" }} />
                     </div>
                     <div className="flex gap-5 flex-1 w-full items-center">
                       <div className="flex flex-col gap-1">
-                        <div className="text-base font-semibold font-fustat" style={{ color: "var(--text-primary)" }}>
+                        <div className="text-base font-inter font-[510]" style={{ color: "var(--text-primary)" }}>
                           {link.title}
                         </div>
-                        <div className="text-sm font-schibsted" style={{ color: "var(--text-secondary)" }}>
+                        <div className="text-sm font-inter" style={{ color: "var(--text-secondary)" }}>
                           {link.subtitle}
                         </div>
                       </div>
