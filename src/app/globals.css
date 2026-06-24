@@ -180,7 +180,7 @@ body {
 body {
   color: var(--text-primary);
   background: var(--bg-page);
-  font-family: var(--font-inter-variable);
+  font-family: var(--font-inter);
   font-size: var(--text-body);
   font-feature-settings: "cv01" 1, "ss03" 1;
   -webkit-font-smoothing: antialiased;
@@ -218,7 +218,7 @@ a {
 
 /* Markdown content styling */
 .prd-content h1 {
-  font-family: var(--font-inter-variable);
+  font-family: var(--font-inter);
   font-size: 2rem;
   font-weight: 510;
   margin-top: 2rem;
@@ -226,7 +226,7 @@ a {
 }
 
 .prd-content h2 {
-  font-family: var(--font-inter-variable);
+  font-family: var(--font-inter);
   font-size: 1.5rem;
   font-weight: 510;
   margin-top: 1.5rem;
@@ -238,7 +238,7 @@ a {
 }
 
 .prd-content h3 {
-  font-family: var(--font-inter-variable);
+  font-family: var(--font-inter);
   font-size: 1.25rem;
   font-weight: 510;
   margin-top: 1.25rem;
