@@ -61,6 +61,7 @@ interface ChatPanelProps {
   enableAutoSubmit?: boolean;
   inputDisabled?: boolean;
   currentPrdContent?: string;
+  userPlan?: Plan; // Pass from server to avoid client fetch
 }
 
 // ─────────────────────────────────────────────
@@ -75,6 +76,7 @@ export function ChatPanel({
   enableAutoSubmit = true,
   inputDisabled = false,
   currentPrdContent = "",
+  userPlan: initialUserPlan = "free",
 }: ChatPanelProps) {
   // ── Local State ──
   const [input, setInput] = useState("");
@@ -87,7 +89,7 @@ export function ChatPanel({
   const [partialContentStore, setPartialContentStore] = useState("");
   const [originalMessageStore, setOriginalMessageStore] = useState("");
   const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL_ID);
-  const [userPlan, setUserPlan] = useState<Plan>("free");
+  const [userPlan, setUserPlan] = useState<Plan>(initialUserPlan);
 
   // ── Refs ──
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -113,26 +115,12 @@ export function ChatPanel({
 
   // ── Effects ──
 
-  // Restore model from session + fetch user plan
+  // Restore model from session (plan already passed from server)
   useEffect(() => {
     const storedModel = sessionStorage.getItem("novaplan:selected-model");
     if (storedModel && ALL_MODELS.some((m) => m.id === storedModel)) {
       setSelectedModel(storedModel);
     }
-    const fetchStatus = async () => {
-      try {
-        const res = await fetch("/api/user/plan", { cache: "no-store" });
-        if (!res.ok) return;
-
-        const data = await res.json();
-        if (data.authenticated) {
-          setUserPlan(data.plan as Plan);
-        }
-      } catch {
-        setUserPlan("free");
-      }
-    };
-    fetchStatus();
   }, []);
 
   // Auto-scroll on new messages

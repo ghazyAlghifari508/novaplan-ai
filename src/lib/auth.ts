@@ -31,32 +31,43 @@ export const getUserProfile = cache(async () => {
   return profile;
 });
 
-export const getUserQuota = cache(async () => {
+// Optimized: Fetch quota and plan together in single auth call
+export const getUserPlanAndQuota = cache(async () => {
   const user = await getUser();
-  if (!user) return null;
+  if (!user) return { plan: "free" as Plan, quota: null };
 
   const insforge = await createServerInsforge();
-  const { data: quotas } = await insforge.database
-    .from("quotas")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(1);
 
-  return quotas?.[0] || null;
+  // Parallel fetch plan and quota
+  const [subscriptionResult, quotaResult] = await Promise.all([
+    insforge.database
+      .from("subscriptions")
+      .select("plan, status")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1),
+    insforge.database
+      .from("quotas")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1),
+  ]);
+
+  const subscription = subscriptionResult.data?.[0];
+  const plan = (subscription?.status === "active" ? subscription.plan : "free") as Plan;
+  const quota = quotaResult.data?.[0] || null;
+
+  return { plan, quota };
+});
+
+// Keep these for backward compatibility but use optimized version internally
+export const getUserQuota = cache(async () => {
+  const { quota } = await getUserPlanAndQuota();
+  return quota;
 });
 
 export const getUserPlan = cache(async (): Promise<Plan> => {
-  const user = await getUser();
-  if (!user) return "free";
-
-  const insforge = await createServerInsforge();
-  const { data: subscriptions } = await insforge.database
-    .from("subscriptions")
-    .select("plan")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(1);
-
-  return (subscriptions?.[0]?.plan as Plan) || "free";
+  const { plan } = await getUserPlanAndQuota();
+  return plan;
 });
