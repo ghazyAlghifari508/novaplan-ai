@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
-import Link from "next/link";
-import { getSetupPrompt, savePendingPrdPrompt } from "@/lib/prompt-handoff";
+import { consumeSetupPrompt, savePendingPrdPrompt } from "@/lib/prompt-handoff";
 
 export function ManualSetupClient() {
   const router = useRouter();
+  const [isReady, setIsReady] = useState(false);
 
   const [formData, setFormData] = useState({
     appName: "",
@@ -19,14 +19,19 @@ export function ManualSetupClient() {
   });
 
   useEffect(() => {
-    const setupPrompt = getSetupPrompt();
-    if (!setupPrompt) return;
+    // Consume (read + delete) the setup prompt — guard against direct access
+    const setupPrompt = consumeSetupPrompt();
+    if (!setupPrompt || setupPrompt.trim() === "") {
+      router.replace("/");
+      return;
+    }
 
     setFormData((prev) => {
       if (prev.additionalNotes) return prev;
       return { ...prev, additionalNotes: setupPrompt };
     });
-  }, []);
+    setIsReady(true);
+  }, [router]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,16 +52,25 @@ ${formData.additionalNotes}`;
     router.push("/prd");
   };
 
+  // Don't render form until we've validated the prompt exists
+  if (!isReady) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="font-inter text-fog animate-pulse">Memuat...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-2xl px-6">
-      <Link
-        href="/setup"
+      <button
+        onClick={() => router.back()}
         className="inline-flex items-center gap-2 text-sm font-[510] font-inter transition-colors mb-8 hover:opacity-80"
         style={{ color: "var(--text-secondary)" }}
       >
         <ChevronLeft size={16} />
         Kembali ke pilihan
-      </Link>
+      </button>
 
       <div className="rounded-2xl border border-(--border-subtle) p-8 shadow-(--shadow-surface)" style={{ background: "var(--bg-card)" }}>
         <h1 className="font-inter text-2xl font-[510] mb-2" style={{ color: "var(--text-primary)" }}>

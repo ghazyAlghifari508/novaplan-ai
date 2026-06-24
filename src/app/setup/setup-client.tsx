@@ -1,32 +1,48 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sparkles, PenTool } from "lucide-react";
-import { getSetupPrompt, savePendingPrdPrompt } from "@/lib/prompt-handoff";
+import { consumeSetupPrompt, saveSetupPrompt, savePendingPrdPrompt } from "@/lib/prompt-handoff";
 
 export function SetupClient() {
   const router = useRouter();
   const promptRef = useRef("");
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const prompt = getSetupPrompt();
+    // Consume (read + delete) the setup prompt so it can't be reused
+    const prompt = consumeSetupPrompt();
     if (!prompt || prompt.trim() === "") {
-      router.push("/");
+      router.replace("/");
       return;
     }
     promptRef.current = prompt;
+    setIsReady(true);
   }, [router]);
 
   const handleAutoSelect = () => {
+    if (!promptRef.current) return;
     const originalMessage = sessionStorage.getItem("novaplan:original-message") || undefined;
     savePendingPrdPrompt(promptRef.current, "auto", originalMessage);
     router.push("/prd");
   };
 
   const handleManualSelect = () => {
+    if (!promptRef.current) return;
+    // Re-save so /setup/manual can read it (consumed above, need to pass forward)
+    saveSetupPrompt(promptRef.current);
     router.push("/setup/manual");
   };
+
+  // Don't render choices until we've validated the prompt exists
+  if (!isReady) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="font-inter text-fog animate-pulse">Memuat...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-4xl px-6">
