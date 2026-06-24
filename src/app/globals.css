@@ -26,10 +26,8 @@
 
 
   /* Font Families */
-  --font-inter-variable: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-berkeley-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  --font-inter: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-jetbrains: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-inter: "Inter", var(--font-inter-base), ui-sans-serif, system-ui, sans-serif;
+  --font-berkeley-mono: "JetBrains Mono", var(--font-jetbrains-base), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   /* Font Sizes */
   --text-hero: 72px;
