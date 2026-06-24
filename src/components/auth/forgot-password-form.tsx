@@ -34,8 +34,8 @@ export function ForgotPasswordForm() {
   return (
     <div className="w-full max-w-md space-y-8">
       <div className="text-center">
-        <h1 className="font-fustat text-3xl font-bold">Lupa Password</h1>
-        <p className="mt-2 text-text-gray dark:text-[#A0A0A0]">
+        <h1 className="font-inter font-[510] text-3xl font-bold">Lupa Password</h1>
+        <p className="mt-2 text-(--text-secondary)">
           Masukkan email untuk menerima kode reset password
         </p>
       </div>
@@ -44,7 +44,7 @@ export function ForgotPasswordForm() {
         <div className="space-y-2">
           <label
             htmlFor="email"
-            className="text-sm font-medium text-primary-black dark:text-[#F0F0F0]"
+            className="text-sm font-medium text-(--text-primary)"
           >
             Email
           </label>

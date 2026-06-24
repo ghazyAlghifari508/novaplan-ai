@@ -94,12 +94,12 @@ export function OnboardingForm() {
   return (
     <div className="w-full max-w-lg space-y-8">
       <div className="text-center">
-        <h1 className="font-fustat text-3xl font-bold">
+        <h1 className="font-inter font-[510] text-3xl font-bold">
           {step === 1 && "Siapa nama kamu?"}
           {step === 2 && "Apa peran kamu?"}
           {step === 3 && "Apa tujuan kamu?"}
         </h1>
-        <p className="mt-2 text-text-gray dark:text-[#A0A0A0]">
+        <p className="mt-2 text-(--text-secondary)">
           {step === 1 && "Kami akan menyapa kamu dengan nama ini"}
           {step === 2 && "Supaya kami bisa menyesuaikan pengalaman"}
           {step === 3 && "Bisa pilih lebih dari satu"}
@@ -133,7 +133,7 @@ export function OnboardingForm() {
               className={`rounded-lg border p-4 text-left transition-all ${
                 role === r.value
                   ? "border-primary-black btn-primary"
-                  : "border-border-subtle dark:border-white/10 hover:border-primary-black/30"
+                  : "border-(--border-subtle) hover:border-primary-black/30"
               }`}
             >
               {r.label}
@@ -151,7 +151,7 @@ export function OnboardingForm() {
               className={`rounded-lg border p-4 text-left transition-all ${
                 tujuan.includes(g.value)
                   ? "border-primary-black btn-primary"
-                  : "border-border-subtle dark:border-white/10 hover:border-primary-black/30"
+                  : "border-(--border-subtle) hover:border-primary-black/30"
               }`}
             >
               {g.label}
@@ -170,7 +170,7 @@ export function OnboardingForm() {
             <div
               key={s}
               className={`h-1 flex-1 rounded-full transition-all ${
-                s <= step ? "bg-[var(--btn-bg)]" : "bg-light-gray-bg dark:bg-[#161616]"
+                s <= step ? "bg-[var(--btn-bg)]" : "bg-(--bg-surface)"
               }`}
             />
           ))}

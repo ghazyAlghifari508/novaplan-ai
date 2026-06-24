@@ -54,7 +54,7 @@ export function VersionHistory({
   if (versions.length <= 1) {
     return (
       <div className={cn("p-4", className)}>
-        <p className="text-xs text-text-gray dark:text-[#A0A0A0]">Belum ada revisi</p>
+        <p className="text-xs text-(--text-secondary)">Belum ada revisi</p>
       </div>
     );
   }
@@ -74,7 +74,7 @@ export function VersionHistory({
     <div className={cn("relative", className)} ref={dropdownRef}>
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-2 text-sm font-medium text-text-gray dark:text-[#A0A0A0] hover:text-primary-black dark:hover:text-[#F0F0F0]"
+        className="flex items-center gap-2 text-sm font-medium text-(--text-secondary) hover:text-(--text-primary) dark:hover:text-[#F0F0F0]"
       >
         <span>Version History ({versions.length})</span>
         <svg
@@ -93,7 +93,7 @@ export function VersionHistory({
       </button>
 
       {expanded && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-[var(--border-subtle)] bg-white dark:bg-[#1E1E1E] p-2 shadow-xl space-y-1 max-h-96 overflow-y-auto">
+        <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-[var(--border-subtle)] bg-(--bg-card) p-2 shadow-xl space-y-1 max-h-96 overflow-y-auto">
           {hasHistoryAccess ? (
             versions.map((v) => (
               <div 
@@ -102,7 +102,7 @@ export function VersionHistory({
                   "group flex flex-col rounded-lg transition-colors overflow-hidden",
                   selected === v.version
                     ? "btn-primary"
-                    : "hover:bg-light-gray-bg dark:hover:bg-[#161616] text-text-gray dark:text-[#A0A0A0]"
+                    : "hover:bg-(--bg-surface) dark:hover:bg-[#161616] text-(--text-secondary)"
                 )}
               >
                 <button
@@ -131,8 +131,8 @@ export function VersionHistory({
               </div>
             ))
           ) : (
-            <div className="rounded-lg bg-light-gray-bg dark:bg-[#161616] p-3 text-center">
-              <p className="text-xs text-text-gray dark:text-[#A0A0A0]">
+            <div className="rounded-lg bg-(--bg-surface) p-3 text-center">
+              <p className="text-xs text-(--text-secondary)">
                 Upgrade ke Pro untuk melihat history revisi
               </p>
             </div>
@@ -142,14 +142,14 @@ export function VersionHistory({
 
       {diffMode && diffVersions && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="max-h-[80vh] w-full max-w-3xl overflow-auto rounded-xl bg-white dark:bg-[#1E1E1E] p-6">
+          <div className="max-h-[80vh] w-full max-w-3xl overflow-auto rounded-xl bg-(--bg-card) p-6">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-fustat text-lg font-bold">
+              <h3 className="font-inter font-[510] text-lg font-bold">
                 Diff: v{diffVersions[0].version} vs v{diffVersions[1].version}
               </h3>
               <button
                 onClick={() => setDiffMode(false)}
-                className="text-text-gray dark:text-[#A0A0A0] hover:text-primary-black dark:text-[#F0F0F0]"
+                className="text-(--text-secondary) hover:text-(--text-primary)"
               >
                 Tutup
               </button>
@@ -213,7 +213,7 @@ export function VersionDiff({ v1, v2 }: { v1: PrdVersion; v2: PrdVersion }) {
             "rounded px-2 py-1",
             part.type === "removed" && "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400",
             part.type === "added" && "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400",
-            part.type === "unchanged" && "text-text-gray dark:text-[#A0A0A0]",
+            part.type === "unchanged" && "text-(--text-secondary)",
           )}
         >
           {part.type === "removed" && "- "}

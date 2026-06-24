@@ -28,7 +28,7 @@ export default function Error({
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-primary-black text-center px-6">
       <div className="text-6xl">😅</div>
-      <h1 className="font-fustat text-4xl font-bold text-white">Ups!</h1>
+      <h1 className="font-inter font-[510] text-4xl font-bold text-white">Ups!</h1>
       <p className="max-w-md text-white/60">
         Terjadi kesalahan yang tidak terduga. Tim kami sudah diberitahu.
       </p>

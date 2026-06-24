@@ -23,20 +23,11 @@
   --color-crimson: #eb5757;
   --color-cyan: #02b8cc;
 
-  /* Legacy aliases used by existing components */
-  --color-primary-black: #08090a;
-  --color-primary-white: #f7f8f8;
-  --color-text-gray: #8a8f98;
-  --color-light-gray-bg: #161718;
-  --color-dark-badge: #161718;
-  --color-border-subtle: #23252a;
-  --color-overlay-dark: rgba(8, 9, 10, 0.78);
+
 
   /* Font Families */
   --font-inter-variable: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-berkeley-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  --font-fustat: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-schibsted: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-inter: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-jetbrains: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
@@ -92,13 +83,6 @@
   --color-emerald: #18181b;
   --color-crimson: #dc2626;
   --color-cyan: #27272a;
-  --color-primary-black: #09090b;
-  --color-primary-white: #ffffff;
-  --color-text-gray: #52525b;
-  --color-light-gray-bg: #f4f4f5;
-  --color-dark-badge: #f4f4f5;
-  --color-border-subtle: #e5e7eb;
-  --color-overlay-dark: rgba(9, 9, 11, 0.72);
 
   /* Page backgrounds */
   --bg-page: #ffffff;
@@ -152,13 +136,6 @@
   --color-emerald: #d0d6e0;
   --color-crimson: #eb5757;
   --color-cyan: #e5e5e6;
-  --color-primary-black: #08090a;
-  --color-primary-white: #f7f8f8;
-  --color-text-gray: #8a8f98;
-  --color-light-gray-bg: #161718;
-  --color-dark-badge: #161718;
-  --color-border-subtle: #23252a;
-  --color-overlay-dark: rgba(8, 9, 10, 0.78);
 
   /* Page backgrounds */
   --bg-page: #08090a;

@@ -26,7 +26,7 @@ export const ProfileForm = memo(function ProfileForm({
               className="h-16 w-16 rounded-full object-cover"
             />
           ) : (
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-light-gray-bg dark:bg-[#161616] text-2xl text-text-gray dark:text-[#A0A0A0]">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-(--bg-surface) text-2xl text-(--text-secondary)">
               {profile.full_name?.charAt(0) || profile.email.charAt(0)}
             </div>
           )}
@@ -55,7 +55,7 @@ export const ProfileForm = memo(function ProfileForm({
 
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="font-fustat text-lg font-bold">{profile.full_name || "User"}</h2>
+            <h2 className="font-inter font-[510] text-lg font-bold">{profile.full_name || "User"}</h2>
             <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
               profile.plan === 'hengker' 
                 ? 'bg-steel text-snow ring-graphite'
@@ -66,7 +66,7 @@ export const ProfileForm = memo(function ProfileForm({
               {profile.plan?.toUpperCase() || 'FREE'}
             </span>
           </div>
-          <p className="mt-1 text-sm text-text-gray dark:text-[#A0A0A0]">{profile.email}</p>
+          <p className="mt-1 text-sm text-(--text-secondary)">{profile.email}</p>
         </div>
       </div>
 
@@ -85,7 +85,7 @@ export const ProfileForm = memo(function ProfileForm({
           <select
             name="role"
             defaultValue="user"
-            className="h-11 w-full rounded-lg border border-border-subtle dark:border-white/10 bg-white dark:bg-[#1E1E1E] px-4 text-sm focus:border-primary-black focus:outline-none focus:ring-2 focus:ring-primary-black/5"
+            className="h-11 w-full rounded-lg border border-(--border-subtle) bg-(--bg-card) px-4 text-sm focus:border-primary-black focus:outline-none focus:ring-2 focus:ring-primary-black/5"
           >
             <option value="pm">Product Manager</option>
             <option value="developer">Software Developer</option>

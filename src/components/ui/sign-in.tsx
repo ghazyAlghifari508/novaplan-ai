@@ -141,7 +141,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
               {!isRegister && (
                 <div className="animate-element animate-delay-500 flex items-center justify-between text-sm">
                   <label className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" name="rememberMe" className="rounded border-border-subtle text-primary-black focus:ring-primary-black" />
+                    <input type="checkbox" name="rememberMe" className="rounded border-(--border-subtle) text-(--text-primary) focus:ring-primary-black" />
                     <span className="font-[510] text-mist">Ingat saya</span>
                   </label>
                   <Link href="/forgot-password" className="font-[510] text-fog transition-colors hover:text-snow">Lupa password?</Link>

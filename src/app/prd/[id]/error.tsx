@@ -11,8 +11,8 @@ export default function PrdError({
   return (
     <div className="flex h-screen items-center justify-center">
       <div className="text-center">
-        <h1 className="font-fustat text-2xl font-bold">PRD Tidak Ditemukan</h1>
-        <p className="mt-2 text-text-gray dark:text-[#A0A0A0]">PRD ini mungkin telah dihapus atau tidak tersedia.</p>
+        <h1 className="font-inter font-[510] text-2xl font-bold">PRD Tidak Ditemukan</h1>
+        <p className="mt-2 text-(--text-secondary)">PRD ini mungkin telah dihapus atau tidak tersedia.</p>
         <div className="mt-6 flex gap-4 justify-center">
           <button
             onClick={reset}
@@ -22,7 +22,7 @@ export default function PrdError({
           </button>
           <Link
             href="/"
-            className="rounded-lg border border-border-subtle dark:border-white/10 px-6 py-3 text-sm font-medium hover:bg-light-gray-bg dark:bg-[#161616]"
+            className="rounded-lg border border-(--border-subtle) px-6 py-3 text-sm font-medium hover:bg-(--bg-surface)"
           >
             Kembali ke Beranda
           </Link>

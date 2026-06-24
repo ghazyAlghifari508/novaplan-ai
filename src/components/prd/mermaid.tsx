@@ -54,13 +54,13 @@ export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
   }, [chart, resolvedTheme]);
 
   if (!svg) {
-    return <div className="animate-pulse bg-black/5 dark:bg-white/5 h-32 rounded-lg flex items-center justify-center text-sm text-text-gray my-6">Rendering diagram...</div>;
+    return <div className="animate-pulse bg-black/5 dark:bg-white/5 h-32 rounded-lg flex items-center justify-center text-sm text-(--text-secondary) my-6">Rendering diagram...</div>;
   }
 
   return (
     <div 
       ref={containerRef}
-      className="my-6 overflow-x-auto bg-white dark:bg-[#1A1A1A] p-4 rounded-lg border border-border-subtle dark:border-white/10 flex justify-center w-full"
+      className="my-6 overflow-x-auto bg-(--bg-card) p-4 rounded-lg border border-(--border-subtle) flex justify-center w-full"
       dangerouslySetInnerHTML={{ __html: svg }} 
     />
   );
