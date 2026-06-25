@@ -94,7 +94,7 @@ export function OnboardingForm() {
   return (
     <div className="w-full max-w-lg space-y-8">
       <div className="text-center">
-        <h1 className="font-inter font-[510] text-3xl font-bold">
+        <h1 className="font-[510] text-3xl font-bold">
           {step === 1 && "Siapa nama kamu?"}
           {step === 2 && "Apa peran kamu?"}
           {step === 3 && "Apa tujuan kamu?"}

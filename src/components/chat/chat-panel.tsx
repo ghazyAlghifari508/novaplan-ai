@@ -489,7 +489,7 @@ export function ChatPanel({
             }}
             placeholder={isEffectivelyDisabled ? "Pilih proyek dari daftar atau buat baru dari beranda" : projectId ? "Ketik pesan atau instruksi revisi PRD..." : "Ceritakan ide produkmu..."}
             className={cn(
-              "w-full resize-none border-none bg-transparent px-3 pb-2 pt-3 font-inter text-[14px] text-snow outline-none placeholder:text-slate",
+              "w-full resize-none border-none bg-transparent px-3 pb-2 pt-3 text-[14px] text-snow outline-none placeholder:text-slate",
               isEffectivelyDisabled && "cursor-not-allowed opacity-70"
             )}
             style={{ color: "var(--text-primary)", caretColor: "var(--text-primary)" }}
