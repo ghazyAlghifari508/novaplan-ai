@@ -36,6 +36,11 @@ Rules:
 
 - **Environment Variables**: Jangan hardcode API keys. Gunakan `process.env` untuk server-side dan prefix `NEXT_PUBLIC_` hanya untuk variabel yang memang harus diakses client.
 - **Server vs Client**: Pisahkan logika server (`"use server"`) dan client (`"use client"`) dengan tegas. Jangan import server-only modules di client components.
+- **Data Fetching**: Gunakan Server Components untuk data fetching. Gunakan `React.cache()` untuk deduplikasi request dalam satu render pass. Panggil `revalidatePath()` atau `revalidateTag()` setelah mutasi data.
+- **Routing**: Gunakan App Router conventions (`page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`). Jangan buat routing custom yang bertentangan dengan Next.js conventions.
+- **Performance**: Gunakan `Suspense` boundary untuk loading states. Lazy-load komponen berat dengan `dynamic()`. Optimalkan gambar dengan `next/image`.
+- **Build & Deploy**: Selalu pastikan `next build` berhasil tanpa error sebelum deploy. Gunakan `--no-lint` hanya untuk quick check, pastikan lint juga bersih.
+- **Error Handling**: Sediakan `error.tsx` di setiap route segment yang kritis. Gunakan `try/catch` di Server Actions dan kembalikan error yang informatif.
 
 ## TAMBAHAN ATURAN
 
@@ -150,3 +155,4 @@ Cara invoke: gunakan tool `Agent` dengan `subagent_type` = nama agent (mis. `ecc
 - `ecc:deployment-patterns`, `ecc:docker-patterns` — pola deploy dan Docker.
 
 Catatan: daftar di atas adalah yang paling sering relevan, BUKAN daftar lengkap. ECC punya banyak agent/skill lain untuk bahasa dan domain lain (Go, Rust, Python, Java, Flutter, dll). Kalau task menyentuh domain itu, pilih agent/skill ECC yang sesuai bahasanya. Prinsipnya: cocokkan agent dengan jenis pekerjaan dan stack-nya, dan jangan menebak API library — pakai agent atau skill yang tepat.
+# 22:26:52 commit 1
