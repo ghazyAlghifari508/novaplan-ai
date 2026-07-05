@@ -156,3 +156,4 @@ Cara invoke: gunakan tool `Agent` dengan `subagent_type` = nama agent (mis. `ecc
 
 Catatan: daftar di atas adalah yang paling sering relevan, BUKAN daftar lengkap. ECC punya banyak agent/skill lain untuk bahasa dan domain lain (Go, Rust, Python, Java, Flutter, dll). Kalau task menyentuh domain itu, pilih agent/skill ECC yang sesuai bahasanya. Prinsipnya: cocokkan agent dengan jenis pekerjaan dan stack-nya, dan jangan menebak API library — pakai agent atau skill yang tepat.
 # 22:26:52 commit 1
+# 22:27:00 commit 6
