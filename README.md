@@ -104,3 +104,5 @@ Help is welcome! The best entry points are fresh-install testing, prompt enginee
 <!-- activity 2026-07-07 #02 -->
 
 <!-- activity 2026-07-07 #03 -->
+
+<!-- activity 2026-07-07 #04 -->
