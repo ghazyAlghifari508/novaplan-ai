@@ -112,3 +112,5 @@ Help is welcome! The best entry points are fresh-install testing, prompt enginee
 <!-- activity 2026-07-07 #06 -->
 
 <!-- activity 2026-07-07 #07 -->
+
+<!-- activity 2026-07-07 #08 -->
