@@ -1,9 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const signInWithPassword = vi.fn();
+const from = vi.fn(() => {
+  const chain = {
+    select: vi.fn(() => chain),
+    insert: vi.fn(() => Promise.resolve({ error: null })),
+    eq: vi.fn(() => chain),
+    gte: vi.fn(() => Promise.resolve({ count: 0 })),
+  };
+  return chain;
+});
 const createServerClient = vi.fn(() => ({
   auth: {
     signInWithPassword,
+  },
+  database: {
+    from,
   },
 }));
 const setAuthCookies = vi.fn();

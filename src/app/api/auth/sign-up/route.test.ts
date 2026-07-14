@@ -1,9 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const signUp = vi.fn();
+const from = vi.fn(() => {
+  const chain = {
+    select: vi.fn(() => chain),
+    insert: vi.fn(() => Promise.resolve({ error: null })),
+    eq: vi.fn(() => chain),
+    gte: vi.fn(() => Promise.resolve({ count: 0 })),
+  };
+  return chain;
+});
 const createServerClient = vi.fn(() => ({
   auth: {
     signUp,
+  },
+  database: {
+    from,
   },
 }));
 const setAuthCookies = vi.fn();
@@ -70,7 +82,8 @@ describe("POST /api/auth/sign-up", () => {
     expect(signUp).toHaveBeenCalledWith({
       email: "user@example.com",
       password: "password123",
-      redirectTo: "http://localhost/auth/callback",
+      // getSafeNext() normalizes non-relative URLs to "/"
+      redirectTo: "/",
     });
     expect(setAuthCookies).toHaveBeenCalledWith(expect.anything(), {
       accessToken: "access-token",
