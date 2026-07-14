@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import mermaid from "mermaid";
+import DOMPurify from "dompurify";
 import { useTheme } from "next-themes";
 
 interface MermaidProps {
@@ -17,7 +18,9 @@ export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
     mermaid.initialize({
       startOnLoad: false,
       theme: resolvedTheme === "dark" ? "dark" : "default",
-      securityLevel: "loose",
+      // ponytail: "strict" sanitizes SVG output (default). Only use "loose"
+      // if mermaid diagrams break with templated content, then add DOMPurify.
+      securityLevel: "strict",
       logLevel: 5,
       suppressErrorRendering: true,
     });
@@ -29,15 +32,21 @@ export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
         await mermaid.parse(chart, { suppressErrors: true });
         
         const { svg: renderSvg } = await mermaid.render(id, chart);
-        setSvg(renderSvg);
+        // Defense-in-depth: DOMPurify even with mermaid's "strict" securityLevel
+        setSvg(DOMPurify.sanitize(renderSvg));
       } catch (error) {
         // Clean up any rogue error SVGs Mermaid might have injected into the body
         document.querySelectorAll('svg[id^="dmermaid-"], svg[id^="mermaid-"], div[id^="dmermaid-"]').forEach(el => el.remove());
         
         // Silently catch errors. These usually happen during AI text streaming because the Mermaid code is incomplete.
         // We show the raw code so that if it's a permanent syntax error after streaming finishes, the user can still read the logic.
-        const escapedChart = chart.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        setSvg(`
+        const escapedChart = chart
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+        const errorHtml = DOMPurify.sanitize(`
           <div class="flex flex-col w-full max-w-full rounded-lg border border-dashed border-fog/30 bg-charcoal/30">
             <div class="text-xs p-3 text-fog flex items-center justify-center border-b border-fog/20">
               <span class="animate-pulse">Menyusun diagram... (Jika tidak tampil, AI melakukan kesalahan syntax)</span>
@@ -45,6 +54,7 @@ export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
             <pre class="p-4 text-[11px] overflow-x-auto text-slate font-berkeley-mono whitespace-pre leading-relaxed">${escapedChart}</pre>
           </div>
         `);
+        setSvg(errorHtml);
       }
     };
 

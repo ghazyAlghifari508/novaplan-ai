@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, memo } from "react";
+import { useState, useRef, useEffect, useMemo, memo } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
@@ -64,20 +64,19 @@ export const PrdViewer = memo(function PrdViewer({
 
 
   // Membersihkan sisa tag markdown (misal ```markdown di awal dan ``` di akhir)
-  // yang sering kali ditambahkan secara otomatis oleh AI
-  const getCleanContent = () => {
+  // yang sering kali ditambahkan secara otomatis oleh AI.
+  // ponytail: memoize by `content` so we don't re-run the regex chain on every
+  // render delta (PRD streaming can produce 200+ renders).
+  const cleanContent = useMemo(() => {
     let cleaned = content.replace(/<!--[\s\S]*?-->/g, "").trim();
-    
-    // Cari blok markdown pembungkus (contoh: AI menyelipkan "Berikut PRD-nya:\n```markdown\n...```")
+
     const startMatch = cleaned.match(/```(?:markdown|md)\s*\n/i);
-    
+
     if (startMatch) {
-      // Jika ```markdown ditemukan di bagian awal dokumen (<500 chars), anggap ini wrapper utama
       if (startMatch.index !== undefined && startMatch.index < 500) {
         const startIndex = startMatch.index + startMatch[0].length;
         const lastIndex = cleaned.lastIndexOf("```");
-        
-        // Pastikan ``` penutup ada dan posisinya setelah pembuka
+
         if (lastIndex > startIndex) {
           cleaned = cleaned.substring(startIndex, lastIndex);
         } else {
@@ -85,7 +84,6 @@ export const PrdViewer = memo(function PrdViewer({
         }
       }
     } else {
-      // Jika tidak ada language tag tapi diawali ```
       if (cleaned.startsWith("```\n")) {
         const lastIndex = cleaned.lastIndexOf("```");
         if (lastIndex > 3) {
@@ -99,7 +97,7 @@ export const PrdViewer = memo(function PrdViewer({
       }
     }
     return cleaned.trim();
-  };
+  }, [content]);
 
   return (
     <div className={cn("flex h-full", className)}>
@@ -183,7 +181,7 @@ export const PrdViewer = memo(function PrdViewer({
               },
             }}
           >
-            {getCleanContent()}
+            {cleanContent}
           </Markdown>
         </article>
       </div>

@@ -68,9 +68,12 @@ export async function savePrdVersion(
     .from("conversations")
     .select("project_id")
     .eq("id", conversationId)
-    .single();
+    .maybeSingle();
 
-  if (!conv?.project_id) return;
+  if (!conv?.project_id) {
+    console.warn("savePrdVersion: conversation missing project_id, PRD content silently discarded", { conversationId });
+    return;
+  }
 
   let nextVersion = 1;
 
@@ -81,7 +84,7 @@ export async function savePrdVersion(
       .eq("project_id", conv.project_id)
       .order("version", { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (latestVersion) {
       nextVersion = latestVersion.version + 1;
@@ -131,7 +134,7 @@ export async function getLatestPrdContent(
     .eq("project_id", projectId)
     .order("version", { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
   return data?.content || null;
 }
@@ -151,7 +154,7 @@ export async function resolveProjectId(
     .from("conversations")
     .select("project_id")
     .eq("id", conversationId)
-    .single();
+    .maybeSingle();
 
   return convRecord?.project_id;
 }

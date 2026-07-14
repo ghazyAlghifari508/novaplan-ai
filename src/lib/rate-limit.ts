@@ -24,9 +24,11 @@ export async function checkRateLimit(
     .eq("action", action)
     .gte("window_start", windowStart);
 
+  // Fail closed: if DB is down, don't let users bypass rate limits.
+  // ponytail: in-memory fallback if throughput matters.
   if (error) {
     console.error("Rate limit check error:", error);
-    return { allowed: true, remaining: limit };
+    return { allowed: false, remaining: 0 };
   }
 
   const remaining = Math.max(0, limit - (count || 0));

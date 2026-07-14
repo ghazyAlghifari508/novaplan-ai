@@ -3,7 +3,7 @@ import { createServerInsforge } from "@/lib/insforge/server";
 import { checkRateLimit, recordRequest } from "@/lib/rate-limit";
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
@@ -12,6 +12,13 @@ export async function DELETE(
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // CSRF: verify same-origin for state-changing DELETE
+    const origin = req.headers.get("origin");
+    const host = req.headers.get("host");
+    if (origin && host && !origin.endsWith(`://${host}`)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const { id: projectId } = await params;
@@ -23,7 +30,7 @@ export async function DELETE(
       .from("subscriptions")
       .select("plan")
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
 
     const rateCheck = await checkRateLimit(
       user.id,
@@ -50,25 +57,28 @@ export async function DELETE(
 
     const convIds = convs?.map((c: { id: string }) => c.id) || [];
 
-    // 2. Hapus messages yang terkait dengan conversation tersebut
+    // 2. Delete messages (check error)
     if (convIds.length > 0) {
-      await insforge.database
+      const { error: msgError } = await insforge.database
         .from("messages")
         .delete()
         .in("conversation_id", convIds);
+      if (msgError) throw msgError;
     }
 
-    // 3. Hapus conversations
-    await insforge.database
+    // 3. Delete conversations
+    const { error: convError } = await insforge.database
       .from("conversations")
       .delete()
       .eq("project_id", projectId);
+    if (convError) throw convError;
 
-    // 4. Hapus riwayat prd_versions
-    await insforge.database
+    // 4. Delete prd_versions
+    const { error: prdError } = await insforge.database
       .from("prd_versions")
       .delete()
       .eq("project_id", projectId);
+    if (prdError) throw prdError;
 
     // 5. Terakhir, hapus project utamanya
     const { data: deletedRows, error } = await insforge.database

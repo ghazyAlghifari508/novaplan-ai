@@ -102,22 +102,22 @@ export const SignInPage: React.FC<SignInPageProps> = ({
 
             <form className="space-y-5" onSubmit={onSubmit}>
               <div className="animate-element animate-delay-300">
-                <label className="mb-1.5 block text-sm font-[510] text-mist">Alamat Email</label>
+                <label htmlFor="signin-email" className="mb-1.5 block text-sm font-[510] text-mist">Alamat Email</label>
                 <GlassInputWrapper isError={!!error}>
-                  <input name="email" type="email" placeholder="contoh@perusahaan.com" required disabled={loading}
+                  <input id="signin-email" name="email" type="email" placeholder="contoh@perusahaan.com" required disabled={loading}
                     className="w-full rounded-md bg-transparent p-3 text-sm text-snow placeholder:text-slate focus:outline-none"
                   />
                 </GlassInputWrapper>
               </div>
 
               <div className="animate-element animate-delay-400">
-                <label className="mb-1.5 block text-sm font-[510] text-mist">Password</label>
+                <label htmlFor="signin-password" className="mb-1.5 block text-sm font-[510] text-mist">Password</label>
                 <GlassInputWrapper isError={!!error}>
                   <div className="relative">
-                    <input name="password" type={showPassword ? 'text' : 'password'} required disabled={loading} placeholder="Minimal 8 karakter"
+                    <input id="signin-password" name="password" type={showPassword ? 'text' : 'password'} required disabled={loading} placeholder="Minimal 8 karakter"
                       className="w-full rounded-md bg-transparent p-3 pr-12 text-sm text-snow placeholder:text-slate focus:outline-none"
                     />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-3 flex items-center outline-none">
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"} className="absolute inset-y-0 right-3 flex items-center outline-none focus-visible:ring-2 focus-visible:ring-indigo/80 rounded">
                       {showPassword ? <EyeOff className="h-5 w-5 text-fog transition-colors hover:text-snow" /> : <Eye className="h-5 w-5 text-fog transition-colors hover:text-snow" />}
                     </button>
                   </div>
@@ -126,11 +126,11 @@ export const SignInPage: React.FC<SignInPageProps> = ({
 
               {isRegister && (
                  <div className="animate-element animate-delay-400">
-                  <label className="mb-1.5 block text-sm font-[510] text-mist">Konfirmasi Password</label>
+                  <label htmlFor="signin-confirm-password" className="mb-1.5 block text-sm font-[510] text-mist">Konfirmasi Password</label>
                   <GlassInputWrapper isError={!!error}>
                     <div className="relative">
-                      <input name="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} required disabled={loading} placeholder="Masukkan ulang password Anda" className="w-full rounded-md bg-transparent p-3 pr-12 text-sm text-snow placeholder:text-slate focus:outline-none" />
-                      <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-3 flex items-center outline-none">
+                      <input id="signin-confirm-password" name="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} required disabled={loading} placeholder="Masukkan ulang password Anda" className="w-full rounded-md bg-transparent p-3 pr-12 text-sm text-snow placeholder:text-slate focus:outline-none" />
+                      <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} aria-label={showConfirmPassword ? "Sembunyikan password" : "Tampilkan password"} className="absolute inset-y-0 right-3 flex items-center outline-none focus-visible:ring-2 focus-visible:ring-indigo/80 rounded">
                         {showConfirmPassword ? <EyeOff className="h-5 w-5 text-fog transition-colors hover:text-snow" /> : <Eye className="h-5 w-5 text-fog transition-colors hover:text-snow" />}
                       </button>
                     </div>

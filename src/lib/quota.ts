@@ -1,5 +1,10 @@
 import { createServerInsforge } from "@/lib/insforge/server";
 
+// ponytail: a new user (just signup) won't have a `quotas` row yet — the
+// signup flow doesn't bootstrap one. Default to fresh free tier so their
+// first PRD generation isn't silently blocked.
+const DEFAULT_PRD_LIMIT = 3;
+
 export async function checkQuota(
   userId: string,
 ): Promise<{ allowed: boolean; used: number; limit: number }> {
@@ -9,10 +14,10 @@ export async function checkQuota(
     .from("quotas")
     .select("prd_used, prd_limit, reset_at")
     .eq("user_id", userId)
-    .single();
+    .maybeSingle();
 
   if (!quota) {
-    return { allowed: false, used: 0, limit: 0 };
+    return { allowed: true, used: 0, limit: DEFAULT_PRD_LIMIT };
   }
 
   if (quota.prd_limit === -1) {
@@ -29,7 +34,11 @@ export async function checkQuota(
 export async function incrementPrdCount(userId: string): Promise<void> {
   const insforge = await createServerInsforge();
 
-  await insforge.database.rpc("increment_prd_used", { user_id_param: userId });
+  const { error } = await insforge.database.rpc("increment_prd_used", { user_id_param: userId });
+  if (error) {
+    console.error("Failed to increment PRD count via RPC:", error);
+    throw error;
+  }
 }
 
 export async function checkRevisionQuota(
@@ -41,7 +50,7 @@ export async function checkRevisionQuota(
     .from("quotas")
     .select("revision_used, revision_limit")
     .eq("user_id", userId)
-    .single();
+    .maybeSingle();
 
   if (!quota) {
     return { allowed: false, used: 0, limit: 0 };

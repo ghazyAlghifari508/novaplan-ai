@@ -24,7 +24,7 @@ export async function getConversationHistory(
     .select("id")
     .eq("id", conversationId)
     .eq("user_id", userId)
-    .single();
+    .maybeSingle();
 
   if (!convCheck) {
     return { messages: [], valid: false };
@@ -77,7 +77,7 @@ export async function ensureConversation(
         preferences: preferences || null,
       }])
       .select("id")
-      .single();
+      .maybeSingle();
 
     if (projectError || !newProject?.id) {
       throw projectError || new Error("Failed to create project");
@@ -94,7 +94,7 @@ export async function ensureConversation(
       user_id: userId,
     }])
     .select("id")
-    .single();
+    .maybeSingle();
 
   if (conversationError || !newConv?.id) {
     throw conversationError || new Error("Failed to create conversation");

@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     .from("users")
     .select("full_name, role")
     .eq("id", data.user.id)
-    .single();
+    .maybeSingle();
 
   const redirectTo = !profile?.full_name || !profile?.role ? "/onboarding" : next;
   const response = NextResponse.json({ redirectTo });

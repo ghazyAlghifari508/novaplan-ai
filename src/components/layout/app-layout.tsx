@@ -6,10 +6,10 @@ import { Navbar } from "./navbar";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  
-  // Hide navbar on auth pages to provide a clean full-screen experience
+
+  // Hide navbar on auth pages and PRD workspace (has its own back button)
   const hideNavbarRoutes = ["/login", "/register", "/forgot-password", "/reset-password"];
-  const hideNavbar = hideNavbarRoutes.includes(pathname) || pathname.startsWith("/settings");
+  const hideNavbar = hideNavbarRoutes.includes(pathname) || pathname.startsWith("/settings") || pathname.startsWith("/prd");
   
   // Lock body scroll on workspace to prevent overscroll rubber-banding
   const isWorkspace = pathname.startsWith("/prd");

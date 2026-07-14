@@ -13,7 +13,7 @@ import { usePanelResize } from "@/hooks/use-panel-resize";
 import { cn } from "@/lib/utils";
 import type { PrdVersion, Plan } from "@/types/database";
 import Link from "next/link";
-import { Settings, Infinity as InfinityIcon, FileText, Home, X, PanelRightClose, MessageSquare } from "lucide-react";
+import { Settings, Infinity as InfinityIcon, FileText, Home, X, PanelRightClose, MessageSquare, ArrowLeft } from "lucide-react";
 import { renamePrd } from "@/app/actions/prd";
 
 // ─────────────────────────────────────────────
@@ -219,7 +219,13 @@ export function PrdDetail({
         />
 
         <div className="flex items-center justify-between border-b border-graphite p-4">
-          <span className="font-inter text-sm font-[510] text-mist">Histori PRD</span>
+          <Link
+            href="/"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-fog transition-colors hover:bg-white/5 hover:text-snow"
+            aria-label="Kembali ke Beranda"
+          >
+            <ArrowLeft size={18} />
+          </Link>
           <Link
             href="/"
             className="btn-primary flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-[510] transition-all duration-300 hover:brightness-105 active:scale-[0.98]"
@@ -239,8 +245,12 @@ export function PrdDetail({
         {user && (
           <div className="mt-auto shrink-0 border-t border-graphite p-3">
             <div className="group flex cursor-pointer items-center gap-3 rounded-md p-2 transition-colors hover:bg-white/5">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo/15 font-[510] text-mist shadow-[inset_0_0_0_1px_rgba(94,106,210,0.35)]">
-                {user.user_metadata?.full_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || "U"}
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo/15 font-[510] text-mist shadow-[inset_0_0_0_1px_rgba(94,106,210,0.35)] overflow-hidden">
+                {user.user_metadata?.avatar_url || user.profile?.avatar_url ? (
+                  <img src={user.user_metadata?.avatar_url || user.profile?.avatar_url} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+                ) : (
+                  user.user_metadata?.full_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || "U"
+                )}
               </div>
               <div className="flex flex-col flex-1 min-w-0">
                 <span className="truncate text-sm font-[510] text-snow">

@@ -13,6 +13,32 @@ function getSafeNext(value: unknown) {
 }
 
 export async function POST(request: NextRequest) {
+  // ponytail: IP-based rate limit for unauthenticated sign-in (brute-force guard).
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+    || request.headers.get("x-real-ip")
+    || "127.0.0.1";
+  const { createServerInsforge } = await import("@/lib/insforge/server");
+  const insforge = await createServerInsforge();
+  const windowStart = new Date(Date.now() - 60000).toISOString();
+  const { count } = await insforge.database
+    .from("rate_limits")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", `ip:${ip}`)
+    .eq("action", "auth_signin")
+    .gte("window_start", windowStart);
+  if ((count || 0) >= 10) {
+    return NextResponse.json(
+      { error: "rate_limited", message: "Terlalu banyak percobaan login. Silakan tunggu sebentar." },
+      { status: 429, headers: { "Retry-After": "60" } },
+    );
+  }
+  await insforge.database.from("rate_limits").insert([{
+    user_id: `ip:${ip}`,
+    action: "auth_signin",
+    request_count: 1,
+    window_start: new Date().toISOString(),
+  }]);
+
   const body = await request.json().catch(() => null);
   const email = typeof body?.email === "string" ? body.email.trim() : "";
   const password = typeof body?.password === "string" ? body.password : "";
@@ -36,12 +62,13 @@ export async function POST(request: NextRequest) {
   });
 
   if (error || !data?.accessToken || !data.refreshToken || !data.user) {
+    // Return generic error to prevent email enumeration + brute-force signals.
     return NextResponse.json(
       {
-        error: error?.error ?? "sign_in_failed",
-        message: error?.message ?? "Gagal login. Cek kembali email dan password.",
+        error: "sign_in_failed",
+        message: "Gagal login. Cek kembali email dan password.",
       },
-      { status: error?.statusCode ?? 401 },
+      { status: 401 },
     );
   }
 

@@ -8,9 +8,9 @@ export default async function BillingPage() {
   const insforge = await createServerInsforge();
 
   const [subResult, paymentsResult, quotaResult] = await Promise.all([
-    insforge.database.from("subscriptions").select("*").eq("user_id", user.id).single(),
+    insforge.database.from("subscriptions").select("*").eq("user_id", user.id).maybeSingle(),
     insforge.database.from("payments").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
-    insforge.database.from("quotas").select("*").eq("user_id", user.id).single(),
+    insforge.database.from("quotas").select("*").eq("user_id", user.id).maybeSingle(),
   ]);
 
   const subscription = subResult.data;

@@ -19,13 +19,10 @@ export function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
+import { randomBytes } from "crypto";
+
 export function generateShareToken(): string {
-  const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let token = "";
-  for (let i = 0; i < 12; i++) {
-    token += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return token;
+  return randomBytes(9).toString("base64url");
 }
 
 export function clamp(value: number, min: number, max: number): number {

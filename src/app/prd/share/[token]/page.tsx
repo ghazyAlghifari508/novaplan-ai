@@ -16,7 +16,7 @@ export default async function SharedPrdPage({
     .select("id, name, is_shared, share_token")
     .eq("share_token", token)
     .eq("is_shared", true)
-    .single();
+    .maybeSingle();
 
   if (!project) notFound();
 
@@ -26,7 +26,7 @@ export default async function SharedPrdPage({
     .eq("project_id", project.id)
     .order("version", { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
   if (!latestVersion) notFound();
 

@@ -21,7 +21,7 @@ export async function handlePaymentSuccess(orderId: string) {
     .from("payments")
     .select("user_id, amount, status")
     .eq("midtrans_order_id", orderId)
-    .single();
+    .maybeSingle();
 
   if (!payment) return;
   
@@ -29,6 +29,24 @@ export async function handlePaymentSuccess(orderId: string) {
     console.log(`Payment ${orderId} already processed, skipping quota reset.`);
     return { plan: "already_processed" as Plan, payment };
   }
+
+  // Handle idempotent retry: if already processed, return early.
+  if (payment.status === "success") {
+    console.log(`Payment ${orderId} already processed, skipping.`);
+    return { plan: "already_processed" as Plan, payment };
+  }
+
+  // Block concurrent processing: set to "processing" so duplicate webhooks bail early.
+  if (payment.status === "processing") {
+    console.log(`Payment ${orderId} is being processed by another handler.`);
+    return { plan: "already_processed" as Plan, payment };
+  }
+
+  await admin.database
+    .from("payments")
+    .update({ status: "processing" })
+    .eq("midtrans_order_id", orderId)
+    .eq("status", "pending");
 
   // Determine plan by matching exact amounts from pricing-data (single source of truth)
   const hengkerPlan = novaPlanPlans.find((p) => p.id === "hengker");
@@ -49,8 +67,8 @@ export async function handlePaymentSuccess(orderId: string) {
     plan = "pro";
     billingCycle = payment.amount === proPlan?.priceAnnually ? "annually" : "monthly";
   } else {
-    // Fallback: if amount > pro yearly, it's hengker
-    plan = payment.amount > (proPlan?.priceAnnually || 0) ? "hengker" : "pro";
+    // ponytail: if pricing data is missing, fail loudly instead of misclassifying.
+    throw new Error(`Payment amount ${payment.amount} does not match any plan price`);
   }
 
   const now = new Date();
@@ -61,18 +79,7 @@ export async function handlePaymentSuccess(orderId: string) {
     periodEnd.setMonth(periodEnd.getMonth() + 1);
   }
 
-  // 1. Update payment status
-  const { error: paymentError } = await admin.database
-    .from("payments")
-    .update({ status: "success", paid_at: now.toISOString() })
-    .eq("midtrans_order_id", orderId);
-
-  if (paymentError) {
-    console.error("Failed to update payment status:", paymentError);
-    throw paymentError;
-  }
-
-  // 2. Update or Insert subscription
+  // 1. Update or Insert subscription (BEFORE marking payment success — retry-safe)
   const subData = {
     user_id: payment.user_id,
     plan,
@@ -136,6 +143,17 @@ export async function handlePaymentSuccess(orderId: string) {
     throw quotaError;
   }
 
+  // Now mark payment as success (LAST step so retry doesn't skip sub/quota).
+  const { error: paymentError } = await admin.database
+    .from("payments")
+    .update({ status: "success", paid_at: now.toISOString() })
+    .eq("midtrans_order_id", orderId);
+
+  if (paymentError) {
+    console.error("Failed to update payment status:", paymentError);
+    throw paymentError;
+  }
+
   // 4. Bust all server-side caches
   revalidatePath("/", "layout");
   revalidatePath("/settings", "layout");
@@ -158,7 +176,7 @@ export async function syncPaymentStatus(orderId: string) {
     .from("payments")
     .select("*")
     .eq("midtrans_order_id", orderId)
-    .single();
+    .maybeSingle();
 
   if (!payment) {
     throw new Error("Payment not found");
@@ -174,7 +192,7 @@ export async function syncPaymentStatus(orderId: string) {
       .from("subscriptions")
       .select("plan")
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
     return { success: true, plan: sub?.plan || "pro", message: "Already synced" };
   }
 

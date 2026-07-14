@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
+import { randomBytes } from "crypto";
 
 import { createServerInsforge } from '@/lib/insforge/server';
 import { novaPlanPlans } from '@/lib/pricing-data';
 
 export async function POST(req: Request) {
+  let orderId = "";
   try {
     const insforge = await createServerInsforge();
     const { data: { user } } = await insforge.auth.getCurrentUser();
@@ -34,7 +36,7 @@ export async function POST(req: Request) {
       .from('subscriptions')
       .select('plan, status')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     const currentPlan = (currentSub?.status === 'active' ? currentSub.plan : 'free') as string;
     const planHierarchy: Record<string, number> = { free: 0, pro: 1, hengker: 2 };
@@ -48,7 +50,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const orderId = `ORDER-${user.id.substring(0, 8)}-${Date.now()}`;
+orderId = `ORDER-${Date.now()}-${randomBytes(4).toString("hex")}`;
 
     // Use admin client to bypass RLS for inserts
     let dbClient: any = insforge;
@@ -71,10 +73,20 @@ export async function POST(req: Request) {
 
     if (dbError) {
       console.error('Database Error:', dbError);
-      return NextResponse.json({ error: `Gagal membuat catatan pembayaran: ${dbError.message}` }, { status: 500 });
+      return NextResponse.json({ error: 'Gagal membuat catatan pembayaran.' }, { status: 500 });
     }
 
-    const origin = req.headers.get('origin') || 'https://novaplanai.vercel.app';
+    const origin = req.headers.get('origin') || '';
+
+    // Only allow whitelisted origins to prevent webhook URL hijacking.
+    // Attacker could set Origin: https://evil.com and hijack payment notifications.
+    const ALLOWED_ORIGINS = [
+      'https://novaplanai.vercel.app',
+      'https://novaplanai-git-main-ghazy-alghifaris-projects.vercel.app',
+      'http://localhost:3000',
+    ];
+    const safeOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : 'https://novaplanai.vercel.app';
+
     const parameters = {
       transaction_details: {
         order_id: orderId,
@@ -96,7 +108,7 @@ export async function POST(req: Request) {
       custom_field2: cycle,
       custom_field3: user.id,
       callbacks: {
-        finish: `${origin}/pricing?payment=success&order_id=${orderId}`
+        finish: `${safeOrigin}/pricing?payment=success&order_id=${orderId}`
       }
     };
 
@@ -109,7 +121,7 @@ export async function POST(req: Request) {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         'Authorization': `Basic ${authString}`,
-        'X-Override-Notification': `${origin}/api/payments/webhook`
+        'X-Override-Notification': `${safeOrigin}/api/payments/webhook`
       },
       body: JSON.stringify(parameters)
     });
@@ -124,6 +136,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ redirect_url: transaction.redirect_url, token: transaction.token });
   } catch (error: unknown) {
     console.error('Midtrans/System Error:', error);
+    // Clean up the pending payment record to prevent zombie rows
+    try {
+      const { getAdminInsforge } = await import('@/lib/insforge/admin');
+      await getAdminInsforge().database.from("payments").delete().eq("midtrans_order_id", orderId);
+    } catch (cleanupErr) {
+      console.error("Failed to clean up payment record:", cleanupErr);
+    }
     return NextResponse.json({ error: 'Terjadi kesalahan pada sistem pembayaran. Silakan coba lagi.' }, { status: 500 });
   }
 }

@@ -25,7 +25,9 @@ export async function POST(req: NextRequest) {
     try {
       await handlePaymentSuccess(order_id);
     } catch (err) {
+      // Return 500 so Midtrans retries instead of silently losing the payment.
       console.error("Webhook processing error:", err);
+      return NextResponse.json({ status: "error", message: "Processing failed, will retry" }, { status: 500 });
     }
   }
 
@@ -35,7 +37,8 @@ export async function POST(req: NextRequest) {
     await admin.database
       .from("payments")
       .update({ status: "failed" })
-      .eq("midtrans_order_id", order_id);
+      .eq("midtrans_order_id", order_id)
+      .neq("status", "success"); // guard: never overwrite settled payments
   }
 
   return NextResponse.json({ status: "ok" });

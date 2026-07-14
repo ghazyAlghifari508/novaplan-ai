@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     .from("users")
     .select("id")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
   const userPayload = {
     id: user.id,
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     .from("subscriptions")
     .select("id")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
   if (!existingSubscription) {
     const { error } = await insforge.database.from("subscriptions").insert([
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     .from("quotas")
     .select("id")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
   if (!existingQuota) {
     const { error } = await insforge.database.from("quotas").insert([

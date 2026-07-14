@@ -163,6 +163,13 @@ export function ChatPanel({
       abortControllerRef.current = abortController;
 
       let fullContent = "";
+      // ponytail: tracks whether the server ever sent a terminal "done" event.
+      // When the connection closes silently before that event, the PRD is
+      // usually already saved server-side; refresh instead of leaving the UI
+      // frozen.
+      let gotDoneEvent = false;
+      let gotErrorEvent = false;
+      let sawAnyDelta = false;
       try {
         const response = await fetch("/api/chat", {
           method: "POST",
@@ -205,7 +212,11 @@ export function ChatPanel({
             try {
               const parsed = JSON.parse(data);
 
-              if (parsed.type === "delta") {
+              if (parsed.type === "started") {
+                // no-op: heartbeat from server, just lets the client know
+                // generation is in flight.
+              } else if (parsed.type === "delta") {
+                sawAnyDelta = true;
                 fullContent += parsed.content;
                 const displayContent = existingPartialContent ? existingPartialContent + fullContent : fullContent;
                 if (chatMode === "generate" || chatMode === "resume") {
@@ -222,6 +233,7 @@ export function ChatPanel({
                   setStreamingContent(displayContent);
                 }
               } else if (parsed.type === "done") {
+                gotDoneEvent = true;
                 if (parsed.conversationId) {
                   setConversationId(parsed.conversationId);
                 }
@@ -229,6 +241,7 @@ export function ChatPanel({
                   onProjectCreated(parsed.projectId);
                 }
               } else if (parsed.type === "error") {
+                gotErrorEvent = true;
                 const errorMsg = parsed.error ||
                   (chatMode === "generate" || chatMode === "revise" || chatMode === "resume"
                     ? "Gagal menyusun PRD. Silakan coba lagi."
@@ -264,6 +277,17 @@ export function ChatPanel({
         }
 
         // ── Post-stream: add final message ──
+        // ponytail: if the server side closed the stream without a `done` event
+        // (proxy timeout / partial save) the PRD was almost always persisted;
+        // refresh so the panel reflects what the server actually has instead of
+        // leaving the UI frozen and confusing the user.
+        if (!gotDoneEvent && !gotErrorEvent && (chatMode === "generate" || chatMode === "revise" || chatMode === "resume")) {
+          startTransition(() => { router.refresh(); });
+          if (fullContent.trim().length === 0) {
+            showToast("Koneksi terputus. PRD mungkin sudah tersimpan sebagian — coba refresh halaman.", "info");
+          }
+        }
+
         if (chatMode === "generate" || chatMode === "resume" || chatMode === "revise") {
           const finalDisplayContent = existingPartialContent ? existingPartialContent + fullContent : fullContent;
           if (finalDisplayContent.trim()) {

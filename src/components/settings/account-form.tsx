@@ -72,6 +72,8 @@ export const AccountForm = memo(function AccountForm({ email }: { email: string 
               className="max-w-xs border-red-300 dark:border-red-800/50 dark:bg-red-900/10 dark:text-white"
             />
             <form action={deleteAccount}>
+              {/* Server-side re-check: hidden input prevents bypass via DOM manipulation */}
+              <input type="hidden" name="confirm" value={deleteText} />
               <button
                 type="submit"
                 disabled={deleteText !== "HAPUS"}

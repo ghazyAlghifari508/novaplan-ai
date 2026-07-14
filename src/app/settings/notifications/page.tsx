@@ -9,7 +9,7 @@ export default async function NotificationsPage() {
   const { data: preferences } = await insforge.database
     .from("notification_preferences")
     .select("*")
-    .single();
+    .maybeSingle();
 
   return (
     <div className="rounded-xl border border-(--border-subtle) bg-(--bg-card) p-6">

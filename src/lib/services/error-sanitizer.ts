@@ -14,6 +14,12 @@ export function sanitizeErrorForClient(error: unknown): string {
 
   const msg = error.message;
 
+  // Gateway timeout / edge runtime cutoff (prod issue: server silently killed at
+  // 60s but DB write may have already persisted the PRD).
+  if (msg.includes("504") || msg.includes("timeout") || msg.includes("Edge")) {
+    return "Generate PRD terlalu lama (server timeout). PRD mungkin sudah tersimpan sebagian — refresh halaman. Tips: pakai model ringan seperti Llama 3.1 (8B) untuk generate yang lebih cepat.";
+  }
+
   // NVIDIA API / network errors
   if (msg.includes("NVIDIA") || msg.includes("fetch")) {
     return "Maaf, layanan AI sedang tidak tersedia atau sibuk. Silakan coba lagi dalam beberapa saat.";

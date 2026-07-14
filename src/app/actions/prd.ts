@@ -29,7 +29,7 @@ export async function duplicatePrd(projectId: string) {
     .from("projects")
     .select("*")
     .eq("id", projectId)
-    .single();
+    .maybeSingle();
 
   if (!project) return;
 
@@ -43,7 +43,7 @@ export async function duplicatePrd(projectId: string) {
       preferences: project.preferences,
     }])
     .select("id")
-    .single();
+    .maybeSingle();
 
   if (!newProject) return;
 
@@ -53,7 +53,7 @@ export async function duplicatePrd(projectId: string) {
     .eq("project_id", projectId)
     .order("version", { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
   if (latestVersion) {
     await insforge.database.from("prd_versions").insert([{

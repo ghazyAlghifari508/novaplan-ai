@@ -44,10 +44,13 @@ export const ProfileForm = memo(function ProfileForm({
                 if (file.size > 5 * 1024 * 1024) return;
 
                 setUploading(true);
-                const fd = new FormData();
-                fd.append("avatar", file);
-                await uploadAvatar(fd);
-                setUploading(false);
+                try {
+                  const fd = new FormData();
+                  fd.append("avatar", file);
+                  await uploadAvatar(fd);
+                } finally {
+                  setUploading(false);
+                }
               }}
             />
           </label>

@@ -52,7 +52,7 @@ export default async function PrdPage({ params }: { params: Promise<{ id: string
       .select("*")
       .eq("id", id)
       .eq("user_id", user.id)
-      .single()
+      .maybeSingle()
       .then(({ data }) => data),
     insforge.database
       .from("prd_versions")
@@ -66,7 +66,7 @@ export default async function PrdPage({ params }: { params: Promise<{ id: string
       .eq("project_id", id)
       .order("created_at", { ascending: false })
       .limit(1)
-      .single()
+      .maybeSingle()
       .then(({ data }) => data),
     insforge.database
       .from("projects")
