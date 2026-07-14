@@ -25,6 +25,3 @@ export function generateShareToken(): string {
   return randomBytes(9).toString("base64url");
 }
 
-export function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
-}

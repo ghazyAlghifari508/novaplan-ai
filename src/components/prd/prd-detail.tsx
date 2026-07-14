@@ -205,7 +205,7 @@ export function PrdDetail({
   // ── Render ──
 
   return (
-    <div className="flex h-[calc(100dvh-3.5rem)] overflow-hidden bg-onyx text-snow">
+    <div className="flex h-dvh overflow-hidden bg-onyx text-snow">
       {/* ═══════════ 1. Left Panel: Desktop Sidebar ═══════════ */}
       <div
         id="print-hide-sidebar"

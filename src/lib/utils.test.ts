@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { cn, formatDate, formatCurrency, generateShareToken, clamp } from "./utils";
+import { cn, formatDate, formatCurrency, generateShareToken } from "./utils";
 
 describe("cn", () => {
   it("merges class names", () => {
@@ -49,10 +49,3 @@ describe("generateShareToken", () => {
   });
 });
 
-describe("clamp", () => {
-  it("clamps value within range", () => {
-    expect(clamp(5, 0, 10)).toBe(5);
-    expect(clamp(-5, 0, 10)).toBe(0);
-    expect(clamp(15, 0, 10)).toBe(10);
-  });
-});

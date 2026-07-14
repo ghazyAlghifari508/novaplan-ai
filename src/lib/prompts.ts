@@ -146,12 +146,3 @@ Baik, pergantian tech stack dari Next.js ke Laravel telah diterapkan pada bagian
 
 5. **PENGGUNAAN NAMA SECTION YANG TEPAT**: Pastikan nama section yang ditulis di dalam bracket \`[Nama Section Asli]\` SAMA PERSIS dengan penanda aslinya (Pilih salah satu: Overview, Goals & Success Metrics, Requirements, Core Features, User Flow, Architecture & Tech Stack, Database Schema, Design & Technical Constraints).
 6. **KONTEN LENGKAP DALAM BLOCK**: Meskipun kamu tidak menulis ulang seluruh PRD, di dalam block \`:::UPDATE_SECTION...\` kamu WAJIB menuliskan isi section tersebut secara UTUH dari awal sampai akhir section tersebut (termasuk semua sub-headingnya), jangan ada yang terpotong.`;
-
-export const GENERATION_STEPS = [
-  "Menganalisis kebutuhan & target pengguna...",
-  "Menyusun functional requirements...",
-  "Merancang arsitektur & tech stack...",
-  "Membangun database schema...",
-  "Membuat user flow...",
-  "Memfinalisasi dokumen PRD...",
-];

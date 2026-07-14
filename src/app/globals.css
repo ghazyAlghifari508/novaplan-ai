@@ -30,35 +30,14 @@
   --font-berkeley-mono: "JetBrains Mono", var(--font-jetbrains-base), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   /* Font Sizes */
-  --text-hero: 72px;
-  --text-section: 48px;
-  --text-card: 32px;
   --text-body: 16px;
-  --text-small: 14px;
-
-  /* Spacing (8px grid) */
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 16px;
-  --space-lg: 24px;
-  --space-xl: 32px;
-  --space-2xl: 48px;
-  --space-3xl: 64px;
-  --space-4xl: 96px;
-  --space-5xl: 120px;
 
   /* Border Radius */
-  --radius-sm: 6px;
   --radius-md: 12px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-linear-sm: rgba(0, 0, 0, 0.4) 0px 2px 4px 0px;
   --shadow-linear-inset: rgb(35, 37, 42) 0px 0px 0px 1px inset;
   --shadow-linear-button: rgba(0, 0, 0, 0.01) 0px 5px 2px 0px, rgba(0, 0, 0, 0.04) 0px 3px 2px 0px, rgba(0, 0, 0, 0.07) 0px 1px 1px 0px, rgba(0, 0, 0, 0.08) 0px 0px 1px 0px;
-  --shadow-linear-xl: rgba(8, 9, 10, 0.6) 0px 4px 32px 0px;
 }
 
 /* ============================================
@@ -88,7 +67,6 @@
   --bg-elevated: #ffffff;
   --bg-card: #ffffff;
   --bg-input: #f4f4f5;
-  --bg-hover: rgba(9, 9, 11, 0.05);
   /* Text */
   --text-primary: #09090b;
   --text-secondary: #52525b;
@@ -99,21 +77,15 @@
   /* Scrollbar */
   --scrollbar-thumb: rgba(9, 9, 11, 0.18);
   --scrollbar-thumb-hover: rgba(9, 9, 11, 0.3);
-  /* Navbar */
-  --navbar-bg: rgba(255, 255, 255, 0.9);
   /* Button primary */
   --btn-bg: #09090b;
   --btn-text: #ffffff;
-  /* Dropdown */
-  --dropdown-bg: #ffffff;
   --shadow-inset: inset 0 0 0 1px var(--color-iron);
   --shadow-surface: inset 0 0 0 1px var(--color-iron), 0 18px 48px rgba(9, 9, 11, 0.08);
   --shadow-focus: inset 0 0 0 1px var(--color-slate), 0 18px 48px rgba(9, 9, 11, 0.1);
   --shadow-overlay: inset 0 0 0 1px var(--color-iron), 0 24px 64px rgba(9, 9, 11, 0.12);
-  --shadow-linear-sm: 0 12px 32px rgba(9, 9, 11, 0.08);
   --shadow-linear-inset: inset 0 0 0 1px var(--color-iron);
   --shadow-linear-button: 0 5px 2px rgba(0, 0, 0, 0.01), 0 3px 2px rgba(0, 0, 0, 0.04), 0 1px 1px rgba(0, 0, 0, 0.07), 0 0 1px rgba(0, 0, 0, 0.08);
-  --shadow-linear-xl: 0 24px 64px rgba(9, 9, 11, 0.12);
   color-scheme: light;
 }
 
@@ -141,7 +113,6 @@
   --bg-elevated: #161718;
   --bg-card: #161718;
   --bg-input: #383b3f;
-  --bg-hover: rgba(247, 248, 248, 0.05);
   /* Text */
   --text-primary: #f7f8f8;
   --text-secondary: #8a8f98;
@@ -152,21 +123,15 @@
   /* Scrollbar */
   --scrollbar-thumb: rgba(138, 143, 152, 0.28);
   --scrollbar-thumb-hover: rgba(208, 214, 224, 0.4);
-  /* Navbar */
-  --navbar-bg: rgba(15, 16, 17, 0.94);
   /* Button primary */
   --btn-bg: #f7f8f8;
   --btn-text: #08090a;
-  /* Dropdown */
-  --dropdown-bg: #161718;
   --shadow-inset: inset 0 0 0 1px var(--color-graphite);
   --shadow-surface: inset 0 0 0 1px var(--color-graphite), 0 2px 4px rgba(0, 0, 0, 0.4);
   --shadow-focus: inset 0 0 0 1px var(--color-mist), 0 4px 32px rgba(8, 9, 10, 0.6);
   --shadow-overlay: inset 0 0 0 1px var(--color-graphite), 0 4px 32px rgba(8, 9, 10, 0.6);
-  --shadow-linear-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
   --shadow-linear-inset: inset 0 0 0 1px var(--color-graphite);
   --shadow-linear-button: 0 5px 2px rgba(0, 0, 0, 0.01), 0 3px 2px rgba(0, 0, 0, 0.04), 0 1px 1px rgba(0, 0, 0, 0.07), 0 0 1px rgba(0, 0, 0, 0.08);
-  --shadow-linear-xl: 0 4px 32px rgba(8, 9, 10, 0.6);
   color-scheme: dark;
 }
 

@@ -9,9 +9,15 @@ export function SetupClient() {
   const router = useRouter();
   const promptRef = useRef("");
   const [isReady, setIsReady] = useState(false);
+  const consumed = useRef(false);
 
   useEffect(() => {
-    // Consume (read + delete) the setup prompt so it can't be reused
+    if (consumed.current) {
+      if (promptRef.current) setIsReady(true);
+      return;
+    }
+    consumed.current = true;
+
     const prompt = consumeSetupPrompt();
     if (!prompt || prompt.trim() === "") {
       router.replace("/");

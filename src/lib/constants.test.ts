@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { AI_MODELS, RATE_LIMITS, MAX_CONVERSATION_HISTORY, RATE_LIMIT_WINDOW_MS, STORAGE_BUCKETS } from "./constants";
+import { AI_MODELS, RATE_LIMITS, RATE_LIMIT_WINDOW_MS } from "./constants";
 
 describe("AI_MODELS", () => {
   it("has primary model", () => {
@@ -26,12 +26,4 @@ describe("constants", () => {
     expect(RATE_LIMIT_WINDOW_MS).toBe(60_000);
   });
 
-  it("has valid MAX_CONVERSATION_HISTORY", () => {
-    expect(MAX_CONVERSATION_HISTORY).toBe(20);
-  });
-
-  it("has valid STORAGE_BUCKETS", () => {
-    expect(STORAGE_BUCKETS.avatars).toBe("avatars");
-    expect(STORAGE_BUCKETS.prdFiles).toBe("prd-files");
-  });
 });
