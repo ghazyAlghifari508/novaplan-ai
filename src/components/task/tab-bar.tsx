@@ -7,16 +7,15 @@ export type TaskTab = "board" | "sitemap";
 interface TabBarProps {
   active: TaskTab;
   onChange: (tab: TaskTab) => void;
-  /** Sitemap tab is disabled until PRD-06 ships. */
+  /** Sitemap tab enabled by default since PRD-06. */
   sitemapEnabled?: boolean;
   className?: string;
 }
 
 /**
  * Tab bar switching between the Task Board and Sitemap views.
- * Shared shell with PRD-06 (Sitemap tab wiring lands there).
  */
-export function TabBar({ active, onChange, sitemapEnabled = false, className }: TabBarProps) {
+export function TabBar({ active, onChange, sitemapEnabled = true, className }: TabBarProps) {
   return (
     <div
       role="tablist"
