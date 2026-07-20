@@ -44,7 +44,9 @@ export default async function PrdPage({ params }: { params: Promise<{ id: string
   const user = await requireAuth();
 
   // Parallelize the remaining independent data fetches.
-  const [plan, quota, project, versions, conversation, projects] = await Promise.all([
+  // ponytail: projects list fetch removed — sidebar unmounted in PRD-03;
+  // restore here when a project-history UI needs it.
+  const [plan, quota, project, versions, conversation] = await Promise.all([
     getUserPlan(),
     getUserQuota(),
     insforge.database
@@ -68,12 +70,6 @@ export default async function PrdPage({ params }: { params: Promise<{ id: string
       .limit(1)
       .maybeSingle()
       .then(({ data }) => data),
-    insforge.database
-      .from("projects")
-      .select("id, name, status, updated_at")
-      .eq("user_id", user.id)
-      .order("updated_at", { ascending: false })
-      .then(({ data }) => data),
   ]);
 
   if (!project) notFound();
@@ -86,7 +82,7 @@ export default async function PrdPage({ params }: { params: Promise<{ id: string
       .select("id, role, content, created_at")
       .eq("conversation_id", conversation.id)
       .order("created_at", { ascending: true })
-      .limit(50);
+      .limit(200);
 
     if (msgs) initialMessages = msgs;
   }
@@ -100,11 +96,9 @@ export default async function PrdPage({ params }: { params: Promise<{ id: string
       latestVersion={latestVersion}
       allVersions={versions || []}
       conversationId={conversation?.id}
-      projects={projects || []}
       plan={plan}
       revisionLimit={quota?.revision_limit ?? undefined}
       initialMessages={initialMessages}
-      user={user}
     />
   );
 }

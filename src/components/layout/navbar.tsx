@@ -2,15 +2,19 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { User, Settings, CreditCard, LogOut } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { FlowStepNav, routeToStep } from "./flow-step-nav";
 
 export function Navbar() {
   const [user, setUser] = useState<{ id: string; email: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
+  // Single source of truth: reuse routeToStep. Workspace = any non-PRD step.
+  const isWorkspace = routeToStep(pathname) !== "prd";
 
   const handleLogout = async () => {
     await fetch("/api/auth/sign-out", { method: "POST", credentials: "include" });
@@ -38,7 +42,8 @@ export function Navbar() {
         } else {
           setUser(null);
         }
-      } catch {
+      } catch (err) {
+        console.error("[navbar] checkUser failed", err);
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -61,26 +66,30 @@ export function Navbar() {
           NovaPlan
         </Link>
 
-        <div className="hidden items-center gap-1 md:flex">
-          <Link
-            href="/"
-            className="px-3 py-2 font-inter text-sm font-normal text-fog transition-colors duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:text-snow"
-          >
-            Home
-          </Link>
-          <Link
-            href="/pricing"
-            className="px-3 py-2 font-inter text-sm font-normal text-fog transition-colors duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:text-snow"
-          >
-            Pricing
-          </Link>
-          <Link
-            href="/prd"
-            className="px-3 py-2 font-inter text-sm font-normal text-fog transition-colors duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:text-snow"
-          >
-            Workspace
-          </Link>
-        </div>
+        {isWorkspace ? (
+          <FlowStepNav />
+        ) : (
+          <div className="hidden items-center gap-1 md:flex">
+            <Link
+              href="/"
+              className="px-3 py-2 font-inter text-sm font-normal text-fog transition-colors duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:text-snow"
+            >
+              Home
+            </Link>
+            <Link
+              href="/pricing"
+              className="px-3 py-2 font-inter text-sm font-normal text-fog transition-colors duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:text-snow"
+            >
+              Pricing
+            </Link>
+            <Link
+              href="/prd"
+              className="px-3 py-2 font-inter text-sm font-normal text-fog transition-colors duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:text-snow"
+            >
+              Workspace
+            </Link>
+          </div>
+        )}
 
         <div className="flex items-center gap-2">
           <ThemeToggle />

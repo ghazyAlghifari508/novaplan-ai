@@ -102,7 +102,7 @@ export const PrdViewer = memo(function PrdViewer({
   return (
     <div className={cn("flex h-full", className)}>
       <aside
-        className="hidden h-full w-64 shrink-0 overflow-y-auto border-r border-graphite bg-onyx p-6 xl:block"
+        className="hidden h-full w-[180px] shrink-0 overflow-y-auto border-r border-graphite bg-onyx p-4 md:block"
         style={{ background: "var(--bg-page)" }}
       >
         <TableOfContents content={content} />

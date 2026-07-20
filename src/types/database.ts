@@ -37,6 +37,10 @@ export interface Quota {
   reset_at: string | null;
 }
 
+export type FlowStep = "prd" | "ac" | "task";
+export type StepStatus = "pending" | "generating" | "completed";
+export type TaskStatus = "pending" | "in_progress" | "completed" | "failed";
+
 export interface Project {
   id: string;
   user_id: string;
@@ -47,6 +51,10 @@ export interface Project {
   preferences: Record<string, unknown> | null;
   share_token: string | null;
   is_shared: boolean;
+  step: FlowStep;
+  ac_status: StepStatus;
+  task_status: StepStatus;
+  sitemap_status: StepStatus;
   created_at: string;
   updated_at: string;
 }
@@ -137,3 +145,99 @@ export const FEATURES: Record<
     priorityQueue: true,
   },
 };
+
+// ============================================================
+// VibeCoding platform tables (migration 20260720120000)
+// ============================================================
+
+/** One acceptance-criteria block per feature. Stored as JSONB array in ac_versions.content. */
+export interface AcFeature {
+  featureName: string;
+  criteria: string[];
+}
+
+export interface AcVersion {
+  id: string;
+  project_id: string;
+  user_id: string;
+  version: number;
+  content: AcFeature[];
+  change_summary: string | null;
+  created_at: string;
+}
+
+export interface Feature {
+  id: string;
+  project_id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  order: number;
+  created_at: string;
+}
+
+export interface Task {
+  id: string;
+  project_id: string;
+  user_id: string;
+  feature_id: string | null;
+  name: string;
+  description: string | null;
+  order: number;
+  status: TaskStatus;
+  dependencies: string[];
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+}
+
+export interface Subtask {
+  id: string;
+  project_id: string;
+  user_id: string;
+  task_id: string;
+  name: string;
+  description: string | null;
+  order: number;
+  status: TaskStatus;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+}
+
+export interface SitemapPage {
+  id: string;
+  project_id: string;
+  user_id: string;
+  parent_id: string | null;
+  path: string;
+  name: string;
+  is_auth_required: boolean;
+  order: number;
+  created_at: string;
+}
+
+export type NodeType = "feature" | "task" | "subtask" | "sitemap";
+
+export interface NodePosition {
+  id: string;
+  project_id: string;
+  user_id: string;
+  node_type: NodeType;
+  node_id: string;
+  pos_x: number;
+  pos_y: number;
+  zoom_level: number;
+  created_at: string;
+}
+
+export interface ApiKey {
+  id: string;
+  user_id: string;
+  name: string;
+  key_prefix: string;
+  scopes: string[];
+  last_used_at: string | null;
+  expires_at: string | null;
+  created_at: string;
+}
