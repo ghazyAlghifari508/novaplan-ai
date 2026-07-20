@@ -62,6 +62,10 @@ interface ChatPanelProps {
   inputDisabled?: boolean;
   currentPrdContent?: string;
   userPlan?: Plan; // Pass from server to avoid client fetch
+  // AC mode props (PRD-04)
+  acMode?: boolean;
+  currentAcContent?: string;
+  onStreamContent?: (content: string) => void;
 }
 
 // ─────────────────────────────────────────────
@@ -77,6 +81,9 @@ export function ChatPanel({
   inputDisabled = false,
   currentPrdContent = "",
   userPlan: initialUserPlan = "free",
+  acMode = false,
+  currentAcContent = "",
+  onStreamContent,
 }: ChatPanelProps) {
   // ── Local State ──
   const [input, setInput] = useState("");
@@ -171,7 +178,8 @@ export function ChatPanel({
       let gotErrorEvent = false;
       let sawAnyDelta = false;
       try {
-        const response = await fetch("/api/chat", {
+        const endpoint = acMode ? "/api/ac/revise" : "/api/chat";
+        const response = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
@@ -219,13 +227,16 @@ export function ChatPanel({
                 sawAnyDelta = true;
                 fullContent += parsed.content;
                 const displayContent = existingPartialContent ? existingPartialContent + fullContent : fullContent;
-                if (chatMode === "generate" || chatMode === "resume") {
+                if (acMode && onStreamContent) {
+                  // AC mode: stream to parent component
+                  onStreamContent(displayContent);
+                } else if (chatMode === "generate" || chatMode === "resume") {
                   setStreamingPRDContent(displayContent);
                 } else if (chatMode === "revise") {
                   // 1. Live patch PRD secara visual (di PRD Viewer)
                   const patchedPrd = livePatchPrd(currentPrdContent, displayContent);
                   setStreamingPRDContent(patchedPrd);
-                  
+
                   // 2. Sembunyikan tag aneh dari Chat Bubble
                   setStreamingContent(cleanChatBubble(displayContent));
                 } else {
