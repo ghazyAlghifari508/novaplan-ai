@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
-import { User, Shield, Bell, CreditCard, MessageSquare, ArrowLeft } from "lucide-react";
+import { User, Shield, Bell, CreditCard, MessageSquare, ArrowLeft, KeyRound } from "lucide-react";
 
 interface SettingsClientProps {
   profile: unknown;
@@ -14,6 +14,7 @@ interface SettingsClientProps {
 const NAV_ITEMS = [
   { href: "/settings/profile", label: "Profil", icon: User },
   { href: "/settings/account", label: "Akun", icon: Shield },
+  { href: "/settings/api-keys", label: "API Keys", icon: KeyRound },
   { href: "/settings/notifications", label: "Notifikasi", icon: Bell },
   { href: "/settings/billing", label: "Billing", icon: CreditCard },
   { href: "/settings/feedback", label: "Feedback", icon: MessageSquare },

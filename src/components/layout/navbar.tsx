@@ -1,37 +1,82 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { User, Settings, CreditCard, LogOut } from "lucide-react";
+import { User, Settings, CreditCard, LogOut, ArrowRight, MessageSquare } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { FlowStepNav, routeToStep } from "./flow-step-nav";
+import { useUIStore, useChatStore } from "@/store";
 
 export function Navbar() {
   const [user, setUser] = useState<{ id: string; email: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isStepLoading, setIsStepLoading] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  const [, startTransition] = useTransition();
   // Single source of truth: reuse routeToStep. Workspace = any non-PRD step.
-  const isWorkspace = routeToStep(pathname) !== "prd";
+  const step = routeToStep(pathname);
+  const isWorkspace = step !== "prd";
+  // FlowStepNav pages = PRD/AC/Task/Kanban (workspace)
+  const isFlowStepRoute = pathname.startsWith("/prd/") || pathname.startsWith("/ac/") || pathname.startsWith("/task/") || pathname.startsWith("/kanban/");
+
+  const showToast = useUIStore((s) => s.showToast);
+
+  // Extract projectId from route path
+  const projectId = pathname.split("/")[2];
+
+  const handleStepAc = async () => {
+    if (!projectId || isStepLoading) return;
+    setIsStepLoading(true);
+    try {
+      const res = await fetch(`/api/projects/${projectId}/step`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ step: "ac" }),
+      });
+      if (!res.ok) throw new Error("Gagal memperbarui tahap proyek");
+      startTransition(() => {
+        router.push(`/ac/${projectId}`);
+      });
+    } catch (err) {
+      console.error("Step to AC failed:", err);
+      showToast("Gagal lanjut ke Acceptance Criteria.", "error");
+    } finally {
+      setIsStepLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
-    await fetch("/api/auth/sign-out", { method: "POST", credentials: "include" });
-    setUser(null);
-    router.push("/login");
-    router.refresh();
+    try {
+      const res = await fetch("/api/auth/sign-out", { method: "POST", credentials: "include" });
+      if (!res.ok) { showToast("Gagal logout. Coba lagi.", "error"); return; }
+      setUser(null);
+      router.push("/login");
+      router.refresh();
+    } catch (err) {
+      console.error("[navbar] logout failed", err);
+    }
   };
 
   useEffect(() => {
-    const checkUser = async () => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
+    // ponytail: one retry on transient failure (network blip / backend ECONNRESET)
+    // before declaring the user logged out — a single fetch failure isn't proof
+    // the session is invalid. Add exponential backoff if blips cluster in prod.
+    const checkUser = async (isRetry = false): Promise<void> => {
       try {
         const response = await fetch("/api/auth/me", {
           credentials: "include",
           cache: "no-store",
+          signal: controller.signal,
         });
 
         if (!response.ok) {
+          if (!isRetry) return checkUser(true);
           setUser(null);
           return;
         }
@@ -43,133 +88,146 @@ export function Navbar() {
           setUser(null);
         }
       } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        if (!isRetry) return checkUser(true);
         console.error("[navbar] checkUser failed", err);
         setUser(null);
-      } finally {
-        setIsLoading(false);
       }
     };
 
-    checkUser();
+    checkUser().finally(() => setIsLoading(false));
+
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
   }, []);
 
   return (
     <nav
       className="fixed left-0 right-0 top-0 z-40 h-14 border-b border-graphite bg-charcoal/95"
     >
-      <div className="mx-auto flex h-full max-w-[1200px] items-center justify-between px-6">
-        <Link
-          href="/"
-          className="flex items-center gap-2 font-inter text-[15px] font-[510] text-snow"
-        >
-          <span className="h-2 w-2 rounded-[2px] bg-snow shadow-[0_0_0_1px_var(--color-graphite)]" />
-          NovaPlan
-        </Link>
+      <div className="mx-auto flex h-full max-w-[1200px] items-center px-6">
+        {/* Left: logo */}
+        <div className="flex w-[200px] shrink-0">
+          <Link
+            href="/"
+            className="flex items-center gap-2 font-inter text-[15px] font-[510] text-snow"
+          >
+            <span className="h-2 w-2 rounded-[2px] bg-snow shadow-[0_0_0_1px_var(--color-graphite)]" />
+            NovaPlan
+          </Link>
+        </div>
 
-        {isWorkspace ? (
-          <FlowStepNav />
-        ) : (
-          <div className="hidden items-center gap-1 md:flex">
-            <Link
-              href="/"
-              className="px-3 py-2 font-inter text-sm font-normal text-fog transition-colors duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:text-snow"
-            >
-              Home
-            </Link>
-            <Link
-              href="/pricing"
-              className="px-3 py-2 font-inter text-sm font-normal text-fog transition-colors duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:text-snow"
-            >
-              Pricing
-            </Link>
-            <Link
-              href="/prd"
-              className="px-3 py-2 font-inter text-sm font-normal text-fog transition-colors duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:text-snow"
-            >
-              Workspace
-            </Link>
-          </div>
-        )}
-
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-
-          {isLoading ? (
-            <div className="ml-1 flex items-center gap-2 sm:gap-3">
-              <div className="h-8 w-[72px] animate-pulse rounded-md bg-white/5" />
-              <div className="h-8 w-[84px] animate-pulse rounded-md bg-white/5" />
-            </div>
-          ) : !user ? (
-            <>
-              <Link
-                href="/register"
-                className="flex h-8 items-center justify-center rounded-full border border-snow/80 bg-transparent px-3.5 font-inter text-sm font-normal text-snow transition-colors duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-white/5"
-              >
-                Register
-              </Link>
-              <Link
-                href="/login"
-                className="btn-primary flex h-8 items-center justify-center rounded-md px-4 font-inter text-sm font-[510] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:brightness-105 active:scale-[0.98]"
-              >
-                Log In
-              </Link>
-            </>
+        {/* Center: navlinks */}
+        <div className="flex flex-1 items-center justify-center">
+          {isFlowStepRoute ? (
+            <FlowStepNav />
           ) : (
-            <>
-              <div className="relative">
-                <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-obsidian text-fog shadow-[var(--shadow-inset)] transition-colors duration-300 hover:text-snow"
-                >
-                  <User size={16} />
-                </button>
+            <div className="flex items-center gap-1">
+              <Link
+                href="/"
+                className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
+                  pathname === "/" ? "bg-white/10 text-snow" : "text-fog hover:bg-white/5 hover:text-snow"
+                }`}
+              >
+                Home
+              </Link>
+              <Link
+                href="/pricing"
+                className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
+                  pathname.startsWith("/pricing") ? "bg-white/10 text-snow" : "text-fog hover:bg-white/5 hover:text-snow"
+                }`}
+              >
+                Pricing
+              </Link>
+            </div>
+          )}
+        </div>
 
-                {isDropdownOpen && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setIsDropdownOpen(false)}
-                    />
-                    <div
-                      className="absolute right-0 top-full z-50 mt-2 flex w-56 flex-col overflow-hidden rounded-xl bg-obsidian py-2 font-inter shadow-[var(--shadow-overlay)]"
-                    >
-                      <div className="px-4 py-2 mb-1">
-                        <p className="truncate text-sm font-[510] text-snow">
-                          {user?.email}
-                        </p>
+        {/* Right: actions */}
+        <div className="flex w-[200px] shrink-0 items-center justify-end gap-2">
+          {isFlowStepRoute ? (
+            /* Workspace action buttons */
+            step === "prd" && projectId && (
+              <>
+                <button
+                  onClick={() => { useChatStore.getState().setGeneratingPRD(false); useUIStore.getState().toggleChatPanel(); }}
+                  className="flex items-center gap-1.5 rounded-md bg-charcoal px-3 py-1.5 text-xs font-[510] text-fog shadow-[var(--shadow-inset)] transition-colors hover:bg-white/5 hover:text-snow"
+                  aria-label="Buka/tutup chat"
+                >
+                  <MessageSquare size={14} />
+                  <span>Chat</span>
+                </button>
+                <button
+                  onClick={handleStepAc}
+                  disabled={isStepLoading}
+                  className="btn-primary flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-[510] transition-all hover:brightness-105 active:scale-[0.98] disabled:opacity-40"
+                >
+                  {isStepLoading ? "Memuat..." : <><span>Generate AC</span><ArrowRight size={12} /></>}</button>
+              </>
+            )
+          ) : (
+            /* Non-workspace right items */
+            <>
+              <ThemeToggle />
+              {isLoading ? (
+                <div className="ml-1 flex items-center gap-2 sm:gap-3">
+                  <div className="h-8 w-[72px] animate-pulse rounded-md bg-white/5" />
+                  <div className="h-8 w-[84px] animate-pulse rounded-md bg-white/5" />
+                </div>
+              ) : !user ? (
+                <>
+                  <Link
+                    href="/register"
+                    className="flex h-8 items-center justify-center rounded-full border border-snow/80 bg-transparent px-3.5 font-inter text-sm font-normal text-snow transition-colors duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-white/5"
+                  >
+                    Register
+                  </Link>
+                  <Link
+                    href="/login"
+                    className="btn-primary flex h-8 items-center justify-center rounded-md px-4 font-inter text-sm font-[510] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:brightness-105 active:scale-[0.98]"
+                  >
+                    Log In
+                  </Link>
+                </>
+              ) : (
+                <div className="relative">
+                  <button
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    aria-label="User menu"
+                    aria-haspopup="true"
+                    aria-expanded={isDropdownOpen}
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-obsidian text-fog shadow-[var(--shadow-inset)] transition-colors duration-300 hover:text-snow"
+                  >
+                    <User size={16} />
+                  </button>
+                  {isDropdownOpen && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
+                      <div className="absolute right-0 top-full z-50 mt-2 flex w-56 flex-col overflow-hidden rounded-xl bg-obsidian py-2 font-inter shadow-[var(--shadow-overlay)]">
+                        <div className="px-4 py-2 mb-1">
+                          <p className="truncate text-sm font-[510] text-snow">{user?.email}</p>
+                        </div>
+                        <div className="mb-1 h-px w-full bg-graphite" />
+                        <Link href="/settings/profile" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-[510] text-mist transition-colors hover:bg-white/5 hover:text-snow">
+                          <Settings size={16} className="text-fog" />
+                          Profile / Setting
+                        </Link>
+                        <Link href="/pricing" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-[510] text-mist transition-colors hover:bg-white/5 hover:text-snow">
+                          <CreditCard size={16} className="text-fog" />
+                          Pricing
+                        </Link>
+                        <div className="my-1 h-px w-full bg-graphite" />
+                        <button onClick={() => { setIsDropdownOpen(false); handleLogout(); }} className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-[510] text-crimson transition-colors hover:bg-crimson/10">
+                          <LogOut size={16} />
+                          Log Out
+                        </button>
                       </div>
-                      <div className="mb-1 h-px w-full bg-graphite" />
-                      <Link
-                        href="/settings/profile"
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-[510] text-mist transition-colors hover:bg-white/5 hover:text-snow"
-                      >
-                        <Settings size={16} className="text-fog" />
-                        Profile / Setting
-                      </Link>
-                      <Link
-                        href="/pricing"
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-[510] text-mist transition-colors hover:bg-white/5 hover:text-snow"
-                      >
-                        <CreditCard size={16} className="text-fog" />
-                        Pricing
-                      </Link>
-                      <div className="my-1 h-px w-full bg-graphite" />
-                      <button
-                        onClick={() => {
-                          setIsDropdownOpen(false);
-                          handleLogout();
-                        }}
-                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-[510] text-crimson transition-colors hover:bg-crimson/10"
-                      >
-                        <LogOut size={16} />
-                        Log Out
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
+                    </>
+                  )}
+                </div>
+              )}
             </>
           )}
         </div>

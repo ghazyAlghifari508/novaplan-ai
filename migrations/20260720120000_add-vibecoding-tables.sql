@@ -17,10 +17,11 @@ DECLARE
 BEGIN
   SELECT p.user_id INTO owner_id
   FROM public.projects AS p
-  WHERE p.id = NEW.project_id;
+  WHERE p.id = NEW.project_id
+  FOR UPDATE;
 
   IF owner_id IS NULL THEN
-    RAISE EXCEPTION 'project owner not found' USING ERRCODE = '23503';
+    RAISE EXCEPTION 'project not found or has no owner' USING ERRCODE = '23503';
   END IF;
 
   NEW.user_id := owner_id;
@@ -37,13 +38,15 @@ REVOKE EXECUTE ON FUNCTION public.set_project_child_user_id() FROM authenticated
 -- ============================================================
 ALTER TABLE public.projects
   ADD COLUMN IF NOT EXISTS step VARCHAR(20) NOT NULL DEFAULT 'prd'
-    CHECK (step IN ('prd', 'ac', 'task')),
+    CHECK (step IN ('prd', 'ac', 'task'))
+    -- ponytail: sitemap is a sub-phase of 'prd', not a separate step.
+    -- sitemap_status tracks its generation independently.
   ADD COLUMN IF NOT EXISTS ac_status VARCHAR(20) NOT NULL DEFAULT 'pending'
-    CHECK (ac_status IN ('pending', 'generating', 'completed')),
+    CHECK (ac_status IN ('pending', 'generating', 'completed', 'failed')),
   ADD COLUMN IF NOT EXISTS task_status VARCHAR(20) NOT NULL DEFAULT 'pending'
-    CHECK (task_status IN ('pending', 'generating', 'completed')),
+    CHECK (task_status IN ('pending', 'generating', 'completed', 'failed')),
   ADD COLUMN IF NOT EXISTS sitemap_status VARCHAR(20) NOT NULL DEFAULT 'pending'
-    CHECK (sitemap_status IN ('pending', 'generating', 'completed'));
+    CHECK (sitemap_status IN ('pending', 'generating', 'completed', 'failed'));
 
 -- ============================================================
 -- 2. ac_versions
@@ -174,39 +177,39 @@ CREATE TABLE IF NOT EXISTS public.api_keys (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_api_keys_user ON public.api_keys(user_id);
-CREATE INDEX IF NOT EXISTS idx_api_keys_hash ON public.api_keys(key_hash);
+-- ponytail: idx_api_keys_hash removed — UNIQUE(key_hash) creates its own index.
 
 -- ============================================================
 -- 9. Triggers: auto-populate user_id on project-child tables
 -- ============================================================
 DROP TRIGGER IF EXISTS set_ac_versions_user_id ON public.ac_versions;
 CREATE TRIGGER set_ac_versions_user_id
-  BEFORE INSERT OR UPDATE OF project_id, user_id ON public.ac_versions
+  BEFORE INSERT OR UPDATE OF user_id ON public.ac_versions
   FOR EACH ROW EXECUTE FUNCTION public.set_project_child_user_id();
 
 DROP TRIGGER IF EXISTS set_features_user_id ON public.features;
 CREATE TRIGGER set_features_user_id
-  BEFORE INSERT OR UPDATE OF project_id, user_id ON public.features
+  BEFORE INSERT OR UPDATE OF user_id ON public.features
   FOR EACH ROW EXECUTE FUNCTION public.set_project_child_user_id();
 
 DROP TRIGGER IF EXISTS set_tasks_user_id ON public.tasks;
 CREATE TRIGGER set_tasks_user_id
-  BEFORE INSERT OR UPDATE OF project_id, user_id ON public.tasks
+  BEFORE INSERT OR UPDATE OF user_id ON public.tasks
   FOR EACH ROW EXECUTE FUNCTION public.set_project_child_user_id();
 
 DROP TRIGGER IF EXISTS set_subtasks_user_id ON public.subtasks;
 CREATE TRIGGER set_subtasks_user_id
-  BEFORE INSERT OR UPDATE OF project_id, user_id ON public.subtasks
+  BEFORE INSERT OR UPDATE OF user_id ON public.subtasks
   FOR EACH ROW EXECUTE FUNCTION public.set_project_child_user_id();
 
 DROP TRIGGER IF EXISTS set_sitemap_pages_user_id ON public.sitemap_pages;
 CREATE TRIGGER set_sitemap_pages_user_id
-  BEFORE INSERT OR UPDATE OF project_id, user_id ON public.sitemap_pages
+  BEFORE INSERT OR UPDATE OF user_id ON public.sitemap_pages
   FOR EACH ROW EXECUTE FUNCTION public.set_project_child_user_id();
 
 DROP TRIGGER IF EXISTS set_node_positions_user_id ON public.node_positions;
 CREATE TRIGGER set_node_positions_user_id
-  BEFORE INSERT OR UPDATE OF project_id, user_id ON public.node_positions
+  BEFORE INSERT OR UPDATE OF user_id ON public.node_positions
   FOR EACH ROW EXECUTE FUNCTION public.set_project_child_user_id();
 
 -- ============================================================

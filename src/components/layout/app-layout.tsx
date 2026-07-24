@@ -7,25 +7,29 @@ import { Navbar } from "./navbar";
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  // Hide navbar on auth pages and PRD workspace (has its own back button)
-  const hideNavbarRoutes = ["/login", "/register", "/forgot-password", "/reset-password"];
-  const hideNavbar = hideNavbarRoutes.includes(pathname) || pathname.startsWith("/settings") || pathname.startsWith("/prd");
-  
-  // Lock body scroll on workspace to prevent overscroll rubber-banding
-  const isWorkspace = pathname.startsWith("/prd");
+  // Hide navbar on auth pages and PRD index page (has its own back button)
+  // Show navbar everywhere except bare auth/minimal pages.
+  // PRD/AC/Task/Kanban pages get the flow step navigation.
+  const hideNavbarRoutes = ["/login", "/register", "/forgot-password", "/reset-password", "/auth/callback", "/prd", "/setup", "/onboarding", "/settings"];
+  const hideNavbar = hideNavbarRoutes.includes(pathname) || pathname.startsWith("/settings/");
+
+  // Lock body scroll on workspace pages (PRD, AC, Task, Kanban)
+  const isWorkspace = (pathname.startsWith("/prd/") && !pathname.startsWith("/prd/share/"))
+    || pathname.startsWith("/ac/")
+    || pathname.startsWith("/task/")
+    || pathname.startsWith("/kanban/");
 
   useEffect(() => {
     if (isWorkspace) {
       document.body.style.overflow = "hidden";
-      document.body.style.overscrollBehaviorY = "none";
+      document.body.style.overscrollBehavior = "contain";
     } else {
       document.body.style.overflow = "";
-      document.body.style.overscrollBehaviorY = "";
+      document.body.style.overscrollBehavior = "";
     }
-    
     return () => {
       document.body.style.overflow = "";
-      document.body.style.overscrollBehaviorY = "";
+      document.body.style.overscrollBehavior = "";
     };
   }, [isWorkspace]);
 

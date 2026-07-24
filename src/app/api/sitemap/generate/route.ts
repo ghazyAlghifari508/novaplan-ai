@@ -129,7 +129,12 @@ export async function POST(req: NextRequest) {
         try { controller.close(); } catch {}
       };
 
+      // Abort AI generation when the client disconnects (tab close, navigation).
+      let clientAborted = false;
+      const onAbort = () => { clientAborted = true; try { controller?.close(); } catch {} };
+
       try {
+        req.signal.addEventListener("abort", onAbort);
         emit({ type: "started", model: modelsToTry[0] });
 
         const { generator, firstChunk } = await tryStreamWithFallback(modelsToTry, messages);
@@ -138,14 +143,19 @@ export async function POST(req: NextRequest) {
         emit({ type: "delta", content: firstChunk });
 
         for await (const chunk of generator) {
+          if (clientAborted || req.signal.aborted) return;
           fullResponse += chunk;
           emit({ type: "delta", content: chunk });
         }
 
+        if (clientAborted || req.signal.aborted) return;
         await safeDone();
       } catch (err: unknown) {
+        if (clientAborted || req.signal.aborted) return;
         console.error("Sitemap generate stream error:", err);
         safeError(sanitizeErrorForClient(err));
+      } finally {
+        req.signal.removeEventListener("abort", onAbort);
       }
     },
   });

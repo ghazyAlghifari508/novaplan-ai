@@ -132,6 +132,12 @@ export async function POST(req: NextRequest) {
         try { controller.close(); } catch {}
       };
 
+      // Abort AI generation when the client disconnects (tab close, navigation)
+      // so we don't waste tokens / DB writes on an abandoned stream.
+      let clientAborted = false;
+      const onAbort = () => { clientAborted = true; try { controller.close(); } catch {} };
+      req.signal.addEventListener("abort", onAbort);
+
       try {
         emit({ type: "started", model: modelsToTry[0] });
 
@@ -141,14 +147,19 @@ export async function POST(req: NextRequest) {
         emit({ type: "delta", content: firstChunk });
 
         for await (const chunk of generator) {
+          if (clientAborted || req.signal.aborted) return;
           fullResponse += chunk;
           emit({ type: "delta", content: chunk });
         }
 
+        if (clientAborted || req.signal.aborted) return;
         await safeDone();
       } catch (err: unknown) {
+        if (clientAborted || req.signal.aborted) return;
         console.error("Task generate stream error:", err);
         safeError(sanitizeErrorForClient(err));
+      } finally {
+        req.signal.removeEventListener("abort", onAbort);
       }
     },
   });

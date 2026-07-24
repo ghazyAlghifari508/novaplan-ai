@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 function cleanMessage(content: string): string {
   // Filter out the raw :::UPDATE_SECTION[...]::: blocks and their content 
   // so they are not rendered in the chat bubble UI from historical messages.
-  let cleaned = content.replace(/:::UPDATE_SECTION\[(.*?)\]:::\s*([\s\S]*?)(?::::END_UPDATE:::|$)/g, "").trim();
+  const cleaned = content.replace(/:::UPDATE_SECTION\[(.*?)\]:::\s*([\s\S]*?)(?::::END_UPDATE:::|$)/g, "").trim();
   if (!cleaned && content.includes(":::UPDATE_SECTION")) {
     return "Telah merevisi dokumen PRD.";
   }

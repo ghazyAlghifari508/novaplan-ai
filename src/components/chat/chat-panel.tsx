@@ -40,7 +40,7 @@ function livePatchPrd(baseContent: string, streamContent: string): string {
 }
 
 function cleanChatBubble(streamContent: string): string {
-  let cleaned = streamContent.replace(/:::UPDATE_SECTION\[(.*?)\]:::\s*([\s\S]*?)(?::::END_UPDATE:::|$)/g, "").trim();
+  const cleaned = streamContent.replace(/:::UPDATE_SECTION\[(.*?)\]:::\s*([\s\S]*?)(?::::END_UPDATE:::|$)/g, "").trim();
   if (!cleaned) return "Menerapkan revisi ke dokumen...";
   return cleaned;
 }
@@ -48,6 +48,17 @@ function cleanChatBubble(streamContent: string): string {
 // ─────────────────────────────────────────────
 
 const MIN_PROMPT_LENGTH = 20;
+
+const ALL_PRD_SECTIONS = [
+  "Overview",
+  "Goals & Success Metrics",
+  "Requirements",
+  "Core Features",
+  "User Flow",
+  "Architecture & Tech Stack",
+  "Database Schema",
+  "Design & Technical Constraints",
+];
 
 // ─────────────────────────────────────────────
 // Types
@@ -97,6 +108,11 @@ export function ChatPanel({
   const [originalMessageStore, setOriginalMessageStore] = useState("");
   const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL_ID);
   const [userPlan, setUserPlan] = useState<Plan>(initialUserPlan);
+  // Section generation progress tracking — persisted in Zustand so it
+  // survives router.refresh() after generation completes.
+  const completedSections = useChatStore((s) => s.completedSections);
+  const setCompletedSections = useChatStore((s) => s.setCompletedSections);
+  const [currentSection, setCurrentSection] = useState<string | null>(null);
 
   // ── Refs ──
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -111,11 +127,20 @@ export function ChatPanel({
   const {
     messages,
     isStreaming,
+    isGeneratingPRD,
     addMessage,
     setStreaming,
     setGeneratingPRD,
     setStreamingPRDContent,
   } = useChatStore();
+
+  // When generation starts, default first section to loading so the progress
+  // card shows "Overview" spinning from first paint instead of all pending.
+  useEffect(() => {
+    if (isGeneratingPRD && !currentSection) {
+      setCurrentSection("Overview");
+    }
+  }, [isGeneratingPRD]);
 
   // ── Derived ──
   const isEffectivelyDisabled = inputDisabled && messages.length === 0;
@@ -226,6 +251,33 @@ export function ChatPanel({
               } else if (parsed.type === "delta") {
                 sawAnyDelta = true;
                 fullContent += parsed.content;
+
+                // Detect completed sections from streaming content (for PRD generate/revise modes)
+                if (chatMode === "generate" || chatMode === "revise" || chatMode === "resume") {
+                  const sectionRegex = /<!-- SECTION: (.+?) -->/g;
+                  let sectionMatch;
+                  const foundSections: string[] = [];
+                  while ((sectionMatch = sectionRegex.exec(fullContent)) !== null) {
+                    foundSections.push(sectionMatch[1].trim());
+                  }
+                  // Completed sections = all but the last one found (which may still be in progress)
+                  // ponytail: use functional updater so every invocation merges against
+                  // latest state, not the stale closure — otherwise earlier checkmarks
+                  // get overwritten when a new section arrives mid-stream.
+                  if (foundSections.length > 0) {
+                    const lastSection = foundSections[foundSections.length - 1];
+                    const prev = foundSections.slice(0, -1);
+                    // ponytail: Zustand setter takes a value, not a functional updater —
+                    // read current state via getState() and merge manually.
+                    const currentCompleted = useChatStore.getState().completedSections;
+                    const merged = [...currentCompleted];
+                    prev.forEach((s) => {
+                      if (!merged.includes(s)) merged.push(s);
+                    });
+                    setCompletedSections(merged);
+                    setCurrentSection(lastSection);
+                  }
+                }
                 const displayContent = existingPartialContent ? existingPartialContent + fullContent : fullContent;
                 if (acMode && onStreamContent) {
                   // AC mode: stream to parent component
@@ -249,7 +301,16 @@ export function ChatPanel({
                   setConversationId(parsed.conversationId);
                 }
                 if (parsed.projectId && onProjectCreated && !projectId) {
+                  // New project: clear Zustand state before navigation
+                  setGeneratingPRD(false);
+                  setStreamingPRDContent("");
                   onProjectCreated(parsed.projectId);
+                } else if (chatMode === "generate") {
+                  setGeneratingPRD(false);
+                  // Keep streamingPRDContent visible during refresh so PrdDetail
+                  // doesn't flash empty/"Gagal Generate" state. router.refresh()
+                  // will re-render with latestVersion from DB and replace this.
+                  startTransition(() => { router.refresh(); });
                 }
               } else if (parsed.type === "error") {
                 gotErrorEvent = true;
@@ -302,12 +363,7 @@ export function ChatPanel({
         if (chatMode === "generate" || chatMode === "resume" || chatMode === "revise") {
           const finalDisplayContent = existingPartialContent ? existingPartialContent + fullContent : fullContent;
           if (finalDisplayContent.trim()) {
-            addMessage({
-              id: crypto.randomUUID(),
-              role: "assistant",
-              content: "Selesai menyusun PRD.",
-              timestamp: Date.now(),
-            });
+            // ponytail: no "Selesai menyusun PRD" bubble — progress card above already shows it
             if (chatMode === "resume" || chatMode === "revise") {
               startTransition(() => { router.refresh(); });
             }
@@ -443,6 +499,10 @@ export function ChatPanel({
         setStreamingPRDContent(currentPrdContent);
       }
       if (chatMode === "generate" || chatMode === "revise") setGeneratingPRD(true);
+      if (chatMode === "generate") {
+        setCompletedSections([]);
+        setCurrentSection("Overview");
+      }
 
       const body: Record<string, unknown> = { message: msg, mode: chatMode };
       // Send the original user message for database storage (without template wrapping)
@@ -458,12 +518,15 @@ export function ChatPanel({
       // the template text from leaking into the chat bubble after a resume.
       await streamApiCall(body, chatMode, displayMessage || msg);
     },
-    [addMessage, conversationId, projectId, setGeneratingPRD, setStreaming, streamApiCall],
+    [addMessage, conversationId, projectId, setCompletedSections, setGeneratingPRD, setStreaming, streamApiCall],
   );
 
   // ── Auto-submit from /setup page ──
   useEffect(() => {
-    if (!enableAutoSubmit || isStreaming || messages.length > 0 || autoSubmitAttemptedRef.current) return;
+    // Reset auto-submit guard when re-mounting project (ChatPanel stays mounted
+    // with CSS display:none, so ref persists across navigations otherwise).
+    autoSubmitAttemptedRef.current = false;
+    if (!enableAutoSubmit || isStreaming || messages.length > 0) return;
 
     const pending = consumePendingPrdPrompt();
     if (!pending) return;
@@ -488,24 +551,52 @@ export function ChatPanel({
       className={cn("flex h-full flex-col border-l border-graphite", className)}
       style={{ background: "var(--bg-elevated)" }}
     >
-      {/* Header */}
-      <div className="border-b border-graphite px-4 py-3">
-        <div className="flex items-center gap-2">
-          <div className="h-2 w-2 rounded-full bg-emerald" />
-          <span className="text-sm font-[510] text-snow">NovaPlan AI</span>
+      {/* Section Generation Progress — show during PRD generation */}
+      {(currentSection || completedSections.length > 0 || isGeneratingPRD) && (
+        <div className="px-4 py-3">
+          <div className="mb-1.5 text-xs font-[510] uppercase tracking-wide text-mist">
+            PRD sedang di-generate oleh AI
+          </div>
+          <div className="rounded-lg border border-graphite bg-charcoal/40 px-4 py-3">
+            <div className="space-y-2">
+              {ALL_PRD_SECTIONS.map((section, i) => {
+                const isCompleted = completedSections.includes(section);
+                const isCurrent = section === currentSection;
+                const isPending = !isCompleted && !isCurrent;
+                return (
+                  <div key={i} className="flex items-center gap-2.5">
+                    {isCompleted ? (
+                      <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor" className="text-emerald shrink-0">
+                        <path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z" />
+                      </svg>
+                    ) : isCurrent ? (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="shrink-0 animate-spin text-indigo">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity="0.25" />
+                        <path d="M12 2a10 10 0 019.95 9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                      </svg>
+                    ) : (
+                      <svg width="10" height="10" viewBox="0 0 16 16" fill="none" className="text-slate/40 shrink-0">
+                        <circle cx="8" cy="8" r="4" stroke="currentColor" strokeWidth="1.5" />
+                      </svg>
+                    )}
+                    <span className={cn("truncate text-sm", isCompleted ? "text-emerald" : isCurrent ? "text-snow" : "text-slate")}>{section}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto p-4">
-        {messages.map((msg) => (
-          <ChatBubble key={msg.id} role={msg.role} content={msg.content} />
-        ))}
-        {isStreaming && streamingContent && (
-          <ChatBubble role="assistant" content={streamingContent} isStreaming />
-        )}
-        {isStreaming && !streamingContent && <TypingIndicator />}
-      </div>
+          {messages.map((msg) => (
+            <ChatBubble key={msg.id} role={msg.role} content={msg.content} />
+          ))}
+          {isStreaming && streamingContent && (
+            <ChatBubble role="assistant" content={streamingContent} isStreaming />
+          )}
+        </div>
 
       {/* Input Area */}
       <div className="border-t border-graphite p-4">

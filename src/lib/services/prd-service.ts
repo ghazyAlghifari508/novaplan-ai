@@ -5,7 +5,9 @@
 
 import { generateShareToken } from "@/lib/utils";
 
-type InsForgeClient = any; // edge runtime doesn't support full type
+// ponytail: InsForge SDK belum expose client types. Ganti saat tersedia.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type InsForgeClient = any;
 
 /**
  * Derive a human-readable project name from the user's raw prompt.

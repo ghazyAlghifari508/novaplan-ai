@@ -1,7 +1,7 @@
 import type { AuthCookieSettings } from "@insforge/sdk/ssr";
 
 const THIRTY_DAYS_SECONDS = 60 * 60 * 24 * 30;
-const TWO_MINUTES_SECONDS = 60 * 2;
+const FIVE_MINUTES_SECONDS = 60 * 5;
 
 export const authCookieSettings: AuthCookieSettings = {
   options: {
@@ -32,4 +32,8 @@ export const authCookieSettings: AuthCookieSettings = {
   },
 };
 
-export const AUTH_REFRESH_LEEWAY_SECONDS = TWO_MINUTES_SECONDS;
+// ponytail: widened from 2min to 5min — more retry headroom before the access
+// token actually expires, so a transient refresh failure (see
+// resilient-fetch.ts) has room to succeed on a later request instead of
+// logging the user out.
+export const AUTH_REFRESH_LEEWAY_SECONDS = FIVE_MINUTES_SECONDS;

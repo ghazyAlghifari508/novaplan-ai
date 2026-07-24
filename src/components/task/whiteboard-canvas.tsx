@@ -39,9 +39,10 @@ function layoutSitemap(
   edges: Array<{ x1: number; y1: number; x2: number; y2: number }>,
   stack: string[] = [],
 ): number {
-  // Cycle guard — circular AI output would otherwise infinite-loop the layout.
+  // Cycle guard + depth bound — circular or pathologically deep AI output
+  // would otherwise infinite-loop or blow the call stack.
   const pathKey = page.path;
-  if (stack.includes(pathKey)) return SITEMAP_CARD_W;
+  if (stack.includes(pathKey) || stack.length > 100) return SITEMAP_CARD_W;
 
   // Place this node centered at x.
   nodes.push({ page, x, y });
@@ -53,22 +54,25 @@ function layoutSitemap(
 
   // Layout children left-to-right, return total subtree width.
   const childY = y + SITEMAP_CARD_H + SITEMAP_LEVEL_GAP;
-  const childWidths = page.children.map(() => SITEMAP_CARD_W);
-  const totalChildrenWidth = childWidths.reduce((a, b) => a + b, 0)
-    + SITEMAP_SIBLING_GAP * (childCount - 1);
-
-  let cursor = x - totalChildrenWidth / 2;
   const childStack = [...stack, pathKey];
+  const childWidths: number[] = [];
+  let cursor = x;
+  for (let i = 0; i < childCount; i++) {
+    const childW = layoutSitemap(page.children[i], cursor, childY, nodes, edges, childStack);
+    childWidths.push(childW);
+    cursor += childW + SITEMAP_SIBLING_GAP;
+  }
+  const totalChildrenWidth = childWidths.reduce((a, b) => a + b, 0) + SITEMAP_SIBLING_GAP * (childCount - 1);
+
+  // Re-center: shift all children + edges to center under parent
+  cursor = x - totalChildrenWidth / 2;
   for (let i = 0; i < childCount; i++) {
     const childCx = cursor + childWidths[i] / 2;
-    layoutSitemap(page.children[i], childCx, childY, nodes, edges, childStack);
-    // Edge: parent bottom-center → child top-center
-    edges.push({
-      x1: x,
-      y1: y + SITEMAP_CARD_H,
-      x2: childCx,
-      y2: childY,
-    });
+    nodes[nodes.length - childCount + i].x = childCx;
+    // edge pushed during first-pass was at old cursor position; update x1/x2 to new center
+    const edgeIdx = edges.length - childCount + i;
+    edges[edgeIdx].x1 = x;
+    edges[edgeIdx].x2 = childCx;
     cursor += childWidths[i] + SITEMAP_SIBLING_GAP;
   }
 
@@ -195,11 +199,10 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({
       ) : (
         <>
           <div
-            className="absolute left-0 top-0 origin-top-left"
+            className="absolute left-0 top-0 origin-top-left will-change-transform"
             style={{
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
               width: canvasWidth,
-              transition: "transform 80ms ease-out",
             }}
           >
             {mode === "task" ? (

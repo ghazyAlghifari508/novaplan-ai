@@ -1,29 +1,41 @@
 import { updateSession, type CookieOptions } from "@insforge/sdk/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { AUTH_REFRESH_LEEWAY_SECONDS, authCookieSettings } from "@/lib/insforge/auth-cookies";
+import { createResilientFetch } from "@/lib/insforge/resilient-fetch";
 
 const PUBLIC_ROUTES = ["/", "/login", "/register", "/forgot-password", "/pricing"];
 const AUTH_ROUTES = ["/login", "/register"];
 
 export async function middleware(request: NextRequest) {
+  // ── API v1 routes use API key auth, skip cookie session handling ──
+  if (request.nextUrl.pathname.startsWith("/api/v1/")) {
+    return NextResponse.next({ request });
+  }
+
   let response = NextResponse.next({ request });
+  const pathname = request.nextUrl.pathname;
 
   // ── Auth session ──
+  const hadAccessTokenCookie = Boolean(request.cookies.get("insforge_access_token"));
+
   const sessionResult = await updateSession({
     baseUrl: process.env.NEXT_PUBLIC_INSFORGE_URL!,
     anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY!,
     refreshLeewaySeconds: AUTH_REFRESH_LEEWAY_SECONDS,
+    fetch: createResilientFetch((attempt, reason) =>
+      console.warn(`[auth-refresh] retry ${attempt} on ${pathname}: ${reason}`),
+    ),
     ...authCookieSettings,
     requestCookies: {
       get: (name) => request.cookies.get(name),
       set: (nameOrOptions: string | ({ name: string; value: string } & CookieOptions), value?: string) => {
-        let name = typeof nameOrOptions === "string" ? nameOrOptions : nameOrOptions.name;
-        let val = typeof nameOrOptions === "string" ? (value ?? "") : nameOrOptions.value;
+        const name = typeof nameOrOptions === "string" ? nameOrOptions : nameOrOptions.name;
+        const val = typeof nameOrOptions === "string" ? (value ?? "") : nameOrOptions.value;
         request.cookies.set(name, val);
         response = NextResponse.next({ request });
       },
       delete: (nameOrOptions: string | ({ name: string } & CookieOptions)) => {
-        let name = typeof nameOrOptions === "string" ? nameOrOptions : nameOrOptions.name;
+        const name = typeof nameOrOptions === "string" ? nameOrOptions : nameOrOptions.name;
         request.cookies.delete(name);
         response = NextResponse.next({ request });
       }
@@ -44,7 +56,15 @@ export async function middleware(request: NextRequest) {
   });
 
   const isAuthenticated = Boolean(sessionResult.accessToken);
-  const pathname = request.nextUrl.pathname;
+
+  // Cookie went from present to cleared this request — the only way to
+  // distinguish "real logout" from a failed refresh in the logs after the fact.
+  if (hadAccessTokenCookie && !isAuthenticated) {
+    console.warn(
+      `[auth-refresh] session cleared on ${pathname}${sessionResult.error ? `: ${sessionResult.error.message}` : " (no refresh token)"}`,
+    );
+  }
+
   const isPublicRoute = PUBLIC_ROUTES.some(
     (route) =>
       pathname === route ||
@@ -87,7 +107,7 @@ export async function middleware(request: NextRequest) {
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://*.insforge.app https://*.unsplash.com",
       "font-src 'self' data:",
-      "connect-src 'self' https://*.insforge.app https://integrate.api.nvidia.com https://api.sandbox.midtrans.com https://api.midtrans.com",
+      "connect-src 'self' http://localhost:20128 https://*.insforge.app https://api.sandbox.midtrans.com https://api.midtrans.com",
       "frame-src 'self' https://app.sandbox.midtrans.com https://app.midtrans.com",
       "frame-ancestors 'none'",
       "form-action 'self'",

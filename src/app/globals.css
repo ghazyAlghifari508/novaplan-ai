@@ -316,6 +316,30 @@ a {
   transform: translateY(20px) scale(0.95);
 }
 
+@utility animate-flash {
+  animation: flashHighlight 2s ease-out;
+}
+
+@utility animate-slide-down {
+  animation: slideDown 0.3s ease-out;
+}
+
+@utility custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-graphite) transparent;
+}
+
+@keyframes flashHighlight {
+  0% { box-shadow: 0 0 0 2px var(--color-amber), 0 0 20px var(--color-amber); background-color: var(--color-amber); }
+  50% { box-shadow: 0 0 0 2px var(--color-amber), 0 0 10px var(--color-amber); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @utility animate-delay-100 { animation-delay: 100ms; }
 @utility animate-delay-200 { animation-delay: 200ms; }
 @utility animate-delay-300 { animation-delay: 300ms; }

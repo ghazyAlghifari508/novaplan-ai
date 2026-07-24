@@ -20,8 +20,8 @@ export function sanitizeErrorForClient(error: unknown): string {
     return "Generate PRD terlalu lama (server timeout). PRD mungkin sudah tersimpan sebagian — refresh halaman. Tips: pakai model ringan seperti Llama 3.1 (8B) untuk generate yang lebih cepat.";
   }
 
-  // NVIDIA API / network errors
-  if (msg.includes("NVIDIA") || msg.includes("fetch")) {
+  // API provider / network errors
+  if (msg.includes("9Router") || msg.includes("fetch")) {
     return "Maaf, layanan AI sedang tidak tersedia atau sibuk. Silakan coba lagi dalam beberapa saat.";
   }
 

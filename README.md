@@ -38,7 +38,7 @@ npm install
 cp .env.example .env.local
 ```
 
-Edit `.env.local` to include your InsForge URL, Anon Key, OpenRouter/NVIDIA API Keys, and payment credentials. Only edit `.env.local` for deployment-level overrides.
+Edit `.env.local` to include your InsForge URL, Anon Key, and payment credentials. Only edit `.env.local` for deployment-level overrides.
 
 ```bash
 npm run dev

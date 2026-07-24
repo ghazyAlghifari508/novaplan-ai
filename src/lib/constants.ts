@@ -2,7 +2,8 @@
 
 import { ALL_MODELS, DEFAULT_MODEL_ID } from "@/lib/model-config";
 
-export const NVIDIA_NIM_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
+export const ROUTER_BASE_URL = "http://localhost:20128/v1";
+export const CHAT_COMPLETIONS_URL = `${ROUTER_BASE_URL}/chat/completions`;
 
 // Primary/fallback shorthands used by ai-client.ts & chat/route.ts
 export const AI_MODELS = {

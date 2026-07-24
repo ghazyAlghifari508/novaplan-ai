@@ -27,11 +27,23 @@ export function SetupClient() {
     setIsReady(true);
   }, [router]);
 
-  const handleAutoSelect = () => {
+  const handleAutoSelect = async () => {
     if (!promptRef.current) return;
     const originalMessage = sessionStorage.getItem("novaplan:original-message") || undefined;
-    savePendingPrdPrompt(promptRef.current, "auto", originalMessage);
-    router.push("/prd");
+    // Buat project dulu, lalu redirect langsung ke /prd/[id]
+    try {
+      const res = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: promptRef.current }),
+      });
+      if (!res.ok) throw new Error("Gagal membuat proyek");
+      const project = await res.json();
+      savePendingPrdPrompt(promptRef.current, "auto", originalMessage);
+      router.push(`/prd/${project.id}`);
+    } catch (err) {
+      console.error("Auto create project error:", err);
+    }
   };
 
   const handleManualSelect = () => {

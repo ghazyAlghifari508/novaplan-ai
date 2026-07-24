@@ -67,7 +67,16 @@ export function ChatInput({ className }: ChatInputProps) {
     const fetchStatus = async () => {
       try {
         const res = await fetch("/api/user/plan", { cache: "no-store" });
-        if (!res.ok) return;
+        if (!res.ok) {
+          // Fallback: check auth directly to distinguish "not logged in"
+          // from "DB query failed" — prevents showing "3 PRD Gratis" for
+          // authenticated users whose subscription query errored.
+          const authRes = await fetch("/api/auth/me", { cache: "no-store" });
+          if (authRes.ok) {
+            setPlanStatus({ plan: "free", remaining: null });
+          }
+          return;
+        }
 
         const data = await res.json();
         if (data.authenticated) {
@@ -78,7 +87,10 @@ export function ChatInput({ className }: ChatInputProps) {
           });
         }
       } catch {
-        setPlanStatus(null);
+        const authRes = await fetch("/api/auth/me", { cache: "no-store" });
+        if (authRes.ok) {
+          setPlanStatus({ plan: "free", remaining: null });
+        }
       }
     };
     fetchStatus();

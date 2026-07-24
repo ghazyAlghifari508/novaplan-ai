@@ -5,7 +5,7 @@ import type { Plan } from "@/types/database";
 // ─────────────────────────────────────────────
 
 export interface ModelDefinition {
-  /** NVIDIA NIM model ID (e.g. "meta/llama-3.1-8b-instruct") */
+  /** 9Router model ID (OpenCode Free prefix) */
   id: string;
   /** User-facing display label */
   label: string;
@@ -25,78 +25,62 @@ export interface ModelDefinition {
 /**
  * All available AI models in NovaPlan, ordered by tier.
  *
- * ⚠️  When NVIDIA NIM deprecates a model, update the `id` here.
+ * ⚠️  When OpenCode Free deprecates a model, update the `id` here.
  *     This is the ONLY place model IDs should live.
  */
 export const ALL_MODELS: ModelDefinition[] = [
-  // ── Free Tier ──
+  // ── Free Tier (OpenCode Free via 9Router) ──
   {
-    id: "meta/llama-3.1-8b-instruct",
-    label: "Llama 3.1 (8B)",
+    id: "oc/deepseek-v4-flash-free(high)",
+    label: "DeepSeek v4 Flash Free",
     tier: "free",
-    brand: "meta",
+    brand: "deepseek",
+    colorClass: "text-[#4D93E6]",
+    quality: 5,
+  },
+  {
+    id: "oc/ling-3.0-flash-free(high)",
+    label: "Ling 3.0 Flash Free",
+    tier: "free",
+    brand: "bot",
     colorClass: "text-[#0668E1]",
     quality: 4,
   },
   {
-    id: "meta/llama-3.2-3b-instruct",
-    label: "Llama 3.2 (3B)",
+    id: "oc/north-mini-code-free",
+    label: "North Mini Code Free",
     tier: "free",
-    brand: "meta",
-    colorClass: "text-[#0668E1]",
-    quality: 2,
+    brand: "bot",
+    colorClass: "text-[#10A37F]",
+    quality: 3,
   },
 
-  // ── Pro Tier ──
+  // ── Pro Tier (OpenCode Free via 9Router) ──
   {
-    id: "meta/llama-3.3-70b-instruct",
-    label: "Claude Sonnet 4.5",
+    id: "oc/mimo-v2.5-free",
+    label: "MiMo v2.5 Free",
     tier: "pro",
+    brand: "sparkles",
+    colorClass: "text-[#D1A77E]",
+    quality: 4,
+  },
+
+  // ── Hengker Tier (OpenCode Free via 9Router) ──
+  {
+    id: "oc/nemotron-3-ultra-free(high)",
+    label: "Nemotron 3 Ultra Free",
+    tier: "hengker",
     brand: "anthropic",
     colorClass: "text-[#D1A77E]",
     quality: 5,
   },
   {
-    id: "google/gemma-4-31b-it",
-    label: "Gemini Flash 3.5",
-    tier: "pro",
-    brand: "google",
-    colorClass: "text-[#8E75FF]",
-    quality: 2,
-  },
-  {
-    id: "mistralai/mixtral-8x22b-v0.1",
-    label: "Kimi K26",
-    tier: "pro",
-    brand: "kimi",
-    colorClass: "text-indigo-400",
-    quality: 4,
-  },
-
-  // ── Hengker Tier ──
-  {
-    id: "nvidia/llama-3.1-nemotron-ultra-253b-v1",
-    label: "Claude Opus 4.7",
-    tier: "hengker",
-    brand: "anthropic",
-    colorClass: "text-[#D1A77E]",
-    quality: 3,
-  },
-  {
-    id: "mistralai/mistral-large-2-instruct",
-    label: "GPT 5.5",
+    id: "oc/big-pickle",
+    label: "Big Pickle Free",
     tier: "hengker",
     brand: "openai",
     colorClass: "text-[#10A37F]",
-    quality: 5,
-  },
-  {
-    id: "qwen/qwen3.5-122b-a10b",
-    label: "Deepseek v4 Pro",
-    tier: "hengker",
-    brand: "deepseek",
-    colorClass: "text-[#4D93E6]",
-    quality: 3,
+    quality: 4,
   },
 ];
 

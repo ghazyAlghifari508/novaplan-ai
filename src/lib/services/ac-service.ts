@@ -5,6 +5,8 @@
 
 import type { AcFeature, AcVersion } from "@/types/database";
 
+// ponytail: InsForge SDK belum expose client types. Ganti saat tersedia.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type InsForgeClient = any;
 
 /**

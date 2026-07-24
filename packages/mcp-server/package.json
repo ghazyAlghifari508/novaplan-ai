@@ -1,0 +1,23 @@
+{
+  "name": "@novaplan/mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for NovaPlan — connect AI coding agents to your projects",
+  "main": "dist/index.js",
+  "bin": {
+    "novaplan-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  },
+  "keywords": ["mcp", "novaplan", "ai", "coding-agent"],
+  "license": "MIT"
+}

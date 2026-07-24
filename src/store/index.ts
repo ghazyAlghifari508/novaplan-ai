@@ -46,6 +46,7 @@ interface ChatState {
   selectedMode: "ai_auto" | "manual" | null;
   activeProjectId: string | null;
   streamingPRDContent: string;
+  completedSections: string[];
   addMessage: (message: ChatMessage) => void;
   setStreaming: (streaming: boolean) => void;
   setGeneratingPRD: (generating: boolean) => void;
@@ -55,6 +56,7 @@ interface ChatState {
   setStreamingPRDContent: (content: string) => void;
   updateLastMessage: (content: string) => void;
   setMessages: (messages: ChatMessage[]) => void;
+  setCompletedSections: (sections: string[]) => void;
   resetChat: () => void;
 }
 
@@ -66,6 +68,7 @@ const chatInitialState = {
   selectedMode: null as "ai_auto" | "manual" | null,
   activeProjectId: null as string | null,
   streamingPRDContent: "",
+  completedSections: [] as string[],
 };
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -75,6 +78,7 @@ export const useChatStore = create<ChatState>((set) => ({
   setStreaming: (isStreaming) => set({ isStreaming }),
   setGeneratingPRD: (isGeneratingPRD) => set({ isGeneratingPRD }),
   setGenerationStep: (generationStep) => set({ generationStep }),
+  setCompletedSections: (completedSections) => set({ completedSections }),
   setSelectedMode: (selectedMode) => set({ selectedMode }),
   setActiveProject: (activeProjectId) => set({ activeProjectId }),
   setStreamingPRDContent: (streamingPRDContent) => set({ streamingPRDContent }),

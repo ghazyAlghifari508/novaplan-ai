@@ -3,7 +3,18 @@
  * Handles sitemap_pages (self-referential parent_id) CRUD + tree reconstruction.
  */
 
+// ponytail: InsForge SDK belum expose client types. Ganti saat tersedia.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type InsForgeClient = any;
+
+interface SitemapRow {
+  id: string;
+  parent_id: string | null;
+  path: string;
+  name: string;
+  is_auth_required: boolean | null;
+  order: number;
+}
 
 export interface SitemapPage {
   name: string;
@@ -28,7 +39,7 @@ export function parseSitemapJson(jsonString: string): SitemapTree | null {
       return null;
     }
 
-    const validatePage = (page: any): SitemapPage | null => {
+    const validatePage = (page: Record<string, unknown>): SitemapPage | null => {
       if (!page.name || typeof page.path !== "string") return null;
       const children: SitemapPage[] = [];
       if (Array.isArray(page.children)) {
@@ -125,7 +136,7 @@ export async function saveSitemapTree(
   } catch (error) {
     // Compensating cleanup of partial inserts
     if (insertedIds.length) {
-      await insforge.database.from("sitemap_pages").delete().in("id", insertedIds).catch(() => {});
+      await insforge.database.from("sitemap_pages").delete().in("id", insertedIds).catch((e: unknown) => console.error("sitemap cleanup failed:", e));
     }
     const msg = error instanceof Error ? error.message : String(error);
     console.error("saveSitemapTree error:", msg);

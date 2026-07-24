@@ -3,8 +3,8 @@
  * Handles features, tasks, and subtasks CRUD.
  */
 
-import type { Feature, Task, Subtask } from "@/types/database";
-
+// ponytail: InsForge SDK belum expose client types. Ganti dengan typed interface saat tersedia.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type InsForgeClient = any;
 
 export interface TaskTree {
@@ -141,10 +141,11 @@ export async function saveTaskTree(
     if (insertedTaskIds.length) {
       await insforge.database.from("subtasks").delete().in("task_id", insertedTaskIds)
         .then(() => insforge.database.from("tasks").delete().in("id", insertedTaskIds))
-        .catch(() => {});
+        .catch((e: unknown) => console.error("saveTaskTree cleanup (tasks/subtasks) failed:", e));
     }
     if (insertedFeatureIds.length) {
-      await insforge.database.from("features").delete().in("id", insertedFeatureIds).catch(() => {});
+      await insforge.database.from("features").delete().in("id", insertedFeatureIds)
+        .catch((e: unknown) => console.error("saveTaskTree cleanup (features) failed:", e));
     }
     const msg = error instanceof Error ? error.message : String(error);
     console.error("saveTaskTree error:", msg);

@@ -1,24 +1,23 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { PrdViewer } from "./prd-viewer";
-import { VersionHistory } from "./version-history";
 import { ChatPanel } from "@/components/chat";
+import { ModelDropdown } from "@/components/chat/model-dropdown";
 import { useChatStore, useUIStore } from "@/store";
 import { usePanelResize } from "@/hooks/use-panel-resize";
 import { cn } from "@/lib/utils";
 import type { PrdVersion, Plan } from "@/types/database";
 import Link from "next/link";
 import {
-  Infinity as InfinityIcon,
-  FileText,
   Home,
   X,
-  PanelRightClose,
-  MessageSquare,
-  ArrowRight,
+  RefreshCw,
+  AlertCircle,
 } from "lucide-react";
+import { DEFAULT_MODEL_ID } from "@/lib/model-config";
+import { savePendingPrdPrompt } from "@/lib/prompt-handoff";
 
 // ─────────────────────────────────────────────
 // Types
@@ -58,8 +57,17 @@ export function PrdDetail({
 }: PrdDetailProps) {
   // ── State ──
   const [currentContent, setCurrentContent] = useState(latestVersion?.content || "");
-  const [isChatOpen, setIsChatOpen] = useState(initialChatOpen);
+  const isChatOpen = useUIStore((s) => s.isChatPanelOpen);
   const [isStepLoading, setIsStepLoading] = useState(false);
+  // Error/retry state for failed or partial generation
+  const [errorRetryModel, setErrorRetryModel] = useState(DEFAULT_MODEL_ID);
+  // ponytail: on first paint for a fresh project, isGeneratingPRD hasn't been
+  // set yet (ChatPanel's auto-submit effect sets it, but effects run after
+  // paint) — without this flag the error branch below flashes before the
+  // stream even starts. Resolves false once child effects have run.
+  const [isCheckingGeneration, setIsCheckingGeneration] = useState(
+    () => !!projectId && !latestVersion,
+  );
 
   // ── Hooks ──
   const { rightWidth, onStartDragRight, isDraggingRight } = usePanelResize();
@@ -96,11 +104,19 @@ export function PrdDetail({
     if (latestVersion) setCurrentContent(latestVersion.content);
   }, [latestVersion]);
 
-  // Clear streaming state when mounted with saved PRD, and when the index
-  // page (no projectId) is visited so stale Zustand globals from a prior
-  // streaming session don't render a false "Mengetik PRD..." state.
+  // Runs after ChatPanel's child auto-submit effect (children mount before
+  // parents), so by here isGeneratingPRD is already true if a stream started.
   useEffect(() => {
-    if (projectId && latestVersion?.content) {
+    setIsCheckingGeneration(false);
+  }, []);
+
+  // Clear streaming state when mounted with saved PRD, and when navigating
+  // between projects so stale Zustand globals from a prior streaming session
+  // don't render a false generation state.
+  useEffect(() => {
+    const store = useChatStore.getState();
+    const isDifferentProject = projectId && store.activeProjectId !== projectId;
+    if (projectId && (latestVersion?.content || isDifferentProject)) {
       setGeneratingPRD(false);
       setStreamingPRDContent("");
     } else if (!projectId) {
@@ -119,11 +135,24 @@ export function PrdDetail({
     });
   };
 
-  const handleToggleChat = () => setIsChatOpen((prev) => !prev);
+  const toggleChat = useUIStore((s) => s.toggleChatPanel);
 
-  // ponytail: skip explicit chat input focus — ChatPanel has no focus API yet.
-  // Add when user complains; panel open + visible input is enough.
-  const handleRevisiPrd = () => setIsChatOpen(true);
+  /**
+   * Retry generating PRD from error state.
+   * Creates a fresh project via the normal flow so ChatPanel auto-submit works.
+   */
+  const handleRetryGenerate = useCallback(async () => {
+    sessionStorage.setItem("novaplan:selected-model", errorRetryModel);
+    setGeneratingPRD(false);
+    setStreamingPRDContent("");
+
+    // Save as pending prompt so /setup page picks it up
+    savePendingPrdPrompt(projectName || "Project Baru", "auto", projectName);
+
+    startTransition(() => {
+      router.push(`/setup`);
+    });
+  }, [projectName, errorRetryModel, setGeneratingPRD, setStreamingPRDContent, router]);
 
   const handleStepAc = async () => {
     if (!projectId || isStepLoading) return;
@@ -155,158 +184,65 @@ export function PrdDetail({
         className="flex flex-1 flex-col overflow-hidden min-w-0"
         style={{ background: "var(--bg-page)" }}
       >
-        {projectId && latestVersion ? (
-          <>
-            {/* Topbar */}
-            <div
-              id="print-hide-topbar"
-              className="flex flex-col justify-between gap-3 border-b border-graphite px-4 py-3 print:hidden sm:flex-row sm:items-center sm:px-6"
-            >
-              <div className="flex items-center gap-3">
-                <h1 className="max-w-[200px] truncate font-inter text-base font-[510] sm:max-w-xs sm:text-lg">
-                  {projectName}
-                </h1>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 pb-1 sm:pb-0">
-                {revisionLimit !== undefined && (
-                  <span className="flex items-center gap-1 rounded-[2px] bg-charcoal px-3 py-1 text-xs font-[510] text-fog shadow-[var(--shadow-inset)]">
-                    Revisi: {allVersions.length > 0 ? allVersions.length - 1 : 0}/
-                    {revisionLimit === -1 ? (
-                      <InfinityIcon size={12} strokeWidth={3} />
-                    ) : (
-                      revisionLimit
-                    )}
-                  </span>
-                )}
-                <VersionHistory
-                  versions={allVersions.map((v) => ({
-                    id: v.id,
-                    version: v.version,
-                    content: v.content,
-                    change_summary: v.change_summary,
-                    created_at: v.created_at,
-                  }))}
-                  currentVersion={latestVersion.version}
-                  onSelectVersion={handleVersionSelect}
-                  plan={plan}
-                />
-                <button
-                  onClick={handleToggleChat}
-                  aria-expanded={isChatOpen}
-                  aria-label={isChatOpen ? "Tutup chat" : "Buka chat"}
-                  className={cn(
-                    "flex items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1.5 text-xs font-[510] transition-colors sm:gap-2 sm:px-3",
-                    isChatOpen
-                      ? "btn-primary"
-                      : "bg-charcoal text-fog shadow-[var(--shadow-inset)] hover:bg-white/5 hover:text-snow",
-                  )}
-                >
-                  {isChatOpen ? (
-                    <PanelRightClose size={14} className="sm:w-4 sm:h-4" />
-                  ) : (
-                    <MessageSquare size={14} className="sm:w-4 sm:h-4" />
-                  )}
-                  <span className="hidden sm:inline">
-                    {isChatOpen ? "Hide Chat" : "Chat"}
-                  </span>
-                  <span className="sm:hidden">Chat</span>
-                </button>
-              </div>
-            </div>
-
-            <PrdViewer
-              content={isGeneratingPRD || streamingPRDContent ? streamingPRDContent : currentContent}
-              projectName={projectName || ""}
-              plan={plan}
-              className="flex-1 overflow-hidden"
-            />
-
-            {/* ActionBar — sticky bottom of PRD area */}
-            <div
-              id="print-hide-actions"
-              className="flex shrink-0 items-center justify-end gap-3 border-t border-graphite bg-onyx px-4 py-3 print:hidden sm:px-6"
-              style={{ background: "var(--bg-page)" }}
-            >
-              <button
-                onClick={handleRevisiPrd}
-                className="flex items-center gap-2 rounded-md bg-charcoal px-4 py-2 text-sm font-[510] text-fog shadow-[var(--shadow-inset)] transition-colors hover:bg-white/5 hover:text-snow"
-              >
-                <MessageSquare size={14} />
-                Revisi PRD Dulu
-              </button>
-              <button
-                onClick={handleStepAc}
-                disabled={isStepLoading || isGeneratingPRD}
-                className="btn-primary flex items-center gap-2 rounded-md px-4 py-2 text-sm font-[510] transition-all hover:brightness-105 active:scale-[0.98] disabled:opacity-40 disabled:hover:brightness-100"
-              >
-                {isStepLoading ? (
-                  "Memuat..."
-                ) : (
-                  <>
-                    Lanjut Bikin AC
-                    <ArrowRight size={14} />
-                  </>
-                )}
-              </button>
-            </div>
-          </>
-        ) : (isGeneratingPRD || streamingPRDContent) ? (
-          <>
-            <div className="flex items-center justify-between border-b border-graphite px-4 py-3 print:hidden sm:px-6">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <h1 className="font-inter text-sm font-[510] sm:text-lg">
-                    {isGeneratingPRD
-                      ? "NovaPlan AI Sedang Mengetik PRD..."
-                      : "Generate Terhenti (PRD Tersimpan Sebagian)"}
-                  </h1>
-                  {isGeneratingPRD && (
-                    <span className="flex gap-1 mt-1">
-                      <span
-                        className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald"
-                        style={{ animationDelay: "0ms" }}
-                      />
-                      <span
-                        className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald"
-                        style={{ animationDelay: "150ms" }}
-                      />
-                      <span
-                        className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald"
-                        style={{ animationDelay: "300ms" }}
-                      />
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-            <PrdViewer
-              content={streamingPRDContent || "Mohon tunggu sebentar..."}
-              projectName={isGeneratingPRD ? "Menyusun PRD..." : "Gagal Generate"}
-              plan={plan}
-              className="flex-1 overflow-hidden"
-            />
-          </>
-        ) : (
-          /* Empty State */
+        {projectId && !isCheckingGeneration && !isGeneratingPRD && !streamingPRDContent && !latestVersion ? (
+          /* Error/Retry state — project exists but has no PRD version */
           <div className="flex-1 flex items-center justify-center p-4 sm:p-6">
             <div className="text-center max-w-lg">
-              <div className="mb-6 hidden justify-center text-slate sm:flex">
-                <FileText size={64} strokeWidth={1} />
+              <div className="mb-6 flex justify-center text-crimson">
+                <AlertCircle size={48} strokeWidth={1.5} />
               </div>
-              <h2 className="mb-3 font-inter text-2xl font-light">Belum ada proyek</h2>
+              <h2 className="mb-3 font-inter text-2xl font-light">PRD Gagal Dibuat</h2>
               <p className="mb-6 font-inter leading-relaxed text-fog">
-                Kamu belum punya proyek. Mulai buat PRD pertamamu dari beranda.
+                Gangguan pada model AI atau proses generasi terputus. Silakan pilih model dan coba lagi.
               </p>
-              <Link
-                href="/"
-                className="btn-primary inline-flex items-center gap-2 rounded-md px-6 py-3 font-inter text-sm font-[510] transition-all hover:brightness-105"
+
+              <div className="mx-auto mb-6 flex max-w-xs flex-col gap-3 rounded-lg border border-indigo/20 bg-indigo/5 p-4">
+                <label className="font-inter text-sm font-[510] text-mist text-left">
+                  Pilih Model AI
+                </label>
+                <div className="flex w-full items-center rounded-md bg-charcoal p-2 shadow-[var(--shadow-inset)]">
+                  <ModelDropdown
+                    selectedModel={errorRetryModel}
+                    onSelect={setErrorRetryModel}
+                    userPlan={plan}
+                    position="bottom"
+                  />
+                </div>
+                <button
+                  onClick={handleRetryGenerate}
+                  className="btn-primary flex items-center justify-center gap-2 rounded-md px-4 py-3 text-sm font-[510]"
+                >
+                  <RefreshCw size={14} />
+                  Generate Ulang PRD
+                </button>
+              </div>
+
+              <button
+                onClick={() => router.push("/")}
+                className="inline-flex items-center gap-2 rounded-md bg-charcoal px-6 py-3 text-sm font-[510] text-fog shadow-[var(--shadow-inset)] transition-colors hover:bg-white/5 hover:text-snow"
               >
                 <Home size={16} />
-                Mulai dari Beranda
-              </Link>
+                Kembali ke Beranda
+              </button>
             </div>
           </div>
+        ) : (
+          /* Default: PRD content (streaming or saved) */
+          <PrdViewer
+            content={isGeneratingPRD || streamingPRDContent ? streamingPRDContent : currentContent}
+            projectName={projectName || ""}
+            plan={plan}
+            versions={allVersions?.map((v) => ({
+              id: v.id,
+              version: v.version,
+              content: v.content,
+              change_summary: v.change_summary,
+              created_at: v.created_at,
+            }))}
+            currentVersion={latestVersion?.version}
+            onSelectVersion={handleVersionSelect}
+            className="flex-1 overflow-hidden"
+          />
         )}
       </div>
 
@@ -326,7 +262,7 @@ export function PrdDetail({
             onMouseDown={onStartDragRight}
           />
         )}
-        <div className="h-full w-full">
+        <div className="h-full w-full" style={{ display: isChatOpen ? 'block' : 'none' }}>
           <ChatPanel
             projectId={projectId}
             conversationId={conversationId}
@@ -351,7 +287,7 @@ export function PrdDetail({
             <div className="flex items-center justify-between border-b border-graphite px-4 py-2">
               <span className="text-sm font-[510]">Chat</span>
               <button
-                onClick={() => setIsChatOpen(false)}
+                onClick={toggleChat}
                 aria-label="Tutup chat"
                 className="text-fog hover:text-snow"
               >

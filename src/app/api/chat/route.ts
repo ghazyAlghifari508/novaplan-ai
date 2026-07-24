@@ -1,6 +1,5 @@
 export const runtime = "nodejs";
-// PRD generation routinely runs >60s once you include first-token latency on
-// NVIDIA NIM plus the post-stream DB writes; edge's default 504 cap silently
+// PRD generation routinely runs >60s — 9router + DB writes exceed edge's 504 cap;
 // killed the stream before the client could see anything.
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
@@ -268,7 +267,14 @@ export async function POST(req: NextRequest) {
         }
 
         if (conversationIdToUse) {
-          await saveMessages(insforge, conversationIdToUse, userMessageToSave, assistantReply, plan);
+          // ponytail: generate/resume modes save the user message for history
+          // but skip the generic "Selesai menyusun PRD awal." assistant bubble —
+          // the progress card and PRD viewer already communicate completion.
+          if (mode === "chat" || mode === "revise") {
+            await saveMessages(insforge, conversationIdToUse, userMessageToSave, assistantReply, plan);
+          } else {
+            await saveMessages(insforge, conversationIdToUse, userMessageToSave, "", plan);
+          }
         }
 
         if ((mode === "generate" || mode === "revise" || mode === "resume") && conversationIdToUse) {

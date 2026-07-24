@@ -58,6 +58,7 @@ describe("POST /api/auth/refresh", () => {
       anonKey: "anon-key",
       request: expect.any(NextRequest),
       cookies: expect.anything(),
+      fetch: expect.any(Function),
       options: {
         refreshToken: {
           maxAge: 60 * 60 * 24 * 30,

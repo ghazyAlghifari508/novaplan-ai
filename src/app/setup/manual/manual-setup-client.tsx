@@ -33,7 +33,7 @@ export function ManualSetupClient() {
     setIsReady(true);
   }, [router]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Compile form data into a structured prompt
@@ -48,8 +48,20 @@ ${formData.mainFeatures || "Buatkan rekomendasi fitur yang sesuai"}
 Catatan Tambahan/Ide Awal:
 ${formData.additionalNotes}`;
 
-    savePendingPrdPrompt(compiledPrompt, "auto");
-    router.push("/prd");
+    // Buat project dulu, lalu redirect langsung ke /prd/[id]
+    try {
+      const res = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: compiledPrompt }),
+      });
+      if (!res.ok) throw new Error("Gagal membuat proyek");
+      const project = await res.json();
+      savePendingPrdPrompt(compiledPrompt, "auto");
+      router.push(`/prd/${project.id}`);
+    } catch (err) {
+      console.error("Auto create project error:", err);
+    }
   };
 
   // Don't render form until we've validated the prompt exists

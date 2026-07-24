@@ -38,7 +38,7 @@ export interface Quota {
 }
 
 export type FlowStep = "prd" | "ac" | "task";
-export type StepStatus = "pending" | "generating" | "completed";
+export type StepStatus = "pending" | "generating" | "completed" | "failed";
 export type TaskStatus = "pending" | "in_progress" | "completed" | "failed";
 
 export interface Project {
@@ -236,6 +236,8 @@ export interface ApiKey {
   user_id: string;
   name: string;
   key_prefix: string;
+  /** SHA-256 hex of the full raw key — never expose in API responses */
+  key_hash: string;
   scopes: string[];
   last_used_at: string | null;
   expires_at: string | null;

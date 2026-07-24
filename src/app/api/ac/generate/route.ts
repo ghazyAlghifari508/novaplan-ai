@@ -46,6 +46,17 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Verify project ownership
+  const { data: project } = await insforge.database
+    .from("projects")
+    .select("id")
+    .eq("id", projectId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!project) {
+    return NextResponse.json({ error: "Project not found" }, { status: 404 });
+  }
+
   // Fetch latest PRD content
   const prdContent = await getLatestPrdContent(insforge, projectId);
   if (!prdContent) {

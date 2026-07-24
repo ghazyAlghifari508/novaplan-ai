@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-
 export type PendingPrdPromptMode = "auto" | "chat";
 
 const SETUP_PROMPT_KEY = "novaplan:setup-prompt";

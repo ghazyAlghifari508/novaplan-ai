@@ -33,7 +33,7 @@ export const AcViewer = memo(function AcViewer({
   // Streaming mode: render markdown
   if (isStreaming && streamingContent) {
     return (
-      <div className={cn("h-full overflow-y-auto", className)}>
+      <div className={cn("h-full", className)}>
         <div className="mx-auto max-w-3xl px-6 py-8">
           <article className="prose prose-invert max-w-none">
             <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
@@ -51,14 +51,14 @@ export const AcViewer = memo(function AcViewer({
       <div className={cn("flex h-full items-center justify-center", className)}>
         <div className="text-center">
           <p className="text-fog">Belum ada Acceptance Criteria.</p>
-          <p className="text-sm text-fog/60">Klik "Generate AC" untuk memulai.</p>
+          <p className="text-sm text-fog/60">AI sedang menyusun kriteria penerimaan...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={cn("h-full overflow-y-auto", className)}>
+    <div className={cn("h-full", className)}>
       <div className="mx-auto max-w-3xl px-6 py-8">
         <h1 className="mb-6 font-inter text-2xl font-[510] text-snow">{projectName}</h1>
         <div className="space-y-8">

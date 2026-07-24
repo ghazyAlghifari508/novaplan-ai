@@ -6,18 +6,27 @@ import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import { TableOfContents } from "./table-of-contents";
 import { Mermaid } from "./mermaid";
-import { Button } from "@/components/ui/button";
-import { useUIStore } from "@/store";
+import { usePanelResize } from "@/hooks/use-panel-resize";
 import { cn } from "@/lib/utils";
-import { FEATURES } from "@/types/database";
 import type { Plan } from "@/types/database";
-import { Check, Copy, Download } from "lucide-react";
+import { VersionHistory } from "./version-history";
+
+interface PrdVersion {
+  id: string;
+  version: number;
+  content: string;
+  change_summary: string | null;
+  created_at: string;
+}
 
 interface PrdViewerProps {
   content: string;
   projectName: string;
   className?: string;
   plan?: Plan;
+  versions?: PrdVersion[];
+  currentVersion?: number;
+  onSelectVersion?: (content: string) => void;
 }
 
 export const PrdViewer = memo(function PrdViewer({
@@ -25,11 +34,11 @@ export const PrdViewer = memo(function PrdViewer({
   projectName,
   className,
   plan = "free",
+  versions,
+  currentVersion,
+  onSelectVersion,
 }: PrdViewerProps) {
-  const [copied, setCopied] = useState(false);
-  const showToast = useUIStore((s) => s.showToast);
-  const features = FEATURES[plan];
-  
+  const { leftWidth, onStartDragLeft, isDraggingLeft } = usePanelResize();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll logic when new content arrives
@@ -43,25 +52,6 @@ export const PrdViewer = memo(function PrdViewer({
       }
     }
   }, [content]);
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(content);
-    setCopied(true);
-    showToast("PRD disalin ke clipboard", "success");
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleDownloadMd = () => {
-    const blob = new Blob([content], { type: "text/markdown" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `PRD_${projectName.replace(/\s+/g, "_")}.md`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast("PRD di-download", "success");
-  };
-
 
   // Membersihkan sisa tag markdown (misal ```markdown di awal dan ``` di akhir)
   // yang sering kali ditambahkan secara otomatis oleh AI.
@@ -102,39 +92,21 @@ export const PrdViewer = memo(function PrdViewer({
   return (
     <div className={cn("flex h-full", className)}>
       <aside
-        className="hidden h-full w-[180px] shrink-0 overflow-y-auto border-r border-graphite bg-onyx p-4 md:block"
-        style={{ background: "var(--bg-page)" }}
+        style={{ width: `${leftWidth}px`, background: "var(--bg-page)" }}
+        className={cn(
+          "relative hidden h-full shrink-0 overflow-y-auto border-r border-graphite bg-onyx p-4 md:block",
+          !isDraggingLeft && "transition-[width] duration-300",
+        )}
       >
         <TableOfContents content={content} />
+        {/* Drag handle */}
+        <div
+          className="absolute right-[-4px] top-0 z-10 h-full w-2 cursor-col-resize transition-colors hover:bg-indigo/20"
+          onMouseDown={onStartDragLeft}
+        />
       </aside>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto relative scroll-smooth">
-        <div
-          id="print-hide-viewer-topbar"
-          className="sticky top-0 z-10 flex items-center justify-between border-b border-graphite bg-onyx px-8 py-4 print:hidden"
-          style={{ background: "var(--bg-page)" }}
-        >
-          <h1 className="font-inter text-xl font-[510] text-snow">{projectName}</h1>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleCopy}
-              className="flex items-center gap-1.5 cursor-pointer"
-            >
-              {copied ? <><Check size={16} /> Copied</> : <><Copy size={16} /> Copy</>}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleDownloadMd}
-              className="flex items-center gap-1.5 cursor-pointer"
-            >
-              <Download size={16} /> Download .md
-            </Button>
-
-          </div>
-        </div>
 
         <article className="prd-content mx-auto max-w-3xl px-8 pb-16 pt-8 text-mist">
           <Markdown
@@ -184,6 +156,18 @@ export const PrdViewer = memo(function PrdViewer({
             {cleanContent}
           </Markdown>
         </article>
+
+        {/* Floating Version History button — bottom-right corner */}
+        {versions && versions.length > 1 && (
+          <div className="fixed bottom-6 right-6 z-50 print:hidden">
+            <VersionHistory
+              versions={versions}
+              currentVersion={currentVersion || 1}
+              onSelectVersion={(content) => onSelectVersion?.(content)}
+              plan={plan}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

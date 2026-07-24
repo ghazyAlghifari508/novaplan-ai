@@ -1,6 +1,7 @@
 import { refreshAuth } from "@insforge/sdk/ssr";
 import { NextRequest } from "next/server";
 import { authCookieSettings } from "@/lib/insforge/auth-cookies";
+import { createResilientFetch } from "@/lib/insforge/resilient-fetch";
 
 export const runtime = "nodejs";
 
@@ -14,8 +15,15 @@ export async function POST(request: NextRequest) {
     anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY!,
     request,
     cookies: request.cookies,
+    fetch: createResilientFetch((attempt, reason) =>
+      console.warn(`[auth-refresh-route] retry ${attempt}: ${reason}`),
+    ),
     ...authCookieSettings,
   });
+
+  if (result.error) {
+    console.warn(`[auth-refresh-route] refresh failed: ${result.error.message}`);
+  }
 
   return result.response;
 }
