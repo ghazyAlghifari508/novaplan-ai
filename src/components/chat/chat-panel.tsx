@@ -306,14 +306,10 @@ export function ChatPanel({
                 } else if (chatMode === "generate" || chatMode === "resume") {
                   setStreamingPRDContent(displayContent);
                 } else if (chatMode === "revise") {
-                  // Show natural language in chat bubble + live-patch PRD viewer.
-                  if (currentPrdContent) {
-                    const patchedPrd = livePatchPrd(currentPrdContent, displayContent);
-                    setStreamingPRDContent(patchedPrd);
-                  }
-                  const cleaned = cleanChatBubble(displayContent);
-                  streamingContentRef.current = cleaned;
-                  setStreamingContent(cleaned);
+                  // Do NOT touch streamingPRDContent — the PRD viewer must stay
+                  // on the current full PRD (sections 1-8) at all times. The
+                  // merge is handled server-side and saved as a new version.
+                  setStreamingContent(cleanChatBubble(displayContent));
                 } else {
                   // For chat mode, stream into chat bubble instead of PRD Viewer
                   setStreamingContent(displayContent);
@@ -351,9 +347,11 @@ export function ChatPanel({
                 } else if (chatMode === "revise") {
                   setGeneratingPRD(false);
                   setIsRevising(false);
-                  // Use ref to get latest streaming content reliably.
+                  // Preserve the streaming natural-language bubble before
+                  // streamingContent gets cleared in finally.
                   const streamingNaturalLanguage = streamingContentRef.current || streamingContent;
                   // Restore completedSections from the ORIGINAL full PRD
+                  // (not the AI output which only has the updated section).
                   if (currentPrdContent) {
                     const allSecs: string[] = [];
                     const sr = /<!-- SECTION: (.+?) -->/g;
@@ -365,12 +363,6 @@ export function ChatPanel({
                       }
                     }
                     if (allSecs.length > 0) setCompletedSections(allSecs);
-                  }
-                  // Apply the merged PRD to the viewer.
-                  const mergedPrd = parsed.content || fullContent;
-                  if (currentPrdContent && mergedPrd) {
-                    const fullPrd = livePatchPrd(currentPrdContent, mergedPrd);
-                    setStreamingPRDContent(fullPrd);
                   }
                   // Keep the natural-language bubble (step 2).
                   if (streamingNaturalLanguage) {
