@@ -81,6 +81,6 @@ export async function generateSummaryReply(userMessage: string): Promise<string>
     );
   } catch (e) {
     console.error("Failed to generate summary message", e);
-    return "PRD berhasil diperbarui.";
+    return "Revisi PRD telah selesai diterapkan.";
   }
 }

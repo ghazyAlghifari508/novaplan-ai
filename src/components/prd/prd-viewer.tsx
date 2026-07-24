@@ -9,7 +9,6 @@ import { Mermaid } from "./mermaid";
 import { usePanelResize } from "@/hooks/use-panel-resize";
 import { cn } from "@/lib/utils";
 import type { Plan } from "@/types/database";
-import { VersionHistory } from "./version-history";
 
 interface PrdVersion {
   id: string;
@@ -157,17 +156,7 @@ export const PrdViewer = memo(function PrdViewer({
           </Markdown>
         </article>
 
-        {/* Floating Version History button — bottom-right corner */}
-        {versions && versions.length > 1 && (
-          <div className="fixed bottom-6 right-6 z-50 print:hidden">
-            <VersionHistory
-              versions={versions}
-              currentVersion={currentVersion || 1}
-              onSelectVersion={(content) => onSelectVersion?.(content)}
-              plan={plan}
-            />
-          </div>
-        )}
+        {/* Version History moved to PrdDetail header bar */}
       </div>
     </div>
   );

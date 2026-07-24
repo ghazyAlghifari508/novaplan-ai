@@ -3,6 +3,7 @@
 import { useState, useEffect, useTransition, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { PrdViewer } from "./prd-viewer";
+import { VersionHistory } from "./version-history";
 import { ChatPanel } from "@/components/chat";
 import { ModelDropdown } from "@/components/chat/model-dropdown";
 import { useChatStore, useUIStore } from "@/store";
@@ -230,21 +231,40 @@ export function PrdDetail({
           </div>
         ) : (
           /* Default: PRD content (streaming or saved) */
-          <PrdViewer
-            content={isGeneratingPRD || streamingPRDContent ? streamingPRDContent : currentContent}
-            projectName={projectName || ""}
-            plan={plan}
-            versions={allVersions?.map((v) => ({
-              id: v.id,
-              version: v.version,
-              content: v.content,
-              change_summary: v.change_summary,
-              created_at: v.created_at,
-            }))}
-            currentVersion={latestVersion?.version}
-            onSelectVersion={handleVersionSelect}
-            className="flex-1 overflow-hidden"
-          />
+          <div className="flex flex-1 flex-col overflow-hidden">
+            {/* Version bar — replaces the floated bottom-right version button */}
+            {allVersions && allVersions.length > 1 && (
+              <div className="flex items-center justify-end border-b border-graphite px-4 py-1.5">
+                <VersionHistory
+                  versions={allVersions.map((v) => ({
+                    id: v.id,
+                    version: v.version,
+                    content: v.content,
+                    change_summary: v.change_summary,
+                    created_at: v.created_at,
+                  }))}
+                  currentVersion={latestVersion?.version || 1}
+                  onSelectVersion={handleVersionSelect}
+                  plan={plan}
+                />
+              </div>
+            )}
+            <PrdViewer
+              content={isGeneratingPRD || streamingPRDContent ? streamingPRDContent : currentContent}
+              projectName={projectName || ""}
+              plan={plan}
+              versions={allVersions?.map((v) => ({
+                id: v.id,
+                version: v.version,
+                content: v.content,
+                change_summary: v.change_summary,
+                created_at: v.created_at,
+              }))}
+              currentVersion={latestVersion?.version}
+              onSelectVersion={handleVersionSelect}
+              className="flex-1 overflow-hidden"
+            />
+          </div>
         )}
       </div>
 
