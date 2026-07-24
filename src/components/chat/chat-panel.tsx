@@ -345,10 +345,21 @@ export function ChatPanel({
                   setGeneratingPRD(false);
                   startTransition(() => { router.refresh(); });
                 } else if (chatMode === "revise") {
-                  // Revision complete — refresh to show updated PRD + saved chat bubble,
-                  // but keep the message panel intact via DB persistence.
+                  // Revision complete — update PRD viewer and add assistant
+                  // bubble directly, no refresh needed since the content is
+                  // included in the done payload.
                   setGeneratingPRD(false);
-                  startTransition(() => { router.refresh(); });
+                  if (parsed.content) {
+                    setStreamingPRDContent(parsed.content);
+                  }
+                  if (parsed.summaryMessage) {
+                    addMessage({
+                      id: crypto.randomUUID(),
+                      role: "assistant",
+                      content: parsed.summaryMessage,
+                      timestamp: Date.now(),
+                    });
+                  }
                 }
               } else if (parsed.type === "error") {
                 gotErrorEvent = true;
@@ -401,10 +412,12 @@ export function ChatPanel({
         if (chatMode === "generate" || chatMode === "resume" || chatMode === "revise") {
           const finalDisplayContent = existingPartialContent ? existingPartialContent + fullContent : fullContent;
           if (finalDisplayContent.trim()) {
-            if (chatMode === "resume" || chatMode === "revise") {
+            if (chatMode === "resume") {
               setGeneratingPRD(false);
               startTransition(() => { router.refresh(); });
             }
+            // revise — not reached if done event handled it, but keep
+            // state clean in case the stream ended without a done event.
           } else {
             addMessage({
               id: crypto.randomUUID(),

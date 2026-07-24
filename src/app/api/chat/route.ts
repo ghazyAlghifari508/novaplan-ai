@@ -276,11 +276,13 @@ export async function POST(req: NextRequest) {
           }
         }
 
+        // Hoist finalPrdToSave so it's accessible outside the block for safeDone.
+        let finalPrdToSave: string | undefined;
         if ((mode === "generate" || mode === "revise" || mode === "resume") && conversationIdToUse) {
-          let finalPrdToSave = mode === "resume" && partialContent 
-            ? partialContent + fullResponse 
+          finalPrdToSave = mode === "resume" && partialContent
+            ? partialContent + fullResponse
             : fullResponse;
-            
+
           // Merge logic for "revise" mode (Block-Patching)
           if (mode === "revise" && projectIdToUse) {
             const currentPrd = await getLatestPrdContent(insforge, projectIdToUse);
@@ -289,22 +291,22 @@ export async function POST(req: NextRequest) {
               let match;
               let mergedPrd = currentPrd;
               let isMerged = false;
-              
+
               while ((match = updateRegex.exec(fullResponse)) !== null) {
                 const sectionName = match[1].trim();
                 const newSectionContent = match[2].trim();
-                
+
                 // Escape special characters in sectionName for regex safety
                 const escapedSectionName = sectionName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                 const sectionRegex = new RegExp(`<!-- SECTION: ${escapedSectionName} -->[\\s\\S]*?<!-- \\/SECTION -->`, 'g');
-                
+
                 if (sectionRegex.test(mergedPrd)) {
                   const replacement = `<!-- SECTION: ${sectionName} -->\n${newSectionContent}\n<!-- /SECTION -->`;
                   mergedPrd = mergedPrd.replace(sectionRegex, replacement);
                   isMerged = true;
                 }
               }
-              
+
               // If AI successfully used the patching format, save the merged PRD
               if (isMerged) {
                 finalPrdToSave = mergedPrd;
@@ -327,11 +329,18 @@ export async function POST(req: NextRequest) {
 
         // ── Send done event ──
         const resolvedProject = await resolveProjectId(insforge, projectIdToUse, conversationIdToUse);
-        safeDone({
+
+        // For revise mode, include the final merged PRD content so the client
+        // can update the PRD viewer immediately without a full page refresh.
+        const donePayload: Record<string, unknown> = {
           conversationId: conversationIdToUse,
           projectId: resolvedProject || undefined,
           summaryMessage: assistantReply,
-        });
+        };
+        if (mode === "revise" && finalPrdToSave) {
+          donePayload.content = finalPrdToSave;
+        }
+        safeDone(donePayload);
       } catch (error) {
         // Rollback any created records
         try {
