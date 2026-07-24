@@ -300,6 +300,15 @@ export function ChatPanel({
                 if (parsed.conversationId) {
                   setConversationId(parsed.conversationId);
                 }
+                // Move the last section from spinner (currentSection) into
+                // completedSections — generation is done, nothing is pending.
+                if (currentSection) {
+                  const currentCompleted = useChatStore.getState().completedSections;
+                  if (!currentCompleted.includes(currentSection)) {
+                    setCompletedSections([...currentCompleted, currentSection]);
+                  }
+                  setCurrentSection(null);
+                }
                 if (parsed.projectId && onProjectCreated && !projectId) {
                   // New project: clear Zustand state before navigation
                   setGeneratingPRD(false);
@@ -402,7 +411,7 @@ export function ChatPanel({
         abortControllerRef.current = null;
       }
     },
-    [acMode, addMessage, currentPrdContent, onProjectCreated, onStreamContent, projectId, setCompletedSections, setGeneratingPRD, setStreaming, setStreamingPRDContent, showToast, router],
+    [acMode, addMessage, currentPrdContent, currentSection, onProjectCreated, onStreamContent, projectId, setCompletedSections, setGeneratingPRD, setStreaming, setStreamingPRDContent, showToast, router],
   );
 
   /** Called when the user types a message and clicks send. */

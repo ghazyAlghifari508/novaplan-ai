@@ -267,13 +267,12 @@ export async function POST(req: NextRequest) {
         }
 
         if (conversationIdToUse) {
-          // ponytail: generate/resume modes save the user message for history
-          // but skip the generic "Selesai menyusun PRD awal." assistant bubble —
-          // the progress card and PRD viewer already communicate completion.
+          // Only chat/revise persist messages — generate/resume are
+          // prompt-to-PRD flows whose user input must never appear in the
+          // conversation history. The PRD itself is saved via savePrdVersion
+          // below; the chat panel's job starts with the first revision message.
           if (mode === "chat" || mode === "revise") {
             await saveMessages(insforge, conversationIdToUse, userMessageToSave, assistantReply, plan);
-          } else {
-            await saveMessages(insforge, conversationIdToUse, userMessageToSave, "", plan);
           }
         }
 

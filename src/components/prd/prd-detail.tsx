@@ -85,8 +85,22 @@ export function PrdDetail({
     if (store.activeProjectId !== (projectId || null)) {
       store.setActiveProject(projectId || null);
       if (initialMessages && initialMessages.length > 0) {
+        // ponytail: filter out old user messages carrying the PRD template
+        // wrapper — those were saved by the old generate/resume persistence
+        // path and must never surface as chat bubbles. The server now skips
+        // saveMessages for those modes entirely, but DB rows from before the
+        // fix still exist and would leak on page refresh.
+        const cleanMessages = initialMessages.filter((m) => {
+          if (m.role !== "user") return true;
+          const c = m.content;
+          return !(
+            c.startsWith("Generate PRD lengkap") ||
+            c.startsWith("Generate PRD") ||
+            c.includes("Gunakan section markers sesuai standar")
+          );
+        });
         setMessages(
-          initialMessages.map((m) => ({
+          cleanMessages.map((m) => ({
             id: m.id,
             role: m.role as "user" | "assistant" | "system",
             content: m.content,
