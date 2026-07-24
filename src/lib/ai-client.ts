@@ -25,13 +25,15 @@ export async function* streamChat(
 ): AsyncGenerator<string, void, undefined> {
   const selectedModel = model || AI_MODELS.primary;
 
-  // ponytail: 16384 works with OpenCode Free models — old NVIDIA Llama looped at 16K.
-  // 8K was truncating PRDs mid-section-7 (Database Schema) with capable models.
+  // ponytail: 32768 — PRD has 8 sections; section 7.2 (ERD mermaid diagram
+  // with detailed attributes) needs deep output. 16384 caused generation to
+  // stall at ERD on flash models. DeepSeek V4 Flash (hengker default) supports
+  // 1M context / 384000 maxOutput, so 32K is well within budget.
   const requestBody: Record<string, unknown> = {
     model: selectedModel,
     stream: true,
     messages,
-    max_tokens: 16384,
+    max_tokens: 32768,
     stop: ["<|eot_id|>", "<|end_of_text|>", "===DONE==="],
   };
 
@@ -95,7 +97,7 @@ export async function completeChat(
     model: selectedModel,
     stream: false,
     messages,
-    max_tokens: 16384,
+    max_tokens: 32768,
     stop: ["<|eot_id|>", "<|end_of_text|>", "===DONE==="],
   };
 

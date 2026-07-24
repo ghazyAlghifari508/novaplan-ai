@@ -140,7 +140,7 @@ export function ChatPanel({
     if (isGeneratingPRD && !currentSection) {
       setCurrentSection("Overview");
     }
-  }, [isGeneratingPRD]);
+  }, [isGeneratingPRD, currentSection]);
 
   // ── Derived ──
   const isEffectivelyDisabled = inputDisabled && messages.length === 0;
@@ -402,7 +402,7 @@ export function ChatPanel({
         abortControllerRef.current = null;
       }
     },
-    [addMessage, onProjectCreated, projectId, setGeneratingPRD, setStreaming, setStreamingPRDContent, showToast, router],
+    [acMode, addMessage, currentPrdContent, onProjectCreated, onStreamContent, projectId, setCompletedSections, setGeneratingPRD, setStreaming, setStreamingPRDContent, showToast, router],
   );
 
   /** Called when the user types a message and clicks send. */
@@ -424,7 +424,13 @@ export function ChatPanel({
     }
 
     isSubmittingRef.current = true;
-    addMessage({ id: crypto.randomUUID(), role: "user", content: trimmed, timestamp: Date.now() });
+    // ponytail: only chat/revise show a user bubble. generate/resume come from
+    // the home prompt and must NEVER appear in the chat panel — the progress
+    // card above already communicates generation. The chat panel's job after a
+    // PRD exists is revision conversation, not echoing the original prompt.
+    if (resolvedMode === "chat" || resolvedMode === "revise") {
+      addMessage({ id: crypto.randomUUID(), role: "user", content: trimmed, timestamp: Date.now() });
+    }
     setInput("");
     setStreaming(true);
     setStreamingContent("");
@@ -487,7 +493,11 @@ export function ChatPanel({
       if (isSubmittingRef.current) return;
       isSubmittingRef.current = true;
 
-      if (displayMessage !== null) {
+      // ponytail: generate/resume are triggered by the home prompt and must
+      // NOT surface as a chat bubble — that leaked the internal template
+      // wrapper ("Generate PRD lengkap...") into the panel. Only chat/revise
+      // (genuine conversation) render a user bubble.
+      if (displayMessage !== null && (chatMode === "chat" || chatMode === "revise")) {
         addMessage({ id: crypto.randomUUID(), role: "user", content: displayMessage || msg, timestamp: Date.now() });
       }
 
@@ -518,7 +528,7 @@ export function ChatPanel({
       // the template text from leaking into the chat bubble after a resume.
       await streamApiCall(body, chatMode, displayMessage || msg);
     },
-    [addMessage, conversationId, projectId, setCompletedSections, setGeneratingPRD, setStreaming, streamApiCall],
+    [addMessage, conversationId, currentPrdContent, projectId, setCompletedSections, setGeneratingPRD, setStreaming, streamApiCall],
   );
 
   // ── Auto-submit from /setup page ──
