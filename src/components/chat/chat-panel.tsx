@@ -305,11 +305,10 @@ export function ChatPanel({
                 } else if (chatMode === "generate" || chatMode === "resume") {
                   setStreamingPRDContent(displayContent);
                 } else if (chatMode === "revise") {
-                  // 1. Live patch PRD secara visual (di PRD Viewer)
-                  const patchedPrd = livePatchPrd(currentPrdContent, displayContent);
-                  setStreamingPRDContent(patchedPrd);
-
-                  // 2. Sembunyikan tag aneh dari Chat Bubble
+                  // Only show the natural language response in the chat bubble.
+                  // Do NOT touch streamingPRDContent — the PRD viewer must stay
+                  // on the current full PRD (sections 1-8) at all times. The
+                  // merge is handled server-side and saved as a new version.
                   setStreamingContent(cleanChatBubble(displayContent));
                 } else {
                   // For chat mode, stream into chat bubble instead of PRD Viewer
@@ -348,20 +347,11 @@ export function ChatPanel({
                 } else if (chatMode === "revise") {
                   setGeneratingPRD(false);
                   setIsRevising(false);
-                  // Preserve the streaming natural-language bubble (step 2) by
-                  // saving it now before clearing streamingContent in finally.
+                  // Preserve the streaming natural-language bubble before
+                  // streamingContent gets cleared in finally.
                   const streamingNaturalLanguage = streamingContent;
-                  // Merge AI output into the FULL PRD so other sections remain
-                  // intact — parsed.content is only the updated section(s).
-                  const aiOutput = parsed.content || fullContent;
-                  if (aiOutput && currentPrdContent) {
-                    const mergedPrd = livePatchPrd(currentPrdContent, aiOutput);
-                    setStreamingPRDContent(mergedPrd);
-                  } else if (aiOutput) {
-                    setStreamingPRDContent(aiOutput);
-                  }
-                  // Re-parse sections from final content for progress card
-                  const contentToParse = aiOutput;
+                  // Re-parse sections from the AI output for progress card.
+                  const contentToParse = parsed.content || fullContent;
                   const allSections: string[] = [];
                   const sr = /<!-- SECTION: (.+?) -->/g;
                   let sm;
@@ -372,8 +362,7 @@ export function ChatPanel({
                     }
                   }
                   if (allSections.length > 0) setCompletedSections(allSections);
-                  // Keep the natural-language response bubble (step 2) that
-                  // appeared during streaming. Only its latest text matters.
+                  // Keep the natural-language bubble (step 2).
                   if (streamingNaturalLanguage) {
                     addMessage({
                       id: crypto.randomUUID(),
@@ -519,9 +508,9 @@ export function ChatPanel({
     setStreamingContent("");
     if (resolvedMode !== "revise") {
       setStreamingPRDContent("");
-    } else {
-      setStreamingPRDContent(currentPrdContent);
     }
+    // ponytail: revise never touches streamingPRDContent — the PRD viewer
+    // stays on the current full PRD at all times.
 
     const body: Record<string, unknown> = { message: trimmed, mode: resolvedMode, preferences: {} };
 
@@ -589,9 +578,9 @@ export function ChatPanel({
       if (chatMode === "revise") setIsRevising(true);
       if (chatMode !== "revise") {
         setStreamingPRDContent("");
-      } else {
-        setStreamingPRDContent(currentPrdContent);
       }
+      // ponytail: revise never touches streamingPRDContent — the PRD viewer
+      // stays on the current full PRD at all times.
       if (chatMode === "generate" || chatMode === "revise") setGeneratingPRD(true);
       if (chatMode === "generate") {
         setCompletedSections([]);
