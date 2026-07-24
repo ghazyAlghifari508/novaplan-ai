@@ -348,21 +348,41 @@ export function ChatPanel({
                 } else if (chatMode === "revise") {
                   setGeneratingPRD(false);
                   setIsRevising(false);
-                  const content = parsed.content || fullContent;
-                  if (content) {
-                    setStreamingPRDContent(content);
-                    // Re-parse sections from final content for progress card
-                    const allSections: string[] = [];
-                    const sr = /<!-- SECTION: (.+?) -->/g;
-                    let sm;
-                    while ((sm = sr.exec(content)) !== null) {
-                      const n = sm[1].trim();
-                      if (ALL_PRD_SECTIONS.includes(n) && !allSections.includes(n)) {
-                        allSections.push(n);
-                      }
-                    }
-                    if (allSections.length > 0) setCompletedSections(allSections);
+                  // Preserve the streaming natural-language bubble (step 2) by
+                  // saving it now before clearing streamingContent in finally.
+                  const streamingNaturalLanguage = streamingContent;
+                  // Merge AI output into the FULL PRD so other sections remain
+                  // intact — parsed.content is only the updated section(s).
+                  const aiOutput = parsed.content || fullContent;
+                  if (aiOutput && currentPrdContent) {
+                    const mergedPrd = livePatchPrd(currentPrdContent, aiOutput);
+                    setStreamingPRDContent(mergedPrd);
+                  } else if (aiOutput) {
+                    setStreamingPRDContent(aiOutput);
                   }
+                  // Re-parse sections from final content for progress card
+                  const contentToParse = aiOutput;
+                  const allSections: string[] = [];
+                  const sr = /<!-- SECTION: (.+?) -->/g;
+                  let sm;
+                  while ((sm = sr.exec(contentToParse)) !== null) {
+                    const n = sm[1].trim();
+                    if (ALL_PRD_SECTIONS.includes(n) && !allSections.includes(n)) {
+                      allSections.push(n);
+                    }
+                  }
+                  if (allSections.length > 0) setCompletedSections(allSections);
+                  // Keep the natural-language response bubble (step 2) that
+                  // appeared during streaming. Only its latest text matters.
+                  if (streamingNaturalLanguage) {
+                    addMessage({
+                      id: crypto.randomUUID(),
+                      role: "assistant",
+                      content: streamingNaturalLanguage,
+                      timestamp: Date.now(),
+                    });
+                  }
+                  // Add the summary bubble (step 4).
                   if (parsed.summaryMessage) {
                     addMessage({
                       id: crypto.randomUUID(),
