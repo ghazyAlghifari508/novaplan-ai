@@ -25,19 +25,26 @@ export interface ModelDefinition {
 /**
  * All available AI models in NovaPlan, ordered by tier.
  *
+ * Analisa langsung dari endpoint 9Router + test tiap model:
+ *
+ * FREE — cepat, fungsional, cukup untuk chat ringan:
+ *   - Ling 3.0 Flash Free (~2s, flash, output presisi)
+ *   - Big Pickle (cepat, output bagus)
+ *
+ * PRO — reasoning + context besar:
+ *   - Nemotron 3 Ultra Free (reasoning ✅, 128K ctx, 1.4s)
+ *   - MiMo v2.5 Free (1M ctx, vision, fitur lengkap, tapi lambat ~13.7s)
+ *
+ * HENGKER — paling optimal:
+ *   - DeepSeek V4 Flash Free (reasoning ✅, 1M ctx, 2s, quality 5/5)
+ *
+ * North Mini Code — DROP (gagal coding, output empty walau 400 tokens)
+ *
  * ⚠️  When OpenCode Free deprecates a model, update the `id` here.
  *     This is the ONLY place model IDs should live.
  */
 export const ALL_MODELS: ModelDefinition[] = [
-  // ── Free Tier (OpenCode Free via 9Router) ──
-  {
-    id: "oc/deepseek-v4-flash-free(high)",
-    label: "DeepSeek v4 Flash Free",
-    tier: "free",
-    brand: "deepseek",
-    colorClass: "text-[#4D93E6]",
-    quality: 5,
-  },
+  // ── Free Tier (cepat, fungsional) ──
   {
     id: "oc/ling-3.0-flash-free(high)",
     label: "Ling 3.0 Flash Free",
@@ -47,15 +54,23 @@ export const ALL_MODELS: ModelDefinition[] = [
     quality: 4,
   },
   {
-    id: "oc/north-mini-code-free",
-    label: "North Mini Code Free",
+    id: "oc/big-pickle",
+    label: "Big Pickle Free",
     tier: "free",
-    brand: "bot",
+    brand: "openai",
     colorClass: "text-[#10A37F]",
-    quality: 3,
+    quality: 4,
   },
 
-  // ── Pro Tier (OpenCode Free via 9Router) ──
+  // ── Pro Tier (reasoning + context besar) ──
+  {
+    id: "oc/nemotron-3-ultra-free(high)",
+    label: "Nemotron 3 Ultra Free",
+    tier: "pro",
+    brand: "anthropic",
+    colorClass: "text-[#D1A77E]",
+    quality: 5,
+  },
   {
     id: "oc/mimo-v2.5-free",
     label: "MiMo v2.5 Free",
@@ -65,22 +80,14 @@ export const ALL_MODELS: ModelDefinition[] = [
     quality: 4,
   },
 
-  // ── Hengker Tier (OpenCode Free via 9Router) ──
+  // ── Hengker Tier (paling optimal) ──
   {
-    id: "oc/nemotron-3-ultra-free(high)",
-    label: "Nemotron 3 Ultra Free",
+    id: "oc/deepseek-v4-flash-free(high)",
+    label: "DeepSeek v4 Flash Free",
     tier: "hengker",
-    brand: "anthropic",
-    colorClass: "text-[#D1A77E]",
+    brand: "deepseek",
+    colorClass: "text-[#4D93E6]",
     quality: 5,
-  },
-  {
-    id: "oc/big-pickle",
-    label: "Big Pickle Free",
-    tier: "hengker",
-    brand: "openai",
-    colorClass: "text-[#10A37F]",
-    quality: 4,
   },
 ];
 
