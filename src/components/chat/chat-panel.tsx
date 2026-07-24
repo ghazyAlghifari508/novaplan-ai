@@ -349,8 +349,20 @@ export function ChatPanel({
                   // bubble directly, no refresh needed since the content is
                   // included in the done payload.
                   setGeneratingPRD(false);
-                  if (parsed.content) {
-                    setStreamingPRDContent(parsed.content);
+                  const content = parsed.content || fullContent;
+                  if (content) {
+                    setStreamingPRDContent(content);
+                    // Re-parse sections from final content for progress card
+                    const allSections: string[] = [];
+                    const sr = /<!-- SECTION: (.+?) -->/g;
+                    let sm;
+                    while ((sm = sr.exec(content)) !== null) {
+                      const n = sm[1].trim();
+                      if (ALL_PRD_SECTIONS.includes(n) && !allSections.includes(n)) {
+                        allSections.push(n);
+                      }
+                    }
+                    if (allSections.length > 0) setCompletedSections(allSections);
                   }
                   if (parsed.summaryMessage) {
                     addMessage({
