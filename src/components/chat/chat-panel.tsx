@@ -142,6 +142,25 @@ export function ChatPanel({
     }
   }, [isGeneratingPRD, currentSection]);
 
+  // On mount, if we already have a complete PRD (e.g. after refresh), fill
+  // completedSections from the content so the progress card shows all green
+  // checkmarks instead of disappearing entirely.
+  useEffect(() => {
+    if (!currentPrdContent || completedSections.length > 0) return;
+    const found: string[] = [];
+    const regex = /<!-- SECTION: (.+?) -->/g;
+    let m;
+    while ((m = regex.exec(currentPrdContent)) !== null) {
+      const name = m[1].trim();
+      if (ALL_PRD_SECTIONS.includes(name) && !found.includes(name)) {
+        found.push(name);
+      }
+    }
+    if (found.length > 0) {
+      setCompletedSections(found);
+    }
+  }, []);
+
   // ── Derived ──
   const isEffectivelyDisabled = inputDisabled && messages.length === 0;
 
@@ -300,15 +319,23 @@ export function ChatPanel({
                 if (parsed.conversationId) {
                   setConversationId(parsed.conversationId);
                 }
-                // Move the last section from spinner (currentSection) into
-                // completedSections — generation is done, nothing is pending.
-                if (currentSection) {
-                  const currentCompleted = useChatStore.getState().completedSections;
-                  if (!currentCompleted.includes(currentSection)) {
-                    setCompletedSections([...currentCompleted, currentSection]);
+                // Mark ALL sections found in the final content as completed.
+                // Re-parse from the full accumulated content since at done
+                // time every section is fully written — no spinner should remain.
+                const allDone: string[] = [];
+                const sectionRegex = /<!-- SECTION: (.+?) -->/g;
+                let sm;
+                const finalContentHere = existingPartialContent ? existingPartialContent + fullContent : fullContent;
+                while ((sm = sectionRegex.exec(finalContentHere)) !== null) {
+                  const name = sm[1].trim();
+                  if (ALL_PRD_SECTIONS.includes(name) && !allDone.includes(name)) {
+                    allDone.push(name);
                   }
-                  setCurrentSection(null);
                 }
+                if (allDone.length > 0) {
+                  setCompletedSections(allDone);
+                }
+                setCurrentSection(null);
                 if (parsed.projectId && onProjectCreated && !projectId) {
                   // New project: clear Zustand state before navigation
                   setGeneratingPRD(false);
@@ -316,9 +343,11 @@ export function ChatPanel({
                   onProjectCreated(parsed.projectId);
                 } else if (chatMode === "generate") {
                   setGeneratingPRD(false);
-                  // Keep streamingPRDContent visible during refresh so PrdDetail
-                  // doesn't flash empty/"Gagal Generate" state. router.refresh()
-                  // will re-render with latestVersion from DB and replace this.
+                  startTransition(() => { router.refresh(); });
+                } else if (chatMode === "revise") {
+                  // Revision complete — refresh to show updated PRD + saved chat bubble,
+                  // but keep the message panel intact via DB persistence.
+                  setGeneratingPRD(false);
                   startTransition(() => { router.refresh(); });
                 }
               } else if (parsed.type === "error") {
@@ -372,8 +401,8 @@ export function ChatPanel({
         if (chatMode === "generate" || chatMode === "resume" || chatMode === "revise") {
           const finalDisplayContent = existingPartialContent ? existingPartialContent + fullContent : fullContent;
           if (finalDisplayContent.trim()) {
-            // ponytail: no "Selesai menyusun PRD" bubble — progress card above already shows it
             if (chatMode === "resume" || chatMode === "revise") {
+              setGeneratingPRD(false);
               startTransition(() => { router.refresh(); });
             }
           } else {
@@ -574,7 +603,11 @@ export function ChatPanel({
       {(currentSection || completedSections.length > 0 || isGeneratingPRD) && (
         <div className="px-4 py-3">
           <div className="mb-1.5 text-xs font-[510] uppercase tracking-wide text-mist">
-            PRD sedang di-generate oleh AI
+            {isGeneratingPRD
+              ? "PRD sedang di-generate oleh AI"
+              : completedSections.length >= ALL_PRD_SECTIONS.length
+                ? "✅ PRD selesai digenerate"
+                : "Proses generate PRD"}
           </div>
           <div className="rounded-lg border border-graphite bg-charcoal/40 px-4 py-3">
             <div className="space-y-2">

@@ -79,37 +79,25 @@ export function PrdDetail({
 
   // ── Effects ──
 
-  // Sync chat messages when switching projects
+  // Sync chat messages — always set messages when initialMessages change
+  // (survives refresh by loading from DB server-side).
   useEffect(() => {
     const store = useChatStore.getState();
-    if (store.activeProjectId !== (projectId || null)) {
+    const isDifferentProject = store.activeProjectId !== (projectId || null);
+    if (isDifferentProject) {
       store.setActiveProject(projectId || null);
-      if (initialMessages && initialMessages.length > 0) {
-        // ponytail: filter out old user messages carrying the PRD template
-        // wrapper — those were saved by the old generate/resume persistence
-        // path and must never surface as chat bubbles. The server now skips
-        // saveMessages for those modes entirely, but DB rows from before the
-        // fix still exist and would leak on page refresh.
-        const cleanMessages = initialMessages.filter((m) => {
-          if (m.role !== "user") return true;
-          const c = m.content;
-          return !(
-            c.startsWith("Generate PRD lengkap") ||
-            c.startsWith("Generate PRD") ||
-            c.includes("Gunakan section markers sesuai standar")
-          );
-        });
-        setMessages(
-          cleanMessages.map((m) => ({
-            id: m.id,
-            role: m.role as "user" | "assistant" | "system",
-            content: m.content,
-            timestamp: new Date(m.created_at).getTime(),
-          })),
-        );
-      } else {
-        setMessages([]);
-      }
+    }
+    if (initialMessages && initialMessages.length > 0) {
+      setMessages(
+        initialMessages.map((m) => ({
+          id: m.id,
+          role: m.role as "user" | "assistant" | "system",
+          content: m.content,
+          timestamp: new Date(m.created_at).getTime(),
+        })),
+      );
+    } else if (isDifferentProject) {
+      setMessages([]);
     }
   }, [projectId, initialMessages, setMessages]);
 
