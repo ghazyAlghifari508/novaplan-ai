@@ -24,7 +24,7 @@ import {
   getLatestPrdContent,
   resolveProjectId,
 } from "@/lib/services/prd-service";
-import { selectModels, tryStreamWithFallback, generateSummaryReply } from "@/lib/services/ai-orchestrator";
+import { selectModels, tryStreamWithFallback } from "@/lib/services/ai-orchestrator";
 import { sanitizeErrorForClient } from "@/lib/services/error-sanitizer";
 
 // ─────────────────────────────────────────────
@@ -242,7 +242,12 @@ export async function POST(req: NextRequest) {
         // to the chat branch and leaked the full PRD into the chat panel.
         let assistantReply: string;
         if (mode === "revise") {
-          assistantReply = await generateSummaryReply(message);
+          // Persist the AI's own natural-language preamble (what the client
+          // actually streamed live via cleanChatBubble) instead of a separate
+          // secondary AI call — otherwise refresh replaces the real reply
+          // with an unrelated summary (or its hardcoded fallback).
+          const preamble = fullResponse.split(":::UPDATE_SECTION")[0].trim();
+          assistantReply = preamble || "Revisi berhasil diterapkan.";
         } else if (mode === "generate" || mode === "resume") {
           assistantReply = "Selesai menyusun PRD awal.";
         } else {
@@ -287,7 +292,15 @@ export async function POST(req: NextRequest) {
           if (mode === "revise" && projectIdToUse) {
             const currentPrd = await getLatestPrdContent(insforge, projectIdToUse);
             if (currentPrd) {
-              const updateRegex = /:::UPDATE_SECTION\[(.*?)\]:::\s*([\s\S]*?)\s*:::END_UPDATE:::/g;
+              // Default to the untouched full PRD — never the raw revision
+              // fragment. If merge fails below, the full document survives
+              // unchanged instead of collapsing to just the revised section.
+              finalPrdToSave = currentPrd;
+              // Lenient closing tag (matches client's own livePatchPrd) — the
+              // AI sometimes truncates/omits `:::END_UPDATE:::`; requiring it
+              // strictly silently dropped the merge and saved just the
+              // fragment as finalPrdToSave.
+              const updateRegex = /:::UPDATE_SECTION\[(.*?)\]:::\s*([\s\S]*?)(?:\s*:::END_UPDATE:::|$)/g;
               let match;
               let mergedPrd = currentPrd;
               let isMerged = false;
@@ -296,12 +309,35 @@ export async function POST(req: NextRequest) {
                 const sectionName = match[1].trim();
                 const newSectionContent = match[2].trim();
 
-                // Escape special characters in sectionName for regex safety
                 const escapedSectionName = sectionName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                const sectionRegex = new RegExp(`<!-- SECTION: ${escapedSectionName} -->[\\s\\S]*?<!-- \\/SECTION -->`, 'g');
+                const openingTag = `<!-- SECTION: ${escapedSectionName} -->`;
 
+                // Strategy 1: strict match with closing tag (well-formed PRD).
+                let sectionRegex = new RegExp(`${openingTag}[\\s\\S]*?<!-- \\/SECTION -->`, 'g');
                 if (sectionRegex.test(mergedPrd)) {
-                  const replacement = `<!-- SECTION: ${sectionName} -->\n${newSectionContent}\n<!-- /SECTION -->`;
+                  const replacement = `${openingTag}\n${newSectionContent}\n<!-- /SECTION -->`;
+                  mergedPrd = mergedPrd.replace(sectionRegex, replacement);
+                  isMerged = true;
+                  continue;
+                }
+
+                // Strategy 2: lenient — opening tag to next section opening tag or end-of-doc.
+                // Handles PRD whose stored content lacks closing tags (zero <!-- /SECTION --> found).
+                const ALL_SECTION_NAMES = [
+                  "Overview", "Goals & Success Metrics", "Requirements", "Core Features",
+                  "User Flow", "Architecture & Tech Stack", "Database Schema",
+                  "Design & Technical Constraints",
+                ];
+                const sectionIdx = ALL_SECTION_NAMES.indexOf(sectionName);
+                const nextSection = sectionIdx >= 0 && sectionIdx < ALL_SECTION_NAMES.length - 1
+                  ? ALL_SECTION_NAMES[sectionIdx + 1] : null;
+                const endBoundary = nextSection
+                  ? `(?:[\\s\\S]*?<!-- SECTION: ${nextSection.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} -->)`
+                  : '(?:[\\s\\S]*|$)';
+                sectionRegex = new RegExp(`${openingTag}[\\s\\S]*?${endBoundary}`, 'g');
+                if (sectionRegex.test(mergedPrd)) {
+                  const endMarker = nextSection ? `\n\n<!-- SECTION: ${nextSection} -->` : '';
+                  const replacement = `${openingTag}\n${newSectionContent}${endMarker}`;
                   mergedPrd = mergedPrd.replace(sectionRegex, replacement);
                   isMerged = true;
                 }

@@ -289,6 +289,7 @@ export function PrdDetail({
             projectId={projectId}
             conversationId={conversationId}
             onProjectCreated={handleProjectCreated}
+            onPrdRevised={setCurrentContent}
             className="w-full"
             inputDisabled={!projectId && !isGeneratingPRD}
             currentPrdContent={currentContent}
@@ -321,6 +322,7 @@ export function PrdDetail({
                 projectId={projectId}
                 conversationId={conversationId}
                 onProjectCreated={handleProjectCreated}
+                onPrdRevised={setCurrentContent}
                 className="w-full border-none"
                 enableAutoSubmit={false}
                 inputDisabled={!projectId && !isGeneratingPRD}

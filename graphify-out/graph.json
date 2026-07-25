@@ -2113,7 +2113,7 @@
       "label": "handleSend()",
       "file_type": "code",
       "source_file": "src\\components\\chat\\chat-panel.tsx",
-      "source_location": "L409",
+      "source_location": "L486",
       "id": "chat_chat_panel_handlesend",
       "community": 7,
       "norm_label": "handlesend()"
@@ -2122,7 +2122,7 @@
       "label": "handleResumePRD()",
       "file_type": "code",
       "source_file": "src\\components\\chat\\chat-panel.tsx",
-      "source_location": "L453",
+      "source_location": "L538",
       "id": "chat_chat_panel_handleresumeprd",
       "community": 7,
       "norm_label": "handleresumeprd()"
@@ -2491,7 +2491,7 @@
       "label": "handleVersionSelect()",
       "file_type": "code",
       "source_file": "src\\components\\prd\\prd-detail.tsx",
-      "source_location": "L130",
+      "source_location": "L133",
       "id": "prd_prd_detail_handleversionselect",
       "community": 4,
       "norm_label": "handleversionselect()"
@@ -2500,7 +2500,7 @@
       "label": "handleProjectCreated()",
       "file_type": "code",
       "source_file": "src\\components\\prd\\prd-detail.tsx",
-      "source_location": "L132",
+      "source_location": "L135",
       "id": "prd_prd_detail_handleprojectcreated",
       "community": 4,
       "norm_label": "handleprojectcreated()"
@@ -2509,7 +2509,7 @@
       "label": "handleStepAc()",
       "file_type": "code",
       "source_file": "src\\components\\prd\\prd-detail.tsx",
-      "source_location": "L157",
+      "source_location": "L160",
       "id": "prd_prd_detail_handlestepac",
       "community": 4,
       "norm_label": "handlestepac()"
@@ -3121,7 +3121,7 @@
       "label": "completeChat()",
       "file_type": "code",
       "source_file": "src\\lib\\ai-client.ts",
-      "source_location": "L88",
+      "source_location": "L90",
       "id": "lib_ai_client_completechat",
       "community": 3,
       "norm_label": "completechat()"
@@ -6219,9 +6219,9 @@
       "source_file": "src\\middleware.ts",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_middleware_ts",
-      "target": "insforge_resilient_fetch_createresilientfetch",
-      "confidence_score": 1.0
+      "target": "insforge_resilient_fetch_createresilientfetch"
     },
     {
       "relation": "contains",
@@ -7755,9 +7755,9 @@
       "source_file": "src\\app\\api\\auth\\refresh\\route.ts",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_app_api_auth_refresh_route_ts",
-      "target": "insforge_resilient_fetch_createresilientfetch",
-      "confidence_score": 1.0
+      "target": "insforge_resilient_fetch_createresilientfetch"
     },
     {
       "relation": "contains",
@@ -14547,9 +14547,9 @@
       "source_file": "src\\lib\\insforge\\resilient-fetch.ts",
       "source_location": "L23",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_lib_insforge_resilient_fetch_ts",
-      "target": "insforge_resilient_fetch_isretryablestatus",
-      "confidence_score": 1.0
+      "target": "insforge_resilient_fetch_isretryablestatus"
     },
     {
       "relation": "contains",
@@ -14557,9 +14557,9 @@
       "source_file": "src\\lib\\insforge\\resilient-fetch.ts",
       "source_location": "L27",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_lib_insforge_resilient_fetch_ts",
-      "target": "insforge_resilient_fetch_sleep",
-      "confidence_score": 1.0
+      "target": "insforge_resilient_fetch_sleep"
     },
     {
       "relation": "contains",
@@ -14567,9 +14567,9 @@
       "source_file": "src\\lib\\insforge\\resilient-fetch.ts",
       "source_location": "L31",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_lib_insforge_resilient_fetch_ts",
-      "target": "insforge_resilient_fetch_createresilientfetch",
-      "confidence_score": 1.0
+      "target": "insforge_resilient_fetch_createresilientfetch"
     },
     {
       "relation": "contains",
