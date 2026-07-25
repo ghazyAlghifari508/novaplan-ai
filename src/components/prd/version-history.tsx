@@ -142,8 +142,8 @@ export function VersionHistory({
 
       {diffMode && diffVersions && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="max-h-[80vh] w-full max-w-3xl overflow-auto rounded-xl bg-(--bg-card) p-6">
-            <div className="mb-4 flex items-center justify-between">
+          <div className="flex max-h-[80vh] w-full max-w-3xl flex-col rounded-xl bg-(--bg-card) p-6">
+            <div className="mb-4 flex shrink-0 items-center justify-between">
               <h3 className="font-inter font-[510] text-lg font-bold">
                 Diff: v{diffVersions[0].version} vs v{diffVersions[1].version}
               </h3>
@@ -154,7 +154,9 @@ export function VersionHistory({
                 Tutup
               </button>
             </div>
-            <VersionDiff v1={diffVersions[0]} v2={diffVersions[1]} />
+            <div className="flex-1 overflow-auto">
+              <VersionDiff v1={diffVersions[0]} v2={diffVersions[1]} />
+            </div>
           </div>
         </div>
       )}

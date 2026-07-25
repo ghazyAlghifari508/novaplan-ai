@@ -6,6 +6,7 @@ import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import { TableOfContents } from "./table-of-contents";
 import { Mermaid } from "./mermaid";
+import { VersionHistory } from "./version-history";
 import { usePanelResize } from "@/hooks/use-panel-resize";
 import { cn } from "@/lib/utils";
 import type { Plan } from "@/types/database";
@@ -105,7 +106,23 @@ export const PrdViewer = memo(function PrdViewer({
         />
       </aside>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto relative scroll-smooth">
+      {/* Content area: VersionHistory header + scrollable content */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Version History header - only spans content area, not TOC */}
+        {versions && versions.length > 1 && (
+          <div className="shrink-0 border-b border-graphite bg-charcoal/40 px-4 py-2">
+            <div className="mx-auto max-w-3xl flex justify-end">
+              <VersionHistory
+                versions={versions}
+                currentVersion={currentVersion || 1}
+                onSelectVersion={onSelectVersion || (() => {})}
+                plan={plan}
+              />
+            </div>
+          </div>
+        )}
+
+        <div ref={scrollRef} className="flex-1 overflow-y-auto relative scroll-smooth">
 
         <article className="prd-content mx-auto max-w-3xl px-8 pb-16 pt-8 text-mist">
           <Markdown
@@ -156,7 +173,7 @@ export const PrdViewer = memo(function PrdViewer({
           </Markdown>
         </article>
 
-        {/* Version History moved to PrdDetail header bar */}
+        </div>
       </div>
     </div>
   );
