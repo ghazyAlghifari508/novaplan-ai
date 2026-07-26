@@ -105,6 +105,11 @@ export async function POST(req: NextRequest) {
         }
       };
 
+      // Phase 2 (DB save) intentionally ignores clientAborted/req.signal — once AI
+      // streaming finishes, the save must run to completion even if the client tab
+      // closed, so a finished generation is never silently discarded (PRD US-4).
+      // emit()/controller.close() are already try/catch-guarded above, so a closed
+      // controller here just no-ops instead of throwing ECONNRESET.
       const safeDone = async (extras: Record<string, unknown> = {}) => {
         if (eventDone || eventErrored) return;
         eventDone = true;
@@ -119,7 +124,7 @@ export async function POST(req: NextRequest) {
           emit({ type: "done", acVersionId, version, ...extras });
         } catch (err) {
           console.error("saveAcVersion failed:", err);
-          emit({ type: "error", error: "Failed to save AC version" });
+          emit({ type: "error", error: sanitizeErrorForClient(err, "ac") });
         }
         try { controller.close(); } catch {}
       };
@@ -127,6 +132,15 @@ export async function POST(req: NextRequest) {
       const safeError = (msg: string) => {
         if (eventDone || eventErrored) return;
         eventErrored = true;
+        // Reset ac_status so the UI isn't stuck on "generating" forever.
+        // ponytail: non-fatal — fire-and-forget; error event still emits.
+        insforge.database
+          .from("projects")
+          .update({ ac_status: "pending" })
+          .eq("id", projectId)
+          .then(({ error }: { error: unknown }) => {
+            if (error) console.error("ac_status reset failed:", error);
+          });
         emit({ type: "error", error: msg });
         try { controller.close(); } catch {}
       };
@@ -156,12 +170,14 @@ export async function POST(req: NextRequest) {
           emit({ type: "delta", content: chunk });
         }
 
-        if (clientAborted || req.signal.aborted) return;
+        // AI streaming (Phase 1) finished fully here — don't gate the save (Phase 2)
+        // on clientAborted/req.signal anymore. A tab close that races with the very
+        // last chunk must not discard a completed generation (PRD US-4, AC-4.2/4.3).
         await safeDone();
       } catch (err: unknown) {
         if (clientAborted || req.signal.aborted) return;
         console.error("AC generate stream error:", err);
-        safeError(sanitizeErrorForClient(err));
+        safeError(sanitizeErrorForClient(err, "ac"));
       } finally {
         clearInterval(heartbeatInterval);
         req.signal.removeEventListener("abort", onAbort);

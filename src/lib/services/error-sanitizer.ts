@@ -6,13 +6,30 @@
 /**
  * Sanitize an error for client display.
  * Replaces technical error details with user-friendly Indonesian messages.
+ * `context` narrows the mapping for callers whose generic messages differ (e.g. "ac").
  */
-export function sanitizeErrorForClient(error: unknown): string {
+export function sanitizeErrorForClient(error: unknown, context?: "ac"): string {
   if (!(error instanceof Error)) {
     return "Terjadi kesalahan yang tidak diketahui.";
   }
 
   const msg = error.message;
+
+  // AC-specific mappings (PRD US-3): AI orchestrator empty-chunk error and DB save
+  // failures need friendlier, actionable copy pointing at the recovery flow.
+  if (context === "ac") {
+    if (msg.includes("Respons kosong")) {
+      return "AI mengembalikan respon kosong. Silakan generate ulang.";
+    }
+    if (msg.includes("Failed to save AC version") || msg.includes("Failed to insert AC version")) {
+      return "Penyimpanan ke database terlalu lama (timeout). Silakan klik tombol 'Retry Simpan' untuk mencoba menyimpan ulang hasil.";
+    }
+  }
+
+  // Database timeout/abort (any caller) — same friendly copy as the AC save-timeout case.
+  if (msg.toLowerCase().includes("timed out") || msg.toLowerCase().includes("aborted")) {
+    return "Penyimpanan ke database terlalu lama (timeout). Silakan klik tombol 'Retry Simpan' untuk mencoba menyimpan ulang hasil.";
+  }
 
   // Gateway timeout / edge runtime cutoff (prod issue: server silently killed at
   // 60s but DB write may have already persisted the PRD).
