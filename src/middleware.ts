@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { AUTH_REFRESH_LEEWAY_SECONDS, authCookieSettings } from "@/lib/insforge/auth-cookies";
 import { createResilientFetch } from "@/lib/insforge/resilient-fetch";
 
-const PUBLIC_ROUTES = ["/", "/login", "/register", "/forgot-password", "/pricing"];
+const PUBLIC_ROUTES = ["/", "/maintenance", "/login", "/register", "/forgot-password", "/pricing"];
 const AUTH_ROUTES = ["/login", "/register"];
 
 export async function middleware(request: NextRequest) {
