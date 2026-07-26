@@ -9,10 +9,15 @@ const AUTH_ROUTES = ["/login", "/register"];
 export async function middleware(request: NextRequest) {
   // ── Maintenance mode: redirect all requests to /maintenance ──
   const pathname = request.nextUrl.pathname;
-  if (pathname !== "/maintenance" && !pathname.startsWith("/_next/") && !pathname.startsWith("/api/")) {
+  if (
+    pathname !== "/maintenance" &&
+    pathname !== "/_not-found" &&
+    !pathname.startsWith("/_next/") &&
+    !pathname.startsWith("/api/")
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = "/maintenance";
-    return NextResponse.rewrite(url);
+    return NextResponse.redirect(url);
   }
 
   // ── API v1 routes use API key auth, skip cookie session handling ──
