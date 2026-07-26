@@ -1,57 +1,51 @@
-/**
- * Seed script — creates a dev user account.
- * Run: npx tsx scripts/seed.ts
- *
- * Credentials saved in memory file for reference.
- */
-
-import { createServerClient } from "@insforge/sdk/ssr";
-import { config } from "dotenv";
+import { createClient } from "@supabase/supabase-js";
 import { resolve } from "path";
+import { fileURLToPath } from "url";
 
-// Load env vars
-config({ path: resolve(__dirname, "../.env.local") });
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
-const INSFORGE_URL = process.env.NEXT_PUBLIC_INSFORGE_URL;
-const INSFORGE_ANON_KEY = process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const SEED_EMAIL = process.env.SEED_EMAIL ?? "dev@novaplan.local";
+const SEED_PASSWORD = process.env.SEED_PASSWORD ?? "devpassword123";
+const SEED_MODE = process.argv[2];
 
-const SEED_EMAIL = "devseed@novaplan.local";
-const SEED_PASSWORD = "DevSeed123!";
-const SEED_MODE = process.argv.includes("--reset") ? "reset" : "create";
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 async function main() {
-  if (!INSFORGE_URL || !INSFORGE_ANON_KEY) {
-    console.error("Missing INSFORGE env vars in .env.local");
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    console.error("Missing Supabase env vars");
     process.exit(1);
   }
 
-  const client = createServerClient({
-    baseUrl: INSFORGE_URL,
-    anonKey: INSFORGE_ANON_KEY,
+  if (SEED_MODE === "reset") {
+    const { data: users } = await supabase.auth.admin.listUsers();
+    const existing = users.users.find((u) => u.email === SEED_EMAIL);
+    if (existing) {
+      await supabase.auth.admin.deleteUser(existing.id);
+      console.log(`🗑️  Deleted existing seed user: ${SEED_EMAIL}`);
+    }
+  }
+
+  const { data, error } = await supabase.auth.admin.createUser({
+    email: SEED_EMAIL,
+    password: SEED_PASSWORD,
+    email_confirm: true,
   });
 
-  if (SEED_MODE === "create") {
-    const { data, error } = await client.auth.signUp({
-      email: SEED_EMAIL,
-      password: SEED_PASSWORD,
-    });
-
-    if (error) {
-      if (error.message?.includes("already exists")) {
-        console.log(`ℹ️  User ${SEED_EMAIL} already exists. Use --reset to recreate.`);
-      } else {
-        console.error("Sign-up failed:", error.message);
-        process.exit(1);
-      }
+  if (error) {
+    if (error.message?.includes("already exists")) {
+      console.log(`ℹ️  User ${SEED_EMAIL} already exists. Use --reset to recreate.`);
     } else {
-      console.log(`✅ Created seed user: ${SEED_EMAIL}`);
-      console.log(`   Password: ${SEED_PASSWORD}`);
-      if (data.requireEmailVerification) {
-        console.log("⚠️  Email verification required — check the InsForge dashboard.");
-      }
+      console.error("Sign-up failed:", error.message);
+      process.exit(1);
     }
-  } else if (SEED_MODE === "reset") {
-    console.log("Reset mode: delete user via InsForge admin dashboard then re-run without --reset");
+  } else {
+    console.log(`✅ Created seed user: ${SEED_EMAIL}`);
+    console.log(`   Password: ${SEED_PASSWORD}`);
+    if (data?.user?.user_metadata?.requireEmailVerification) {
+      console.log("⚠️  Email verification required — check the InsForge dashboard.");
+    }
   }
 
   // Write memory file
@@ -72,7 +66,7 @@ metadata:
 |----------|----------------------|
 | Email    | ${SEED_EMAIL}        |
 | Password | ${SEED_PASSWORD}     |
-| Purpose  | UI testing / visual audit via ECC Chrome DevTools |
+| Purpose  | UI testing / visual audit via ECC Chrome DevTools
 
 Created by \`scripts/seed.ts\`.
 `);

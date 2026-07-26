@@ -10,28 +10,12 @@ pikirin negative flow
 harus mobile responsiv
 logo
 promosi docrivo
-ganti ai ke deepseek v4 flash free dari opencode via 9router
 ganti techstack ke tanstack start biar ringan
-
----
-
-## Status Implementasi Fitur Baru (Vibecoding Update)
-
-- [x] PRD-02: Flow Step Navigation
-- [x] PRD-03: PRD Workspace Redesign
-- [x] PRD-04: Acceptance Criteria Page
-- [x] PRD-05: Whiteboard / Task Diagram Page
-- [x] PRD-06: Sitemap Whiteboard Tab
-- [x] PRD-07: Implementation Options (Copy, Download, Prompt AI Agent) [DONE]
-- [x] PRD-08: Auto-Updating Kanban Board [DONE]
-- [x] PRD-09: CLI & MCP Tool for Coding Agent [DONE]
-- [x] PRD-10: Database Schema Evolution [DONE]
 
 ## bug / error / printilan yang harus diperbaiki
 
 -inkonsisten loading
+-bug error kasih penanganan yang jelas dan pesan yang jelas.
+-masalah udah login tapi suka tiba tiba ke logout sendiri.. apakah ini insforge issue atau codebase issue atau apa??? sering banget ngalamin ini. sudah login tapi tiba tiba ui navbar menunjukkan tombol 'login' dan 'register' yang artinya user ini ditendang/kena logout otomatis sama sistem entah kenapa secara tiba tiba di beberapa saat. biasanya user sudah login tapi beberapa menit kemudian terlogout otomatis
 
-- error pada saat melakukan prompting di halaman / kemudian memilih 'biarkan ai memilih' prd cenderung tidak di generate dan saya di tendang kembali ke halaman /, jika ai error pada saat generate prd tolong munculin tombol 'retry' di halaman prd/id dan ketika user klik retry maka ai akan mengenerate prd ulang. atau ketika error munculin modal pesan error 'gangguan model ai blabla' dan user dipersilahkan mengganti model untuk melanjutkan. (componetn modelnya sebenarnya sudah ada tinggal dibikin logic)
-  -bug error kasih penanganan yang jelas dan pesan yang jelas.
-  -masalah udah login tapi suka tiba tiba ke logout sendiri.. apakah ini insforge issue atau codebase issue atau apa??? sering banget ngalamin ini. sudah login tapi tiba tiba ui navbar menunjukkan tombol 'login' dan 'register' yang artinya user ini ditendang/kena logout otomatis sama sistem entah kenapa secara tiba tiba di beberapa saat. biasanya user sudah login tapi beberapa menit kemudian terlogout otomatis
 - perbaiki kata kata 'Menyusun diagram... (Jika tidak tampil, AI melakukan kesalahan syntax)' supaya ga nunjukin kelemahan website atau hal hal teknis ke ui/frontend

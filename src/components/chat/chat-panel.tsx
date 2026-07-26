@@ -95,6 +95,7 @@ interface ChatPanelProps {
   enableAutoSubmit?: boolean;
   inputDisabled?: boolean;
   currentPrdContent?: string;
+  selectedVersionNum?: number; // Version number currently viewed (for revision context)
   userPlan?: Plan; // Pass from server to avoid client fetch
   // AC mode props (PRD-04)
   acMode?: boolean;
@@ -115,6 +116,7 @@ export function ChatPanel({
   enableAutoSubmit = true,
   inputDisabled = false,
   currentPrdContent = "",
+  selectedVersionNum,
   userPlan: initialUserPlan = "free",
   acMode = false,
   currentAcContent = "",
@@ -330,10 +332,11 @@ export function ChatPanel({
                 } else if (chatMode === "generate" || chatMode === "resume") {
                   setStreamingPRDContent(displayContent);
                 } else if (chatMode === "revise") {
-                  // For revise mode: show AI's natural language response in chat,
-                  // while keeping PRD viewer showing the full current PRD (sections 1-8).
-                  // We'll show a loading indicator while the AI responds, then the AI's response.
-                  // Don't touch streamingPRDContent - the PRD viewer stays on full PRD.
+                  // Live-patch current PRD with streaming revision content so viewer
+                  // shows full PRD 1-8 with the revised section streaming in real-time.
+                  const patched = livePatchPrd(currentPrdContent, displayContent);
+                  setStreamingPRDContent(patched);
+                  // Also show natural-language preamble in chat bubble
                   const cleaned = cleanChatBubble(displayContent);
                   streamingContentRef.current = cleaned;
                   setStreamingContent(cleaned);
@@ -552,6 +555,8 @@ export function ChatPanel({
     }
     if (conversationId) body.conversationId = conversationId;
     if (projectId) body.projectId = projectId;
+    // ponytail: pass selectedVersionNum so server merges against viewed version, not always latest
+    if (selectedVersionNum && resolvedMode === "revise") body.selectedVersionNum = selectedVersionNum;
     if (resolvedMode === "generate" || resolvedMode === "revise") setGeneratingPRD(true);
 
     await streamApiCall(body, resolvedMode, trimmed);
@@ -627,6 +632,8 @@ export function ChatPanel({
       }
       if (conversationId) body.conversationId = conversationId;
       if (projectId) body.projectId = projectId;
+      // ponytail: pass selectedVersionNum so server merges against viewed version
+      if (selectedVersionNum && chatMode === "revise") body.selectedVersionNum = selectedVersionNum;
 
       // Pass the clean display message as `originalMessage` so that if the
       // stream breaks mid-generation, `originalMessageStore` holds the user's
@@ -634,7 +641,7 @@ export function ChatPanel({
       // the template text from leaking into the chat bubble after a resume.
       await streamApiCall(body, chatMode, displayMessage || msg);
     },
-    [addMessage, conversationId, currentPrdContent, projectId, setCompletedSections, setGeneratingPRD, setStreaming, streamApiCall],
+    [addMessage, conversationId, currentPrdContent, projectId, selectedVersionNum, setCompletedSections, setGeneratingPRD, setStreaming, streamApiCall],
   );
 
   // ── Auto-submit from /setup page ──

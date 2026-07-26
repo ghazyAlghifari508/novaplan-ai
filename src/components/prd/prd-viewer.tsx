@@ -26,7 +26,7 @@ interface PrdViewerProps {
   plan?: Plan;
   versions?: PrdVersion[];
   currentVersion?: number;
-  onSelectVersion?: (content: string) => void;
+  onSelectVersion?: (content: string, version: number) => void;
 }
 
 export const PrdViewer = memo(function PrdViewer({

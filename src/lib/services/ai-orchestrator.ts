@@ -32,6 +32,8 @@ export function selectModels(plan: Plan, requestedModel?: string): string[] {
 export async function tryStreamWithFallback(
   models: string[],
   messages: Array<{ role: "system" | "user" | "assistant"; content: string }>,
+  externalSignal?: AbortSignal,
+  maxTokens?: number,
 ): Promise<{
   generator: AsyncGenerator<string, void, undefined>;
   firstChunk: string;
@@ -42,7 +44,11 @@ export async function tryStreamWithFallback(
   for (let i = 0; i < models.length; i++) {
     const modelToTry = models[i];
     const abortController = new AbortController();
-    const gen = streamChat(messages, modelToTry, abortController.signal);
+    if (externalSignal) {
+      if (externalSignal.aborted) abortController.abort();
+      else externalSignal.addEventListener("abort", () => abortController.abort(), { once: true });
+    }
+    const gen = streamChat(messages, modelToTry, abortController.signal, maxTokens);
 
     try {
       const first = await gen.next();

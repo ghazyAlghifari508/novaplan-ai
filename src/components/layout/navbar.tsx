@@ -13,6 +13,9 @@ export function Navbar() {
   const [isLoading, setIsLoading] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isStepLoading, setIsStepLoading] = useState(false);
+  const isGeneratingPRD = useChatStore((s) => s.isGeneratingPRD);
+  const streamingPRDContent = useChatStore((s) => s.streamingPRDContent);
+  const isGeneratingAC = useChatStore((s) => s.isGeneratingAC);
   const router = useRouter();
   const pathname = usePathname();
   const [, startTransition] = useTransition();
@@ -43,6 +46,27 @@ export function Navbar() {
     } catch (err) {
       console.error("Step to AC failed:", err);
       showToast("Gagal lanjut ke Acceptance Criteria.", "error");
+    } finally {
+      setIsStepLoading(false);
+    }
+  };
+
+  const handleStepTask = async () => {
+    if (!projectId || isStepLoading) return;
+    setIsStepLoading(true);
+    try {
+      const res = await fetch(`/api/projects/${projectId}/step`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ step: "task" }),
+      });
+      if (!res.ok) throw new Error("Gagal memperbarui tahap proyek");
+      startTransition(() => {
+        router.push(`/task/${projectId}`);
+      });
+    } catch (err) {
+      console.error("Step to Task failed:", err);
+      showToast("Gagal lanjut ke Task.", "error");
     } finally {
       setIsStepLoading(false);
     }
@@ -149,24 +173,34 @@ export function Navbar() {
         <div className="flex w-[200px] shrink-0 items-center justify-end gap-2">
           {isFlowStepRoute ? (
             /* Workspace action buttons */
-            step === "prd" && projectId && (
-              <>
+            <>
+              {step === "prd" && projectId && (
+                <>
+                  <button
+                    onClick={() => { useChatStore.getState().setGeneratingPRD(false); useUIStore.getState().toggleChatPanel(); }}
+                    className="flex items-center gap-1.5 rounded-md bg-charcoal px-3 py-1.5 text-xs font-[510] text-fog shadow-[var(--shadow-inset)] transition-colors hover:bg-white/5 hover:text-snow"
+                    aria-label="Buka/tutup chat"
+                  >
+                    <MessageSquare size={14} />
+                    <span>Chat</span>
+                  </button>
+                  <button
+                    onClick={handleStepAc}
+                    disabled={isStepLoading || isGeneratingPRD || !!streamingPRDContent}
+                    className="btn-primary flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-[510] transition-all hover:brightness-105 active:scale-[0.98] disabled:opacity-40 disabled:bg-graphite/40 disabled:text-fog/50"
+                  >
+                    {isStepLoading ? "Memuat..." : <><span>Generate AC</span><ArrowRight size={12} /></>}</button>
+                </>
+              )}
+              {step === "ac" && projectId && (
                 <button
-                  onClick={() => { useChatStore.getState().setGeneratingPRD(false); useUIStore.getState().toggleChatPanel(); }}
-                  className="flex items-center gap-1.5 rounded-md bg-charcoal px-3 py-1.5 text-xs font-[510] text-fog shadow-[var(--shadow-inset)] transition-colors hover:bg-white/5 hover:text-snow"
-                  aria-label="Buka/tutup chat"
+                  onClick={handleStepTask}
+                  disabled={isStepLoading || isGeneratingAC || isGeneratingPRD || !!streamingPRDContent}
+                  className="btn-primary flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-[510] transition-all hover:brightness-105 active:scale-[0.98] disabled:opacity-40 disabled:bg-graphite/40 disabled:text-fog/50"
                 >
-                  <MessageSquare size={14} />
-                  <span>Chat</span>
-                </button>
-                <button
-                  onClick={handleStepAc}
-                  disabled={isStepLoading}
-                  className="btn-primary flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-[510] transition-all hover:brightness-105 active:scale-[0.98] disabled:opacity-40"
-                >
-                  {isStepLoading ? "Memuat..." : <><span>Generate AC</span><ArrowRight size={12} /></>}</button>
-              </>
-            )
+                  {isStepLoading || isGeneratingAC || isGeneratingPRD || !!streamingPRDContent ? "Memuat..." : <><span>Generate Task</span><ArrowRight size={12} /></>}</button>
+              )}
+            </>
           ) : (
             /* Non-workspace right items */
             <>

@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 interface TableOfContentsProps {
   content: string;
   className?: string;
+  /** Deepest heading level to list (2=only ## sections). Default 4 (##/###/####). */
+  maxLevel?: number;
 }
 
 interface TocItem {
@@ -14,7 +16,7 @@ interface TocItem {
   id: string;
 }
 
-export function TableOfContents({ content, className }: TableOfContentsProps) {
+export function TableOfContents({ content, className, maxLevel = 4 }: TableOfContentsProps) {
   const [collapsed, setCollapsed] = useState(false);
 
   const tocItems = useMemo(() => {
@@ -24,6 +26,7 @@ export function TableOfContents({ content, className }: TableOfContentsProps) {
       const match = line.match(/^(#{2,4})\s+(.+)/);
       if (match) {
         const level = match[1].length;
+        if (level > maxLevel) continue;
         const text = match[2].trim();
         items.push({
           level,
@@ -33,7 +36,7 @@ export function TableOfContents({ content, className }: TableOfContentsProps) {
       }
     }
     return items;
-  }, [content]);
+  }, [content, maxLevel]);
 
   if (tocItems.length === 0) return null;
 

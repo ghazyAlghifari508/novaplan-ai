@@ -160,7 +160,7 @@ export async function POST(req: NextRequest) {
       try {
         emit({ type: "started", model: modelsToTry[0] });
 
-        const { generator, firstChunk } = await tryStreamWithFallback(modelsToTry, messages);
+        const { generator, firstChunk } = await tryStreamWithFallback(modelsToTry, messages, undefined, 64000);
 
         fullResponse += firstChunk;
         emit({ type: "delta", content: firstChunk });

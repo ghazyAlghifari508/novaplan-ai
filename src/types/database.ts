@@ -150,18 +150,12 @@ export const FEATURES: Record<
 // VibeCoding platform tables (migration 20260720120000)
 // ============================================================
 
-/** One acceptance-criteria block per feature. Stored as JSONB array in ac_versions.content. */
-export interface AcFeature {
-  featureName: string;
-  criteria: string[];
-}
-
 export interface AcVersion {
   id: string;
   project_id: string;
   user_id: string;
   version: number;
-  content: AcFeature[];
+  content: string;
   change_summary: string | null;
   created_at: string;
 }

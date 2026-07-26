@@ -38,12 +38,27 @@ export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
           return;
         }
 
+        // ponytail: sanitize common AI mermaid syntax errors before parsing
+        let sanitizedChart = chart
+          // Fix unquoted special chars in graph labels: A[Text (note)] → A["Text (note)"]
+          .replace(/([A-Za-z0-9_]+)\[([^\]"]*[(){}[\]][^\]"]*)\]/g, '$1["$2"]')
+          // Remove duplicate arrows: A -->--> B → A --> B
+          .replace(/(-+>){2,}/g, "-->")
+          .replace(/(=+>){2,}/g, "==>")
+          // Fix missing space after arrow: A-->B → A --> B (but not inside quoted strings)
+          .replace(/([A-Za-z0-9_])(-{2,}>|={2,}>|\.+>)([A-Za-z0-9_])/g, "$1 $2 $3")
+          // Strip Prisma-style array type in ER attributes: string[] images → string images
+          .replace(/(\w+)\[\]/g, "$1")
+          // Strip Prisma-style directive lines (e.g. @@unique(...)) — not valid Mermaid
+          .replace(/^\s*@@\w+\([^)]*\)\s*$/gm, "")
+          .trim();
+
         const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
 
         // Silent parse — returns false on invalid syntax instead of throwing.
         // During AI streaming, incomplete mermaid blocks are common; we handle
         // this by rendering raw text until valid syntax arrives.
-        const isParseable = await mermaid.parse(chart, { suppressErrors: true });
+        const isParseable = await mermaid.parse(sanitizedChart, { suppressErrors: true });
 
         if (!isParseable) {
           // Chart not parseable (streaming / invalid). Show raw text.
@@ -67,7 +82,7 @@ export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
         }
 
         // Chart is parseable — render it.
-        const { svg: renderSvg } = await mermaid.render(id, chart);
+        const { svg: renderSvg } = await mermaid.render(id, sanitizedChart);
         if (cancelled) return;
 
         // Guard: mermaid.render can succeed but return empty/minimal SVG

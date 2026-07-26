@@ -16,7 +16,7 @@ interface PrdVersion {
 interface VersionHistoryProps {
   versions: PrdVersion[];
   currentVersion: number;
-  onSelectVersion: (content: string) => void;
+  onSelectVersion: (content: string, version: number) => void;
   className?: string;
   plan?: Plan;
 }
@@ -36,6 +36,11 @@ export function VersionHistory({
   const hasHistoryAccess = FEATURES[plan].versionHistory !== false;
 
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // ponytail: sync selected when parent's currentVersion changes (e.g. new revision bumps version)
+  useEffect(() => {
+    setSelected(currentVersion);
+  }, [currentVersion]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -61,7 +66,7 @@ export function VersionHistory({
 
   const handleSelect = (version: PrdVersion) => {
     setSelected(version.version);
-    onSelectVersion(version.content);
+    onSelectVersion(version.content, version.version);
     setDiffMode(false);
   };
 
@@ -76,7 +81,7 @@ export function VersionHistory({
         onClick={() => setExpanded(!expanded)}
         className="flex items-center gap-2 text-sm font-medium text-(--text-secondary) hover:text-(--text-primary) dark:hover:text-[#F0F0F0]"
       >
-        <span>Version History ({versions.length})</span>
+        <span>Version History (v{selected})</span>
         <svg
           className={`h-4 w-4 transition-transform ${expanded ? "rotate-90" : ""}`}
           fill="none"
