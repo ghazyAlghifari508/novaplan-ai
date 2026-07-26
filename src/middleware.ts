@@ -7,13 +7,20 @@ const PUBLIC_ROUTES = ["/", "/maintenance", "/login", "/register", "/forgot-pass
 const AUTH_ROUTES = ["/login", "/register"];
 
 export async function middleware(request: NextRequest) {
+  // ── Maintenance mode: redirect all requests to /maintenance ──
+  const pathname = request.nextUrl.pathname;
+  if (pathname !== "/maintenance" && !pathname.startsWith("/_next/") && !pathname.startsWith("/api/")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/maintenance";
+    return NextResponse.rewrite(url);
+  }
+
   // ── API v1 routes use API key auth, skip cookie session handling ──
-  if (request.nextUrl.pathname.startsWith("/api/v1/")) {
+  if (pathname.startsWith("/api/v1/")) {
     return NextResponse.next({ request });
   }
 
   let response = NextResponse.next({ request });
-  const pathname = request.nextUrl.pathname;
 
   // ── Auth session ──
   const hadAccessTokenCookie = Boolean(request.cookies.get("insforge_access_token"));
