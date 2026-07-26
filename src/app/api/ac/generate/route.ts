@@ -26,7 +26,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { projectId } = await req.json();
+  let projectId: string;
+  try {
+    const body = await req.json();
+    projectId = body?.projectId;
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
   if (!projectId) {
     return NextResponse.json({ error: "Project ID required" }, { status: 400 });
   }
@@ -83,6 +89,13 @@ export async function POST(req: NextRequest) {
       let eventDone = false;
       let eventErrored = false;
       let fullResponse = "";
+      let abortController: AbortController | null = null;
+
+      // Abort AI generation when client disconnects (tab close, navigation)
+      // so we don't waste tokens on an abandoned stream.
+      let clientAborted = false;
+      const onAbort = () => { clientAborted = true; try { controller.close(); } catch {} };
+      req.signal.addEventListener("abort", onAbort);
 
       const emit = (payload: Record<string, unknown>) => {
         try {
@@ -118,23 +131,43 @@ export async function POST(req: NextRequest) {
         try { controller.close(); } catch {}
       };
 
+      // Heartbeat to keep connection alive and detect client disconnect
+      const heartbeatInterval = setInterval(() => {
+        try {
+          controller.enqueue(encoder.encode(`: heartbeat\n\n`));
+        } catch {
+          clearInterval(heartbeatInterval);
+        }
+      }, 15000);
+
       try {
         emit({ type: "started", model: modelsToTry[0] });
 
-        const { generator, firstChunk } = await tryStreamWithFallback(modelsToTry, messages);
+        const { generator, firstChunk, abortController: genAbortController } = await tryStreamWithFallback(modelsToTry, messages, req.signal, 64000);
+        abortController = genAbortController;
+        if (clientAborted || req.signal.aborted) return;
 
         fullResponse += firstChunk;
         emit({ type: "delta", content: firstChunk });
 
         for await (const chunk of generator) {
+          if (clientAborted || req.signal.aborted) return;
           fullResponse += chunk;
           emit({ type: "delta", content: chunk });
         }
 
+        if (clientAborted || req.signal.aborted) return;
         await safeDone();
       } catch (err: unknown) {
+        if (clientAborted || req.signal.aborted) return;
         console.error("AC generate stream error:", err);
         safeError(sanitizeErrorForClient(err));
+      } finally {
+        clearInterval(heartbeatInterval);
+        req.signal.removeEventListener("abort", onAbort);
+        if (abortController && !abortController.signal.aborted) {
+          abortController.abort();
+        }
       }
     },
   });

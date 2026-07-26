@@ -22,6 +22,7 @@ import {
   deriveProjectName,
   savePrdVersion,
   getLatestPrdContent,
+  getPrdVersionContent,
   resolveProjectId,
 } from "@/lib/services/prd-service";
 import { selectModels, tryStreamWithFallback } from "@/lib/services/ai-orchestrator";
@@ -64,6 +65,7 @@ export async function POST(req: NextRequest) {
     mode = "chat",
     partialContent,
     preferences,
+    selectedVersionNum,
   } = body as {
     message: string;
     displayMessage?: string;
@@ -72,6 +74,7 @@ export async function POST(req: NextRequest) {
     mode?: "chat" | "generate" | "revise" | "resume";
     partialContent?: string;
     preferences?: Record<string, unknown>;
+    selectedVersionNum?: number;
   };
 
   if (!message?.trim()) {
@@ -131,9 +134,12 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const latestContent = await getLatestPrdContent(insforge, projectIdToUse);
-    if (latestContent) {
-      systemPrompt = `${PRD_REVISION_PROMPT}\n\nCURRENT PRD CONTENT:\n\n${latestContent}`;
+    // ponytail: if user is viewing a specific version, revise against that version's content
+    const revisionBaseContent = selectedVersionNum
+      ? await getPrdVersionContent(insforge, projectIdToUse, selectedVersionNum)
+      : await getLatestPrdContent(insforge, projectIdToUse);
+    if (revisionBaseContent) {
+      systemPrompt = `${PRD_REVISION_PROMPT}\n\nCURRENT PRD CONTENT:\n\n${revisionBaseContent}`;
     }
   }
 
@@ -290,7 +296,10 @@ export async function POST(req: NextRequest) {
 
           // Merge logic for "revise" mode (Block-Patching)
           if (mode === "revise" && projectIdToUse) {
-            const currentPrd = await getLatestPrdContent(insforge, projectIdToUse);
+            // ponytail: merge against the version user is viewing, not always latest
+            const currentPrd = selectedVersionNum
+              ? await getPrdVersionContent(insforge, projectIdToUse, selectedVersionNum)
+              : await getLatestPrdContent(insforge, projectIdToUse);
             if (currentPrd) {
               // Default to the untouched full PRD — never the raw revision
               // fragment. If merge fails below, the full document survives

@@ -73,7 +73,7 @@ export function ChatInput({ className }: ChatInputProps) {
           // authenticated users whose subscription query errored.
           const authRes = await fetch("/api/auth/me", { cache: "no-store" });
           if (authRes.ok) {
-            setPlanStatus({ plan: "free", remaining: null });
+            setPlanStatus({ plan: "free", remaining: 0 });
           }
           return;
         }
@@ -89,7 +89,7 @@ export function ChatInput({ className }: ChatInputProps) {
       } catch {
         const authRes = await fetch("/api/auth/me", { cache: "no-store" });
         if (authRes.ok) {
-          setPlanStatus({ plan: "free", remaining: null });
+          setPlanStatus({ plan: "free", remaining: 0 });
         }
       }
     };
