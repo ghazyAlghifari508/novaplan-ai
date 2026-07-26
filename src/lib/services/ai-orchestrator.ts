@@ -3,7 +3,7 @@
  * Extracted from api/chat/route.ts to isolate AI-specific logic.
  */
 
-import { streamChat, completeChat } from "@/lib/ai-client";
+import { streamChat } from "@/lib/ai-client";
 import { ALL_MODELS, getUnlockedModelIds, isModelUnlocked } from "@/lib/model-config";
 import type { Plan } from "@/types/database";
 
@@ -32,6 +32,8 @@ export function selectModels(plan: Plan, requestedModel?: string): string[] {
 export async function tryStreamWithFallback(
   models: string[],
   messages: Array<{ role: "system" | "user" | "assistant"; content: string }>,
+  externalSignal?: AbortSignal,
+  maxTokens?: number,
 ): Promise<{
   generator: AsyncGenerator<string, void, undefined>;
   firstChunk: string;
@@ -42,7 +44,11 @@ export async function tryStreamWithFallback(
   for (let i = 0; i < models.length; i++) {
     const modelToTry = models[i];
     const abortController = new AbortController();
-    const gen = streamChat(messages, modelToTry, abortController.signal);
+    if (externalSignal) {
+      if (externalSignal.aborted) abortController.abort();
+      else externalSignal.addEventListener("abort", () => abortController.abort(), { once: true });
+    }
+    const gen = streamChat(messages, modelToTry, abortController.signal, maxTokens);
 
     try {
       const first = await gen.next();
@@ -61,26 +67,4 @@ export async function tryStreamWithFallback(
   }
 
   throw new Error(`Semua model AI sedang tidak tersedia. Coba lagi dalam beberapa menit. (${lastError})`);
-}
-
-/**
- * Generate a short summary reply for a revision (using a lightweight model).
- */
-export async function generateSummaryReply(userMessage: string): Promise<string> {
-  try {
-    return await completeChat(
-      [
-        {
-          role: "system",
-          content:
-            "Kamu adalah asisten AI. User baru saja meminta revisi dokumen PRD dengan prompt berikut. Buatlah 1-2 kalimat balasan ringkas untuk memberitahu user bahwa PRD telah berhasil diperbarui sesuai instruksinya. Sebutkan secara spesifik apa yang diubah berdasarkan promptnya (misal: 'PRD telah diperbarui dengan mengintegrasikan Insforge sebagai backend...'). Gunakan bahasa Indonesia yang profesional dan natural. JANGAN menyertakan markdown, format PRD, atau teks panjang.",
-        },
-        { role: "user", content: userMessage },
-      ],
-      "meta/llama-3.1-8b-instruct",
-    );
-  } catch (e) {
-    console.error("Failed to generate summary message", e);
-    return "Selesai melakukan revisi.";
-  }
 }

@@ -20,20 +20,42 @@ import { ALL_MODELS, DEFAULT_MODEL_ID } from "@/lib/model-config";
 function livePatchPrd(baseContent: string, streamContent: string): string {
   if (!baseContent) return streamContent;
 
+  const ALL_SECTION_NAMES_PATCH = [
+    "Overview", "Goals & Success Metrics", "Requirements", "Core Features",
+    "User Flow", "Architecture & Tech Stack", "Database Schema",
+    "Design & Technical Constraints",
+  ];
+
   let patched = baseContent;
   const regex = /:::UPDATE_SECTION\[(.*?)\]:::\s*([\s\S]*?)(?::::END_UPDATE:::|$)/g;
   let match;
-  
-  // Karena regex global memiliki state lastIndex, kita bisa loop aman
+
   while ((match = regex.exec(streamContent)) !== null) {
     const sectionName = match[1].trim();
     const newContent = match[2].trim();
-    
+
     const escaped = sectionName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const sectionRegex = new RegExp(`<!-- SECTION: ${escaped} -->[\\s\\S]*?<!-- \\/SECTION -->`, 'gi');
-    
+    const openingTag = `<!-- SECTION: ${escaped} -->`;
+
+    // Strategy 1: strict with closing tag (well-formed PRD).
+    let sectionRegex = new RegExp(`${openingTag}[\\s\\S]*?<!-- \\/SECTION -->`, 'gi');
     if (sectionRegex.test(patched)) {
-      patched = patched.replace(sectionRegex, `<!-- SECTION: ${sectionName} -->\n${newContent}\n<!-- /SECTION -->`);
+      patched = patched.replace(sectionRegex, `${openingTag}\n${newContent}\n<!-- /SECTION -->`);
+      continue;
+    }
+
+    // Strategy 2: lenient — opening tag to next section or end-of-doc.
+    // Handles PRD whose stored content lacks closing tags (zero <!-- /SECTION --> found).
+    const sectionIdx = ALL_SECTION_NAMES_PATCH.indexOf(sectionName);
+    const nextSection = sectionIdx >= 0 && sectionIdx < ALL_SECTION_NAMES_PATCH.length - 1
+      ? ALL_SECTION_NAMES_PATCH[sectionIdx + 1] : null;
+    const endBoundary = nextSection
+      ? `(?:[\\s\\S]*?<!-- SECTION: ${nextSection.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} -->)`
+      : '(?:[\\s\\S]*|$)';
+    sectionRegex = new RegExp(`${openingTag}[\\s\\S]*?${endBoundary}`, 'gi');
+    if (sectionRegex.test(patched)) {
+      const endMarker = nextSection ? `\n\n<!-- SECTION: ${nextSection} -->` : '';
+      patched = patched.replace(sectionRegex, `${openingTag}\n${newContent}${endMarker}`);
     }
   }
   return patched;
@@ -41,7 +63,7 @@ function livePatchPrd(baseContent: string, streamContent: string): string {
 
 function cleanChatBubble(streamContent: string): string {
   const cleaned = streamContent.replace(/:::UPDATE_SECTION\[(.*?)\]:::\s*([\s\S]*?)(?::::END_UPDATE:::|$)/g, "").trim();
-  if (!cleaned) return "Menerapkan revisi ke dokumen...";
+  if (!cleaned) return "";
   return cleaned;
 }
 // Constants
@@ -69,9 +91,11 @@ interface ChatPanelProps {
   conversationId?: string;
   className?: string;
   onProjectCreated?: (projectId: string) => void;
+  onPrdRevised?: (content: string) => void;
   enableAutoSubmit?: boolean;
   inputDisabled?: boolean;
   currentPrdContent?: string;
+  selectedVersionNum?: number; // Version number currently viewed (for revision context)
   userPlan?: Plan; // Pass from server to avoid client fetch
   // AC mode props (PRD-04)
   acMode?: boolean;
@@ -88,9 +112,11 @@ export function ChatPanel({
   conversationId: initialConversationId,
   className,
   onProjectCreated,
+  onPrdRevised,
   enableAutoSubmit = true,
   inputDisabled = false,
   currentPrdContent = "",
+  selectedVersionNum,
   userPlan: initialUserPlan = "free",
   acMode = false,
   currentAcContent = "",
@@ -306,10 +332,14 @@ export function ChatPanel({
                 } else if (chatMode === "generate" || chatMode === "resume") {
                   setStreamingPRDContent(displayContent);
                 } else if (chatMode === "revise") {
-                  // Do NOT touch streamingPRDContent — the PRD viewer must stay
-                  // on the current full PRD (sections 1-8) at all times. The
-                  // merge is handled server-side and saved as a new version.
-                  setStreamingContent(cleanChatBubble(displayContent));
+                  // Live-patch current PRD with streaming revision content so viewer
+                  // shows full PRD 1-8 with the revised section streaming in real-time.
+                  const patched = livePatchPrd(currentPrdContent, displayContent);
+                  setStreamingPRDContent(patched);
+                  // Also show natural-language preamble in chat bubble
+                  const cleaned = cleanChatBubble(displayContent);
+                  streamingContentRef.current = cleaned;
+                  setStreamingContent(cleaned);
                 } else {
                   // For chat mode, stream into chat bubble instead of PRD Viewer
                   setStreamingContent(displayContent);
@@ -350,13 +380,15 @@ export function ChatPanel({
                   // Preserve the streaming natural-language bubble before
                   // streamingContent gets cleared in finally.
                   const streamingNaturalLanguage = streamingContentRef.current || streamingContent;
-                  // Restore completedSections from the ORIGINAL full PRD
-                  // (not the AI output which only has the updated section).
-                  if (currentPrdContent) {
+                  // Restore completedSections from the FRESH merged PRD.
+                  // parsed.content from server has all sections 1-8; parent
+                  // prop currentPrdContent may be stale (not yet updated).
+                  const freshContent = (typeof parsed.content === "string" && parsed.content) || currentPrdContent;
+                  if (freshContent) {
                     const allSecs: string[] = [];
                     const sr = /<!-- SECTION: (.+?) -->/g;
                     let sm;
-                    while ((sm = sr.exec(currentPrdContent)) !== null) {
+                    while ((sm = sr.exec(freshContent)) !== null) {
                       const n = sm[1].trim();
                       if (ALL_PRD_SECTIONS.includes(n) && !allSecs.includes(n)) {
                         allSecs.push(n);
@@ -364,24 +396,23 @@ export function ChatPanel({
                     }
                     if (allSecs.length > 0) setCompletedSections(allSecs);
                   }
-                  // Keep the natural-language bubble (step 2).
-                  if (streamingNaturalLanguage) {
+                  // Server now persists this same preamble as assistantReply
+                  // (see route.ts) — one bubble only, so refresh shows the
+                  // exact text the user saw live instead of a second,
+                  // separately-generated summary.
+                  const finalReply = parsed.summaryMessage || streamingNaturalLanguage;
+                  if (finalReply) {
                     addMessage({
                       id: crypto.randomUUID(),
                       role: "assistant",
-                      content: streamingNaturalLanguage,
+                      content: finalReply,
                       timestamp: Date.now(),
                     });
                   }
-                  // Add the AI's summary as the second bubble (step 4).
-                  // summaryMessage is generated by the AI via generateSummaryReply
-                  if (parsed.summaryMessage) {
-                    addMessage({
-                      id: crypto.randomUUID(),
-                      role: "assistant",
-                      content: parsed.summaryMessage,
-                      timestamp: Date.now(),
-                    });
+                  // Push the server-merged full PRD (sections 1-8) up to the
+                  // PRD viewer immediately — don't wait for a refresh.
+                  if (typeof parsed.content === "string" && parsed.content) {
+                    onPrdRevised?.(parsed.content);
                   }
                 }
               } else if (parsed.type === "error") {
@@ -476,7 +507,7 @@ export function ChatPanel({
         abortControllerRef.current = null;
       }
     },
-    [acMode, addMessage, currentPrdContent, currentSection, onProjectCreated, onStreamContent, projectId, setCompletedSections, setGeneratingPRD, setStreaming, setStreamingPRDContent, showToast, router],
+    [acMode, addMessage, currentPrdContent, currentSection, onProjectCreated, onPrdRevised, onStreamContent, projectId, setCompletedSections, setGeneratingPRD, setStreaming, setStreamingPRDContent, showToast, router],
   );
 
   /** Called when the user types a message and clicks send. */
@@ -524,6 +555,8 @@ export function ChatPanel({
     }
     if (conversationId) body.conversationId = conversationId;
     if (projectId) body.projectId = projectId;
+    // ponytail: pass selectedVersionNum so server merges against viewed version, not always latest
+    if (selectedVersionNum && resolvedMode === "revise") body.selectedVersionNum = selectedVersionNum;
     if (resolvedMode === "generate" || resolvedMode === "revise") setGeneratingPRD(true);
 
     await streamApiCall(body, resolvedMode, trimmed);
@@ -599,6 +632,8 @@ export function ChatPanel({
       }
       if (conversationId) body.conversationId = conversationId;
       if (projectId) body.projectId = projectId;
+      // ponytail: pass selectedVersionNum so server merges against viewed version
+      if (selectedVersionNum && chatMode === "revise") body.selectedVersionNum = selectedVersionNum;
 
       // Pass the clean display message as `originalMessage` so that if the
       // stream breaks mid-generation, `originalMessageStore` holds the user's
@@ -606,7 +641,7 @@ export function ChatPanel({
       // the template text from leaking into the chat bubble after a resume.
       await streamApiCall(body, chatMode, displayMessage || msg);
     },
-    [addMessage, conversationId, currentPrdContent, projectId, setCompletedSections, setGeneratingPRD, setStreaming, streamApiCall],
+    [addMessage, conversationId, currentPrdContent, projectId, selectedVersionNum, setCompletedSections, setGeneratingPRD, setStreaming, streamApiCall],
   );
 
   // ── Auto-submit from /setup page ──
@@ -645,13 +680,15 @@ export function ChatPanel({
         {/* Section Generation Progress */}
         {(currentSection || completedSections.length > 0 || isGeneratingPRD) && (
           <div>
-            <div className="mb-1.5 text-xs font-[510] uppercase tracking-wide text-mist">
-              {isGeneratingPRD
-                ? "PRD sedang di-generate oleh AI"
-                : completedSections.length >= ALL_PRD_SECTIONS.length
-                  ? "✅ PRD selesai digenerate"
-                  : "Proses generate PRD"}
-            </div>
+            {!isRevising && (
+              <div className="mb-1.5 text-xs font-[510] uppercase tracking-wide text-mist">
+                {isGeneratingPRD
+                  ? "PRD sedang di-generate oleh AI"
+                  : completedSections.length >= ALL_PRD_SECTIONS.length
+                    ? "✅ PRD selesai digenerate"
+                    : "Proses generate PRD"}
+              </div>
+            )}
             <div className="rounded-lg border border-graphite bg-charcoal/40 px-4 py-3">
               <div className="space-y-2">
                 {ALL_PRD_SECTIONS.map((section, i) => {
@@ -690,16 +727,7 @@ export function ChatPanel({
         {isStreaming && streamingContent && (
           <ChatBubble role="assistant" content={streamingContent} isStreaming />
         )}
-        {isRevising && !streamingContent && (
-          <div className="flex items-center gap-1.5 px-4 py-2 text-sm text-mist">
-            <span className="animate-pulse">AI sedang merevisi</span>
-            <span className="flex gap-0.5">
-              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-mist" style={{ animationDelay: "0ms" }} />
-              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-mist" style={{ animationDelay: "150ms" }} />
-              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-mist" style={{ animationDelay: "300ms" }} />
-            </span>
-          </div>
-        )}
+        {isRevising && !streamingContent && <TypingIndicator />}
       </div>
 
       {/* Input Area */}

@@ -124,6 +124,24 @@ export async function savePrdVersion(
 }
 
 /**
+ * Get a specific PRD version's content for revision against that version.
+ */
+export async function getPrdVersionContent(
+  insforge: InsForgeClient,
+  projectId: string,
+  version: number,
+): Promise<string | null> {
+  const { data } = await insforge.database
+    .from("prd_versions")
+    .select("content")
+    .eq("project_id", projectId)
+    .eq("version", version)
+    .maybeSingle();
+
+  return data?.content || null;
+}
+
+/**
  * Get the latest PRD content for a project.
  */
 export async function getLatestPrdContent(

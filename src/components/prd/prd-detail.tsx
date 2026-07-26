@@ -3,7 +3,6 @@
 import { useState, useEffect, useTransition, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { PrdViewer } from "./prd-viewer";
-import { VersionHistory } from "./version-history";
 import { ChatPanel } from "@/components/chat";
 import { ModelDropdown } from "@/components/chat/model-dropdown";
 import { useChatStore, useUIStore } from "@/store";
@@ -58,6 +57,11 @@ export function PrdDetail({
 }: PrdDetailProps) {
   // ── State ──
   const [currentContent, setCurrentContent] = useState(latestVersion?.content || "");
+  const [selectedVersionNum, setSelectedVersionNum] = useState(latestVersion?.version || 1);
+  // ponytail: versions list must be client-refreshable after revision — server-rendered
+  // allVersions stays stale until next page load. Track locally so version history
+  // appears immediately after revision without requiring a full page refresh.
+  const [versions, setVersions] = useState(allVersions);
   const isChatOpen = useUIStore((s) => s.isChatPanelOpen);
   const [isStepLoading, setIsStepLoading] = useState(false);
   // Error/retry state for failed or partial generation
@@ -130,7 +134,41 @@ export function PrdDetail({
 
   // ── Handlers ──
 
-  const handleVersionSelect = (content: string) => setCurrentContent(content);
+  // ponytail: re-fetch versions list client-side so version history updates
+  // immediately after revision without full page refresh
+  const refreshVersions = useCallback(async (): Promise<PrdVersion[]> => {
+    if (!projectId) return [];
+    try {
+      const res = await fetch(`/api/projects/${projectId}/versions`);
+      if (res.ok) {
+        const data = await res.json();
+        setVersions(data);
+        return data;
+      }
+    } catch (err) {
+      console.error("Failed to refresh versions:", err);
+    }
+    return [];
+  }, [projectId]);
+
+  const handleVersionSelect = (content: string, version: number) => {
+    setCurrentContent(content);
+    setSelectedVersionNum(version);
+  };
+
+  // ponytail: after revision completes, update content, refresh versions list,
+  // and jump selectedVersionNum to the new version — otherwise the Version
+  // History label stays pinned to whatever version was current on page load.
+  const handlePrdRevised = useCallback(
+    async (content: string) => {
+      setCurrentContent(content);
+      const refreshed = await refreshVersions();
+      if (refreshed.length > 0) {
+        setSelectedVersionNum(Math.max(...refreshed.map((v) => v.version)));
+      }
+    },
+    [refreshVersions]
+  );
 
   const handleProjectCreated = (newProjectId: string) => {
     startTransition(() => {
@@ -232,35 +270,18 @@ export function PrdDetail({
         ) : (
           /* Default: PRD content (streaming or saved) */
           <div className="flex flex-1 flex-col overflow-hidden">
-            {/* Version bar — replaces the floated bottom-right version button */}
-            {allVersions && allVersions.length > 1 && (
-              <div className="flex items-center justify-end border-b border-graphite px-4 py-1.5">
-                <VersionHistory
-                  versions={allVersions.map((v) => ({
-                    id: v.id,
-                    version: v.version,
-                    content: v.content,
-                    change_summary: v.change_summary,
-                    created_at: v.created_at,
-                  }))}
-                  currentVersion={latestVersion?.version || 1}
-                  onSelectVersion={handleVersionSelect}
-                  plan={plan}
-                />
-              </div>
-            )}
             <PrdViewer
               content={isGeneratingPRD || streamingPRDContent ? streamingPRDContent : currentContent}
               projectName={projectName || ""}
               plan={plan}
-              versions={allVersions?.map((v) => ({
+              versions={versions?.map((v) => ({
                 id: v.id,
                 version: v.version,
                 content: v.content,
                 change_summary: v.change_summary,
                 created_at: v.created_at,
               }))}
-              currentVersion={latestVersion?.version}
+              currentVersion={selectedVersionNum}
               onSelectVersion={handleVersionSelect}
               className="flex-1 overflow-hidden"
             />
@@ -289,10 +310,12 @@ export function PrdDetail({
             projectId={projectId}
             conversationId={conversationId}
             onProjectCreated={handleProjectCreated}
+            onPrdRevised={handlePrdRevised}
             className="w-full"
             inputDisabled={!projectId && !isGeneratingPRD}
             currentPrdContent={currentContent}
             userPlan={plan}
+            selectedVersionNum={selectedVersionNum}
           />
         </div>
       </div>
@@ -321,11 +344,13 @@ export function PrdDetail({
                 projectId={projectId}
                 conversationId={conversationId}
                 onProjectCreated={handleProjectCreated}
+                onPrdRevised={setCurrentContent}
                 className="w-full border-none"
                 enableAutoSubmit={false}
                 inputDisabled={!projectId && !isGeneratingPRD}
                 currentPrdContent={currentContent}
                 userPlan={plan}
+                selectedVersionNum={selectedVersionNum}
               />
             </div>
           </div>

@@ -22,18 +22,19 @@ export async function* streamChat(
   messages: ChatMessage[],
   model?: string,
   signal?: AbortSignal,
+  maxTokens = 32768,
 ): AsyncGenerator<string, void, undefined> {
   const selectedModel = model || AI_MODELS.primary;
 
-  // ponytail: 32768 — PRD has 8 sections; section 7.2 (ERD mermaid diagram
-  // with detailed attributes) needs deep output. 16384 caused generation to
-  // stall at ERD on flash models. DeepSeek V4 Flash (hengker default) supports
-  // 1M context / 384000 maxOutput, so 32K is well within budget.
+  // ponytail: default 32768 fits PRD's 8 sections incl. ERD mermaid diagram.
+  // AC generation passes a higher maxTokens (docs/contoh-ac need far denser
+  // per-section tables/examples). Model supports up to 384000 maxOutput
+  // (DeepSeek V4 Flash / hengker default), so headroom is ample either way.
   const requestBody: Record<string, unknown> = {
     model: selectedModel,
     stream: true,
     messages,
-    max_tokens: 32768,
+    max_tokens: maxTokens,
     stop: ["<|eot_id|>", "<|end_of_text|>", "===DONE==="],
   };
 

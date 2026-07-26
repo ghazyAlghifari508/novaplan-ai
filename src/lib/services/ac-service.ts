@@ -1,53 +1,17 @@
 /**
  * AC-related database operations.
- * Mirrors prd-service.ts pattern: parse markdown → AcFeature[], save to ac_versions (JSONB).
+ * Mirrors prd-service.ts pattern: store raw markdown string directly in ac_versions (JSONB column, string value).
  */
 
-import type { AcFeature, AcVersion } from "@/types/database";
+import type { AcVersion } from "@/types/database";
 
 // ponytail: InsForge SDK belum expose client types. Ganti saat tersedia.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type InsForgeClient = any;
 
 /**
- * Parse AI-generated markdown into structured AcFeature[].
- * Format: `### Feature: <name>` + `- [ ] <criterion>` lines.
- * Ceiling: only handles `### Feature: X` headings. If AI uses different heading level,
- * features split incorrectly. Prompt enforces format.
- */
-export function parseAcMarkdown(markdown: string): AcFeature[] {
-  const features: AcFeature[] = [];
-  let cur: AcFeature | null = null;
-
-  for (const line of markdown.split("\n")) {
-    const fm = line.match(/^###\s+(?:Feature:\s*)?(.+)/);
-    if (fm) {
-      if (cur) features.push(cur);
-      cur = { featureName: fm[1].trim(), criteria: [] };
-      continue;
-    }
-    const cm = line.match(/^- \[([ x])\] (.+)/);
-    if (cm && cur) cur.criteria.push(cm[2].trim());
-  }
-  if (cur) features.push(cur);
-  return features;
-}
-
-/**
- * Convert AcFeature[] back to markdown (for display/patching).
- */
-export function acFeaturesToMarkdown(features: AcFeature[]): string {
-  return features
-    .map((f) => {
-      const criteria = f.criteria.map((c) => `- [ ] ${c}`).join("\n");
-      return `### Feature: ${f.featureName}\n${criteria}`;
-    })
-    .join("\n\n");
-}
-
-/**
  * Save AC version (generate or revise).
- * Parses markdown → AcFeature[], inserts ac_versions row, updates projects.ac_status.
+ * Stores raw markdown string directly (no parsing), mirrors prd-service.ts.
  * For mode="generate": also updates projects.step='ac' (advance flow step).
  */
 export async function saveAcVersion(
@@ -57,9 +21,6 @@ export async function saveAcVersion(
   userMessage: string,
   mode: "generate" | "revise",
 ): Promise<{ acVersionId: string; version: number }> {
-  const content = parseAcMarkdown(fullResponse);
-
-  // Determine next version (SELECT max version + 1, start at 1)
   const { data: latestVersion } = await insforge.database
     .from("ac_versions")
     .select("version")
@@ -70,14 +31,13 @@ export async function saveAcVersion(
 
   const nextVersion = latestVersion ? latestVersion.version + 1 : 1;
 
-  // Insert ac_versions row
   const { data: insertedRows, error } = await insforge.database
     .from("ac_versions")
     .insert([
       {
         project_id: projectId,
         version: nextVersion,
-        content,
+        content: fullResponse,
         change_summary: userMessage || (mode === "generate" ? "Initial AC generation" : "AC revision"),
       },
     ])
@@ -86,13 +46,12 @@ export async function saveAcVersion(
   if (error) throw error;
   if (!insertedRows?.length) throw new Error("Failed to insert AC version");
 
-  // Update projects.ac_status='completed'
   const updateData: Record<string, unknown> = {
     ac_status: "completed",
     updated_at: new Date().toISOString(),
   };
   if (mode === "generate") {
-    updateData.step = "ac"; // advance flow step
+    updateData.step = "ac";
   }
 
   await insforge.database
@@ -104,12 +63,12 @@ export async function saveAcVersion(
 }
 
 /**
- * Get latest AC content as structured AcFeature[].
+ * Get latest AC content as raw markdown string.
  */
 export async function getLatestAcContent(
   insforge: InsForgeClient,
   projectId: string,
-): Promise<AcFeature[] | null> {
+): Promise<string | null> {
   const { data: latestVersion } = await insforge.database
     .from("ac_versions")
     .select("content")
@@ -119,19 +78,17 @@ export async function getLatestAcContent(
     .maybeSingle();
 
   if (!latestVersion) return null;
-  return latestVersion.content as AcFeature[];
+  return latestVersion.content as string;
 }
 
 /**
- * Get latest AC content as markdown (for patching in revise flow).
+ * Get latest AC content as markdown (alias — content is already raw markdown).
  */
 export async function getLatestAcMarkdown(
   insforge: InsForgeClient,
   projectId: string,
 ): Promise<string | null> {
-  const features = await getLatestAcContent(insforge, projectId);
-  if (!features) return null;
-  return acFeaturesToMarkdown(features);
+  return getLatestAcContent(insforge, projectId);
 }
 
 /**
