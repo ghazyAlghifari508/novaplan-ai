@@ -1,15 +1,7 @@
 {
-  "C:\\Coding\\Web Development\\Next\\novaplan_ai\\debug_merge.js": {
-    "mtime": 1784957522.9349005,
-    "hash": "fe24285dd67ba26800520e07330d5abe"
-  },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\eslint.config.mjs": {
     "mtime": 1778405976.9217596,
     "hash": "b43f470c5df5e9ff4c2f5e0bd917a881"
-  },
-  "C:\\Coding\\Web Development\\Next\\novaplan_ai\\fix_merge.ps1": {
-    "mtime": 1784960895.1837268,
-    "hash": "beb095f9c809208758162d61691dd95b"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\instrumentation.ts": {
     "mtime": 1778539457.3073473,
@@ -306,10 +298,6 @@
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\api\\projects\\[id]\\step\\route.ts": {
     "mtime": 1784535854.7956228,
     "hash": "0a9fa567269579891fe89231c9336acc"
-  },
-  "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\api\\projects\\[id]\\versions\\route.ts": {
-    "mtime": 1784976020.2319913,
-    "hash": "b6b40fd21c874eca57c48462a5a5ecd5"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\src\\app\\api\\report-error\\route.ts": {
     "mtime": 1781335531.9715261,
@@ -903,10 +891,6 @@
     "mtime": 1784899127.9999673,
     "hash": "7aa8e0306a96fa01406064ec11b24906"
   },
-  "C:\\Coding\\Web Development\\Next\\novaplan_ai\\chat_full_response.txt": {
-    "mtime": 1784957348.7806847,
-    "hash": "f1e7edfdb62c1cec7d8e0bf7e80ebd35"
-  },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\CONTEXT.md": {
     "mtime": 1784537180.6113484,
     "hash": "b74967f541bf8891042a6874abd07428"
@@ -914,18 +898,6 @@
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\DESIGN.md": {
     "mtime": 1783265229.3380113,
     "hash": "acefe79f5db49f2cb70a21f9af356716"
-  },
-  "C:\\Coding\\Web Development\\Next\\novaplan_ai\\prd_after_content.txt": {
-    "mtime": 1784957429.3483021,
-    "hash": "be2e0e66853a9f350c02e7bac957ae8a"
-  },
-  "C:\\Coding\\Web Development\\Next\\novaplan_ai\\prd_after_err.txt": {
-    "mtime": 1784957406.4411476,
-    "hash": "d41d8cd98f00b204e9800998ecf8427e"
-  },
-  "C:\\Coding\\Web Development\\Next\\novaplan_ai\\prd_versions_err.txt": {
-    "mtime": 1784957129.9036863,
-    "hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "C:\\Coding\\Web Development\\Next\\novaplan_ai\\README.md": {
     "mtime": 1784899945.7395692,

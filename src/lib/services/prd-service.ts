@@ -4,6 +4,7 @@
  */
 
 import { generateShareToken } from "@/lib/utils";
+import { withDbRetry } from "./db-retry";
 
 // ponytail: InsForge SDK belum expose client types. Ganti saat tersedia.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -77,21 +78,7 @@ export async function savePrdVersion(
     return;
   }
 
-  let nextVersion = 1;
-
-  if (mode === "revise") {
-    const { data: latestVersion } = await insforge.database
-      .from("prd_versions")
-      .select("version")
-      .eq("project_id", conv.project_id)
-      .order("version", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (latestVersion) {
-      nextVersion = latestVersion.version + 1;
-    }
-  } else {
+  if (mode === "generate") {
     // For new generation, we want a share token
     const shareToken = generateShareToken();
     await insforge.database
@@ -100,17 +87,37 @@ export async function savePrdVersion(
       .eq("id", conv.project_id);
   }
 
-  const { error: prdVersionError } = await insforge.database.from("prd_versions").insert([{
-    project_id: conv.project_id,
-    version: nextVersion,
-    content: fullResponse,
-    change_summary:
-      mode === "generate"
-        ? "Initial PRD generation"
-        : userMessage.substring(0, 50) + "...",
-  }]);
+  await withDbRetry(`savePrdVersion:${conv.project_id}`, async () => {
+    let nextVersion = 1;
+    if (mode === "revise") {
+      const { data: latestVersion } = await insforge.database
+        .from("prd_versions")
+        .select("version")
+        .eq("project_id", conv.project_id)
+        .order("version", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-  if (prdVersionError) throw prdVersionError;
+      if (latestVersion) {
+        nextVersion = latestVersion.version + 1;
+      }
+    }
+
+    const { error: prdVersionError } = await insforge.database.from("prd_versions").insert([{
+      project_id: conv.project_id,
+      version: nextVersion,
+      content: fullResponse,
+      change_summary:
+        mode === "generate"
+          ? "Initial PRD generation"
+          : userMessage.substring(0, 50) + "...",
+    }]);
+
+    // Normalize: postgrest-js never calls throwOnError() here, so this is a plain
+    // object, not an Error — isRetryable()/sanitizeErrorForClient() both check
+    // instanceof Error, so a raw throw would silently skip retry/friendly-message.
+    if (prdVersionError) throw new Error(prdVersionError.message ?? String(prdVersionError));
+  });
 
   const { error: projectUpdateError } = await insforge.database
     .from("projects")
@@ -120,7 +127,9 @@ export async function savePrdVersion(
     })
     .eq("id", conv.project_id);
 
-  if (projectUpdateError) throw projectUpdateError;
+  // Same plain-object-not-Error shape as prdVersionError above — normalize so
+  // sanitizeErrorForClient (instanceof Error check) can produce a friendly message.
+  if (projectUpdateError) throw new Error(projectUpdateError.message ?? String(projectUpdateError));
 }
 
 /**

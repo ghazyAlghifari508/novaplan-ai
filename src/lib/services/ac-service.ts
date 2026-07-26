@@ -4,6 +4,7 @@
  */
 
 import type { AcVersion } from "@/types/database";
+import { withDbRetry } from "./db-retry";
 
 // ponytail: InsForge SDK belum expose client types. Ganti saat tersedia.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -13,6 +14,9 @@ type InsForgeClient = any;
  * Save AC version (generate or revise).
  * Stores raw markdown string directly (no parsing), mirrors prd-service.ts.
  * For mode="generate": also updates projects.step='ac' (advance flow step).
+ * Insert wrapped in withDbRetry (PRD US-1): nextVersion is re-fetched on every
+ * attempt so a retry after a false-timeout (insert actually succeeded server-side)
+ * doesn't collide on a duplicate version number.
  */
 export async function saveAcVersion(
   insforge: InsForgeClient,
@@ -21,30 +25,38 @@ export async function saveAcVersion(
   userMessage: string,
   mode: "generate" | "revise",
 ): Promise<{ acVersionId: string; version: number }> {
-  const { data: latestVersion } = await insforge.database
-    .from("ac_versions")
-    .select("version")
-    .eq("project_id", projectId)
-    .order("version", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const { acVersionId, version } = await withDbRetry(`saveAcVersion:${projectId}`, async () => {
+    const { data: latestVersion } = await insforge.database
+      .from("ac_versions")
+      .select("version")
+      .eq("project_id", projectId)
+      .order("version", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-  const nextVersion = latestVersion ? latestVersion.version + 1 : 1;
+    const nextVersion = latestVersion ? latestVersion.version + 1 : 1;
 
-  const { data: insertedRows, error } = await insforge.database
-    .from("ac_versions")
-    .insert([
-      {
-        project_id: projectId,
-        version: nextVersion,
-        content: fullResponse,
-        change_summary: userMessage || (mode === "generate" ? "Initial AC generation" : "AC revision"),
-      },
-    ])
-    .select("id");
+    const { data: insertedRows, error } = await insforge.database
+      .from("ac_versions")
+      .insert([
+        {
+          project_id: projectId,
+          version: nextVersion,
+          content: fullResponse,
+          change_summary: userMessage || (mode === "generate" ? "Initial AC generation" : "AC revision"),
+        },
+      ])
+      .select("id");
 
-  if (error) throw error;
-  if (!insertedRows?.length) throw new Error("Failed to insert AC version");
+    // postgrest-js never calls throwOnError() here, so `error` is a plain
+    // {message,details,hint,code} object, not an Error instance — normalize so
+    // downstream isRetryable()/sanitizeErrorForClient() (both instanceof Error
+    // checks) actually see it.
+    if (error) throw new Error(error.message ?? String(error));
+    if (!insertedRows?.length) throw new Error("Failed to insert AC version");
+
+    return { acVersionId: insertedRows[0].id as string, version: nextVersion };
+  });
 
   const updateData: Record<string, unknown> = {
     ac_status: "completed",
@@ -54,12 +66,16 @@ export async function saveAcVersion(
     updateData.step = "ac";
   }
 
-  await insforge.database
+  const { error: statusError } = await insforge.database
     .from("projects")
     .update(updateData)
     .eq("id", projectId);
 
-  return { acVersionId: insertedRows[0].id, version: nextVersion };
+  // Mirrors prd-service.ts's projectUpdateError check — was previously unchecked,
+  // so a failure here left ac_status stuck at "generating" with zero signal.
+  if (statusError) throw new Error(statusError.message ?? String(statusError));
+
+  return { acVersionId, version };
 }
 
 /**
