@@ -1,0 +1,122 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Sparkles, PenTool } from "lucide-react";
+import { consumeSetupPrompt, saveSetupPrompt, savePendingPrdPrompt } from "@/lib/prompt-handoff";
+
+export function SetupClient() {
+  const router = useRouter();
+  const promptRef = useRef("");
+  const [isReady, setIsReady] = useState(false);
+  const consumed = useRef(false);
+
+  useEffect(() => {
+    if (consumed.current) {
+      if (promptRef.current) setIsReady(true);
+      return;
+    }
+    consumed.current = true;
+
+    const prompt = consumeSetupPrompt();
+    if (!prompt || prompt.trim() === "") {
+      router.replace("/");
+      return;
+    }
+    promptRef.current = prompt;
+    setIsReady(true);
+  }, [router]);
+
+  const handleAutoSelect = async () => {
+    if (!promptRef.current) return;
+    const originalMessage = sessionStorage.getItem("novaplan:original-message") || undefined;
+    // Buat project dulu, lalu redirect langsung ke /prd/[id]
+    try {
+      const res = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: promptRef.current }),
+      });
+      if (!res.ok) throw new Error("Gagal membuat proyek");
+      const project = await res.json();
+      savePendingPrdPrompt(promptRef.current, "auto", originalMessage);
+      router.push(`/prd/${project.id}`);
+    } catch (err) {
+      console.error("Auto create project error:", err);
+    }
+  };
+
+  const handleManualSelect = () => {
+    if (!promptRef.current) return;
+    // Re-save so /setup/manual can read it (consumed above, need to pass forward)
+    saveSetupPrompt(promptRef.current);
+    router.push("/setup/manual");
+  };
+
+  // Don't render choices until we've validated the prompt exists
+  if (!isReady) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="font-inter text-fog animate-pulse">Memuat...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full max-w-4xl px-6">
+      <div className="text-center mb-12">
+        <h1 className="font-inter text-3xl font-[510] text-snow mb-4" style={{ color: "var(--text-primary)" }}>
+          Bagaimana kamu ingin memulai?
+        </h1>
+        <p className="font-inter text-fog max-w-xl mx-auto leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+          Pilih metode pembuatan PRD yang paling sesuai dengan kebutuhanmu. Kamu bisa
+          membiarkan AI mengatur semuanya, atau menentukan detailnya sendiri.
+        </p>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Auto Card */}
+        <button
+          onClick={handleAutoSelect}
+          className="group relative flex w-full flex-col items-center rounded-2xl border border-(--border-subtle) p-8 text-left transition-all duration-300 hover:border-(--text-secondary) shadow-(--shadow-surface) hover:shadow-(--shadow-focus)"
+          style={{ background: "var(--bg-card)" }}
+        >
+          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110 shadow-(--shadow-inset)" style={{ background: "var(--bg-surface)", color: "var(--text-primary)" }}>
+            <Sparkles size={32} strokeWidth={2} />
+          </div>
+          <h2 className="font-inter text-xl font-[510] mb-3 text-center" style={{ color: "var(--text-primary)" }}>
+            Biarkan AI Memilih
+          </h2>
+          <p className="font-inter text-sm text-center leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+            AI akan langsung merancang PRD lengkap secara otomatis berdasarkan ide kamu.
+            Cepat, praktis, dan siap direvisi nanti.
+          </p>
+          <div className="mt-8 px-6 py-2 rounded-full btn-primary font-inter text-sm font-[510] opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+            Generate Otomatis
+          </div>
+        </button>
+
+        {/* Manual Card */}
+        <button
+          onClick={handleManualSelect}
+          className="group relative flex w-full flex-col items-center rounded-2xl border border-(--border-subtle) p-8 text-left transition-all duration-300 hover:border-(--text-secondary) shadow-(--shadow-surface) hover:shadow-(--shadow-focus)"
+          style={{ background: "var(--bg-card)" }}
+        >
+          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110 shadow-(--shadow-inset)" style={{ background: "var(--bg-surface)", color: "var(--text-primary)" }}>
+            <PenTool size={32} strokeWidth={2} />
+          </div>
+          <h2 className="font-inter text-xl font-[510] mb-3 text-center" style={{ color: "var(--text-primary)" }}>
+            Pilih Sendiri
+          </h2>
+          <p className="font-inter text-sm text-center leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+            Isi formulir dengan detail seperti target pengguna, fitur utama, dan platform
+            yang diinginkan agar PRD lebih spesifik.
+          </p>
+          <div className="mt-8 px-6 py-2 rounded-full border border-(--border-subtle) font-inter text-sm font-[510] opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 shadow-(--shadow-inset)" style={{ color: "var(--text-primary)", background: "var(--bg-surface)" }}>
+            Isi Form Detail
+          </div>
+        </button>
+      </div>
+    </div>
+  );
+}

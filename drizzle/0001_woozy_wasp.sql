@@ -1,0 +1,1 @@
+DROP TABLE "sitemap_pages" CASCADE;
