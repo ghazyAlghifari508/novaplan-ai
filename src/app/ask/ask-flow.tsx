@@ -97,6 +97,13 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 	const [techAnswers, setTechAnswers] = useState<TechAnswers>({});
 	const [platform, setPlatform] = useState<"web" | "mobile">("web");
 
+	// ponytail: deps kosong disengaja. `useRouter()` dari shim next-compat bikin
+	// objek baru tiap render — kalau masuk dep array, effect re-run terus dan
+	// cleanup abort membunuh fetch yang sedang jalan, sementara guard hasFetched
+	// memblokir fetch ulang → layar "Gagal memuat pertanyaan." padahal tidak ada
+	// error. Fetch cukup sekali per mount; hasFetched menjaga StrictMode
+	// double-invoke.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: lihat catatan di atas
 	useEffect(() => {
 		if (hasFetched.current) return;
 		hasFetched.current = true;
@@ -111,7 +118,6 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 		promptRef.current = prompt;
 		setPlatform(getAskPlatform());
 
-		const controller = new AbortController();
 		const fetchOptions = async () => {
 			try {
 				const res = await fetch("/api/ask/options", {
@@ -124,7 +130,6 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 						model:
 							sessionStorage.getItem("novaplan:selected-model") || undefined,
 					}),
-					signal: controller.signal,
 				});
 				const data = (await res.json().catch(() => ({}))) as {
 					questions?: AskQuestion[];
@@ -133,7 +138,6 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 				if (!res.ok) throw new Error(data.error || "Gagal memuat pertanyaan");
 				setQuestions(data.questions ?? []);
 			} catch (err) {
-				if (err instanceof DOMException && err.name === "AbortError") return;
 				console.error("Fetch ask options error:", err);
 				setLoadError(
 					err instanceof Error ? err.message : "Gagal memuat pertanyaan",
@@ -143,9 +147,7 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 			}
 		};
 		fetchOptions();
-
-		return () => controller.abort();
-	}, [projectId, router]);
+	}, []);
 
 	const fullstackDisabled = Boolean(
 		techAnswers.frontend || techAnswers.backend,
