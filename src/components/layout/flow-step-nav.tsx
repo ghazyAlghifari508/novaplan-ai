@@ -10,15 +10,17 @@ import { useChatStore } from "@/store";
 // Route→step avoids stale-indicator bugs. Wire project.step later only to drive
 // server-side redirects, never the indicator's active state.
 
-export type FlowStep = "prd" | "ac" | "task";
+export type FlowStep = "question" | "prd" | "ac" | "task";
 
 const STEPS: { key: FlowStep; label: string }[] = [
+  { key: "question", label: "Question" },
   { key: "prd", label: "PRD" },
   { key: "ac", label: "AC" },
   { key: "task", label: "Task" },
 ];
 
 export function routeToStep(pathname: string): FlowStep {
+  if (pathname.startsWith("/ask/") || pathname === "/ask") return "question";
   if (pathname.startsWith("/ac/") || pathname === "/ac") return "ac";
   if (pathname.startsWith("/task/") || pathname === "/task") return "task";
   if (pathname.startsWith("/kanban/") || pathname === "/kanban") return "task";

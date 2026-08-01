@@ -25,7 +25,7 @@ export function Navbar() {
   const step = routeToStep(pathname);
   const isWorkspace = step !== "prd";
   // FlowStepNav pages = PRD/AC/Task/Kanban (workspace)
-  const isFlowStepRoute = pathname.startsWith("/prd/") || pathname.startsWith("/ac/") || pathname.startsWith("/task/") || pathname.startsWith("/kanban/");
+  const isFlowStepRoute = pathname.startsWith("/ask/") || pathname.startsWith("/prd/") || pathname.startsWith("/ac/") || pathname.startsWith("/task/") || pathname.startsWith("/kanban/");
 
   const showToast = useUIStore((s) => s.showToast);
 

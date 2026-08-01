@@ -13,8 +13,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const hideNavbarRoutes = ["/login", "/auth/callback", "/prd", "/onboarding", "/settings"];
   const hideNavbar = hideNavbarRoutes.includes(pathname) || pathname.startsWith("/settings/");
 
-  // Lock body scroll on workspace pages (PRD, AC, Task, Kanban)
-  const isWorkspace = (pathname.startsWith("/prd/") && !pathname.startsWith("/prd/share/"))
+  // Lock body scroll on workspace pages (Ask, PRD, AC, Task, Kanban)
+  const isWorkspace = pathname.startsWith("/ask/")
+    || (pathname.startsWith("/prd/") && !pathname.startsWith("/prd/share/"))
     || pathname.startsWith("/ac/")
     || pathname.startsWith("/task/")
     || pathname.startsWith("/kanban/");
