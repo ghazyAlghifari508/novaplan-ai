@@ -3,7 +3,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCanvasZoom } from "@/hooks/use-canvas-zoom";
 import { ZoomControls } from "./zoom-controls";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, X } from "lucide-react";
 import type { TaskTree } from "@/lib/services/task-service";
 
 // Layout constants
@@ -444,18 +444,46 @@ function FeatureNode({ node }: { node: LayoutNode }) {
 
 function DetailNode({ node }: { node: LayoutNode }) {
   const color = COLORS[node.colorIdx];
-  const [expanded, setExpanded] = useState(false);
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <div
+        className={`absolute rounded-md border ${color.border} bg-obsidian shadow-sm animate-fadeIn px-3 py-2 cursor-pointer`}
+        style={{ left: node.x, top: node.y, width: node.w, height: node.h }}
+        onClick={(e) => { e.stopPropagation(); setOpen(true); }}
+        onPointerDown={(e) => e.stopPropagation()}
+      >
+        {node.parentSubtask && (
+          <p className="truncate text-[9px] uppercase tracking-wide text-fog/60">{node.parentSubtask}</p>
+        )}
+        <p className="truncate font-inter text-[11px] text-snow">{node.label}</p>
+      </div>
+      {open && <DetailModal node={node} color={color} onClose={() => setOpen(false)} />}
+    </>
+  );
+}
+
+function DetailModal({ node, color, onClose }: { node: LayoutNode; color: (typeof COLORS)[number]; onClose: () => void }) {
   return (
     <div
-      className={`absolute rounded-md border ${color.border} bg-obsidian shadow-sm animate-fadeIn px-3 py-2 cursor-pointer ${expanded ? "z-10 shadow-lg" : ""}`}
-      style={{ left: node.x, top: node.y, width: node.w, height: expanded ? "auto" : node.h, minHeight: node.h }}
-      onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 animate-in fade-in duration-200"
+      onClick={onClose}
       onPointerDown={(e) => e.stopPropagation()}
     >
-      {node.parentSubtask && (
-        <p className={`text-[9px] uppercase tracking-wide text-fog/60 ${expanded ? "" : "truncate"}`}>{node.parentSubtask}</p>
-      )}
-      <p className={`font-inter text-[11px] text-snow ${expanded ? "" : "truncate"}`} title={expanded ? undefined : node.label}>{node.label}</p>
+      <div
+        className={`w-full max-w-md rounded-xl border ${color.border} bg-obsidian p-5 shadow-[var(--shadow-overlay)] animate-in zoom-in-95 duration-200`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-3 flex items-start justify-between gap-3">
+          {node.parentSubtask && (
+            <p className="text-xs uppercase tracking-wide text-fog/60">{node.parentSubtask}</p>
+          )}
+          <button onClick={onClose} className="ml-auto shrink-0 text-fog transition-colors hover:text-snow">
+            <X size={18} />
+          </button>
+        </div>
+        <p className="font-inter text-sm leading-relaxed text-snow">{node.label}</p>
+      </div>
     </div>
   );
 }
