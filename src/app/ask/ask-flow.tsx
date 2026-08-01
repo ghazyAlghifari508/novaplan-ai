@@ -1,0 +1,256 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { getAskPlatform, getSetupPrompt, savePendingPrdPrompt } from "@/lib/prompt-handoff";
+import { QuestionCard, type NonTechAnswer } from "./question-card";
+import { StackDropdown } from "./stack-dropdown";
+
+const FRONTEND_WEB_OPTIONS = ["React (Vite)", "Next.js", "Vue.js", "Svelte", "Astro", "Native HTML/CSS/JS", "TanStack Start", "Nuxt", "Angular"];
+const FRONTEND_MOBILE_OPTIONS = ["Flutter", "React Native", "Native iOS (Swift)", "Native Android (Kotlin)", "Expo"];
+const BACKEND_OPTIONS = ["Express.js", "Fastify", "Go", "Python (FastAPI/Django)", "Supabase", "Insforge", "Convex", "Firebase"];
+const FULLSTACK_FRAMEWORK_OPTIONS = ["Laravel Blade", "Laravel + React (Inertia)", "Laravel + Vue (Inertia)", "Next.js (FE+BE)", "Nuxt.js (FE+BE)", "TanStack Start (FE+BE)"];
+const DATABASE_OPTIONS = ["PostgreSQL", "MySQL", "SQLite", "MongoDB", "Neon", "Supabase Postgres"];
+const DEPLOYMENT_OPTIONS = ["Vercel", "Docker/K8s (self-hosted)", "Coolify", "VPS Manual", "Railway", "Netlify", "GitHub Pages"];
+
+interface AskQuestion {
+  id: string;
+  question: string;
+  options: string[];
+}
+
+interface TechAnswers {
+  frontend?: string;
+  backend?: string;
+  fullstackFramework?: string;
+  database?: string;
+  deployment?: string;
+}
+
+interface AskFlowProps {
+  projectId: string;
+  projectName: string;
+}
+
+export function AskFlow({ projectId, projectName }: AskFlowProps) {
+  const router = useRouter();
+  const promptRef = useRef("");
+  const hasFetched = useRef(false);
+  const [session, setSession] = useState<1 | 2>(1);
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [questions, setQuestions] = useState<AskQuestion[]>([]);
+  const [nonTechAnswers, setNonTechAnswers] = useState<Record<string, NonTechAnswer>>({});
+  const [techAnswers, setTechAnswers] = useState<TechAnswers>({});
+  const [platform, setPlatform] = useState<"web" | "mobile">("web");
+
+  useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+
+    // Non-consuming read: the prompt is still needed at submit time to build the
+    // final PRD prompt, and a refresh mid-flow must not lose it.
+    const prompt = getSetupPrompt();
+    if (!prompt) {
+      router.replace("/");
+      return;
+    }
+    promptRef.current = prompt;
+    setPlatform(getAskPlatform());
+
+    const controller = new AbortController();
+    const fetchOptions = async () => {
+      try {
+        const res = await fetch("/api/ask/options", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            projectId,
+            prompt,
+            platform: getAskPlatform(),
+            model: sessionStorage.getItem("novaplan:selected-model") || undefined,
+          }),
+          signal: controller.signal,
+        });
+        const data = (await res.json().catch(() => ({}))) as { questions?: AskQuestion[]; error?: string };
+        if (!res.ok) throw new Error(data.error || "Gagal memuat pertanyaan");
+        setQuestions(data.questions ?? []);
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        console.error("Fetch ask options error:", err);
+        setLoadError(err instanceof Error ? err.message : "Gagal memuat pertanyaan");
+      } finally {
+        setIsLoadingQuestions(false);
+      }
+    };
+    fetchOptions();
+
+    return () => controller.abort();
+  }, [projectId, router]);
+
+  const fullstackDisabled = Boolean(techAnswers.frontend || techAnswers.backend);
+  const feBeDisabled = Boolean(techAnswers.fullstackFramework);
+  const frontendOptions = platform === "mobile" ? FRONTEND_MOBILE_OPTIONS : FRONTEND_WEB_OPTIONS;
+
+  const answeredCount = Object.values(nonTechAnswers).filter((a) => a.value || a.skipped).length;
+
+  const submit = (tech: TechAnswers) => {
+    const nonTechLines = questions.map((q) => {
+      const a = nonTechAnswers[q.id];
+      if (!a || a.skipped || !a.value) return `- ${q.question}: (Biarkan AI yang memilih)`;
+      return `- ${q.question}: ${a.value}`;
+    });
+
+    const platformLabel = platform === "mobile" ? "Mobile App" : "Web App";
+    const compiledPrompt = `Tolong buatkan PRD dengan spesifikasi berikut:
+
+[Platform: ${platformLabel}]
+${promptRef.current}
+
+--- Preferensi Non-Teknis ---
+${nonTechLines.join("\n")}
+
+--- Preferensi Teknis ---
+Frontend: ${tech.frontend || "Biarkan AI yang memilih"}
+Backend: ${tech.backend || "Biarkan AI yang memilih"}
+Fullstack Framework: ${tech.fullstackFramework || "Tidak dipakai / Biarkan AI yang memilih"}
+Database: ${tech.database || "Biarkan AI yang memilih"}
+Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
+
+    savePendingPrdPrompt(compiledPrompt, "auto", projectName);
+    router.push(`/prd/${projectId}`);
+  };
+
+  if (isLoadingQuestions) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="animate-pulse font-inter text-fog">Menyusun pertanyaan...</p>
+      </div>
+    );
+  }
+
+  if (loadError || questions.length === 0) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+        <p className="font-inter text-fog">{loadError || "Gagal memuat pertanyaan."}</p>
+        <button
+          type="button"
+          onClick={() => router.push("/")}
+          className="btn-primary rounded-md px-4 py-2 font-inter text-sm"
+        >
+          Kembali ke Home
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto h-full w-full max-w-3xl overflow-y-auto px-6 py-12">
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <p className="font-inter text-xs uppercase tracking-wide text-fog">Sesi {session} dari 2</p>
+          <h1 className="font-inter text-2xl font-[510]" style={{ color: "var(--text-primary)" }}>
+            {session === 1 ? "Ceritakan lebih lanjut" : "Preferensi Teknis"}
+          </h1>
+        </div>
+        {session === 1 && (
+          <span className="font-inter text-sm text-fog">
+            {answeredCount}/{questions.length}
+          </span>
+        )}
+      </div>
+
+      {session === 1 ? (
+        <div className="space-y-4 pb-8">
+          {questions.map((q) => (
+            <QuestionCard
+              key={q.id}
+              question={q.question}
+              options={q.options}
+              answer={nonTechAnswers[q.id]}
+              onAnswer={(answer) => setNonTechAnswers((prev) => ({ ...prev, [q.id]: answer }))}
+            />
+          ))}
+          <div className="flex justify-end pt-2">
+            <button
+              type="button"
+              onClick={() => setSession(2)}
+              className="btn-primary rounded-md px-6 py-2.5 font-inter text-sm font-[510]"
+            >
+              Lanjut
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-6 pb-8">
+          <div className="grid gap-6 sm:grid-cols-2">
+            <StackDropdown
+              label="Frontend"
+              options={frontendOptions}
+              value={techAnswers.frontend}
+              disabled={feBeDisabled}
+              onChange={(v) => setTechAnswers((prev) => ({ ...prev, frontend: v }))}
+            />
+            <StackDropdown
+              label="Backend"
+              options={BACKEND_OPTIONS}
+              value={techAnswers.backend}
+              disabled={feBeDisabled}
+              onChange={(v) => setTechAnswers((prev) => ({ ...prev, backend: v }))}
+            />
+            <StackDropdown
+              label="Fullstack Framework"
+              options={FULLSTACK_FRAMEWORK_OPTIONS}
+              value={techAnswers.fullstackFramework}
+              disabled={fullstackDisabled}
+              onChange={(v) => setTechAnswers((prev) => ({ ...prev, fullstackFramework: v }))}
+            />
+            <StackDropdown
+              label="Database"
+              options={DATABASE_OPTIONS}
+              value={techAnswers.database}
+              disabled={false}
+              onChange={(v) => setTechAnswers((prev) => ({ ...prev, database: v }))}
+            />
+            <StackDropdown
+              label="Deployment"
+              options={DEPLOYMENT_OPTIONS}
+              value={techAnswers.deployment}
+              disabled={false}
+              onChange={(v) => setTechAnswers((prev) => ({ ...prev, deployment: v }))}
+            />
+          </div>
+          <p className="font-inter text-xs text-fog">
+            Pilih Frontend/Backend terpisah, atau satu Fullstack Framework — tidak keduanya.
+          </p>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-(--border-subtle) pt-6">
+            <button
+              type="button"
+              onClick={() => setSession(1)}
+              className="font-inter text-sm text-fog hover:text-snow"
+            >
+              Kembali
+            </button>
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => submit({})}
+                className="rounded-md border border-(--border-subtle) px-4 py-2.5 font-inter text-sm font-[510] text-fog hover:text-snow"
+              >
+                Biarkan AI yang memilih semua
+              </button>
+              <button
+                type="button"
+                onClick={() => submit(techAnswers)}
+                className="btn-primary rounded-md px-6 py-2.5 font-inter text-sm font-[510]"
+              >
+                Generate PRD
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

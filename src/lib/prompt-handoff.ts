@@ -2,6 +2,7 @@ export type PendingPrdPromptMode = "auto" | "chat";
 
 const SETUP_PROMPT_KEY = "novaplan:setup-prompt";
 const PRD_PROMPT_KEY = "novaplan:prd-prompt";
+const ASK_PLATFORM_KEY = "novaplan:ask-platform";
 
 /** Setup prompt expires after 5 minutes to prevent stale prompts */
 const SETUP_PROMPT_MAX_AGE_MS = 5 * 60 * 1000;
@@ -102,4 +103,16 @@ export function consumePendingPrdPrompt(): PendingPrdPrompt | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Platform choice (web/mobile) carried from the home prompt into the /ask flow,
+ * so session 2 can offer the right frontend option list.
+ */
+export function saveAskPlatform(platform: "web" | "mobile") {
+  getStorage()?.setItem(ASK_PLATFORM_KEY, platform);
+}
+
+export function getAskPlatform(): "web" | "mobile" {
+  return getStorage()?.getItem(ASK_PLATFORM_KEY) === "mobile" ? "mobile" : "web";
 }
