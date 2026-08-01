@@ -82,14 +82,19 @@ function layoutGraph(
   }
 
   // Pass 1: compute feature subtree heights (sum of its task cards + gaps)
+  // ownH = task card's real visual height (content-driven). slotH = space reserved
+  // for the task's row (may be taller than ownH when its details stack exceeds the
+  // card height) — the task card is centered within slotH so edges targeting the
+  // slot's vertical center always line up with the card, not empty space.
   const featureHeights: number[] = [];
-  const featureTaskHeights: number[][] = [];
+  const featureTaskOwnHeights: number[][] = [];
+  const featureTaskSlotHeights: number[][] = [];
   for (const feature of features) {
-    const ths = feature.tasks.map((t) =>
-      Math.max(TASK_MIN_H, taskCardH(t.subtasks.length), detailStackH(detailsCount(t))),
-    );
-    featureTaskHeights.push(ths);
-    const total = ths.reduce((s, h) => s + h, 0) + Math.max(0, ths.length - 1) * SIBLING_GAP_Y;
+    const ownHs = feature.tasks.map((t) => Math.max(TASK_MIN_H, taskCardH(t.subtasks.length)));
+    const slotHs = feature.tasks.map((t, ti) => Math.max(ownHs[ti], detailStackH(detailsCount(t))));
+    featureTaskOwnHeights.push(ownHs);
+    featureTaskSlotHeights.push(slotHs);
+    const total = slotHs.reduce((s, h) => s + h, 0) + Math.max(0, slotHs.length - 1) * SIBLING_GAP_Y;
     featureHeights.push(Math.max(FEATURE_H, total));
   }
 
@@ -143,22 +148,30 @@ function layoutGraph(
 
     // Tasks
     const taskX = featureX + FEATURE_W + LEVEL_GAP_X;
-    const ths = featureTaskHeights[fi];
-    const totalTaskH = ths.reduce((s, h) => s + h, 0) + Math.max(0, ths.length - 1) * SIBLING_GAP_Y;
+    const ownHs = featureTaskOwnHeights[fi];
+    const slotHs = featureTaskSlotHeights[fi];
+    const totalTaskH = slotHs.reduce((s, h) => s + h, 0) + Math.max(0, slotHs.length - 1) * SIBLING_GAP_Y;
     let taskCursorY = featureCursorY + fh / 2 - totalTaskH / 2;
 
     for (let ti = 0; ti < feature.tasks.length; ti++) {
       const task = feature.tasks[ti];
-      const th = ths[ti];
+      const ownH = ownHs[ti];
+      const slotH = slotHs[ti];
+      // Card centered within its slot so its true visual midpoint (cardY + ownH/2)
+      // equals the slot midpoint (taskCursorY + slotH/2) — edges target the slot
+      // midpoint, so this keeps them landing on the actual rendered card, not
+      // empty space below it when the detail stack makes the slot taller than the card.
+      const cardY = taskCursorY + slotH / 2 - ownH / 2;
+      const slotMidY = taskCursorY + slotH / 2;
 
       nodes.push({
         id: `f-${fi}-t-${ti}`,
         type: "task",
         label: task.name,
         x: taskX,
-        y: taskCursorY,
+        y: cardY,
         w: TASK_W,
-        h: th,
+        h: ownH,
         colorIdx,
         subtasks: task.subtasks,
         totalSubtasks: task.subtasks.length,
@@ -169,7 +182,7 @@ function layoutGraph(
         x1: featureX + FEATURE_W,
         y1: featureY + FEATURE_H / 2,
         x2: taskX,
-        y2: taskCursorY + th / 2,
+        y2: slotMidY,
         color: COLORS[colorIdx].accent,
       });
 
@@ -180,7 +193,7 @@ function layoutGraph(
       if (details.length > 0) {
         const detailX = taskX + TASK_W + LEVEL_GAP_X;
         const totalDetailH = detailStackH(details.length);
-        let detailCursorY = taskCursorY + th / 2 - totalDetailH / 2;
+        let detailCursorY = slotMidY - totalDetailH / 2;
 
         for (let di = 0; di < details.length; di++) {
           nodes.push({
@@ -197,7 +210,7 @@ function layoutGraph(
 
           edges.push({
             x1: taskX + TASK_W,
-            y1: taskCursorY + th / 2,
+            y1: slotMidY,
             x2: detailX,
             y2: detailCursorY + DETAIL_H / 2,
             color: COLORS[colorIdx].accent,
@@ -207,7 +220,7 @@ function layoutGraph(
         }
       }
 
-      taskCursorY += th + SIBLING_GAP_Y;
+      taskCursorY += slotH + SIBLING_GAP_Y;
     }
 
     featureCursorY += fh + SIBLING_GAP_Y;
@@ -431,13 +444,18 @@ function FeatureNode({ node }: { node: LayoutNode }) {
 
 function DetailNode({ node }: { node: LayoutNode }) {
   const color = COLORS[node.colorIdx];
+  const [expanded, setExpanded] = useState(false);
   return (
-    <div className={`absolute rounded-md border ${color.border} bg-obsidian shadow-sm animate-fadeIn px-3 py-2`}
-      style={{ left: node.x, top: node.y, width: node.w, height: node.h }}>
+    <div
+      className={`absolute rounded-md border ${color.border} bg-obsidian shadow-sm animate-fadeIn px-3 py-2 cursor-pointer ${expanded ? "z-10 shadow-lg" : ""}`}
+      style={{ left: node.x, top: node.y, width: node.w, height: expanded ? "auto" : node.h, minHeight: node.h }}
+      onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+      onPointerDown={(e) => e.stopPropagation()}
+    >
       {node.parentSubtask && (
-        <p className="truncate text-[9px] uppercase tracking-wide text-fog/60" title={node.parentSubtask}>{node.parentSubtask}</p>
+        <p className={`text-[9px] uppercase tracking-wide text-fog/60 ${expanded ? "" : "truncate"}`}>{node.parentSubtask}</p>
       )}
-      <p className="truncate font-inter text-[11px] text-snow" title={node.label}>{node.label}</p>
+      <p className={`font-inter text-[11px] text-snow ${expanded ? "" : "truncate"}`} title={expanded ? undefined : node.label}>{node.label}</p>
     </div>
   );
 }
