@@ -594,7 +594,7 @@ export function ChatPanel({
   };
 
   /**
-   * Called programmatically (e.g. auto-submit from /setup).
+   * Called programmatically (e.g. auto-submit from the /ask question flow).
    * Differs from handleSend: it receives the message as a parameter.
    */
   const handleSendWithMessage = useCallback(
@@ -648,7 +648,7 @@ export function ChatPanel({
     [addMessage, conversationId, currentPrdContent, projectId, selectedVersionNum, setCompletedSections, setGeneratingPRD, setStreaming, streamApiCall],
   );
 
-  // ── Auto-submit from /setup page ──
+  // ── Auto-submit from /ask question flow ──
   useEffect(() => {
     // Reset auto-submit guard when re-mounting project (ChatPanel stays mounted
     // with CSS display:none, so ref persists across navigations otherwise).

@@ -22,7 +22,7 @@ const GitHubIcon = () => (
 
 export function LoginForm() {
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/setup";
+  const redirectTo = searchParams.get("redirect") || "/";
   const [loading, setLoading] = useState<"google" | "github" | null>(null);
   const [error, setError] = useState<string | null>(null);
 

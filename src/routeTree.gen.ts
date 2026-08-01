@@ -31,8 +31,6 @@ import { Route as SettingsBillingRouteImport } from './routes/settings/billing'
 import { Route as SettingsFeedbackRouteImport } from './routes/settings/feedback'
 import { Route as SettingsNotificationsRouteImport } from './routes/settings/notifications'
 import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
-import { Route as SetupIndexRouteImport } from './routes/setup/index'
-import { Route as SetupManualRouteImport } from './routes/setup/manual'
 import { Route as TaskIdRouteImport } from './routes/task/$id'
 import { Route as ApiAcGenerateRouteImport } from './routes/api/ac/generate'
 import { Route as ApiAcReviseRouteImport } from './routes/api/ac/revise'
@@ -168,16 +166,6 @@ const SettingsProfileRoute = SettingsProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
   getParentRoute: () => SettingsRoute,
-} as any)
-const SetupIndexRoute = SetupIndexRouteImport.update({
-  id: '/setup/',
-  path: '/setup/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SetupManualRoute = SetupManualRouteImport.update({
-  id: '/setup/manual',
-  path: '/setup/manual',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const TaskIdRoute = TaskIdRouteImport.update({
   id: '/task/$id',
@@ -327,10 +315,8 @@ export interface FileRoutesByFullPath {
   '/settings/feedback': typeof SettingsFeedbackRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/profile': typeof SettingsProfileRoute
-  '/setup/manual': typeof SetupManualRoute
   '/task/$id': typeof TaskIdRoute
   '/settings/': typeof SettingsIndexRoute
-  '/setup/': typeof SetupIndexRoute
   '/api/ac/generate': typeof ApiAcGenerateRoute
   '/api/ac/revise': typeof ApiAcReviseRoute
   '/api/ac/save': typeof ApiAcSaveRoute
@@ -377,10 +363,8 @@ export interface FileRoutesByTo {
   '/settings/feedback': typeof SettingsFeedbackRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/profile': typeof SettingsProfileRoute
-  '/setup/manual': typeof SetupManualRoute
   '/task/$id': typeof TaskIdRoute
   '/settings': typeof SettingsIndexRoute
-  '/setup': typeof SetupIndexRoute
   '/api/ac/generate': typeof ApiAcGenerateRoute
   '/api/ac/revise': typeof ApiAcReviseRoute
   '/api/ac/save': typeof ApiAcSaveRoute
@@ -429,10 +413,8 @@ export interface FileRoutesById {
   '/settings/feedback': typeof SettingsFeedbackRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/profile': typeof SettingsProfileRoute
-  '/setup/manual': typeof SetupManualRoute
   '/task/$id': typeof TaskIdRoute
   '/settings/': typeof SettingsIndexRoute
-  '/setup/': typeof SetupIndexRoute
   '/api/ac/generate': typeof ApiAcGenerateRoute
   '/api/ac/revise': typeof ApiAcReviseRoute
   '/api/ac/save': typeof ApiAcSaveRoute
@@ -482,10 +464,8 @@ export interface FileRouteTypes {
     | '/settings/feedback'
     | '/settings/notifications'
     | '/settings/profile'
-    | '/setup/manual'
     | '/task/$id'
     | '/settings/'
-    | '/setup/'
     | '/api/ac/generate'
     | '/api/ac/revise'
     | '/api/ac/save'
@@ -532,10 +512,8 @@ export interface FileRouteTypes {
     | '/settings/feedback'
     | '/settings/notifications'
     | '/settings/profile'
-    | '/setup/manual'
     | '/task/$id'
     | '/settings'
-    | '/setup'
     | '/api/ac/generate'
     | '/api/ac/revise'
     | '/api/ac/save'
@@ -583,10 +561,8 @@ export interface FileRouteTypes {
     | '/settings/feedback'
     | '/settings/notifications'
     | '/settings/profile'
-    | '/setup/manual'
     | '/task/$id'
     | '/settings/'
-    | '/setup/'
     | '/api/ac/generate'
     | '/api/ac/revise'
     | '/api/ac/save'
@@ -629,9 +605,7 @@ export interface RootRouteChildren {
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
   KanbanIdRoute: typeof KanbanIdRoute
   PrdIdRoute: typeof PrdIdRoute
-  SetupManualRoute: typeof SetupManualRoute
   TaskIdRoute: typeof TaskIdRoute
-  SetupIndexRoute: typeof SetupIndexRoute
   ApiAcGenerateRoute: typeof ApiAcGenerateRoute
   ApiAcReviseRoute: typeof ApiAcReviseRoute
   ApiAcSaveRoute: typeof ApiAcSaveRoute
@@ -810,20 +784,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/profile'
       preLoaderRoute: typeof SettingsProfileRouteImport
       parentRoute: typeof SettingsRoute
-    }
-    '/setup/': {
-      id: '/setup/'
-      path: '/setup'
-      fullPath: '/setup/'
-      preLoaderRoute: typeof SetupIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/setup/manual': {
-      id: '/setup/manual'
-      path: '/setup/manual'
-      fullPath: '/setup/manual'
-      preLoaderRoute: typeof SetupManualRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/task/$id': {
       id: '/task/$id'
@@ -1069,9 +1029,7 @@ const rootRouteChildren: RootRouteChildren = {
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
   KanbanIdRoute: KanbanIdRoute,
   PrdIdRoute: PrdIdRoute,
-  SetupManualRoute: SetupManualRoute,
   TaskIdRoute: TaskIdRoute,
-  SetupIndexRoute: SetupIndexRoute,
   ApiAcGenerateRoute: ApiAcGenerateRoute,
   ApiAcReviseRoute: ApiAcReviseRoute,
   ApiAcSaveRoute: ApiAcSaveRoute,
