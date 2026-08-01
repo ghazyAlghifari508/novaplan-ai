@@ -84,7 +84,7 @@ export function QuestionCard({
 						answer?.skipped ? "bg-steel text-snow" : "text-fog hover:text-snow",
 					)}
 				>
-					Biarkan AI yang memilih
+					Lewati
 				</button>
 			</div>
 			{showCustomInput && (

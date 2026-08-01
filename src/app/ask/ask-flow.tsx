@@ -1,5 +1,6 @@
 "use client";
 
+import { Cloud, Database, Layers, Palette, Rocket } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -216,7 +217,7 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 	}
 
 	return (
-		<div className="mx-auto h-full w-full max-w-3xl overflow-y-auto px-6 py-12">
+		<div className="hide-scrollbar mx-auto h-full w-full max-w-3xl overflow-y-auto px-6 py-12">
 			<div className="mb-8 flex items-center justify-between">
 				<div>
 					<p className="font-inter text-xs uppercase tracking-wide text-fog">
@@ -261,9 +262,13 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 				</div>
 			) : (
 				<div className="space-y-6 pb-8">
-					<div className="grid gap-6 sm:grid-cols-2">
+					<div className="grid gap-4 sm:grid-cols-2">
 						<StackDropdown
 							label="Frontend"
+							subtitle="UI & tampilan user"
+							icon={Palette}
+							accent="#5e6ad2"
+							placeholder="Pilih frontend..."
 							options={frontendOptions}
 							value={techAnswers.frontend}
 							disabled={feBeDisabled}
@@ -273,6 +278,10 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 						/>
 						<StackDropdown
 							label="Backend"
+							subtitle="Logic & API server"
+							icon={Cloud}
+							accent="#2dd4a7"
+							placeholder="Pilih backend..."
 							options={BACKEND_OPTIONS}
 							value={techAnswers.backend}
 							disabled={feBeDisabled}
@@ -282,6 +291,10 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 						/>
 						<StackDropdown
 							label="Fullstack Framework"
+							subtitle="Frontend + backend jadi satu"
+							icon={Layers}
+							accent="#e879a6"
+							placeholder="Pilih framework..."
 							options={FULLSTACK_FRAMEWORK_OPTIONS}
 							value={techAnswers.fullstackFramework}
 							disabled={fullstackDisabled}
@@ -291,6 +304,10 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 						/>
 						<StackDropdown
 							label="Database"
+							subtitle="Penyimpanan data"
+							icon={Database}
+							accent="#f5b544"
+							placeholder="Pilih database..."
 							options={DATABASE_OPTIONS}
 							value={techAnswers.database}
 							disabled={false}
@@ -300,6 +317,10 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 						/>
 						<StackDropdown
 							label="Deployment"
+							subtitle="Hosting & infra"
+							icon={Rocket}
+							accent="#a78bfa"
+							placeholder="Pilih platform..."
 							options={DEPLOYMENT_OPTIONS}
 							value={techAnswers.deployment}
 							disabled={false}
@@ -308,10 +329,6 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 							}
 						/>
 					</div>
-					<p className="font-inter text-xs text-fog">
-						Pilih Frontend/Backend terpisah, atau satu Fullstack Framework —
-						tidak keduanya.
-					</p>
 
 					<div className="flex flex-wrap items-center justify-between gap-3 border-t border-(--border-subtle) pt-6">
 						<button
@@ -321,22 +338,13 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 						>
 							Kembali
 						</button>
-						<div className="flex flex-wrap gap-3">
-							<button
-								type="button"
-								onClick={() => submit({})}
-								className="rounded-md border border-(--border-subtle) px-4 py-2.5 font-inter text-sm font-[510] text-fog hover:text-snow"
-							>
-								Biarkan AI yang memilih semua
-							</button>
-							<button
-								type="button"
-								onClick={() => submit(techAnswers)}
-								className="btn-primary rounded-md px-6 py-2.5 font-inter text-sm font-[510]"
-							>
-								Generate PRD
-							</button>
-						</div>
+						<button
+							type="button"
+							onClick={() => submit(techAnswers)}
+							className="btn-primary rounded-md px-6 py-2.5 font-inter text-sm font-[510]"
+						>
+							Generate PRD
+						</button>
 					</div>
 				</div>
 			)}
