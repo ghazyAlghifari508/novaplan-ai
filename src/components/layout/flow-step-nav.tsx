@@ -39,7 +39,7 @@ export function FlowStepNav() {
       >
         {STEPS.map((step, idx) => {
           const isCompleted = idx < currentIdx || (step.key === "task" && isTaskGenerated);
-          const isActive = idx === currentIdx;
+          const isActive = idx === currentIdx && !isCompleted;
 
           return (
             <li
@@ -88,7 +88,7 @@ export function FlowStepNav() {
       >
         {STEPS.map((step, idx) => {
           const isCompleted = idx < currentIdx || (step.key === "task" && isTaskGenerated);
-          const isActive = idx === currentIdx;
+          const isActive = idx === currentIdx && !isCompleted;
 
           return (
             <li key={step.key} className="flex items-center gap-1" aria-current={isActive ? "step" : undefined}>
