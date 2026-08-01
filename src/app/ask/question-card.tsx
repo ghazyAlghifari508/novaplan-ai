@@ -36,12 +36,27 @@ export function QuestionCard({
 			className="rounded-2xl border border-(--border-subtle) p-6 shadow-(--shadow-surface)"
 			style={{ background: "var(--bg-card)" }}
 		>
-			<h3
-				className="mb-4 font-inter text-base font-[510]"
-				style={{ color: "var(--text-primary)" }}
-			>
-				{question}
-			</h3>
+			<div className="mb-4 flex items-start justify-between gap-3">
+				<h3
+					className="font-inter text-base font-[510]"
+					style={{ color: "var(--text-primary)" }}
+				>
+					{question}
+				</h3>
+				<button
+					type="button"
+					onClick={() => {
+						setShowCustomInput(false);
+						onAnswer({ value: "", isCustom: false, skipped: true });
+					}}
+					className={cn(
+						"shrink-0 rounded-full px-3 py-1 font-inter text-xs transition-colors",
+						answer?.skipped ? "bg-steel text-snow" : "text-fog hover:text-snow",
+					)}
+				>
+					Lewati
+				</button>
+			</div>
 			<div className="flex flex-wrap gap-2">
 				{options.map((opt) => (
 					<button
