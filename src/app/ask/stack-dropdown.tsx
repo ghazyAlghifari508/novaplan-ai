@@ -1,15 +1,19 @@
 "use client";
 
-import type { LucideIcon } from "lucide-react";
-import { ChevronDown } from "lucide-react";
-import { useId, useState } from "react";
+import {
+	ArrowDownUp,
+	Check,
+	ChevronDown,
+	type LucideIcon,
+	X,
+} from "lucide-react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface StackDropdownProps {
 	label: string;
 	subtitle: string;
 	icon: LucideIcon;
-	/** Hex accent for the icon tile. Tinted at 18% for bg, full for the glyph. */
 	accent: string;
 	placeholder: string;
 	options: string[];
@@ -17,8 +21,6 @@ interface StackDropdownProps {
 	disabled: boolean;
 	onChange: (value: string | undefined) => void;
 }
-
-const CUSTOM = "__custom__";
 
 export function StackDropdown({
 	label,
@@ -31,12 +33,99 @@ export function StackDropdown({
 	disabled,
 	onChange,
 }: StackDropdownProps) {
-	// Custom mode is explicit state, not derived: a value outside `options` means
-	// custom, but so does "custom picked, nothing typed yet" (value still undefined).
 	const selectId = useId();
+	const triggerRef = useRef<HTMLButtonElement>(null);
+	const listRef = useRef<HTMLDivElement>(null);
+
+	const [open, setOpen] = useState(false);
 	const [customMode, setCustomMode] = useState(false);
+	const [customDraft, setCustomDraft] = useState("");
+	const [highlightIdx, setHighlightIdx] = useState(-1);
+
 	const isCustomValue = Boolean(value) && !options.includes(value ?? "");
-	const showCustom = customMode || isCustomValue;
+	const displayValue = value || "";
+
+	// close on outside click
+	useEffect(() => {
+		if (!open) return;
+		const handler = (e: PointerEvent) => {
+			const t = e.target as Node;
+			if (triggerRef.current?.contains(t) || listRef.current?.contains(t))
+				return;
+			setOpen(false);
+			setCustomMode(false);
+		};
+		document.addEventListener("pointerdown", handler);
+		return () => document.removeEventListener("pointerdown", handler);
+	}, [open]);
+
+	const commitCustom = useCallback(() => {
+		const trimmed = customDraft.trim();
+		onChange(trimmed || undefined);
+		setCustomMode(false);
+		setCustomDraft("");
+		setOpen(false);
+	}, [customDraft, onChange]);
+
+	const selectOption = useCallback(
+		(opt: string) => {
+			if (opt === "__custom__") {
+				setCustomMode(true);
+				setCustomDraft(isCustomValue ? (value ?? "") : "");
+				setHighlightIdx(-1);
+				return;
+			}
+			onChange(opt);
+			setOpen(false);
+			setCustomMode(false);
+			setHighlightIdx(-1);
+		},
+		[onChange, isCustomValue, value],
+	);
+
+	const handleKeyDown = (e: React.KeyboardEvent) => {
+		if (disabled) return;
+
+		if (
+			!open &&
+			(e.key === "Enter" || e.key === " " || e.key === "ArrowDown")
+		) {
+			e.preventDefault();
+			setOpen(true);
+			setHighlightIdx(0);
+			return;
+		}
+
+		if (!open) return;
+
+		const allItems = [...options, "__custom__"];
+		const maxIdx = allItems.length - 1;
+
+		switch (e.key) {
+			case "ArrowDown":
+				e.preventDefault();
+				setHighlightIdx((prev) => (prev >= maxIdx ? 0 : prev + 1));
+				break;
+			case "ArrowUp":
+				e.preventDefault();
+				setHighlightIdx((prev) => (prev <= 0 ? maxIdx : prev - 1));
+				break;
+			case "Enter":
+			case " ":
+				e.preventDefault();
+				if (highlightIdx >= 0 && highlightIdx <= maxIdx) {
+					selectOption(allItems[highlightIdx]);
+				}
+				break;
+			case "Escape":
+				e.preventDefault();
+				setOpen(false);
+				setCustomMode(false);
+				break;
+		}
+	};
+
+	const clearable = Boolean(displayValue || isCustomValue || customMode);
 
 	return (
 		<div
@@ -46,6 +135,7 @@ export function StackDropdown({
 			)}
 			style={{ background: "var(--bg-card)" }}
 		>
+			{/* header */}
 			<div className="mb-4 flex items-center gap-3">
 				<div
 					className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
@@ -53,67 +143,157 @@ export function StackDropdown({
 				>
 					<Icon size={18} />
 				</div>
-				<div className="min-w-0">
-					<label
-						htmlFor={selectId}
-						className="block font-inter text-sm font-[510]"
+				<div className="min-w-0 flex-1">
+					<p
+						className="font-inter text-sm font-[510]"
 						style={{ color: "var(--text-primary)" }}
 					>
 						{label}
-					</label>
+					</p>
 					<p className="font-inter text-xs text-fog">{subtitle}</p>
 				</div>
+
+				{clearable && !disabled && (
+					<button
+						type="button"
+						onClick={() => {
+							onChange(undefined);
+							setCustomMode(false);
+							setCustomDraft("");
+							setOpen(false);
+						}}
+						className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-crimson transition-colors hover:bg-crimson/10"
+						aria-label={`Hapus pilihan ${label}`}
+					>
+						<X size={14} />
+					</button>
+				)}
 			</div>
 
+			{/* trigger */}
 			<div className="relative">
-				<select
+				<button
+					ref={triggerRef}
+					type="button"
 					id={selectId}
 					disabled={disabled}
-					value={showCustom ? CUSTOM : (value ?? "")}
-					onChange={(e) => {
-						if (e.target.value === CUSTOM) {
-							setCustomMode(true);
-							onChange(undefined);
-							return;
-						}
-						setCustomMode(false);
-						onChange(e.target.value || undefined);
+					onClick={() => {
+						if (disabled) return;
+						setOpen((o) => !o);
+						if (!open) setHighlightIdx(options.indexOf(value ?? ""));
 					}}
-					className="w-full appearance-none rounded-lg border border-(--border-subtle) py-3 pr-10 pl-4 font-inter text-sm shadow-(--shadow-inset) outline-none transition-all focus:border-(--text-secondary) disabled:cursor-not-allowed"
+					onKeyDown={handleKeyDown}
+					className={cn(
+						"flex w-full items-center justify-between rounded-lg border px-4 py-3 font-inter text-sm transition-all focus-visible:outline-none",
+						open ? "border-(--text-secondary)" : "border-(--border-subtle)",
+					)}
 					style={{
 						background: "var(--bg-input)",
-						color: "var(--text-primary)",
+						color: displayValue ? "var(--text-primary)" : "var(--text-muted)",
 					}}
 				>
-					<option value="">{placeholder}</option>
-					{options.map((opt) => (
-						<option key={opt} value={opt}>
-							{opt}
-						</option>
-					))}
-					<option value={CUSTOM}>Lainnya...</option>
-				</select>
-				<ChevronDown
-					size={16}
-					aria-hidden="true"
-					className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-fog"
-				/>
-			</div>
+					<span className="truncate">
+						{displayValue && !isCustomValue
+							? displayValue
+							: isCustomValue
+								? value
+								: placeholder}
+					</span>
+					<ChevronDown
+						size={16}
+						aria-hidden="true"
+						className={cn(
+							"shrink-0 text-fog transition-transform",
+							open && "rotate-180",
+						)}
+					/>
+				</button>
 
-			{showCustom && (
-				<input
-					type="text"
-					disabled={disabled}
-					value={isCustomValue ? value : ""}
-					onChange={(e) => onChange(e.target.value.trim() || undefined)}
-					placeholder="Tulis pilihanmu..."
-					className="mt-2 w-full rounded-lg border border-(--border-subtle) px-4 py-3 font-inter text-sm shadow-(--shadow-inset) outline-none"
-					style={{
-						background: "var(--bg-input)",
-						color: "var(--text-primary)",
-					}}
-				/>
-			)}
+				{open && (
+					<div
+						ref={listRef}
+						role="listbox"
+						className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-(--border-subtle) py-1 shadow-(--shadow-overlay)"
+						style={{ background: "var(--bg-elevated)" }}
+					>
+						{options.map((opt, i) => {
+							const selected = opt === value;
+							return (
+								<div
+									key={opt}
+									role="option"
+									tabIndex={0}
+									aria-selected={selected}
+									onPointerDown={(e) => {
+										e.preventDefault();
+										selectOption(opt);
+									}}
+									className={cn(
+										"flex cursor-pointer items-center justify-between px-4 py-2.5 font-inter text-sm transition-colors",
+										i === highlightIdx
+											? "bg-white/10 text-snow"
+											: selected
+												? "text-snow"
+												: "text-fog hover:bg-white/5 hover:text-snow",
+									)}
+								>
+									<span className="truncate">{opt}</span>
+									{selected && (
+										<Check size={14} className="shrink-0 text-fog" />
+									)}
+								</div>
+							);
+						})}
+
+						{customMode ? (
+							<div className="px-3 py-2">
+								<input
+									type="text"
+									value={customDraft}
+									onChange={(e) => setCustomDraft(e.target.value)}
+									onKeyDown={(e) => {
+										if (e.key === "Enter") {
+											e.preventDefault();
+											commitCustom();
+										}
+										if (e.key === "Escape") {
+											e.preventDefault();
+											setCustomMode(false);
+										}
+									}}
+									onBlur={commitCustom}
+									placeholder="Tulis pilihanmu..."
+									className="w-full rounded-md border border-(--border-subtle) px-3 py-2 font-inter text-sm outline-none"
+									style={{
+										background: "var(--bg-input)",
+										color: "var(--text-primary)",
+									}}
+									// biome-ignore lint/a11y/noAutofocus: custom select needs focus on custom input
+									autoFocus
+								/>
+							</div>
+						) : (
+							<div
+								role="option"
+								tabIndex={0}
+								onPointerDown={(e) => {
+									e.preventDefault();
+									selectOption("__custom__");
+								}}
+								className={cn(
+									"flex cursor-pointer items-center gap-2 px-4 py-2.5 font-inter text-sm transition-colors",
+									highlightIdx === options.length
+										? "bg-white/10 text-snow"
+										: "text-fog hover:bg-white/5 hover:text-snow",
+								)}
+							>
+								<ArrowDownUp size={14} className="shrink-0" />
+								<span>Lainnya...</span>
+							</div>
+						)}
+					</div>
+				)}
+			</div>
 		</div>
 	);
 }
