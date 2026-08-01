@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { saveSetupPrompt } from "@/lib/prompt-handoff";
+import { saveAskPlatform, saveSetupPrompt } from "@/lib/prompt-handoff";
 import { Lock, ChevronDown, Smartphone, Monitor, Check } from "lucide-react";
 import type { Plan } from "@/types/database";
 import {
@@ -123,6 +123,7 @@ export function ChatInput({ className }: ChatInputProps) {
       : `[Platform: Web App]\n${originalMessage}`;
 
     saveSetupPrompt(enrichedPrompt);
+    saveAskPlatform(isMobileMode ? "mobile" : "web");
     // Save original message for display in chat bubble (without platform tags)
     sessionStorage.setItem("novaplan:original-message", originalMessage);
     sessionStorage.setItem("novaplan:selected-model", selectedModel);
@@ -136,11 +137,25 @@ export function ChatInput({ className }: ChatInputProps) {
     }
 
     if (!isAuthenticated) {
-      router.push(`/login?redirect=${encodeURIComponent("/setup")}`);
+      // ponytail: back to home, not /ask — the project doesn't exist yet at this
+      // point, so there is no /ask/$id to land on and no bare /ask route.
+      router.push(`/login?redirect=${encodeURIComponent("/")}`);
       return;
     }
 
-    router.push("/setup");
+    try {
+      const res = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: enrichedPrompt }),
+      });
+      const project = (await res.json().catch(() => ({}))) as { id?: string; error?: string };
+      if (!res.ok || !project.id) throw new Error(project.error || "Gagal membuat proyek");
+      router.push(`/ask/${project.id}`);
+    } catch (err) {
+      console.error("Create project error:", err);
+      setPromptError("Gagal membuat proyek. Coba lagi.");
+    }
   };
 
   const userPlan: Plan = planStatus?.plan ?? "free";
