@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useCanvasZoom } from "@/hooks/use-canvas-zoom";
 import { ZoomControls } from "./zoom-controls";
 import { ChevronDown, ChevronRight, X } from "lucide-react";
@@ -246,6 +247,7 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({
   taskTree,
 }: WhiteboardCanvasProps) {
   const { zoom, pan, setZoom, setPan, zoomIn, zoomOut, resetZoom, startPan, updatePan, endPan, nudgePan, onWheel, minZoom, maxZoom } = useCanvasZoom();
+  const [openDetail, setOpenDetail] = useState<LayoutNode | null>(null);
 
   const features = taskTree?.features ?? [];
   const isEmpty = features.length === 0;
@@ -283,12 +285,32 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({
   const skeletonCanvasW = 900;
   const skeletonCanvasH = 500;
 
+  // Modal open freezes the board: pan/zoom/keyboard-nudge all no-op until closed.
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (openDetail) {
+      if (e.key === "Escape") setOpenDetail(null);
+      return;
+    }
     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
       e.preventDefault();
       nudgePan(e.key, 40);
     }
-  }, [nudgePan]);
+  }, [nudgePan, openDetail]);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    if (openDetail) return;
+    startPan(e);
+  }, [openDetail, startPan]);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (openDetail) return;
+    updatePan(e);
+  }, [openDetail, updatePan]);
+
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    if (openDetail) return;
+    onWheel(e);
+  }, [openDetail, onWheel]);
 
   return (
     <div
@@ -299,11 +321,11 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({
         backgroundSize: `${20 * zoom}px ${20 * zoom}px`,
         backgroundPosition: `${pan.x}px ${pan.y}px`,
       }}
-      onPointerDown={startPan}
-      onPointerMove={updatePan}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
       onPointerUp={endPan}
       onPointerLeave={endPan}
-      onWheel={onWheel}
+      onWheel={handleWheel}
       onKeyDown={handleKeyDown}
       tabIndex={0}
       role="region"
@@ -340,7 +362,7 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({
             {nodes.map((node) => {
               if (node.type === "root") return <RootNode key={node.id} node={node} />;
               if (node.type === "feature") return <FeatureNode key={node.id} node={node} />;
-              if (node.type === "detail") return <DetailNode key={node.id} node={node} />;
+              if (node.type === "detail") return <DetailNode key={node.id} node={node} onOpen={setOpenDetail} />;
               return <TaskCard key={node.id} node={node} />;
             })}
           </div>
@@ -354,6 +376,8 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({
           />
         </>
       )}
+      {openDetail && typeof document !== "undefined" &&
+        createPortal(<DetailModal node={openDetail} onClose={() => setOpenDetail(null)} />, document.body)}
     </div>
   );
 });
@@ -442,33 +466,32 @@ function FeatureNode({ node }: { node: LayoutNode }) {
   );
 }
 
-function DetailNode({ node }: { node: LayoutNode }) {
+function DetailNode({ node, onOpen }: { node: LayoutNode; onOpen: (node: LayoutNode) => void }) {
   const color = COLORS[node.colorIdx];
-  const [open, setOpen] = useState(false);
   return (
-    <>
-      <div
-        className={`absolute rounded-md border ${color.border} bg-obsidian shadow-sm animate-fadeIn px-3 py-2 cursor-pointer`}
-        style={{ left: node.x, top: node.y, width: node.w, height: node.h }}
-        onClick={(e) => { e.stopPropagation(); setOpen(true); }}
-        onPointerDown={(e) => e.stopPropagation()}
-      >
-        {node.parentSubtask && (
-          <p className="truncate text-[9px] uppercase tracking-wide text-fog/60">{node.parentSubtask}</p>
-        )}
-        <p className="truncate font-inter text-[11px] text-snow">{node.label}</p>
-      </div>
-      {open && <DetailModal node={node} color={color} onClose={() => setOpen(false)} />}
-    </>
+    <div
+      className={`absolute rounded-md border ${color.border} bg-obsidian shadow-sm animate-fadeIn px-3 py-2 cursor-pointer`}
+      style={{ left: node.x, top: node.y, width: node.w, height: node.h }}
+      onClick={(e) => { e.stopPropagation(); onOpen(node); }}
+      onPointerDown={(e) => e.stopPropagation()}
+    >
+      {node.parentSubtask && (
+        <p className="truncate text-[9px] uppercase tracking-wide text-fog/60">{node.parentSubtask}</p>
+      )}
+      <p className="truncate font-inter text-[11px] text-snow">{node.label}</p>
+    </div>
   );
 }
 
-function DetailModal({ node, color, onClose }: { node: LayoutNode; color: (typeof COLORS)[number]; onClose: () => void }) {
+// Rendered via portal to document.body — must not live under the canvas's
+// panned/scaled wrapper, since `fixed` positioning is relative to the nearest
+// transformed ancestor, not the viewport, and would render mispositioned.
+function DetailModal({ node, onClose }: { node: LayoutNode; onClose: () => void }) {
+  const color = COLORS[node.colorIdx];
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 animate-in fade-in duration-200"
       onClick={onClose}
-      onPointerDown={(e) => e.stopPropagation()}
     >
       <div
         className={`w-full max-w-md rounded-xl border ${color.border} bg-obsidian p-5 shadow-[var(--shadow-overlay)] animate-in zoom-in-95 duration-200`}
