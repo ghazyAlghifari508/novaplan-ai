@@ -20,6 +20,7 @@ import { Route as AcIdRouteImport } from './routes/ac/$id'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiFeedbackRouteImport } from './routes/api/feedback'
 import { Route as ApiReportErrorRouteImport } from './routes/api/report-error'
+import { Route as AskIdRouteImport } from './routes/ask/$id'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as KanbanIdRouteImport } from './routes/kanban/$id'
@@ -111,6 +112,11 @@ const ApiFeedbackRoute = ApiFeedbackRouteImport.update({
 const ApiReportErrorRoute = ApiReportErrorRouteImport.update({
   id: '/api/report-error',
   path: '/api/report-error',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AskIdRoute = AskIdRouteImport.update({
+  id: '/ask/$id',
+  path: '/ask/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
@@ -311,6 +317,7 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/report-error': typeof ApiReportErrorRoute
+  '/ask/$id': typeof AskIdRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/kanban/$id': typeof KanbanIdRoute
@@ -360,6 +367,7 @@ export interface FileRoutesByTo {
   '/api/chat': typeof ApiChatRoute
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/report-error': typeof ApiReportErrorRoute
+  '/ask/$id': typeof AskIdRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/kanban/$id': typeof KanbanIdRoute
@@ -411,6 +419,7 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/report-error': typeof ApiReportErrorRoute
+  '/ask/$id': typeof AskIdRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/kanban/$id': typeof KanbanIdRoute
@@ -463,6 +472,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/feedback'
     | '/api/report-error'
+    | '/ask/$id'
     | '/auth/callback'
     | '/demo/tanstack-query'
     | '/kanban/$id'
@@ -512,6 +522,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/feedback'
     | '/api/report-error'
+    | '/ask/$id'
     | '/auth/callback'
     | '/demo/tanstack-query'
     | '/kanban/$id'
@@ -562,6 +573,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/feedback'
     | '/api/report-error'
+    | '/ask/$id'
     | '/auth/callback'
     | '/demo/tanstack-query'
     | '/kanban/$id'
@@ -613,6 +625,7 @@ export interface RootRouteChildren {
   ApiChatRoute: typeof ApiChatRoute
   ApiFeedbackRoute: typeof ApiFeedbackRoute
   ApiReportErrorRoute: typeof ApiReportErrorRoute
+  AskIdRoute: typeof AskIdRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
   KanbanIdRoute: typeof KanbanIdRoute
@@ -719,6 +732,13 @@ declare module '@tanstack/react-router' {
       path: '/api/report-error'
       fullPath: '/api/report-error'
       preLoaderRoute: typeof ApiReportErrorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ask/$id': {
+      id: '/ask/$id'
+      path: '/ask/$id'
+      fullPath: '/ask/$id'
+      preLoaderRoute: typeof AskIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/callback': {
@@ -1045,6 +1065,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatRoute: ApiChatRoute,
   ApiFeedbackRoute: ApiFeedbackRoute,
   ApiReportErrorRoute: ApiReportErrorRoute,
+  AskIdRoute: AskIdRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
   KanbanIdRoute: KanbanIdRoute,
