@@ -35,6 +35,7 @@ import { Route as TaskIdRouteImport } from './routes/task/$id'
 import { Route as ApiAcGenerateRouteImport } from './routes/api/ac/generate'
 import { Route as ApiAcReviseRouteImport } from './routes/api/ac/revise'
 import { Route as ApiAcSaveRouteImport } from './routes/api/ac/save'
+import { Route as ApiAskOptionsRouteImport } from './routes/api/ask/options'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiExportPrdRouteImport } from './routes/api/export/prd'
 import { Route as ApiExportZipRouteImport } from './routes/api/export/zip'
@@ -187,6 +188,11 @@ const ApiAcSaveRoute = ApiAcSaveRouteImport.update({
   path: '/api/ac/save',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAskOptionsRoute = ApiAskOptionsRouteImport.update({
+  id: '/api/ask/options',
+  path: '/api/ask/options',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -320,6 +326,7 @@ export interface FileRoutesByFullPath {
   '/api/ac/generate': typeof ApiAcGenerateRoute
   '/api/ac/revise': typeof ApiAcReviseRoute
   '/api/ac/save': typeof ApiAcSaveRoute
+  '/api/ask/options': typeof ApiAskOptionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/export/prd': typeof ApiExportPrdRoute
   '/api/export/zip': typeof ApiExportZipRoute
@@ -368,6 +375,7 @@ export interface FileRoutesByTo {
   '/api/ac/generate': typeof ApiAcGenerateRoute
   '/api/ac/revise': typeof ApiAcReviseRoute
   '/api/ac/save': typeof ApiAcSaveRoute
+  '/api/ask/options': typeof ApiAskOptionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/export/prd': typeof ApiExportPrdRoute
   '/api/export/zip': typeof ApiExportZipRoute
@@ -418,6 +426,7 @@ export interface FileRoutesById {
   '/api/ac/generate': typeof ApiAcGenerateRoute
   '/api/ac/revise': typeof ApiAcReviseRoute
   '/api/ac/save': typeof ApiAcSaveRoute
+  '/api/ask/options': typeof ApiAskOptionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/export/prd': typeof ApiExportPrdRoute
   '/api/export/zip': typeof ApiExportZipRoute
@@ -469,6 +478,7 @@ export interface FileRouteTypes {
     | '/api/ac/generate'
     | '/api/ac/revise'
     | '/api/ac/save'
+    | '/api/ask/options'
     | '/api/auth/$'
     | '/api/export/prd'
     | '/api/export/zip'
@@ -517,6 +527,7 @@ export interface FileRouteTypes {
     | '/api/ac/generate'
     | '/api/ac/revise'
     | '/api/ac/save'
+    | '/api/ask/options'
     | '/api/auth/$'
     | '/api/export/prd'
     | '/api/export/zip'
@@ -566,6 +577,7 @@ export interface FileRouteTypes {
     | '/api/ac/generate'
     | '/api/ac/revise'
     | '/api/ac/save'
+    | '/api/ask/options'
     | '/api/auth/$'
     | '/api/export/prd'
     | '/api/export/zip'
@@ -609,6 +621,7 @@ export interface RootRouteChildren {
   ApiAcGenerateRoute: typeof ApiAcGenerateRoute
   ApiAcReviseRoute: typeof ApiAcReviseRoute
   ApiAcSaveRoute: typeof ApiAcSaveRoute
+  ApiAskOptionsRoute: typeof ApiAskOptionsRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiExportPrdRoute: typeof ApiExportPrdRoute
   ApiExportZipRoute: typeof ApiExportZipRoute
@@ -811,6 +824,13 @@ declare module '@tanstack/react-router' {
       path: '/api/ac/save'
       fullPath: '/api/ac/save'
       preLoaderRoute: typeof ApiAcSaveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ask/options': {
+      id: '/api/ask/options'
+      path: '/api/ask/options'
+      fullPath: '/api/ask/options'
+      preLoaderRoute: typeof ApiAskOptionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
@@ -1033,6 +1053,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAcGenerateRoute: ApiAcGenerateRoute,
   ApiAcReviseRoute: ApiAcReviseRoute,
   ApiAcSaveRoute: ApiAcSaveRoute,
+  ApiAskOptionsRoute: ApiAskOptionsRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiExportPrdRoute: ApiExportPrdRoute,
   ApiExportZipRoute: ApiExportZipRoute,
