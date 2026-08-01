@@ -33,7 +33,10 @@ ATURAN KETAT (WAJIB DIIKUTI):
 }
 
 6. Satu feature block per AC feature. Urutan sama dengan AC.
-7. Minimum 2 tasks per fitur, minimum 2 subtasks per task.
+7. Minimum 2 tasks per fitur. Jumlah subtask per task TIDAK TETAP — sesuaikan kompleksitas, JANGAN dipaksa sama rata:
+   - Task kompleks (banyak langkah/edge case, contoh: "Implement checkout flow") → target 3-5 subtask.
+   - Task sederhana (contoh: "Add logout button") → 1-2 subtask cukup, JANGAN dipaksa jadi 3-5.
+   - Minimum 1 subtask per task, tidak ada maksimum — ikuti kebutuhan nyata task tersebut.
 8. Task harus mencakup: setup, implementation, testing, integration.
 9. Subtask harus granular: database schema, API endpoint, UI component, validation, error handling.
 10. Setiap subtask WAJIB punya field "details": array berisi langkah-langkah super granular (siap dieksekusi langsung, < 30 menit per langkah). Jumlah item TIDAK TETAP — sesuaikan dengan kompleksitas subtask, JANGAN dipaksa sama rata:
