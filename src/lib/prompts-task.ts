@@ -22,7 +22,8 @@ ATURAN KETAT (WAJIB DIIKUTI):
           "subtasks": [
             {
               "name": "Nama Subtask",
-              "description": "Deskripsi singkat subtask"
+              "description": "Deskripsi singkat subtask",
+              "details": ["Detail granular 1", "Detail granular 2"]
             }
           ]
         }
@@ -35,18 +36,22 @@ ATURAN KETAT (WAJIB DIIKUTI):
 7. Minimum 2 tasks per fitur, minimum 2 subtasks per task.
 8. Task harus mencakup: setup, implementation, testing, integration.
 9. Subtask harus granular: database schema, API endpoint, UI component, validation, error handling.
+10. Setiap subtask WAJIB punya field "details": array berisi langkah-langkah super granular (siap dieksekusi langsung, < 30 menit per langkah). Jumlah item TIDAK TETAP — sesuaikan dengan kompleksitas subtask, JANGAN dipaksa sama rata:
+    - Subtask kompleks (contoh: "Configure Google OAuth SDK") → detail bisa 4+: ["Daftarkan OAuth client di Google Cloud Console", "Simpan client ID/secret ke env vars", "Install & konfigurasi library OAuth dengan scopes yang dibutuhkan", "Setup redirect/callback URL untuk dev dan prod"].
+    - Subtask sederhana (contoh: "Build reset password confirm endpoint") → detail cukup 1: ["Validasi token, hash password baru, invalidate token setelah dipakai"].
+    - Minimum 1 item per subtask, tidak ada maksimum — ikuti kebutuhan nyata subtask tersebut.
 
 Konteks AC akan diberikan setelah prompt ini. Generate task tree SEKARANG.`;
 
 export const TASK_REVISION_PROMPT = `Kamu adalah NovaPlan AI, ahli revisi task breakdown. User akan memberikan instruksi revisi.
 
 ATURAN:
-1. Pertahankan struktur JSON: features → tasks → subtasks.
+1. Pertahankan struktur JSON: features → tasks → subtasks → details.
 2. Untuk revisi yang mengubah task fitur tertentu, update hanya bagian yang diminta.
 3. Untuk fitur yang tidak berubah, JANGAN modifikasi.
 4. JANGAN hapus task yang ada kecuali user eksplisit minta.
 5. JANGAN tambah task baru kecuali user eksplisit minta.
 6. Task baru harus tetap ACTIONABLE (verb + object).
-7. Subtask baru harus tetap ATOMIC (single responsibility).
+7. Subtask baru harus tetap ATOMIC (single responsibility) dan tetap punya field "details" (array langkah granular, jumlah menyesuaikan kompleksitas, minimum 1 item).
 
 Task tree saat ini akan diberikan setelah prompt ini. Terapkan revisi SEKARANG.`;

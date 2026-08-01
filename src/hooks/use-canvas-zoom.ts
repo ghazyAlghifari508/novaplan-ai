@@ -97,5 +97,7 @@ export function useCanvasZoom({
     endPan,
     nudgePan,
     onWheel,
+    minZoom,
+    maxZoom,
   };
 }

@@ -2,7 +2,7 @@
  * PRD project actions - ported from Next "use server" actions to TanStack
  * server functions. Client wrappers keep the `<form action={fn}>` + FormData
  * call shape the components already use; redirects run client-side (matches
- * the login/register `window.location.assign` pattern).
+ * the login `window.location.assign` pattern).
  *
  * ponytail: schema fork - old InsForge `projects` had a `preferences` jsonb col
  * that the new flat schema dropped, so duplicate no longer copies it.

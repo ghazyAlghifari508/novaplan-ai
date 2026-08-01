@@ -3,7 +3,7 @@
 import { useState, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { updateEmail, updatePassword, deleteAccount } from "@/app/actions/settings";
+import { updateEmail, deleteAccount } from "@/app/actions/settings";
 
 export const AccountForm = memo(function AccountForm({ email }: { email: string }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -23,23 +23,6 @@ export const AccountForm = memo(function AccountForm({ email }: { email: string 
           />
         </div>
         <Button type="submit">Update Email</Button>
-      </form>
-
-      <hr className="border-(--border-subtle)" />
-
-      <form action={updatePassword} className="space-y-5">
-        <h3 className="font-inter font-[510] text-base font-bold">Ganti Password</h3>
-        <div>
-          <label className="mb-1 block text-sm font-medium">Password Baru</label>
-          <Input
-            name="new_password"
-            type="password"
-            placeholder="Minimal 8 karakter"
-            minLength={8}
-            required
-          />
-        </div>
-        <Button type="submit">Update Password</Button>
       </form>
 
       <hr className="border-(--border-subtle)" />

@@ -41,6 +41,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
     links: [
       { rel: 'stylesheet', href: appCss },
       { rel: 'stylesheet', href: appLayoutCss },
+      { rel: 'icon', type: 'image/png', href: '/favicon-novaplan.png' },
     ],
   }),
   shellComponent: RootDocument,

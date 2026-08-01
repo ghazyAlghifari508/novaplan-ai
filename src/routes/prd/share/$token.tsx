@@ -5,6 +5,7 @@ import { db } from '@/db'
 import { prdVersions, projects } from '@/db/schema'
 import { PrdViewer } from '@/components/prd/prd-viewer'
 import Link from 'next/link'
+import { Logo } from '@/components/ui/logo'
 
 // ponytail: server-only db logic - loader runs on client too, must not import db there.
 const loadSharedPrd = createServerFn({ method: 'GET' })
@@ -40,9 +41,7 @@ function SharedPrdPage() {
     <div className="min-h-screen bg-(--bg-card)">
       <div className="border-b border-(--border-subtle) px-6 py-4">
         <div className="mx-auto flex max-w-4xl items-center justify-between">
-          <Link href="/" className="font-inter text-xl font-semibold tracking-tight">
-            NovaPlan
-          </Link>
+          <Logo />
           <span className="rounded-full bg-(--bg-surface) px-3 py-1 text-xs text-(--text-secondary)">
             Shared View
           </span>

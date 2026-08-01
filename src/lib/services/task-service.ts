@@ -21,7 +21,7 @@ export interface TaskTree {
     tasks: Array<{
       name: string;
       description: string;
-      subtasks: Array<{ name: string; description: string }>;
+      subtasks: Array<{ name: string; description: string; details: string[] }>;
     }>;
   }>;
 }
@@ -36,6 +36,8 @@ export function parseTaskJson(jsonString: string): TaskTree | null {
         if (!task.name || !Array.isArray(task.subtasks)) return null;
         for (const subtask of task.subtasks) {
           if (!subtask.name) return null;
+          if (subtask.details !== undefined && !Array.isArray(subtask.details)) return null;
+          subtask.details = Array.isArray(subtask.details) ? subtask.details : [];
         }
       }
     }
@@ -59,7 +61,7 @@ export async function saveTaskTree(
     for (let i = 0; i < taskTree.features.length; i++) {
       const feature = taskTree.features[i];
       const subtasks = feature.tasks.flatMap((t) =>
-        t.subtasks.map((s) => ({ name: s.name, description: s.description, parent: t.name })),
+        t.subtasks.map((s) => ({ name: s.name, description: s.description, parent: t.name, details: s.details ?? [] })),
       );
       await db.insert(tasks).values({
         id: crypto.randomUUID(),
@@ -99,14 +101,14 @@ export async function getTaskTree(projectId: string): Promise<TaskTree | null> {
 
     const features: TaskTree["features"] = rows.map((row) => {
       const subtasks = Array.isArray(row.subtasks)
-        ? (row.subtasks as Array<{ name: string; description: string; parent?: string }>)
+        ? (row.subtasks as Array<{ name: string; description: string; parent?: string; details?: string[] }>)
         : [];
       // Group subtasks by parent task name to rebuild the tasks→subtasks nesting.
-      const byParent = new Map<string, { name: string; description: string; subtasks: Array<{ name: string; description: string }> }>();
+      const byParent = new Map<string, { name: string; description: string; subtasks: Array<{ name: string; description: string; details: string[] }> }>();
       for (const s of subtasks) {
         const parent = s.parent || s.name;
         if (!byParent.has(parent)) byParent.set(parent, { name: parent, description: "", subtasks: [] });
-        byParent.get(parent)!.subtasks.push({ name: s.name, description: s.description });
+        byParent.get(parent)!.subtasks.push({ name: s.name, description: s.description, details: s.details ?? [] });
       }
       return {
         name: row.title,

@@ -3,16 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import mermaid from "mermaid";
 import DOMPurify from "dompurify";
-
-// Use mermaid "default" (light) theme so diagrams have white backgrounds
-// and dark text - designed for readability. The app's own dark UI provides
-// the card-level dark framing; within the SVG a light theme is clearest.
-mermaid.initialize({
-  startOnLoad: false,
-  theme: "default",
-  securityLevel: "loose",
-  logLevel: 4, // ERROR only - 0 = TRACE floods console
-});
+import { useTheme } from "next-themes";
 
 interface MermaidProps {
   chart: string;
@@ -23,6 +14,7 @@ export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
   const [svg, setSvg] = useState<string>("");
   const [hasError, setHasError] = useState(false);
   const renderIdRef = useRef(0);
+  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
     let cancelled = false;
@@ -32,6 +24,13 @@ export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
       try {
         setHasError(false);
         setSvg("");
+
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: resolvedTheme === "dark" ? "dark" : "default",
+          securityLevel: "loose",
+          logLevel: 4, // ERROR only - 0 = TRACE floods console
+        });
 
         if (!chart || !chart.trim()) {
           setHasError(true);
@@ -126,7 +125,7 @@ export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
     return () => {
       cancelled = true;
     };
-  }, [chart]);
+  }, [chart, resolvedTheme]);
 
   if (!svg && !hasError) {
     return (

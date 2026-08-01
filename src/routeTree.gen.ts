@@ -11,13 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
-import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MaintenanceRouteImport } from './routes/maintenance'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as PricingRouteImport } from './routes/pricing'
-import { Route as RegisterRouteImport } from './routes/register'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AcIdRouteImport } from './routes/ac/$id'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
@@ -72,11 +69,6 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
-  id: '/forgot-password',
-  path: '/forgot-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -95,16 +87,6 @@ const OnboardingRoute = OnboardingRouteImport.update({
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RegisterRoute = RegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -326,13 +308,10 @@ const ApiV1TasksIdStatusRoute = ApiV1TasksIdStatusRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/maintenance': typeof MaintenanceRoute
   '/onboarding': typeof OnboardingRoute
   '/pricing': typeof PricingRoute
-  '/register': typeof RegisterRoute
-  '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRouteWithChildren
   '/ac/$id': typeof AcIdRoute
   '/api/chat': typeof ApiChatRoute
@@ -380,13 +359,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/maintenance': typeof MaintenanceRoute
   '/onboarding': typeof OnboardingRoute
   '/pricing': typeof PricingRoute
-  '/register': typeof RegisterRoute
-  '/reset-password': typeof ResetPasswordRoute
   '/ac/$id': typeof AcIdRoute
   '/api/chat': typeof ApiChatRoute
   '/api/feedback': typeof ApiFeedbackRoute
@@ -434,13 +410,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/maintenance': typeof MaintenanceRoute
   '/onboarding': typeof OnboardingRoute
   '/pricing': typeof PricingRoute
-  '/register': typeof RegisterRoute
-  '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRouteWithChildren
   '/ac/$id': typeof AcIdRoute
   '/api/chat': typeof ApiChatRoute
@@ -490,13 +463,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
-    | '/forgot-password'
     | '/login'
     | '/maintenance'
     | '/onboarding'
     | '/pricing'
-    | '/register'
-    | '/reset-password'
     | '/settings'
     | '/ac/$id'
     | '/api/chat'
@@ -544,13 +514,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
-    | '/forgot-password'
     | '/login'
     | '/maintenance'
     | '/onboarding'
     | '/pricing'
-    | '/register'
-    | '/reset-password'
     | '/ac/$id'
     | '/api/chat'
     | '/api/feedback'
@@ -597,13 +564,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
-    | '/forgot-password'
     | '/login'
     | '/maintenance'
     | '/onboarding'
     | '/pricing'
-    | '/register'
-    | '/reset-password'
     | '/settings'
     | '/ac/$id'
     | '/api/chat'
@@ -652,13 +616,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   MaintenanceRoute: typeof MaintenanceRoute
   OnboardingRoute: typeof OnboardingRoute
   PricingRoute: typeof PricingRoute
-  RegisterRoute: typeof RegisterRoute
-  ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsRoute: typeof SettingsRouteWithChildren
   AcIdRoute: typeof AcIdRoute
   ApiChatRoute: typeof ApiChatRoute
@@ -710,13 +671,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/forgot-password': {
-      id: '/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof ForgotPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -743,20 +697,6 @@ declare module '@tanstack/react-router' {
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof PricingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/register': {
-      id: '/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof RegisterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -1116,13 +1056,10 @@ const ApiV1ProjectsIdRouteWithChildren = ApiV1ProjectsIdRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   MaintenanceRoute: MaintenanceRoute,
   OnboardingRoute: OnboardingRoute,
   PricingRoute: PricingRoute,
-  RegisterRoute: RegisterRoute,
-  ResetPasswordRoute: ResetPasswordRoute,
   SettingsRoute: SettingsRouteWithChildren,
   AcIdRoute: AcIdRoute,
   ApiChatRoute: ApiChatRoute,

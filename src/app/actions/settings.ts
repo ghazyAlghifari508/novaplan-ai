@@ -47,27 +47,6 @@ export async function updateEmail(formData: FormData) {
   await _updateEmail({ data: { email: (formData.get("email") as string) ?? "" } });
 }
 
-const _updatePassword = createServerFn({ method: "POST" })
-  .validator((d: { email: string }) => d)
-  .handler(async ({ data }) => {
-    // ponytail: no current-password field in the form → mirror old flow and send
-    // a reset link (dev logs it, see auth.ts sendResetPassword). Wire in-form
-    // changePassword when a current-password input is added.
-    const { auth } = await import("@/lib/auth");
-    await auth.api.requestPasswordReset({ body: { email: data.email } });
-  });
-
-export async function updatePassword(formData: FormData) {
-  const user = await getUserEmail();
-  if (user) await _updatePassword({ data: { email: user } });
-}
-
-const getUserEmail = createServerFn({ method: "GET" }).handler(async () => {
-  const { auth } = await import("@/lib/auth");
-  const session = await auth.api.getSession({ headers: getRequestHeaders() });
-  return session?.user.email ?? null;
-});
-
 const _deleteAccount = createServerFn({ method: "POST" })
   .validator((confirm: string) => {
     if (confirm !== "HAPUS") throw new Error("Konfirmasi penghapusan tidak valid.");

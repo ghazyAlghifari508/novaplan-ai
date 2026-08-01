@@ -21,17 +21,18 @@ export const auth = betterAuth({
     },
   }),
   emailAndPassword: {
-    enabled: true,
-    minPasswordLength: 8,
-    // ponytail: dev logs reset link; wire Resend when email infra lands
-    sendResetPassword: async ({ user, url }) => {
-      console.log(`[auth] reset password for ${user.email}: ${url}`);
-    },
+    enabled: false,
   },
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    },
+    // ponytail: placeholder — gh CLI token lacks OAuth-App scope to auto-provision.
+    // Create at github.com/settings/developers, then fill real values in .env.
+    github: {
+      clientId: process.env.GITHUB_CLIENT_ID || "placeholder",
+      clientSecret: process.env.GITHUB_CLIENT_SECRET || "placeholder",
     },
   },
   user: {

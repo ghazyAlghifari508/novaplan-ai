@@ -17,6 +17,9 @@ const SUBTASK_LINE_H = 24;
 const TASK_HEADER_H = 44;
 const TASK_FOOTER_H = 32;
 const MAX_VISIBLE_SUBTASKS = 3;
+const DETAIL_W = 240;
+const DETAIL_H = 52;
+const DETAIL_GAP_Y = 12;
 
 const LEVEL_GAP_X = 120;
 const SIBLING_GAP_Y = 24;
@@ -33,7 +36,7 @@ const COLORS = [
 
 interface LayoutNode {
   id: string;
-  type: "root" | "feature" | "task";
+  type: "root" | "feature" | "task" | "detail";
   label: string;
   x: number;
   y: number;
@@ -44,6 +47,7 @@ interface LayoutNode {
   taskCount?: number;
   subtasks?: Array<{ name: string }>;
   totalSubtasks?: number;
+  parentSubtask?: string;
 }
 
 interface LayoutEdge {
@@ -69,11 +73,21 @@ function layoutGraph(
     return TASK_HEADER_H + visible * SUBTASK_LINE_H + (subtaskCount > MAX_VISIBLE_SUBTASKS ? TASK_FOOTER_H : 12);
   }
 
+  function detailsCount(task: TaskTree["features"][number]["tasks"][number]): number {
+    return task.subtasks.reduce((s, sub) => s + (sub.details?.length ?? 0), 0);
+  }
+
+  function detailStackH(count: number): number {
+    return count === 0 ? 0 : count * DETAIL_H + (count - 1) * DETAIL_GAP_Y;
+  }
+
   // Pass 1: compute feature subtree heights (sum of its task cards + gaps)
   const featureHeights: number[] = [];
   const featureTaskHeights: number[][] = [];
   for (const feature of features) {
-    const ths = feature.tasks.map((t) => Math.max(TASK_MIN_H, taskCardH(t.subtasks.length)));
+    const ths = feature.tasks.map((t) =>
+      Math.max(TASK_MIN_H, taskCardH(t.subtasks.length), detailStackH(detailsCount(t))),
+    );
     featureTaskHeights.push(ths);
     const total = ths.reduce((s, h) => s + h, 0) + Math.max(0, ths.length - 1) * SIBLING_GAP_Y;
     featureHeights.push(Math.max(FEATURE_H, total));
@@ -159,6 +173,40 @@ function layoutGraph(
         color: COLORS[colorIdx].accent,
       });
 
+      // Details: one node per detail item, flattened across this task's subtasks
+      const details = task.subtasks.flatMap((sub) =>
+        (sub.details ?? []).map((text) => ({ text, parentSubtask: sub.name })),
+      );
+      if (details.length > 0) {
+        const detailX = taskX + TASK_W + LEVEL_GAP_X;
+        const totalDetailH = detailStackH(details.length);
+        let detailCursorY = taskCursorY + th / 2 - totalDetailH / 2;
+
+        for (let di = 0; di < details.length; di++) {
+          nodes.push({
+            id: `f-${fi}-t-${ti}-d-${di}`,
+            type: "detail",
+            label: details[di].text,
+            parentSubtask: details[di].parentSubtask,
+            x: detailX,
+            y: detailCursorY,
+            w: DETAIL_W,
+            h: DETAIL_H,
+            colorIdx,
+          });
+
+          edges.push({
+            x1: taskX + TASK_W,
+            y1: taskCursorY + th / 2,
+            x2: detailX,
+            y2: detailCursorY + DETAIL_H / 2,
+            color: COLORS[colorIdx].accent,
+          });
+
+          detailCursorY += DETAIL_H + DETAIL_GAP_Y;
+        }
+      }
+
       taskCursorY += th + SIBLING_GAP_Y;
     }
 
@@ -184,7 +232,7 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({
   projectName = "Project",
   taskTree,
 }: WhiteboardCanvasProps) {
-  const { zoom, pan, setZoom, setPan, zoomIn, zoomOut, resetZoom, startPan, updatePan, endPan, nudgePan, onWheel } = useCanvasZoom();
+  const { zoom, pan, setZoom, setPan, zoomIn, zoomOut, resetZoom, startPan, updatePan, endPan, nudgePan, onWheel, minZoom, maxZoom } = useCanvasZoom();
 
   const features = taskTree?.features ?? [];
   const isEmpty = features.length === 0;
@@ -207,13 +255,13 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({
     const fitW = (rect.width - padding * 2) / canvasWidth;
     const fitH = (rect.height - padding * 2) / canvasHeight;
     const fitZoom = Math.min(fitW, fitH, 1);
-    const clampedZoom = Math.max(0.25, Math.min(3, fitZoom));
+    const clampedZoom = Math.max(minZoom, Math.min(maxZoom, fitZoom));
 
     setZoom(clampedZoom);
     const offsetX = (rect.width - canvasWidth * clampedZoom) / 2;
     const offsetY = (rect.height - canvasHeight * clampedZoom) / 2;
     setPan({ x: offsetX, y: offsetY });
-  }, [canvasWidth, canvasHeight, setZoom, setPan]);
+  }, [canvasWidth, canvasHeight, setZoom, setPan, minZoom, maxZoom]);
 
   useEffect(() => {
     hasFittedRef.current = false;
@@ -236,7 +284,7 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({
       style={{
         backgroundImage: DOT_BG_IMAGE,
         backgroundSize: `${20 * zoom}px ${20 * zoom}px`,
-        backgroundPosition: `${pan.x}% ${pan.y}%`,
+        backgroundPosition: `${pan.x}px ${pan.y}px`,
       }}
       onPointerDown={startPan}
       onPointerMove={updatePan}
@@ -279,6 +327,7 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({
             {nodes.map((node) => {
               if (node.type === "root") return <RootNode key={node.id} node={node} />;
               if (node.type === "feature") return <FeatureNode key={node.id} node={node} />;
+              if (node.type === "detail") return <DetailNode key={node.id} node={node} />;
               return <TaskCard key={node.id} node={node} />;
             })}
           </div>
@@ -288,7 +337,7 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({
             onZoomIn={zoomIn}
             onZoomOut={zoomOut}
             onReset={resetZoom}
-            className="absolute bottom-4 right-4"
+            className="absolute bottom-4 left-4"
           />
         </>
       )}
@@ -376,6 +425,19 @@ function FeatureNode({ node }: { node: LayoutNode }) {
         </div>
         <p className="truncate font-inter text-sm font-[510] text-snow" title={node.label}>{node.label}</p>
       </div>
+    </div>
+  );
+}
+
+function DetailNode({ node }: { node: LayoutNode }) {
+  const color = COLORS[node.colorIdx];
+  return (
+    <div className={`absolute rounded-md border ${color.border} bg-obsidian shadow-sm animate-fadeIn px-3 py-2`}
+      style={{ left: node.x, top: node.y, width: node.w, height: node.h }}>
+      {node.parentSubtask && (
+        <p className="truncate text-[9px] uppercase tracking-wide text-fog/60" title={node.parentSubtask}>{node.parentSubtask}</p>
+      )}
+      <p className="truncate font-inter text-[11px] text-snow" title={node.label}>{node.label}</p>
     </div>
   );
 }

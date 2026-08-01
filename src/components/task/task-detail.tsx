@@ -6,7 +6,7 @@ import { WhiteboardCanvas } from "./whiteboard-canvas";
 import { useUIStore } from "@/store";
 import type { TaskTree } from "@/lib/services/task-service";
 import { ImplementationOptions } from "./implementation-options";
-import { FileText, ArrowRight, ChevronDown, Circle } from "lucide-react";
+import { FileText, ArrowRight, ChevronDown, Circle, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
@@ -25,6 +25,7 @@ export function TaskDetail({ projectId, projectName, taskTree, hasAc }: TaskDeta
 
   // Init true when no tasks yet — prevents flash of empty state before useEffect fires
   const [isGenerating, setIsGenerating] = useState(() => !taskTree && hasAc);
+  const [hasError, setHasError] = useState(false);
   const [generatedTaskTree, setGeneratedTaskTree] = useState<TaskTree | null>(null);
   const [revealCount, setRevealCount] = useState<number | null>(null);
   const isGeneratingRef = useRef(false);
@@ -55,6 +56,7 @@ export function TaskDetail({ projectId, projectName, taskTree, hasAc }: TaskDeta
 
     isGeneratingRef.current = true;
     setIsGenerating(true);
+    setHasError(false);
 
     abortRef.current?.abort();
     const controller = new AbortController();
@@ -110,6 +112,7 @@ export function TaskDetail({ projectId, projectName, taskTree, hasAc }: TaskDeta
               }, 300);
               showToast("Task tree berhasil digenerate!", "success");
             } else if (data.type === "error") {
+              setHasError(true);
               showToast(data.error || "Gagal generate", "error");
             }
           } catch {
@@ -128,6 +131,7 @@ export function TaskDetail({ projectId, projectName, taskTree, hasAc }: TaskDeta
       }
       console.error("Generate task error:", error);
       showToast(error instanceof Error ? error.message : "Gagal generate task", "error");
+      setHasError(true);
       isGeneratingRef.current = false;
       setIsGenerating(false);
       abortRef.current = null;
@@ -152,7 +156,7 @@ export function TaskDetail({ projectId, projectName, taskTree, hasAc }: TaskDeta
   // No AC state
   if (!hasAc) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-onyx text-snow">
+      <div className="flex h-full items-center justify-center bg-onyx text-snow">
         <div className="text-center">
           <FileText size={64} className="mx-auto mb-4 text-fog" />
           <h2 className="mb-2 text-xl font-[510]">AC Belum Tersedia</h2>
@@ -179,7 +183,7 @@ export function TaskDetail({ projectId, projectName, taskTree, hasAc }: TaskDeta
   const displayTitle = isGenerating ? "Menyusun task tree..." : projectName;
 
   return (
-    <div className="flex h-dvh flex-col bg-onyx text-snow">
+    <div className="flex h-full flex-col bg-onyx text-snow">
       {/* Topbar */}
       <div className="flex items-center justify-between border-b border-graphite bg-obsidian px-4 py-3">
         <h1 className={cn(
@@ -240,10 +244,23 @@ export function TaskDetail({ projectId, projectName, taskTree, hasAc }: TaskDeta
 
         {/* Desktop: interactive canvas >md */}
         <div className={cn("h-full", hasContent && "hidden md:block")}>
-          <WhiteboardCanvas
-            projectName={projectName}
-            taskTree={visibleTaskTree}
-          />
+          {hasError && !isGenerating && !hasContent ? (
+            <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+              <AlertTriangle size={40} className="text-crimson" />
+              <p className="text-fog">Gagal generate task tree.</p>
+              <button
+                onClick={() => handleGenerate()}
+                className="btn-primary rounded-md px-4 py-2 text-sm"
+              >
+                Coba Lagi
+              </button>
+            </div>
+          ) : (
+            <WhiteboardCanvas
+              projectName={projectName}
+              taskTree={visibleTaskTree}
+            />
+          )}
         </div>
       </div>
     </div>

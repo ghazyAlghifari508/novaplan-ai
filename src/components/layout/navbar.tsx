@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { FlowStepNav, routeToStep } from "./flow-step-nav";
 import { useUIStore, useChatStore } from "@/store";
 import { authClient } from "@/lib/auth-client";
+import { Logo } from "@/components/ui/logo";
 
 export function Navbar() {
   const [user, setUser] = useState<{ id: string; email: string } | null>(null);
@@ -75,13 +76,13 @@ export function Navbar() {
 
   const handleLogout = async () => {
     try {
-      const res = await fetch("/api/auth/sign-out", { method: "POST", credentials: "include" });
-      if (!res.ok) { showToast("Gagal logout. Coba lagi.", "error"); return; }
+      await authClient.signOut();
       setUser(null);
       router.push("/login");
       router.refresh();
     } catch (err) {
       console.error("[navbar] logout failed", err);
+      showToast("Gagal logout. Coba lagi.", "error");
     }
   };
 
@@ -124,13 +125,7 @@ export function Navbar() {
       <div className="mx-auto flex h-full max-w-[1200px] items-center px-6">
         {/* Left: logo */}
         <div className="flex w-[200px] shrink-0">
-          <Link
-            href="/"
-            className="flex items-center gap-2 font-inter text-[15px] font-[510] text-snow"
-          >
-            <span className="h-2 w-2 rounded-[2px] bg-snow shadow-[0_0_0_1px_var(--color-graphite)]" />
-            NovaPlan
-          </Link>
+          <Logo height={28} />
         </div>
 
         {/* Center: navlinks */}
@@ -201,20 +196,12 @@ export function Navbar() {
                   <div className="h-8 w-[84px] animate-pulse rounded-md bg-white/5" />
                 </div>
               ) : !user ? (
-                <>
-                  <Link
-                    href="/register"
-                    className="flex h-8 items-center justify-center rounded-full border border-snow/80 bg-transparent px-3.5 font-inter text-sm font-normal text-snow transition-colors duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-white/5"
-                  >
-                    Register
-                  </Link>
-                  <Link
-                    href="/login"
-                    className="btn-primary flex h-8 items-center justify-center rounded-md px-4 font-inter text-sm font-[510] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:brightness-105 active:scale-[0.98]"
-                  >
-                    Log In
-                  </Link>
-                </>
+                <Link
+                  href="/login"
+                  className="btn-primary flex h-8 items-center justify-center rounded-md px-4 font-inter text-sm font-[510] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:brightness-105 active:scale-[0.98]"
+                >
+                  Log In
+                </Link>
               ) : (
                 <div className="relative">
                   <button

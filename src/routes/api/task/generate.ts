@@ -69,6 +69,7 @@ export const Route = createFileRoute("/api/task/generate")({
               try {
                 const taskTree = parseTaskJson(extractJson(fullResponse));
                 if (!taskTree) {
+                  await db.update(projects).set({ taskStatus: "pending" }).where(eq(projects.id, projectId)).catch((e) => console.error("task_status reset failed:", e));
                   emit({ type: "error", error: "AI menghasilkan JSON tidak valid. Coba lagi." });
                   try { controller.close(); } catch {}
                   return;
@@ -97,7 +98,7 @@ export const Route = createFileRoute("/api/task/generate")({
 
             try {
               emit({ type: "started", model: modelsToTry[0] });
-              const { generator, firstChunk } = await tryStreamWithFallback(modelsToTry, messages);
+              const { generator, firstChunk } = await tryStreamWithFallback(modelsToTry, messages, request.signal, 64000);
 
               fullResponse += firstChunk;
               emit({ type: "delta", content: firstChunk });
