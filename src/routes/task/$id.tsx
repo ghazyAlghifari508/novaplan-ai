@@ -25,6 +25,7 @@ const loadTask = createServerFn({ method: 'GET' })
       projectName: project[0].name,
       taskTree,
       hasAc: Boolean(acContent),
+      taskStatus: project[0].taskStatus,
     }
   })
 
@@ -50,6 +51,7 @@ function TaskPage() {
       projectName={d.projectName}
       taskTree={d.taskTree as never}
       hasAc={d.hasAc}
+      taskStatus={d.taskStatus}
     />
   )
 }

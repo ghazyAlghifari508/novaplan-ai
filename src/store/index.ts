@@ -43,6 +43,7 @@ interface ChatState {
   isStreaming: boolean;
   isGeneratingPRD: boolean;
   isGeneratingAC: boolean;
+  isTaskGenerated: boolean;
   generationStep: number;
   selectedMode: "ai_auto" | "manual" | null;
   activeProjectId: string | null;
@@ -52,6 +53,7 @@ interface ChatState {
   setStreaming: (streaming: boolean) => void;
   setGeneratingPRD: (generating: boolean) => void;
   setGeneratingAC: (generating: boolean) => void;
+  setTaskGenerated: (generated: boolean) => void;
   setGenerationStep: (step: number) => void;
   setSelectedMode: (mode: "ai_auto" | "manual" | null) => void;
   setActiveProject: (projectId: string | null) => void;
@@ -67,6 +69,7 @@ const chatInitialState = {
   isStreaming: false,
   isGeneratingPRD: false,
   isGeneratingAC: false,
+  isTaskGenerated: false,
   generationStep: 0,
   selectedMode: null as "ai_auto" | "manual" | null,
   activeProjectId: null as string | null,
@@ -81,6 +84,7 @@ export const useChatStore = create<ChatState>((set) => ({
   setStreaming: (isStreaming) => set({ isStreaming }),
   setGeneratingPRD: (isGeneratingPRD) => set({ isGeneratingPRD }),
   setGeneratingAC: (isGeneratingAC) => set({ isGeneratingAC }),
+  setTaskGenerated: (isTaskGenerated) => set({ isTaskGenerated }),
   setGenerationStep: (generationStep) => set({ generationStep }),
   setCompletedSections: (completedSections) => set({ completedSections }),
   setSelectedMode: (selectedMode) => set({ selectedMode }),

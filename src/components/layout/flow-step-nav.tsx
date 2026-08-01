@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useChatStore } from "@/store";
 
 // ponytail: route is source of truth, not projects.step.
 // DB step lags actual navigation (e.g. user revisits /prd after reaching /ac).
@@ -28,6 +29,7 @@ export function FlowStepNav() {
   const pathname = usePathname();
   const current = routeToStep(pathname ?? "");
   const currentIdx = STEPS.findIndex((s) => s.key === current);
+  const isTaskGenerated = useChatStore((s) => s.isTaskGenerated);
 
   return (
     <>
@@ -36,7 +38,7 @@ export function FlowStepNav() {
         className="hidden items-center gap-2 md:flex"
       >
         {STEPS.map((step, idx) => {
-          const isCompleted = idx < currentIdx;
+          const isCompleted = idx < currentIdx || (step.key === "task" && isTaskGenerated);
           const isActive = idx === currentIdx;
 
           return (
@@ -85,7 +87,7 @@ export function FlowStepNav() {
         className="flex items-center gap-1.5 md:hidden"
       >
         {STEPS.map((step, idx) => {
-          const isCompleted = idx < currentIdx;
+          const isCompleted = idx < currentIdx || (step.key === "task" && isTaskGenerated);
           const isActive = idx === currentIdx;
 
           return (

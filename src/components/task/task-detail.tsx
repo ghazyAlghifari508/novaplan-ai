@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { WhiteboardCanvas } from "./whiteboard-canvas";
 
-import { useUIStore } from "@/store";
+import { useUIStore, useChatStore } from "@/store";
 import type { TaskTree } from "@/lib/services/task-service";
 import { ImplementationOptions } from "./implementation-options";
 import { FileText, ArrowRight, ChevronDown, Circle, AlertTriangle } from "lucide-react";
@@ -15,13 +15,21 @@ interface TaskDetailProps {
   projectName: string;
   taskTree: TaskTree | null;
   hasAc: boolean;
+  taskStatus?: string | null;
 }
 
 /**
  * Task detail container - orchestrates generate flow, canvas, mobile fallback.
  */
-export function TaskDetail({ projectId, projectName, taskTree, hasAc }: TaskDetailProps) {
+export function TaskDetail({ projectId, projectName, taskTree, hasAc, taskStatus }: TaskDetailProps) {
   const showToast = useUIStore((s) => s.showToast);
+  const setTaskGenerated = useChatStore((s) => s.setTaskGenerated);
+
+  // Sync store flag from server-loaded status on mount/project switch — avoids
+  // stale true/false leaking across different projects' Task pages.
+  useEffect(() => {
+    setTaskGenerated(taskStatus === "completed");
+  }, [projectId, taskStatus, setTaskGenerated]);
 
   // Init true when no tasks yet — prevents flash of empty state before useEffect fires
   const [isGenerating, setIsGenerating] = useState(() => !taskTree && hasAc);
@@ -110,6 +118,7 @@ export function TaskDetail({ projectId, projectName, taskTree, hasAc }: TaskDeta
                   setRevealCount(null);
                 }
               }, 300);
+              setTaskGenerated(true);
               showToast("Task tree berhasil digenerate!", "success");
             } else if (data.type === "error") {
               setHasError(true);
