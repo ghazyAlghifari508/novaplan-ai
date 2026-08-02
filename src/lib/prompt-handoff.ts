@@ -116,3 +116,47 @@ export function saveAskPlatform(platform: "web" | "mobile") {
 export function getAskPlatform(): "web" | "mobile" {
   return getStorage()?.getItem(ASK_PLATFORM_KEY) === "mobile" ? "mobile" : "web";
 }
+
+/* ---------- /ask flow persistence (survives refresh) ---------- */
+const ASK_STATE_KEY = "novaplan:ask-state";
+
+export interface AskState {
+  projectId: string;
+  prompt: string;
+  platform: "web" | "mobile";
+  session: 1 | 2;
+  questions: { id: string; question: string; options: string[] }[];
+  nonTechAnswers: Record<string, { value: string; isCustom: boolean; skipped: boolean }>;
+  techAnswers: {
+    frontend?: string;
+    backend?: string;
+    fullstackFramework?: string;
+    database?: string;
+    deployment?: string;
+  };
+}
+
+/** Persist the generated question set + both sessions' answers so a refresh
+ *  (or hard refresh) restores state instead of regenerating questions. */
+export function saveAskState(state: AskState) {
+  getStorage()?.setItem(ASK_STATE_KEY, JSON.stringify(state));
+}
+
+/** Read-only restore. Returns null if missing or for a different project. */
+export function getAskState(projectId: string): AskState | null {
+  const storage = getStorage();
+  const raw = storage?.getItem(ASK_STATE_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as AskState;
+    if (!parsed || parsed.projectId !== projectId) return null;
+    return parsed;
+  } catch {
+    storage?.removeItem(ASK_STATE_KEY);
+    return null;
+  }
+}
+
+export function clearAskState() {
+  getStorage()?.removeItem(ASK_STATE_KEY);
+}

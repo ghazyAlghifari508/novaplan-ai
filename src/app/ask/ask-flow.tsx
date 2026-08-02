@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
 	getAskPlatform,
+	getAskState,
 	getSetupPrompt,
+	saveAskState,
+	clearAskState,
 	savePendingPrdPrompt,
 } from "@/lib/prompt-handoff";
 import { type NonTechAnswer, QuestionCard } from "./question-card";
@@ -109,6 +112,20 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 		if (hasFetched.current) return;
 		hasFetched.current = true;
 
+		// Restore state persisted across refresh/hard-refresh. If a saved set
+		// exists for THIS project, replay it and skip regenerating questions.
+		const saved = getAskState(projectId);
+		if (saved) {
+			promptRef.current = saved.prompt;
+			setPlatform(saved.platform);
+			setSession(saved.session);
+			setQuestions(saved.questions);
+			setNonTechAnswers(saved.nonTechAnswers);
+			setTechAnswers(saved.techAnswers);
+			setIsLoadingQuestions(false);
+			return;
+		}
+
 		// Non-consuming read: the prompt is still needed at submit time to build the
 		// final PRD prompt, and a refresh mid-flow must not lose it.
 		const prompt = getSetupPrompt();
@@ -149,6 +166,22 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 		};
 		fetchOptions();
 	}, []);
+
+	// Persist across refresh/hard-refresh: write state whenever it changes.
+	// Only once questions exist — avoids persisting an empty placeholder.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional full-state snapshot
+	useEffect(() => {
+		if (questions.length === 0 || !promptRef.current) return;
+		saveAskState({
+			projectId,
+			prompt: promptRef.current,
+			platform,
+			session,
+			questions,
+			nonTechAnswers,
+			techAnswers,
+		});
+	}, [questions, nonTechAnswers, techAnswers, session, platform, projectId]);
 
 	const fullstackDisabled = Boolean(
 		techAnswers.frontend || techAnswers.backend,
@@ -197,6 +230,7 @@ Database: ${tech.database || "Biarkan AI yang memilih"}
 Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 
 		savePendingPrdPrompt(compiledPrompt, "auto", projectName);
+		clearAskState();
 		router.push(`/prd/${projectId}`);
 	};
 
