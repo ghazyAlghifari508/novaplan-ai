@@ -187,13 +187,13 @@ export function PrdDetail({
     setGeneratingPRD(false);
     setStreamingPRDContent("");
 
-    // Save as pending prompt so /setup page picks it up
+    // Save as pending prompt so ChatPanel's auto-submit effect picks it up directly
     savePendingPrdPrompt(projectName || "Project Baru", "auto", projectName);
 
     startTransition(() => {
-      router.push(`/setup`);
+      router.push(`/prd/${projectId}`);
     });
-  }, [projectName, errorRetryModel, setGeneratingPRD, setStreamingPRDContent, router]);
+  }, [projectName, projectId, errorRetryModel, setGeneratingPRD, setStreamingPRDContent, router]);
 
   const handleStepAc = async () => {
     if (!projectId || isStepLoading) return;

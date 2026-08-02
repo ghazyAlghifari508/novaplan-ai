@@ -10,11 +10,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   // Hide navbar on auth pages and PRD index page (has its own back button)
   // Show navbar everywhere except bare auth/minimal pages.
   // PRD/AC/Task/Kanban pages get the flow step navigation.
-  const hideNavbarRoutes = ["/login", "/auth/callback", "/prd", "/setup", "/onboarding", "/settings"];
+  const hideNavbarRoutes = ["/login", "/auth/callback", "/prd", "/onboarding", "/settings"];
   const hideNavbar = hideNavbarRoutes.includes(pathname) || pathname.startsWith("/settings/");
 
-  // Lock body scroll on workspace pages (PRD, AC, Task, Kanban)
-  const isWorkspace = (pathname.startsWith("/prd/") && !pathname.startsWith("/prd/share/"))
+  // Lock body scroll on workspace pages (Ask, PRD, AC, Task, Kanban)
+  const isWorkspace = pathname.startsWith("/ask/")
+    || (pathname.startsWith("/prd/") && !pathname.startsWith("/prd/share/"))
     || pathname.startsWith("/ac/")
     || pathname.startsWith("/task/")
     || pathname.startsWith("/kanban/");

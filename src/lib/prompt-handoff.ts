@@ -2,34 +2,35 @@ export type PendingPrdPromptMode = "auto" | "chat";
 
 const SETUP_PROMPT_KEY = "novaplan:setup-prompt";
 const PRD_PROMPT_KEY = "novaplan:prd-prompt";
+const ASK_PLATFORM_KEY = "novaplan:ask-platform";
 
 /** Setup prompt expires after 5 minutes to prevent stale prompts */
 const SETUP_PROMPT_MAX_AGE_MS = 5 * 60 * 1000;
 
 interface SetupPromptPayload {
-  prompt: string;
-  createdAt: number;
+	prompt: string;
+	createdAt: number;
 }
 
 interface PendingPrdPrompt {
-  prompt: string;
-  mode: PendingPrdPromptMode;
-  createdAt: number;
-  /** Original user message for display in chat bubble (without template/tags) */
-  displayMessage?: string;
+	prompt: string;
+	mode: PendingPrdPromptMode;
+	createdAt: number;
+	/** Original user message for display in chat bubble (without template/tags) */
+	displayMessage?: string;
 }
 
 function getStorage() {
-  if (typeof window === "undefined") return null;
-  return window.sessionStorage;
+	if (typeof window === "undefined") return null;
+	return window.sessionStorage;
 }
 
 export function saveSetupPrompt(prompt: string) {
-  const payload: SetupPromptPayload = {
-    prompt,
-    createdAt: Date.now(),
-  };
-  getStorage()?.setItem(SETUP_PROMPT_KEY, JSON.stringify(payload));
+	const payload: SetupPromptPayload = {
+		prompt,
+		createdAt: Date.now(),
+	};
+	getStorage()?.setItem(SETUP_PROMPT_KEY, JSON.stringify(payload));
 }
 
 /**
@@ -37,27 +38,30 @@ export function saveSetupPrompt(prompt: string) {
  * Returns empty string if missing or expired.
  */
 export function getSetupPrompt(): string {
-  const storage = getStorage();
-  const raw = storage?.getItem(SETUP_PROMPT_KEY);
-  if (!raw) return "";
+	const storage = getStorage();
+	const raw = storage?.getItem(SETUP_PROMPT_KEY);
+	if (!raw) return "";
 
-  try {
-    const parsed = JSON.parse(raw) as Partial<SetupPromptPayload>;
-    if (!parsed.prompt) return "";
+	try {
+		const parsed = JSON.parse(raw) as Partial<SetupPromptPayload>;
+		if (!parsed.prompt) return "";
 
-    // Reject expired prompts
-    if (parsed.createdAt && Date.now() - parsed.createdAt > SETUP_PROMPT_MAX_AGE_MS) {
-      storage?.removeItem(SETUP_PROMPT_KEY);
-      return "";
-    }
+		// Reject expired prompts
+		if (
+			parsed.createdAt &&
+			Date.now() - parsed.createdAt > SETUP_PROMPT_MAX_AGE_MS
+		) {
+			storage?.removeItem(SETUP_PROMPT_KEY);
+			return "";
+		}
 
-    return parsed.prompt;
-  } catch {
-    // Backward compat: raw string from old saveSetupPrompt (pre-expiry)
-    // Treat as expired since we can't verify age - clear and reject
-    storage?.removeItem(SETUP_PROMPT_KEY);
-    return "";
-  }
+		return parsed.prompt;
+	} catch {
+		// Backward compat: raw string from old saveSetupPrompt (pre-expiry)
+		// Treat as expired since we can't verify age - clear and reject
+		storage?.removeItem(SETUP_PROMPT_KEY);
+		return "";
+	}
 }
 
 /**
@@ -66,40 +70,197 @@ export function getSetupPrompt(): string {
  * After this call, the prompt is gone from sessionStorage.
  */
 export function consumeSetupPrompt(): string {
-  const prompt = getSetupPrompt();
-  getStorage()?.removeItem(SETUP_PROMPT_KEY);
-  return prompt;
+	const prompt = getSetupPrompt();
+	getStorage()?.removeItem(SETUP_PROMPT_KEY);
+	return prompt;
 }
 
-export function savePendingPrdPrompt(prompt: string, mode: PendingPrdPromptMode, displayMessage?: string) {
-  const payload: PendingPrdPrompt = {
-    prompt,
-    mode,
-    createdAt: Date.now(),
-    displayMessage,
-  };
+export function savePendingPrdPrompt(
+	prompt: string,
+	mode: PendingPrdPromptMode,
+	displayMessage?: string,
+) {
+	const payload: PendingPrdPrompt = {
+		prompt,
+		mode,
+		createdAt: Date.now(),
+		displayMessage,
+	};
 
-  getStorage()?.setItem(PRD_PROMPT_KEY, JSON.stringify(payload));
+	getStorage()?.setItem(PRD_PROMPT_KEY, JSON.stringify(payload));
 }
 
 export function consumePendingPrdPrompt(): PendingPrdPrompt | null {
-  const storage = getStorage();
-  const raw = storage?.getItem(PRD_PROMPT_KEY);
-  if (!storage || !raw) return null;
+	const storage = getStorage();
+	const raw = storage?.getItem(PRD_PROMPT_KEY);
+	if (!storage || !raw) return null;
 
-  storage.removeItem(PRD_PROMPT_KEY);
+	storage.removeItem(PRD_PROMPT_KEY);
 
-  try {
-    const parsed = JSON.parse(raw) as Partial<PendingPrdPrompt>;
-    if (!parsed.prompt || !parsed.mode) return null;
+	try {
+		const parsed = JSON.parse(raw) as Partial<PendingPrdPrompt>;
+		if (!parsed.prompt || !parsed.mode) return null;
 
-    return {
-      prompt: parsed.prompt,
-      mode: parsed.mode,
-      createdAt: parsed.createdAt || Date.now(),
-      displayMessage: parsed.displayMessage,
-    };
-  } catch {
-    return null;
-  }
+		return {
+			prompt: parsed.prompt,
+			mode: parsed.mode,
+			createdAt: parsed.createdAt || Date.now(),
+			displayMessage: parsed.displayMessage,
+		};
+	} catch {
+		return null;
+	}
+}
+
+/**
+ * Platform choice (web/mobile) carried from the home prompt into the /ask flow,
+ * so session 2 can offer the right frontend option list.
+ */
+export function saveAskPlatform(platform: "web" | "mobile") {
+	getStorage()?.setItem(ASK_PLATFORM_KEY, platform);
+}
+
+export function getAskPlatform(): "web" | "mobile" {
+	return getStorage()?.getItem(ASK_PLATFORM_KEY) === "mobile"
+		? "mobile"
+		: "web";
+}
+
+/* ---------- /ask flow persistence (survives refresh) ---------- */
+const ASK_STATE_KEY = "novaplan:ask-state";
+
+export interface AskState {
+	projectId: string;
+	prompt: string;
+	platform: "web" | "mobile";
+	session: 1 | 2;
+	questions: { id: string; question: string; options: string[] }[];
+	nonTechAnswers: Record<
+		string,
+		{ value: string; isCustom: boolean; skipped: boolean }
+	>;
+	techAnswers: {
+		frontend?: string;
+		backend?: string;
+		fullstackFramework?: string;
+		database?: string;
+		deployment?: string;
+	};
+}
+
+/** Persist the generated question set + both sessions' answers so a refresh
+ *  (or hard refresh) restores state instead of regenerating questions. */
+export function saveAskState(state: AskState) {
+	getStorage()?.setItem(ASK_STATE_KEY, JSON.stringify(state));
+}
+
+/** Read-only restore. Returns null if missing or for a different project. */
+export function getAskState(projectId: string): AskState | null {
+	const storage = getStorage();
+	const raw = storage?.getItem(ASK_STATE_KEY);
+	if (!raw) return null;
+	try {
+		const parsed = JSON.parse(raw) as AskState;
+		if (!parsed || parsed.projectId !== projectId) return null;
+		return parsed;
+	} catch {
+		storage?.removeItem(ASK_STATE_KEY);
+		return null;
+	}
+}
+
+export function clearAskState() {
+	getStorage()?.removeItem(ASK_STATE_KEY);
+}
+
+/* ---------- PRD chat follow-up draft (survives refresh) ---------- */
+const PRD_DRAFT_KEY = "novaplan:prd-draft";
+
+/** Persist the PRD chat input draft, keyed per project so drafts don't leak
+ *  between projects. Tab-scoped (sessionStorage): a draft is session work. */
+export function savePrdDraft(projectId: string, draft: string) {
+	const storage = getStorage();
+	if (!storage) return;
+	if (!draft) {
+		storage.removeItem(PRD_DRAFT_KEY);
+		return;
+	}
+	storage.setItem(PRD_DRAFT_KEY, JSON.stringify({ projectId, draft }));
+}
+
+/** Read-only restore. Returns "" if missing or for a different project. */
+export function getPrdDraft(projectId: string): string {
+	const storage = getStorage();
+	const raw = storage?.getItem(PRD_DRAFT_KEY);
+	if (!raw) return "";
+	try {
+		const parsed = JSON.parse(raw) as { projectId: string; draft: string };
+		if (!parsed || parsed.projectId !== projectId) return "";
+		return parsed.draft ?? "";
+	} catch {
+		storage?.removeItem(PRD_DRAFT_KEY);
+		return "";
+	}
+}
+
+export function clearPrdDraft() {
+	getStorage()?.removeItem(PRD_DRAFT_KEY);
+}
+
+/* ---------- Home seed-prompt draft (survives refresh before send) ---------- */
+const HOME_DRAFT_KEY = "novaplan:home-draft";
+
+/** Persist the home textarea draft before the user presses send. Tab-scoped.
+ *  Distinct from saveSetupPrompt (which fires on send with the enriched payload). */
+export function saveHomeDraft(draft: string) {
+	const storage = getStorage();
+	if (!storage) return;
+	if (!draft) {
+		storage.removeItem(HOME_DRAFT_KEY);
+		return;
+	}
+	storage.setItem(HOME_DRAFT_KEY, draft);
+}
+
+export function getHomeDraft(): string {
+	return getStorage()?.getItem(HOME_DRAFT_KEY) ?? "";
+}
+
+export function clearHomeDraft() {
+	getStorage()?.removeItem(HOME_DRAFT_KEY);
+}
+
+/* ---------- Onboarding multi-step state (survives refresh) ---------- */
+const ONBOARDING_STATE_KEY = "novaplan:onboarding-state";
+
+export interface OnboardingState {
+	step: number;
+	fullName: string;
+	role: string;
+	goals: string[];
+}
+
+/** Persist the 3-step onboarding wizard state so a refresh mid-wizard
+ *  (before the final submit) restores step + name + role + goals instead of
+ *  restarting at step 1. Tab-scoped. */
+export function saveOnboardingState(state: OnboardingState) {
+	getStorage()?.setItem(ONBOARDING_STATE_KEY, JSON.stringify(state));
+}
+
+export function getOnboardingState(): OnboardingState | null {
+	const storage = getStorage();
+	const raw = storage?.getItem(ONBOARDING_STATE_KEY);
+	if (!raw) return null;
+	try {
+		const parsed = JSON.parse(raw) as OnboardingState;
+		if (!parsed || typeof parsed.step !== "number") return null;
+		return parsed;
+	} catch {
+		storage?.removeItem(ONBOARDING_STATE_KEY);
+		return null;
+	}
+}
+
+export function clearOnboardingState() {
+	getStorage()?.removeItem(ONBOARDING_STATE_KEY);
 }

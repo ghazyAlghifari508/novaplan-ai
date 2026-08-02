@@ -79,6 +79,8 @@ export const subscriptions = pgTable("subscriptions", {
   status: text("status").notNull().default("active"),
   midtransOrderId: text("midtrans_order_id"),
   subscriptionType: text("subscription_type"),
+  currentPeriodStart: timestamp("current_period_start"),
+  currentPeriodEnd: timestamp("current_period_end"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -20,6 +20,7 @@ import { Route as AcIdRouteImport } from './routes/ac/$id'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiFeedbackRouteImport } from './routes/api/feedback'
 import { Route as ApiReportErrorRouteImport } from './routes/api/report-error'
+import { Route as AskIdRouteImport } from './routes/ask/$id'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as KanbanIdRouteImport } from './routes/kanban/$id'
@@ -31,12 +32,11 @@ import { Route as SettingsBillingRouteImport } from './routes/settings/billing'
 import { Route as SettingsFeedbackRouteImport } from './routes/settings/feedback'
 import { Route as SettingsNotificationsRouteImport } from './routes/settings/notifications'
 import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
-import { Route as SetupIndexRouteImport } from './routes/setup/index'
-import { Route as SetupManualRouteImport } from './routes/setup/manual'
 import { Route as TaskIdRouteImport } from './routes/task/$id'
 import { Route as ApiAcGenerateRouteImport } from './routes/api/ac/generate'
 import { Route as ApiAcReviseRouteImport } from './routes/api/ac/revise'
 import { Route as ApiAcSaveRouteImport } from './routes/api/ac/save'
+import { Route as ApiAskOptionsRouteImport } from './routes/api/ask/options'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiExportPrdRouteImport } from './routes/api/export/prd'
 import { Route as ApiExportZipRouteImport } from './routes/api/export/zip'
@@ -114,6 +114,11 @@ const ApiReportErrorRoute = ApiReportErrorRouteImport.update({
   path: '/api/report-error',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AskIdRoute = AskIdRouteImport.update({
+  id: '/ask/$id',
+  path: '/ask/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
@@ -169,16 +174,6 @@ const SettingsProfileRoute = SettingsProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => SettingsRoute,
 } as any)
-const SetupIndexRoute = SetupIndexRouteImport.update({
-  id: '/setup/',
-  path: '/setup/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SetupManualRoute = SetupManualRouteImport.update({
-  id: '/setup/manual',
-  path: '/setup/manual',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const TaskIdRoute = TaskIdRouteImport.update({
   id: '/task/$id',
   path: '/task/$id',
@@ -197,6 +192,11 @@ const ApiAcReviseRoute = ApiAcReviseRouteImport.update({
 const ApiAcSaveRoute = ApiAcSaveRouteImport.update({
   id: '/api/ac/save',
   path: '/api/ac/save',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAskOptionsRoute = ApiAskOptionsRouteImport.update({
+  id: '/api/ask/options',
+  path: '/api/ask/options',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
@@ -317,6 +317,7 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/report-error': typeof ApiReportErrorRoute
+  '/ask/$id': typeof AskIdRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/kanban/$id': typeof KanbanIdRoute
@@ -327,13 +328,12 @@ export interface FileRoutesByFullPath {
   '/settings/feedback': typeof SettingsFeedbackRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/profile': typeof SettingsProfileRoute
-  '/setup/manual': typeof SetupManualRoute
   '/task/$id': typeof TaskIdRoute
   '/settings/': typeof SettingsIndexRoute
-  '/setup/': typeof SetupIndexRoute
   '/api/ac/generate': typeof ApiAcGenerateRoute
   '/api/ac/revise': typeof ApiAcReviseRoute
   '/api/ac/save': typeof ApiAcSaveRoute
+  '/api/ask/options': typeof ApiAskOptionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/export/prd': typeof ApiExportPrdRoute
   '/api/export/zip': typeof ApiExportZipRoute
@@ -367,6 +367,7 @@ export interface FileRoutesByTo {
   '/api/chat': typeof ApiChatRoute
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/report-error': typeof ApiReportErrorRoute
+  '/ask/$id': typeof AskIdRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/kanban/$id': typeof KanbanIdRoute
@@ -377,13 +378,12 @@ export interface FileRoutesByTo {
   '/settings/feedback': typeof SettingsFeedbackRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/profile': typeof SettingsProfileRoute
-  '/setup/manual': typeof SetupManualRoute
   '/task/$id': typeof TaskIdRoute
   '/settings': typeof SettingsIndexRoute
-  '/setup': typeof SetupIndexRoute
   '/api/ac/generate': typeof ApiAcGenerateRoute
   '/api/ac/revise': typeof ApiAcReviseRoute
   '/api/ac/save': typeof ApiAcSaveRoute
+  '/api/ask/options': typeof ApiAskOptionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/export/prd': typeof ApiExportPrdRoute
   '/api/export/zip': typeof ApiExportZipRoute
@@ -419,6 +419,7 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/report-error': typeof ApiReportErrorRoute
+  '/ask/$id': typeof AskIdRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/kanban/$id': typeof KanbanIdRoute
@@ -429,13 +430,12 @@ export interface FileRoutesById {
   '/settings/feedback': typeof SettingsFeedbackRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/profile': typeof SettingsProfileRoute
-  '/setup/manual': typeof SetupManualRoute
   '/task/$id': typeof TaskIdRoute
   '/settings/': typeof SettingsIndexRoute
-  '/setup/': typeof SetupIndexRoute
   '/api/ac/generate': typeof ApiAcGenerateRoute
   '/api/ac/revise': typeof ApiAcReviseRoute
   '/api/ac/save': typeof ApiAcSaveRoute
+  '/api/ask/options': typeof ApiAskOptionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/export/prd': typeof ApiExportPrdRoute
   '/api/export/zip': typeof ApiExportZipRoute
@@ -472,6 +472,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/feedback'
     | '/api/report-error'
+    | '/ask/$id'
     | '/auth/callback'
     | '/demo/tanstack-query'
     | '/kanban/$id'
@@ -482,13 +483,12 @@ export interface FileRouteTypes {
     | '/settings/feedback'
     | '/settings/notifications'
     | '/settings/profile'
-    | '/setup/manual'
     | '/task/$id'
     | '/settings/'
-    | '/setup/'
     | '/api/ac/generate'
     | '/api/ac/revise'
     | '/api/ac/save'
+    | '/api/ask/options'
     | '/api/auth/$'
     | '/api/export/prd'
     | '/api/export/zip'
@@ -522,6 +522,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/feedback'
     | '/api/report-error'
+    | '/ask/$id'
     | '/auth/callback'
     | '/demo/tanstack-query'
     | '/kanban/$id'
@@ -532,13 +533,12 @@ export interface FileRouteTypes {
     | '/settings/feedback'
     | '/settings/notifications'
     | '/settings/profile'
-    | '/setup/manual'
     | '/task/$id'
     | '/settings'
-    | '/setup'
     | '/api/ac/generate'
     | '/api/ac/revise'
     | '/api/ac/save'
+    | '/api/ask/options'
     | '/api/auth/$'
     | '/api/export/prd'
     | '/api/export/zip'
@@ -573,6 +573,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/feedback'
     | '/api/report-error'
+    | '/ask/$id'
     | '/auth/callback'
     | '/demo/tanstack-query'
     | '/kanban/$id'
@@ -583,13 +584,12 @@ export interface FileRouteTypes {
     | '/settings/feedback'
     | '/settings/notifications'
     | '/settings/profile'
-    | '/setup/manual'
     | '/task/$id'
     | '/settings/'
-    | '/setup/'
     | '/api/ac/generate'
     | '/api/ac/revise'
     | '/api/ac/save'
+    | '/api/ask/options'
     | '/api/auth/$'
     | '/api/export/prd'
     | '/api/export/zip'
@@ -625,16 +625,16 @@ export interface RootRouteChildren {
   ApiChatRoute: typeof ApiChatRoute
   ApiFeedbackRoute: typeof ApiFeedbackRoute
   ApiReportErrorRoute: typeof ApiReportErrorRoute
+  AskIdRoute: typeof AskIdRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
   KanbanIdRoute: typeof KanbanIdRoute
   PrdIdRoute: typeof PrdIdRoute
-  SetupManualRoute: typeof SetupManualRoute
   TaskIdRoute: typeof TaskIdRoute
-  SetupIndexRoute: typeof SetupIndexRoute
   ApiAcGenerateRoute: typeof ApiAcGenerateRoute
   ApiAcReviseRoute: typeof ApiAcReviseRoute
   ApiAcSaveRoute: typeof ApiAcSaveRoute
+  ApiAskOptionsRoute: typeof ApiAskOptionsRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiExportPrdRoute: typeof ApiExportPrdRoute
   ApiExportZipRoute: typeof ApiExportZipRoute
@@ -734,6 +734,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiReportErrorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ask/$id': {
+      id: '/ask/$id'
+      path: '/ask/$id'
+      fullPath: '/ask/$id'
+      preLoaderRoute: typeof AskIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/callback': {
       id: '/auth/callback'
       path: '/auth/callback'
@@ -811,20 +818,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsProfileRouteImport
       parentRoute: typeof SettingsRoute
     }
-    '/setup/': {
-      id: '/setup/'
-      path: '/setup'
-      fullPath: '/setup/'
-      preLoaderRoute: typeof SetupIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/setup/manual': {
-      id: '/setup/manual'
-      path: '/setup/manual'
-      fullPath: '/setup/manual'
-      preLoaderRoute: typeof SetupManualRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/task/$id': {
       id: '/task/$id'
       path: '/task/$id'
@@ -851,6 +844,13 @@ declare module '@tanstack/react-router' {
       path: '/api/ac/save'
       fullPath: '/api/ac/save'
       preLoaderRoute: typeof ApiAcSaveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ask/options': {
+      id: '/api/ask/options'
+      path: '/api/ask/options'
+      fullPath: '/api/ask/options'
+      preLoaderRoute: typeof ApiAskOptionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
@@ -1065,16 +1065,16 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatRoute: ApiChatRoute,
   ApiFeedbackRoute: ApiFeedbackRoute,
   ApiReportErrorRoute: ApiReportErrorRoute,
+  AskIdRoute: AskIdRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
   KanbanIdRoute: KanbanIdRoute,
   PrdIdRoute: PrdIdRoute,
-  SetupManualRoute: SetupManualRoute,
   TaskIdRoute: TaskIdRoute,
-  SetupIndexRoute: SetupIndexRoute,
   ApiAcGenerateRoute: ApiAcGenerateRoute,
   ApiAcReviseRoute: ApiAcReviseRoute,
   ApiAcSaveRoute: ApiAcSaveRoute,
+  ApiAskOptionsRoute: ApiAskOptionsRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiExportPrdRoute: ApiExportPrdRoute,
   ApiExportZipRoute: ApiExportZipRoute,

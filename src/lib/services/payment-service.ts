@@ -13,7 +13,7 @@
  */
 import { desc, eq } from "drizzle-orm";
 import { novaPlanPlans } from "@/lib/pricing-data";
-import type { Plan } from "@/types/database";
+import { PLAN_LIMITS, type Plan } from "@/types/database";
 
 export function planFromAmount(amount: number): Plan {
   const hengker = novaPlanPlans.find((p) => p.id === "hengker");
@@ -41,6 +41,7 @@ export async function applyPaymentSuccess(orderId: string) {
 
   const plan = planFromAmount(payment.amount ?? 0);
   const now = new Date();
+  const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
   // Upsert subscription (latest row for user, else insert).
   const [existingSub] = await db
@@ -52,7 +53,14 @@ export async function applyPaymentSuccess(orderId: string) {
   if (existingSub) {
     await db
       .update(subscriptions)
-      .set({ plan, status: "active", midtransOrderId: orderId, updatedAt: now })
+      .set({
+        plan,
+        status: "active",
+        midtransOrderId: orderId,
+        currentPeriodStart: now,
+        currentPeriodEnd: periodEnd,
+        updatedAt: now,
+      })
       .where(eq(subscriptions.id, existingSub.id));
   } else {
     await db.insert(subscriptions).values({
@@ -61,11 +69,13 @@ export async function applyPaymentSuccess(orderId: string) {
       plan,
       status: "active",
       midtransOrderId: orderId,
+      currentPeriodStart: now,
+      currentPeriodEnd: periodEnd,
     });
   }
 
   // Upsert quota.
-  const limits = plan === "hengker" ? { prd: -1, rev: -1 } : { prd: 25, rev: 20 };
+  const limits = PLAN_LIMITS[plan];
   const [existingQuota] = await db
     .select({ id: quotas.id })
     .from(quotas)
@@ -75,7 +85,7 @@ export async function applyPaymentSuccess(orderId: string) {
   if (existingQuota) {
     await db
       .update(quotas)
-      .set({ prdUsed: 0, prdLimit: limits.prd, revisionUsed: 0, revisionLimit: limits.rev, updatedAt: now })
+      .set({ prdUsed: 0, prdLimit: limits.prd, revisionUsed: 0, revisionLimit: limits.revision, updatedAt: now })
       .where(eq(quotas.id, existingQuota.id));
   } else {
     await db.insert(quotas).values({
@@ -84,7 +94,7 @@ export async function applyPaymentSuccess(orderId: string) {
       prdUsed: 0,
       prdLimit: limits.prd,
       revisionUsed: 0,
-      revisionLimit: limits.rev,
+      revisionLimit: limits.revision,
     });
   }
 

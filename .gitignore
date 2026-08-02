@@ -3,6 +3,10 @@ node_modules
 dist
 dist-ssr
 *.local
+# graphify output is generated, never commit
+graphify-out/
+# scratch screenshots
+test-home.png
 .env
 .nitro
 .tanstack

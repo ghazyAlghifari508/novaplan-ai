@@ -1,10 +1,23 @@
-import { eq, sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { quotas } from "@/db/schema";
+import { quotas, subscriptions } from "@/db/schema";
 
-// ponytail: new signup has no quotas row - default to fresh free tier so the
-// first PRD generation isn't silently blocked.
-const DEFAULT_PRD_LIMIT = 3;
+/**
+ * Pro/Hengker subscriptions with a currentPeriodEnd in the past are expired.
+ * Free plan has no period (currentPeriodEnd stays null) - always active.
+ */
+export async function checkSubscriptionActive(userId: string): Promise<boolean> {
+  const [sub] = await db
+    .select({ plan: subscriptions.plan, currentPeriodEnd: subscriptions.currentPeriodEnd })
+    .from(subscriptions)
+    .where(eq(subscriptions.userId, userId))
+    .orderBy(desc(subscriptions.createdAt))
+    .limit(1);
+
+  if (!sub || sub.plan === "free") return true;
+  if (!sub.currentPeriodEnd) return true;
+  return sub.currentPeriodEnd.getTime() > Date.now();
+}
 
 export async function checkQuota(
   userId: string,
@@ -15,9 +28,20 @@ export async function checkQuota(
     .where(eq(quotas.userId, userId))
     .limit(1);
 
-  if (!quota) return { allowed: true, used: 0, limit: DEFAULT_PRD_LIMIT };
-  if (quota.prdLimit === -1) return { allowed: true, used: quota.prdUsed ?? 0, limit: -1 };
-  return { allowed: (quota.prdUsed ?? 0) < (quota.prdLimit ?? 0), used: quota.prdUsed ?? 0, limit: quota.prdLimit ?? 0 };
+  // ponytail: fail closed - a missing row after signup-seed hook means
+  // something is wrong, not "give unlimited access".
+  if (!quota) return { allowed: false, used: 0, limit: 0 };
+  if (quota.prdLimit === -1) {
+    const active = await checkSubscriptionActive(userId);
+    return { allowed: active, used: quota.prdUsed ?? 0, limit: -1 };
+  }
+  if (!(await checkSubscriptionActive(userId)))
+    return { allowed: false, used: quota.prdUsed ?? 0, limit: quota.prdLimit ?? 0 };
+  return {
+    allowed: (quota.prdUsed ?? 0) < (quota.prdLimit ?? 0),
+    used: quota.prdUsed ?? 0,
+    limit: quota.prdLimit ?? 0,
+  };
 }
 
 export async function incrementPrdCount(userId: string): Promise<void> {
@@ -35,6 +59,19 @@ export async function checkRevisionQuota(
     .limit(1);
 
   if (!quota) return { allowed: false, used: 0, limit: 0 };
-  if (quota.revisionLimit === -1) return { allowed: true, used: quota.revisionUsed ?? 0, limit: -1 };
-  return { allowed: (quota.revisionUsed ?? 0) < (quota.revisionLimit ?? 0), used: quota.revisionUsed ?? 0, limit: quota.revisionLimit ?? 0 };
+  if (quota.revisionLimit === -1) {
+    const active = await checkSubscriptionActive(userId);
+    return { allowed: active, used: quota.revisionUsed ?? 0, limit: -1 };
+  }
+  if (!(await checkSubscriptionActive(userId)))
+    return { allowed: false, used: quota.revisionUsed ?? 0, limit: quota.revisionLimit ?? 0 };
+  return {
+    allowed: (quota.revisionUsed ?? 0) < (quota.revisionLimit ?? 0),
+    used: quota.revisionUsed ?? 0,
+    limit: quota.revisionLimit ?? 0,
+  };
+}
+
+export async function incrementRevisionCount(userId: string): Promise<void> {
+  await db.update(quotas).set({ revisionUsed: sql`${quotas.revisionUsed} + 1` }).where(eq(quotas.userId, userId));
 }
