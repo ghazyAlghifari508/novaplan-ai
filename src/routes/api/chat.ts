@@ -175,7 +175,7 @@ export const Route = createFileRoute("/api/chat")({
                   .trim();
               }
 
-              if (conversationIdToUse && (mode === "chat" || mode === "revise")) {
+              if (conversationIdToUse) {
                 await saveMessages(conversationIdToUse, userMessageToSave, assistantReply, plan);
               }
 
