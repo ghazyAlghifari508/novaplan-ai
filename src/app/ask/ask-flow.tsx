@@ -100,7 +100,20 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 		Record<string, NonTechAnswer>
 	>({});
 	const [techAnswers, setTechAnswers] = useState<TechAnswers>({});
+	const [skippedTech, setSkippedTech] = useState<Set<string>>(new Set());
 	const [platform, setPlatform] = useState<"web" | "mobile">("web");
+
+	const toggleSkipTech = (field: string) => {
+		setSkippedTech((prev) => {
+			const next = new Set(prev);
+			if (next.has(field)) next.delete(field);
+			else {
+				next.add(field);
+				setTechAnswers((p) => ({ ...p, [field]: undefined }));
+			}
+			return next;
+		});
+	};
 
 	// ponytail: deps kosong disengaja. `useRouter()` dari shim next-compat bikin
 	// objek baru tiap render — kalau masuk dep array, effect re-run terus dan
@@ -123,6 +136,7 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 			setQuestions(saved.questions);
 			setNonTechAnswers(saved.nonTechAnswers);
 			setTechAnswers(saved.techAnswers);
+			setSkippedTech(new Set(saved.skippedTech ?? []));
 			setIsLoadingQuestions(false);
 			return;
 		}
@@ -180,14 +194,18 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 			session,
 			questions,
 			nonTechAnswers,
+			skippedTech: [...skippedTech],
 			techAnswers,
 		});
-	}, [questions, nonTechAnswers, techAnswers, session, platform, projectId]);
+	}, [questions, nonTechAnswers, techAnswers, skippedTech, session, platform, projectId]);
 
 	const fullstackDisabled = Boolean(
-		techAnswers.frontend || techAnswers.backend,
+		techAnswers.frontend || techAnswers.backend ||
+		skippedTech.has("frontend") || skippedTech.has("backend"),
 	);
-	const feBeDisabled = Boolean(techAnswers.fullstackFramework);
+	const feBeDisabled = Boolean(
+		techAnswers.fullstackFramework || skippedTech.has("fullstackFramework"),
+	);
 	const frontendOptions =
 		platform === "mobile" ? FRONTEND_MOBILE_OPTIONS : FRONTEND_WEB_OPTIONS;
 
@@ -284,6 +302,9 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 
 			{session === 1 ? (
 				<div className="space-y-4 pb-8">
+					<p className="font-inter text-xs text-fog italic">
+						Pilih &ldquo;Lewati&rdquo; jika tidak yakin — AI akan menentukan yang terbaik berdasarkan kebutuhan aplikasi Anda.
+					</p>
 					{questions.map((q) => (
 						<QuestionCard
 							key={q.id}
@@ -309,6 +330,9 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 				</div>
 			) : (
 				<div className="space-y-6 pb-8">
+					<p className="font-inter text-xs text-fog italic">
+						Pilih &ldquo;Lewati&rdquo; jika tidak yakin — AI akan memilih stack yang paling sesuai untuk aplikasi Anda.
+					</p>
 					<div className="grid gap-4 sm:grid-cols-2">
 						<StackDropdown
 							label="Frontend"
@@ -319,10 +343,12 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 							options={frontendOptions}
 							value={techAnswers.frontend}
 							disabled={feBeDisabled}
+							skipped={skippedTech.has("frontend")}
 							allowSkip
 							onChange={(v) =>
 								setTechAnswers((prev) => ({ ...prev, frontend: v }))
 							}
+							onToggleSkip={() => toggleSkipTech("frontend")}
 						/>
 						<StackDropdown
 							label="Backend"
@@ -333,10 +359,12 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 							options={BACKEND_OPTIONS}
 							value={techAnswers.backend}
 							disabled={feBeDisabled}
+							skipped={skippedTech.has("backend")}
 							allowSkip
 							onChange={(v) =>
 								setTechAnswers((prev) => ({ ...prev, backend: v }))
 							}
+							onToggleSkip={() => toggleSkipTech("backend")}
 						/>
 						<StackDropdown
 							label="Fullstack Framework"
@@ -347,10 +375,12 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 							options={FULLSTACK_FRAMEWORK_OPTIONS}
 							value={techAnswers.fullstackFramework}
 							disabled={fullstackDisabled}
+							skipped={skippedTech.has("fullstackFramework")}
 							allowSkip
 							onChange={(v) =>
 								setTechAnswers((prev) => ({ ...prev, fullstackFramework: v }))
 							}
+							onToggleSkip={() => toggleSkipTech("fullstackFramework")}
 						/>
 						<StackDropdown
 							label="Database"
@@ -361,10 +391,12 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 							options={DATABASE_OPTIONS}
 							value={techAnswers.database}
 							disabled={false}
+							skipped={skippedTech.has("database")}
 							allowSkip
 							onChange={(v) =>
 								setTechAnswers((prev) => ({ ...prev, database: v }))
 							}
+							onToggleSkip={() => toggleSkipTech("database")}
 						/>
 						<StackDropdown
 							label="Deployment"
@@ -375,10 +407,12 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 							options={DEPLOYMENT_OPTIONS}
 							value={techAnswers.deployment}
 							disabled={false}
+							skipped={skippedTech.has("deployment")}
 							allowSkip
 							onChange={(v) =>
 								setTechAnswers((prev) => ({ ...prev, deployment: v }))
 							}
+							onToggleSkip={() => toggleSkipTech("deployment")}
 						/>
 					</div>
 

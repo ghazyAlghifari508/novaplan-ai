@@ -19,8 +19,10 @@ interface StackDropdownProps {
 	options: string[];
 	value: string | undefined;
 	disabled: boolean;
+	skipped?: boolean;
 	allowSkip?: boolean;
 	onChange: (value: string | undefined) => void;
+	onToggleSkip?: () => void;
 }
 
 export function StackDropdown({
@@ -32,8 +34,10 @@ export function StackDropdown({
 	options,
 	value,
 	disabled,
+	skipped,
 	allowSkip,
 	onChange,
+	onToggleSkip,
 }: StackDropdownProps) {
 	const selectId = useId();
 	const triggerRef = useRef<HTMLButtonElement>(null);
@@ -43,19 +47,14 @@ export function StackDropdown({
 	const [customMode, setCustomMode] = useState(false);
 	const [customDraft, setCustomDraft] = useState("");
 	const [highlightIdx, setHighlightIdx] = useState(-1);
-	const [skipped, setSkipped] = useState(false);
 
 	const isCustomValue = Boolean(value) && !options.includes(value ?? "");
 	const displayValue = value || "";
 
-	// ponytail: skipped tracked locally — ask-flow only stores string|undefined,
-	// so undefined is ambiguous (skip vs not-answered). Local state gives us the
-	// explicit toggle UI the user asked for without changing the parent contract.
+	const isBlocked = disabled || Boolean(skipped);
+
 	const toggleSkip = () => {
-		setOpen(false);
-		setCustomMode(false);
-		setCustomDraft("");
-		setSkipped((s) => !s);
+		onToggleSkip?.();
 		if (!skipped) onChange(undefined); // engaging skip clears value
 	};
 
@@ -79,7 +78,6 @@ export function StackDropdown({
 		setCustomMode(false);
 		setCustomDraft("");
 		setOpen(false);
-		setSkipped(false);
 	}, [customDraft, onChange]);
 
 	const selectOption = useCallback(
@@ -94,7 +92,6 @@ export function StackDropdown({
 			setOpen(false);
 			setCustomMode(false);
 			setHighlightIdx(-1);
-			setSkipped(false);
 		},
 		[onChange, isCustomValue, value],
 	);
@@ -147,7 +144,7 @@ export function StackDropdown({
 		<div
 			className={cn(
 				"rounded-2xl border border-(--border-subtle) p-5 shadow-(--shadow-surface) transition-opacity",
-				disabled && "pointer-events-none opacity-40",
+				disabled && !skipped && "pointer-events-none opacity-40",
 			)}
 			style={{ background: "var(--bg-card)" }}
 		>
@@ -200,14 +197,14 @@ export function StackDropdown({
 			</div>
 
 			{/* trigger */}
-			<div className="relative">
+			<div className={cn("relative", skipped && "pointer-events-none opacity-60")}>
 				<button
 					ref={triggerRef}
 					type="button"
 					id={selectId}
-					disabled={disabled}
+					disabled={disabled || Boolean(skipped)}
 					onClick={() => {
-						if (disabled) return;
+						if (disabled || skipped) return;
 						setOpen((o) => !o);
 						if (!open) setHighlightIdx(options.indexOf(value ?? ""));
 					}}

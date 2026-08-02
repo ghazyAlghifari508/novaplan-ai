@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface NonTechAnswer {
@@ -100,33 +101,55 @@ export function QuestionCard({
 					Pertanyaan ini dilewati
 				</p>
 			) : type === "text" ? (
-				<div className="flex gap-2">
-					<input
-						type="text"
-						value={textInput}
-						onChange={(e) => setTextInput(e.target.value)}
-						onKeyDown={(e) => {
-							if (e.key === "Enter") {
-								e.preventDefault();
-								submitText();
-							}
-						}}
-						placeholder="Tulis jawabanmu..."
-						className="flex-1 rounded-lg border border-(--border-subtle) px-3 py-2 font-inter text-sm shadow-(--shadow-inset) outline-none"
-						style={{
-							background: "var(--bg-input)",
-							color: "var(--text-primary)",
-						}}
-					/>
-					<button
-						type="button"
-						onClick={submitText}
-						disabled={!textInput.trim()}
-						className="btn-primary rounded-lg px-4 py-2 font-inter text-sm font-[510] disabled:opacity-40 disabled:cursor-not-allowed"
-					>
-						Simpan
-					</button>
-				</div>
+				answer?.isCustom && answer?.value ? (
+					<div className="flex items-center gap-2 rounded-lg border border-emerald-500/50 bg-emerald-500/5 px-3 py-2">
+						<Check size={16} className="shrink-0 text-emerald-400" />
+						<span
+							className="flex-1 truncate font-inter text-sm"
+							style={{ color: "var(--text-primary)" }}
+						>
+							{answer.value}
+						</span>
+						<button
+							type="button"
+							onClick={() => {
+								setTextInput(answer.value);
+								onAnswer({ value: "", isCustom: false, skipped: false });
+							}}
+							className="font-inter text-xs text-fog hover:text-snow"
+						>
+							Ubah
+						</button>
+					</div>
+				) : (
+					<div className="flex gap-2">
+						<input
+							type="text"
+							value={textInput}
+							onChange={(e) => setTextInput(e.target.value)}
+							onKeyDown={(e) => {
+								if (e.key === "Enter") {
+									e.preventDefault();
+									submitText();
+								}
+							}}
+							placeholder="Tulis jawabanmu..."
+							className="flex-1 rounded-lg border border-(--border-subtle) px-3 py-2 font-inter text-sm shadow-(--shadow-inset) outline-none"
+							style={{
+								background: "var(--bg-input)",
+								color: "var(--text-primary)",
+							}}
+						/>
+						<button
+							type="button"
+							onClick={submitText}
+							disabled={!textInput.trim()}
+							className="btn-primary rounded-lg px-4 py-2 font-inter text-sm font-[510] disabled:opacity-40 disabled:cursor-not-allowed"
+						>
+							Simpan
+						</button>
+					</div>
+				)
 			) : type === "multiselect" ? (
 				<div className="flex flex-wrap gap-2">
 					{options?.map((opt) => {

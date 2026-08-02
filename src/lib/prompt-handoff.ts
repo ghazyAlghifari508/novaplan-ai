@@ -139,6 +139,7 @@ export interface AskState {
 		string,
 		{ value: string; isCustom: boolean; skipped: boolean; values?: string[] }
 	>;
+	skippedTech: string[];
 	techAnswers: {
 		frontend?: string;
 		backend?: string;
