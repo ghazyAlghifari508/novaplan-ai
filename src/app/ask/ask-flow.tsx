@@ -199,11 +199,10 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 			const a = nonTechAnswers[q.id];
 			return a && (a.value || a.skipped);
 		});
-	const allTechAnswered =
-		Boolean(techAnswers.database) &&
-		Boolean(techAnswers.deployment) &&
-		(Boolean(techAnswers.fullstackFramework) ||
-			(Boolean(techAnswers.frontend) && Boolean(techAnswers.backend)));
+	// ponytail: every tech field is skippable — Lewati = undefined = "Biarkan AI
+	// yang memilih" in submit(). No field is mandatory; Generate PRD stays enabled
+	// so non-technical users can let the AI pick the whole stack.
+	const allTechAnswered = true;
 
 	const submit = (tech: TechAnswers) => {
 		const nonTechLines = questions.map((q) => {
@@ -318,6 +317,7 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 							options={frontendOptions}
 							value={techAnswers.frontend}
 							disabled={feBeDisabled}
+							allowSkip
 							onChange={(v) =>
 								setTechAnswers((prev) => ({ ...prev, frontend: v }))
 							}
@@ -331,6 +331,7 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 							options={BACKEND_OPTIONS}
 							value={techAnswers.backend}
 							disabled={feBeDisabled}
+							allowSkip
 							onChange={(v) =>
 								setTechAnswers((prev) => ({ ...prev, backend: v }))
 							}
@@ -344,6 +345,7 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 							options={FULLSTACK_FRAMEWORK_OPTIONS}
 							value={techAnswers.fullstackFramework}
 							disabled={fullstackDisabled}
+							allowSkip
 							onChange={(v) =>
 								setTechAnswers((prev) => ({ ...prev, fullstackFramework: v }))
 							}
@@ -357,6 +359,7 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 							options={DATABASE_OPTIONS}
 							value={techAnswers.database}
 							disabled={false}
+							allowSkip
 							onChange={(v) =>
 								setTechAnswers((prev) => ({ ...prev, database: v }))
 							}
@@ -370,6 +373,7 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 							options={DEPLOYMENT_OPTIONS}
 							value={techAnswers.deployment}
 							disabled={false}
+							allowSkip
 							onChange={(v) =>
 								setTechAnswers((prev) => ({ ...prev, deployment: v }))
 							}

@@ -19,6 +19,7 @@ interface StackDropdownProps {
 	options: string[];
 	value: string | undefined;
 	disabled: boolean;
+	allowSkip?: boolean;
 	onChange: (value: string | undefined) => void;
 }
 
@@ -31,6 +32,7 @@ export function StackDropdown({
 	options,
 	value,
 	disabled,
+	allowSkip,
 	onChange,
 }: StackDropdownProps) {
 	const selectId = useId();
@@ -152,6 +154,24 @@ export function StackDropdown({
 					</p>
 					<p className="font-inter text-xs text-fog">{subtitle}</p>
 				</div>
+
+				{allowSkip && !disabled && (
+					<button
+						type="button"
+						onClick={() => {
+							onChange(undefined);
+							setCustomMode(false);
+							setCustomDraft("");
+							setOpen(false);
+						}}
+						className={cn(
+							"shrink-0 rounded-full px-3 py-1 font-inter text-xs transition-colors",
+							!value ? "bg-steel text-snow" : "text-fog hover:text-snow",
+						)}
+					>
+						Lewati
+					</button>
+				)}
 
 				{clearable && !disabled && (
 					<button
