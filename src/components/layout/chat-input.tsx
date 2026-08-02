@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { saveAskPlatform, saveSetupPrompt } from "@/lib/prompt-handoff";
+import { saveAskPlatform, saveSetupPrompt, getHomeDraft, saveHomeDraft, clearHomeDraft } from "@/lib/prompt-handoff";
 import { Lock, ChevronDown, Smartphone, Monitor, Check } from "lucide-react";
 import type { Plan } from "@/types/database";
 import {
@@ -46,7 +46,7 @@ function QualityBars({ quality }: { quality: number }) {
 }
 
 export function ChatInput({ className }: ChatInputProps) {
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(() => getHomeDraft());
   const [focused, setFocused] = useState(false);
   const [planStatus, setPlanStatus] = useState<{ plan: Plan; remaining: number | "unlimited" } | null>(null);
   const [isMobileMode, setIsMobileMode] = useState(false);
@@ -107,6 +107,14 @@ export function ChatInput({ className }: ChatInputProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // ponytail: 300ms debounce keeps the home seed-prompt draft alive across
+  // refresh, so a long product description isn't lost before send.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional draft snapshot
+  useEffect(() => {
+    const t = setTimeout(() => saveHomeDraft(message), 300);
+    return () => clearTimeout(t);
+  }, [message]);
+
   const handleSend = async () => {
     if (!message.trim()) return;
 
@@ -151,6 +159,7 @@ export function ChatInput({ className }: ChatInputProps) {
       });
       const project = (await res.json().catch(() => ({}))) as { id?: string; error?: string };
       if (!res.ok || !project.id) throw new Error(project.error || "Gagal membuat proyek");
+      clearHomeDraft();
       router.push(`/ask/${project.id}`);
     } catch (err) {
       console.error("Create project error:", err);

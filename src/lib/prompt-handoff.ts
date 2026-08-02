@@ -194,3 +194,26 @@ export function getPrdDraft(projectId: string): string {
 export function clearPrdDraft() {
   getStorage()?.removeItem(PRD_DRAFT_KEY);
 }
+
+/* ---------- Home seed-prompt draft (survives refresh before send) ---------- */
+const HOME_DRAFT_KEY = "novaplan:home-draft";
+
+/** Persist the home textarea draft before the user presses send. Tab-scoped.
+ *  Distinct from saveSetupPrompt (which fires on send with the enriched payload). */
+export function saveHomeDraft(draft: string) {
+  const storage = getStorage();
+  if (!storage) return;
+  if (!draft) {
+    storage.removeItem(HOME_DRAFT_KEY);
+    return;
+  }
+  storage.setItem(HOME_DRAFT_KEY, draft);
+}
+
+export function getHomeDraft(): string {
+  return getStorage()?.getItem(HOME_DRAFT_KEY) ?? "";
+}
+
+export function clearHomeDraft() {
+  getStorage()?.removeItem(HOME_DRAFT_KEY);
+}
