@@ -4,7 +4,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useCanvasZoom } from "@/hooks/use-canvas-zoom";
 import { ZoomControls } from "./zoom-controls";
-import { ChevronDown, ChevronRight, X } from "lucide-react";
+import { ChevronRight, X } from "lucide-react";
 import type { TaskTree } from "@/lib/services/task-service";
 
 // Layout constants
@@ -248,6 +248,7 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({
 }: WhiteboardCanvasProps) {
   const { zoom, pan, setZoom, setPan, zoomIn, zoomOut, resetZoom, startPan, updatePan, endPan, nudgePan, onWheel, minZoom, maxZoom } = useCanvasZoom();
   const [openDetail, setOpenDetail] = useState<LayoutNode | null>(null);
+  const [openTask, setOpenTask] = useState<LayoutNode | null>(null);
 
   const features = taskTree?.features ?? [];
   const isEmpty = features.length === 0;
@@ -287,30 +288,30 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({
 
   // Modal open freezes the board: pan/zoom/keyboard-nudge all no-op until closed.
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (openDetail) {
-      if (e.key === "Escape") setOpenDetail(null);
+    if (openDetail || openTask) {
+      if (e.key === "Escape") { setOpenDetail(null); setOpenTask(null); }
       return;
     }
     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
       e.preventDefault();
       nudgePan(e.key, 40);
     }
-  }, [nudgePan, openDetail]);
+  }, [nudgePan, openDetail, openTask]);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    if (openDetail) return;
+    if (openDetail || openTask) return;
     startPan(e);
-  }, [openDetail, startPan]);
+  }, [openDetail, openTask, startPan]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (openDetail) return;
+    if (openDetail || openTask) return;
     updatePan(e);
-  }, [openDetail, updatePan]);
+  }, [openDetail, openTask, updatePan]);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
-    if (openDetail) return;
+    if (openDetail || openTask) return;
     onWheel(e);
-  }, [openDetail, onWheel]);
+  }, [openDetail, openTask, onWheel]);
 
   return (
     <div
@@ -363,7 +364,7 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({
               if (node.type === "root") return <RootNode key={node.id} node={node} />;
               if (node.type === "feature") return <FeatureNode key={node.id} node={node} />;
               if (node.type === "detail") return <DetailNode key={node.id} node={node} onOpen={setOpenDetail} />;
-              return <TaskCard key={node.id} node={node} />;
+              return <TaskCard key={node.id} node={node} onOpen={() => setOpenTask(node)} />;
             })}
           </div>
 
@@ -378,6 +379,8 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({
       )}
       {openDetail && typeof document !== "undefined" &&
         createPortal(<DetailModal node={openDetail} onClose={() => setOpenDetail(null)} />, document.body)}
+      {openTask && typeof document !== "undefined" &&
+        createPortal(<TaskSubtasksModal node={openTask} onClose={() => setOpenTask(null)} />, document.body)}
     </div>
   );
 });
@@ -511,14 +514,45 @@ function DetailModal({ node, onClose }: { node: LayoutNode; onClose: () => void 
   );
 }
 
-function TaskCard({ node }: { node: LayoutNode }) {
+// Modal daftar subtask — UI match DetailModal (portal, overlay, color border, X close).
+function TaskSubtasksModal({ node, onClose }: { node: LayoutNode; onClose: () => void }) {
+  const color = COLORS[node.colorIdx];
+  const allSubtasks = node.subtasks ?? [];
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 animate-in fade-in duration-200"
+      onClick={onClose}
+    >
+      <div
+        className={`w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-xl border ${color.border} bg-obsidian p-5 shadow-[var(--shadow-overlay)] animate-in zoom-in-95 duration-200`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-4 flex items-center gap-2">
+          <div className={`h-2 w-2 shrink-0 rounded-full ${color.badge}`} />
+          <p className="truncate font-inter text-sm font-[510] text-snow">{node.label}</p>
+          <span className="ml-auto shrink-0 text-xs text-fog">{allSubtasks.length} subtask</span>
+          <button onClick={onClose} className="shrink-0 text-fog transition-colors hover:text-snow">
+            <X size={18} />
+          </button>
+        </div>
+        <ul className="space-y-2">
+          {allSubtasks.map((s, i) => (
+            <li key={i} className="rounded-lg border border-graphite/60 bg-charcoal/40 px-3 py-2">
+              <p className="font-inter text-sm text-snow">{s.name}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function TaskCard({ node, onOpen }: { node: LayoutNode; onOpen: () => void }) {
   const color = COLORS[node.colorIdx];
   const allSubtasks = node.subtasks ?? [];
   const total = node.totalSubtasks ?? allSubtasks.length;
   const hasMore = total > MAX_VISIBLE_SUBTASKS;
-  const [expanded, setExpanded] = useState(false);
-
-  const visibleSubtasks = expanded ? allSubtasks : allSubtasks.slice(0, MAX_VISIBLE_SUBTASKS);
+  const visibleSubtasks = allSubtasks.slice(0, MAX_VISIBLE_SUBTASKS);
 
   return (
     <div className="absolute rounded-lg border border-graphite bg-obsidian shadow-md animate-fadeIn"
@@ -529,7 +563,7 @@ function TaskCard({ node }: { node: LayoutNode }) {
         <p className="truncate font-inter text-xs font-[510] text-snow" title={node.label}>{node.label}</p>
       </div>
 
-      {/* Subtask checklist */}
+      {/* Subtask checklist (collapsed preview, max 3) */}
       {visibleSubtasks.length > 0 && (
         <ul className="px-3 py-2 space-y-1">
           {visibleSubtasks.map((s, i) => (
@@ -543,20 +577,16 @@ function TaskCard({ node }: { node: LayoutNode }) {
         </ul>
       )}
 
-      {/* Expandable "Lihat semua" button */}
+      {/* "Lihat semua" → modal */}
       {hasMore && (
         <div className="border-t border-graphite/40 px-3 py-1.5">
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+            onClick={(e) => { e.stopPropagation(); onOpen(); }}
             onPointerDown={(e) => e.stopPropagation()}
             className="flex items-center gap-1 text-[10px] font-[510] text-indigo hover:text-indigo/80 transition-colors"
           >
-            {expanded ? (
-              <>Tutup <ChevronDown size={10} /></>
-            ) : (
-              <>Lihat semua ({total}) <ChevronRight size={10} /></>
-            )}
+            Lihat semua ({total}) <ChevronRight size={10} />
           </button>
         </div>
       )}
