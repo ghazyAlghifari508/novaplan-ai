@@ -4,10 +4,13 @@ import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { db } from "@/db";
 import {
   accounts,
+  quotas,
   sessions,
+  subscriptions,
   users,
   verifications,
 } from "@/db/schema";
+import { PLAN_LIMITS } from "@/types/database";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -20,6 +23,29 @@ export const auth = betterAuth({
       verifications,
     },
   }),
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          const freeLimits = PLAN_LIMITS.free;
+          await db.insert(subscriptions).values({
+            id: crypto.randomUUID(),
+            userId: user.id,
+            plan: "free",
+            status: "active",
+          });
+          await db.insert(quotas).values({
+            id: crypto.randomUUID(),
+            userId: user.id,
+            prdUsed: 0,
+            prdLimit: freeLimits.prd,
+            revisionUsed: 0,
+            revisionLimit: freeLimits.revision,
+          });
+        },
+      },
+    },
+  },
   emailAndPassword: {
     enabled: false,
   },
