@@ -2,10 +2,13 @@
  * Ask-flow question parsing - mirrors task-service.ts's parseTaskJson
  * strict-validation pattern (reject malformed shape, no partial trust).
  */
+export type AskQuestionType = "select" | "text" | "multiselect";
+
 export interface AskQuestion {
 	id: string;
 	question: string;
-	options: string[];
+	type: AskQuestionType;
+	options?: string[];
 }
 
 export function parseAskOptionsJson(jsonString: string): AskQuestion[] | null {
@@ -26,8 +29,15 @@ export function parseAskOptionsJson(jsonString: string): AskQuestion[] | null {
 		for (const q of parsed.questions) {
 			if (!q.id || typeof q.id !== "string") return null;
 			if (!q.question || typeof q.question !== "string") return null;
-			if (!Array.isArray(q.options) || q.options.length === 0) return null;
-			if (!q.options.every((o: unknown) => typeof o === "string")) return null;
+			const qType = q.type as string | undefined;
+			if (!qType || !["select", "text", "multiselect"].includes(qType))
+				return null;
+			// select & multiselect require options array; text does not
+			if (qType === "select" || qType === "multiselect") {
+				if (!Array.isArray(q.options) || q.options.length === 0) return null;
+				if (!q.options.every((o: unknown) => typeof o === "string"))
+					return null;
+			}
 		}
 
 		return parsed.questions as AskQuestion[];

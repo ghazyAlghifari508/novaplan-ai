@@ -71,7 +71,8 @@ const DEPLOYMENT_OPTIONS = [
 interface AskQuestion {
 	id: string;
 	question: string;
-	options: string[];
+	type: "select" | "text" | "multiselect";
+	options?: string[];
 }
 
 interface TechAnswers {
@@ -287,6 +288,7 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 						<QuestionCard
 							key={q.id}
 							question={q.question}
+							type={q.type}
 							options={q.options}
 							answer={nonTechAnswers[q.id]}
 							onAnswer={(answer) =>

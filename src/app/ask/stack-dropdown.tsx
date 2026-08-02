@@ -43,9 +43,21 @@ export function StackDropdown({
 	const [customMode, setCustomMode] = useState(false);
 	const [customDraft, setCustomDraft] = useState("");
 	const [highlightIdx, setHighlightIdx] = useState(-1);
+	const [skipped, setSkipped] = useState(false);
 
 	const isCustomValue = Boolean(value) && !options.includes(value ?? "");
 	const displayValue = value || "";
+
+	// ponytail: skipped tracked locally — ask-flow only stores string|undefined,
+	// so undefined is ambiguous (skip vs not-answered). Local state gives us the
+	// explicit toggle UI the user asked for without changing the parent contract.
+	const toggleSkip = () => {
+		setOpen(false);
+		setCustomMode(false);
+		setCustomDraft("");
+		setSkipped((s) => !s);
+		if (!skipped) onChange(undefined); // engaging skip clears value
+	};
 
 	// close on outside click
 	useEffect(() => {
@@ -67,6 +79,7 @@ export function StackDropdown({
 		setCustomMode(false);
 		setCustomDraft("");
 		setOpen(false);
+		setSkipped(false);
 	}, [customDraft, onChange]);
 
 	const selectOption = useCallback(
@@ -81,6 +94,7 @@ export function StackDropdown({
 			setOpen(false);
 			setCustomMode(false);
 			setHighlightIdx(-1);
+			setSkipped(false);
 		},
 		[onChange, isCustomValue, value],
 	);
@@ -158,18 +172,13 @@ export function StackDropdown({
 				{allowSkip && !disabled && (
 					<button
 						type="button"
-						onClick={() => {
-							onChange(undefined);
-							setCustomMode(false);
-							setCustomDraft("");
-							setOpen(false);
-						}}
+						onClick={toggleSkip}
 						className={cn(
 							"shrink-0 rounded-full px-3 py-1 font-inter text-xs transition-colors",
-							!value ? "bg-steel text-snow" : "text-fog hover:text-snow",
+							skipped ? "bg-steel text-snow" : "text-fog hover:text-snow",
 						)}
 					>
-						Lewati
+						{skipped ? "Dilewati" : "Lewati"}
 					</button>
 				)}
 
@@ -213,11 +222,13 @@ export function StackDropdown({
 					}}
 				>
 					<span className="truncate">
-						{displayValue && !isCustomValue
-							? displayValue
-							: isCustomValue
-								? value
-								: placeholder}
+						{skipped
+							? "Dilewati"
+							: displayValue && !isCustomValue
+								? displayValue
+								: isCustomValue
+									? value
+									: placeholder}
 					</span>
 					<ChevronDown
 						size={16}

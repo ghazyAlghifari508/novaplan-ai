@@ -134,10 +134,10 @@ export interface AskState {
 	prompt: string;
 	platform: "web" | "mobile";
 	session: 1 | 2;
-	questions: { id: string; question: string; options: string[] }[];
+	questions: { id: string; question: string; type: "select" | "text" | "multiselect"; options?: string[] }[];
 	nonTechAnswers: Record<
 		string,
-		{ value: string; isCustom: boolean; skipped: boolean }
+		{ value: string; isCustom: boolean; skipped: boolean; values?: string[] }
 	>;
 	techAnswers: {
 		frontend?: string;

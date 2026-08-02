@@ -7,28 +7,66 @@ export interface NonTechAnswer {
 	value: string;
 	isCustom: boolean;
 	skipped: boolean;
+	/** For multiselect: array of selected option strings */
+	values?: string[];
 }
+
+type QuestionType = "select" | "text" | "multiselect";
 
 interface QuestionCardProps {
 	question: string;
-	options: string[];
+	type: QuestionType;
+	options?: string[];
 	answer: NonTechAnswer | undefined;
 	onAnswer: (answer: NonTechAnswer) => void;
 }
 
 export function QuestionCard({
 	question,
+	type,
 	options,
 	answer,
 	onAnswer,
 }: QuestionCardProps) {
 	const [customText, setCustomText] = useState("");
 	const [showCustomInput, setShowCustomInput] = useState(false);
+	const [textInput, setTextInput] = useState(answer?.isCustom ? answer.value : "");
+
+	const isSkipped = answer?.skipped ?? false;
+
+	const toggleSkip = () => {
+		if (isSkipped) {
+			// undo skip
+			onAnswer({ value: "", isCustom: false, skipped: false });
+		} else {
+			setShowCustomInput(false);
+			onAnswer({ value: "", isCustom: false, skipped: true });
+		}
+	};
+
+	// multiselect toggle
+	const toggleOption = (opt: string) => {
+		const current = answer?.values ?? [];
+		const next = current.includes(opt)
+			? current.filter((v) => v !== opt)
+			: [...current, opt];
+		onAnswer({
+			value: next.join(", "),
+			isCustom: false,
+			skipped: false,
+			values: next,
+		});
+	};
 
 	const submitCustom = () => {
 		if (!customText.trim()) return;
 		onAnswer({ value: customText.trim(), isCustom: true, skipped: false });
 		setShowCustomInput(false);
+	};
+
+	const submitText = () => {
+		if (!textInput.trim()) return;
+		onAnswer({ value: textInput.trim(), isCustom: true, skipped: false });
 	};
 
 	return (
@@ -45,60 +83,32 @@ export function QuestionCard({
 				</h3>
 				<button
 					type="button"
-					onClick={() => {
-						setShowCustomInput(false);
-						onAnswer({ value: "", isCustom: false, skipped: true });
-					}}
+					onClick={toggleSkip}
 					className={cn(
 						"shrink-0 rounded-full px-3 py-1 font-inter text-xs transition-colors",
-						answer?.skipped ? "bg-steel text-snow" : "text-fog hover:text-snow",
+						isSkipped
+							? "bg-steel text-snow"
+							: "text-fog hover:text-snow",
 					)}
 				>
-					Lewati
+					{isSkipped ? "Dilewati" : "Lewati"}
 				</button>
 			</div>
-			<div className="flex flex-wrap gap-2">
-				{options.map((opt) => (
-					<button
-						type="button"
-						key={opt}
-						onClick={() => {
-							setShowCustomInput(false);
-							onAnswer({ value: opt, isCustom: false, skipped: false });
-						}}
-						className={cn(
-							"rounded-full px-4 py-2 font-inter text-sm transition-colors",
-							answer?.value === opt && !answer.isCustom
-								? "btn-primary"
-								: "border border-(--border-subtle) text-fog hover:bg-white/5 hover:text-snow",
-						)}
-					>
-						{opt}
-					</button>
-				))}
-				<button
-					type="button"
-					onClick={() => setShowCustomInput(true)}
-					className={cn(
-						"rounded-full border border-dashed border-(--border-subtle) px-4 py-2 font-inter text-sm transition-colors",
-						answer?.isCustom
-							? "btn-primary border-solid"
-							: "text-fog hover:bg-white/5 hover:text-snow",
-					)}
-				>
-					+ Lainnya
-				</button>
-			</div>
-			{showCustomInput && (
-				<div className="mt-3 flex gap-2">
+
+			{isSkipped ? (
+				<p className="font-inter text-sm text-fog italic">
+					Pertanyaan ini dilewati
+				</p>
+			) : type === "text" ? (
+				<div className="flex gap-2">
 					<input
 						type="text"
-						value={customText}
-						onChange={(e) => setCustomText(e.target.value)}
+						value={textInput}
+						onChange={(e) => setTextInput(e.target.value)}
 						onKeyDown={(e) => {
 							if (e.key === "Enter") {
 								e.preventDefault();
-								submitCustom();
+								submitText();
 							}
 						}}
 						placeholder="Tulis jawabanmu..."
@@ -110,18 +120,104 @@ export function QuestionCard({
 					/>
 					<button
 						type="button"
-						onClick={submitCustom}
-						className="btn-primary rounded-lg px-4 py-2 font-inter text-sm font-[510]"
+						onClick={submitText}
+						disabled={!textInput.trim()}
+						className="btn-primary rounded-lg px-4 py-2 font-inter text-sm font-[510] disabled:opacity-40 disabled:cursor-not-allowed"
 					>
 						Simpan
 					</button>
 				</div>
-			)}
-			{answer?.isCustom && !showCustomInput && (
-				<p className="mt-3 font-inter text-sm text-fog">
-					Jawabanmu:{" "}
-					<span style={{ color: "var(--text-primary)" }}>{answer.value}</span>
-				</p>
+			) : type === "multiselect" ? (
+				<div className="flex flex-wrap gap-2">
+					{options?.map((opt) => {
+						const selected = answer?.values?.includes(opt) ?? false;
+						return (
+							<button
+								type="button"
+								key={opt}
+								onClick={() => toggleOption(opt)}
+								className={cn(
+									"rounded-full px-4 py-2 font-inter text-sm transition-colors",
+									selected
+										? "btn-primary"
+										: "border border-(--border-subtle) text-fog hover:bg-white/5 hover:text-snow",
+								)}
+							>
+								{opt}
+							</button>
+						);
+					})}
+				</div>
+			) : (
+				/* select — original pill options */
+				<>
+					<div className="flex flex-wrap gap-2">
+						{options?.map((opt) => (
+							<button
+								type="button"
+								key={opt}
+								onClick={() => {
+									setShowCustomInput(false);
+									onAnswer({ value: opt, isCustom: false, skipped: false });
+								}}
+								className={cn(
+									"rounded-full px-4 py-2 font-inter text-sm transition-colors",
+									answer?.value === opt && !answer.isCustom
+										? "btn-primary"
+										: "border border-(--border-subtle) text-fog hover:bg-white/5 hover:text-snow",
+								)}
+							>
+								{opt}
+							</button>
+						))}
+						<button
+							type="button"
+							onClick={() => setShowCustomInput(true)}
+							className={cn(
+								"rounded-full border border-dashed border-(--border-subtle) px-4 py-2 font-inter text-sm transition-colors",
+								answer?.isCustom
+									? "btn-primary border-solid"
+									: "text-fog hover:bg-white/5 hover:text-snow",
+							)}
+						>
+							+ Lainnya
+						</button>
+					</div>
+					{showCustomInput && (
+						<div className="mt-3 flex gap-2">
+							<input
+								type="text"
+								value={customText}
+								onChange={(e) => setCustomText(e.target.value)}
+								onKeyDown={(e) => {
+									if (e.key === "Enter") {
+										e.preventDefault();
+										submitCustom();
+									}
+								}}
+								placeholder="Tulis jawabanmu..."
+								className="flex-1 rounded-lg border border-(--border-subtle) px-3 py-2 font-inter text-sm shadow-(--shadow-inset) outline-none"
+								style={{
+									background: "var(--bg-input)",
+									color: "var(--text-primary)",
+								}}
+							/>
+							<button
+								type="button"
+								onClick={submitCustom}
+								className="btn-primary rounded-lg px-4 py-2 font-inter text-sm font-[510]"
+							>
+								Simpan
+							</button>
+						</div>
+					)}
+					{answer?.isCustom && !showCustomInput && (
+						<p className="mt-3 font-inter text-sm text-fog">
+							Jawabanmu:{" "}
+							<span style={{ color: "var(--text-primary)" }}>{answer.value}</span>
+						</p>
+					)}
+				</>
 			)}
 		</div>
 	);
