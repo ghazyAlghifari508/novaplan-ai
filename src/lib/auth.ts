@@ -54,7 +54,7 @@ export const auth = betterAuth({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     },
-    // ponytail: placeholder — gh CLI token lacks OAuth-App scope to auto-provision.
+    // ponytail: placeholder: gh CLI token lacks OAuth-App scope to auto-provision.
     // Create at github.com/settings/developers, then fill real values in .env.
     github: {
       clientId: process.env.GITHUB_CLIENT_ID || "placeholder",

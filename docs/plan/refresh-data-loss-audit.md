@@ -1,26 +1,26 @@
-# Refresh-Induced Data Loss Fixes — Implementation Plan
+# Refresh-Induced Data Loss Fixes :  Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Eliminate the class of "/ask tolol bug" (browser refresh wipes generated state the user reasonably expects to survive) across the PRD generation flow, the onboarding wizard, and the home seed-prompt textarea.
 
 **Architecture:** Two mechanical patterns, both already proven in-repo via the just-shipped `/ask` fix (`saveAskState`/`getAskState` at `src/lib/prompt-handoff.ts:120-162`):
-1. **Client-side ephemeral-persistence** — debounce-snapshot React state to `sessionStorage`, replay on mount. Used for input drafts and multi-step form accumulators. No DB writes; tab-scoped; dies on tab close (correct — this is session work, not durable data).
-2. **Server-side resilience** — stop the PRD generation stream from deleting the project + conversation row on client disconnect, and from dropping the originating user prompt. These are real DB-state holes, not just client UX.
+1. **Client-side ephemeral-persistence** :  debounce-snapshot React state to `sessionStorage`, replay on mount. Used for input drafts and multi-step form accumulators. No DB writes; tab-scoped; dies on tab close (correct :  this is session work, not durable data).
+2. **Server-side resilience** :  stop the PRD generation stream from deleting the project + conversation row on client disconnect, and from dropping the originating user prompt. These are real DB-state holes, not just client UX.
 
 A third concern (consume-before-success in `consumePendingPrdPrompt`) is deferred (see end of plan).
 
-**Tech Stack:** TanStack Start (file-route server fns), React, `sessionStorage` (already the repo convention — `window.sessionStorage`, no localStorage anywhere in `src/`), Drizzle/PostgreSQL, Biome (not ESLint) for lint/format. No new dependencies.
+**Tech Stack:** TanStack Start (file-route server fns), React, `sessionStorage` (already the repo convention :  `window.sessionStorage`, no localStorage anywhere in `src/`), Drizzle/PostgreSQL, Biome (not ESLint) for lint/format. No new dependencies.
 
 ## Global Constraints
 
-- **No new dependencies.** `sessionStorage`, `useState`, `useEffect` only. The repo has no Debounce lib and no need for one — a 300ms `setTimeout` in an effect is the pattern (see `chat-panel.tsx` for existing effect idioms).
+- **No new dependencies.** `sessionStorage`, `useState`, `useEffect` only. The repo has no Debounce lib and no need for one :  a 300ms `setTimeout` in an effect is the pattern (see `chat-panel.tsx` for existing effect idioms).
 - **No `localStorage`.** Repo convention is `sessionStorage` exclusively (grep `localStorage` in `src/` → 0). Persisting these drafts across tab-close would be wrong: a stale onboarding or draft prompt re-appearing days later is a worse UX than losing it on tab close. Keep tab-scoped.
 - **`sessionStorage` access is guarded** by `getStorage()` (`prompt-handoff.ts:23-26`) which returns `null` when `typeof window === "undefined"`. All new helpers MUST go through `getStorage()` or use the same `typeof window === "undefined"` guard, never raw `window.sessionStorage`.
-- **Biome lint suppressions** use `// biome-ignore lint/<rule>: <reason>` directly above the offending construct (per repo convention, see `ask-flow.tsx:107`). The exhaustive-deps rule will fire on every debounce/replay effect here — suppress each with the real reason.
+- **Biome lint suppressions** use `// biome-ignore lint/<rule>: <reason>` directly above the offending construct (per repo convention, see `ask-flow.tsx:107`). The exhaustive-deps rule will fire on every debounce/replay effect here :  suppress each with the real reason.
 - **Backend changes (Tasks 1–2) are server-route edits** in `src/routes/api/chat.ts` and `src/lib/services/chat-service.ts`. These run server-side; no client-guard needed.
-- **Test convention:** co-located `*.test.ts` (see `src/lib/constants.test.ts`, `src/utils.test.ts`). The backend services are pure functions (`rollbackStreamInserts` gate logic is testable in isolation; the chat API SSE handler is not unit-testable without heavy harness — verify by typecheck + manual dev-server probe instead, per existing project practice for SSE routes).
-- **Never hand-edit `src/routeTree.gen.ts`** — run `pnpm generate-routes` if routes change (none of these tasks add/remove routes, so this won't be needed).
+- **Test convention:** co-located `*.test.ts` (see `src/lib/constants.test.ts`, `src/utils.test.ts`). The backend services are pure functions (`rollbackStreamInserts` gate logic is testable in isolation; the chat API SSE handler is not unit-testable without heavy harness :  verify by typecheck + manual dev-server probe instead, per existing project practice for SSE routes).
+- **Never hand-edit `src/routeTree.gen.ts`** :  run `pnpm generate-routes` if routes change (none of these tasks add/remove routes, so this won't be needed).
 - **One commit per task.** Conventional-commit messages: `fix(chat): ...`, `feat(onboarding): ...`, etc.
 
 ## File Structure
@@ -79,7 +79,7 @@ const enqueueDelta = (chunk: string) => {
 };
 ```
 
-Then line 147 becomes `enqueueDelta(firstChunk);` and line 151 becomes `enqueueDelta(chunk);`. (Leave the `fullResponse += ...` accumulation lines intact — those are the source of truth for whether content streamed.)
+Then line 147 becomes `enqueueDelta(firstChunk);` and line 151 becomes `enqueueDelta(chunk);`. (Leave the `fullResponse += ...` accumulation lines intact :  those are the source of truth for whether content streamed.)
 
 - [ ] **Step 2: Differentiate abort from real error in the catch block**
 
@@ -119,7 +119,7 @@ Replace the `catch` block body (`chat.ts:238-243`) with abort-aware logic:
 }
 ```
 
-When `isClientAbort` we deliberately do NOT call `safeError` — the client is gone. The `finally` at `:244-246` still closes the controller.
+When `isClientAbort` we deliberately do NOT call `safeError` :  the client is gone. The `finally` at `:244-246` still closes the controller.
 
 - [ ] **Step 3: Verify typecheck**
 
@@ -155,7 +155,7 @@ the user re-enters to a real (if empty) chat instead of NOT_FOUND."
 
 **Approach:** Widen the `saveMessages` guard to include `generate` and `resume`. The `userMessageToSave` derivation at lines 164-170 already strips the `Generate PRD lengkap...` template wrapper for those modes (so the bubble shows the user's actual answer text) and builds a sensible `assistantReply` per mode at lines 154-162. Just remove the mode gate.
 
-Edge case: for `generate`, `assistantReply` is the literal `"Selesai menyusun PRD awal."` (line 159), NOT the full PRD body — correct, because the full body goes to `savePrdVersion` (line 220), not messages. The message pair (user prompt + short confirmation) is the chat-history artifact; the PRD itself is a separate versioned doc. Keep this split.
+Edge case: for `generate`, `assistantReply` is the literal `"Selesai menyusun PRD awal."` (line 159), NOT the full PRD body :  correct, because the full body goes to `savePrdVersion` (line 220), not messages. The message pair (user prompt + short confirmation) is the chat-history artifact; the PRD itself is a separate versioned doc. Keep this split.
 
 - [ ] **Step 1: Widen the saveMessages condition**
 
@@ -261,7 +261,7 @@ First confirm `input`/`setInput` and `projectId` locations in `src/components/ch
 import { getPrdDraft, savePrdDraft, clearPrdDraft, /* existing... */ } from "@/lib/prompt-handoff";
 ```
 
-**Restore on mount** — change line 127 from:
+**Restore on mount** :  change line 127 from:
 ```ts
 const [input, setInput] = useState("");
 ```
@@ -272,9 +272,9 @@ const [input, setInput] = useState(() => getPrdDraft(projectId));
 
 (`useState` lazy initializer runs once on mount → restores the draft; no extra effect for restore. Confirms `projectId` in component scope before this line.)
 
-**Debounced save on change** — add an effect near the other mount effects:
+**Debounced save on change** :  add an effect near the other mount effects:
 ```ts
-// ponytail: 300ms debounce — cheap, matches typing cadence. Keeps the PRD
+// ponytail: 300ms debounce :  cheap, matches typing cadence. Keeps the PRD
 // follow-up draft in sessionStorage so a refresh mid-typing doesn't wipe it.
 // biome-ignore lint/correctness/useExhaustiveDependencies: intentional draft snapshot
 useEffect(() => {
@@ -283,7 +283,7 @@ useEffect(() => {
 }, [input, projectId]);
 ```
 
-**Clear on successful send** — in the send handler, after the request resolves OK (locate the success path by reading the send function), add `clearPrdDraft();` alongside the existing `setInput("")`. After `setInput("")` runs, the debounce effect calls `savePrdDraft(projectId, "")` → removes the key (per Step 1 empty-guard). Adding `clearPrdDraft()` is belt-and-suspenders for immediate clear; keep both.
+**Clear on successful send** :  in the send handler, after the request resolves OK (locate the success path by reading the send function), add `clearPrdDraft();` alongside the existing `setInput("")`. After `setInput("")` runs, the debounce effect calls `savePrdDraft(projectId, "")` → removes the key (per Step 1 empty-guard). Adding `clearPrdDraft()` is belt-and-suspenders for immediate clear; keep both.
 
 - [ ] **Step 3: Verify typecheck + Biome**
 
@@ -299,7 +299,7 @@ git commit -m "feat(chat): persist PRD follow-up draft across refresh
 The PRD chat input was bare useState; a refresh wiped a half-typed follow-up
 question. Add per-project sessionStorage draft helpers (savePrdDraft/
 getPrdDraft/clearPrdDraft), restore on mount via lazy useState initializer,
-debounce-save on change (300ms), clear on successful send. Tab-scoped —
+debounce-save on change (300ms), clear on successful send. Tab-scoped : 
 match the repo's sessionStorage-only convention."
 ```
 
@@ -315,7 +315,7 @@ match the repo's sessionStorage-only convention."
 
 **Interfaces:**
 - Produces:
-  - `export function saveHomeDraft(draft: string): void` (not project-scoped — pre-dates any project)
+  - `export function saveHomeDraft(draft: string): void` (not project-scoped :  pre-dates any project)
   - `export function getHomeDraft(): string` (returns `""` if missing)
   - `export function clearHomeDraft(): void`
 
@@ -377,7 +377,7 @@ useEffect(() => {
 }, [message]);
 ```
 
-**Clear on send:** in `handleSend`, place `clearHomeDraft()` at the END, right before `router.push(\`/ask/${project.id}\`)` (line 154) — the success path only, so a failed send preserves the draft for retry.
+**Clear on send:** in `handleSend`, place `clearHomeDraft()` at the END, right before `router.push(\`/ask/${project.id}\`)` (line 154) :  the success path only, so a failed send preserves the draft for retry.
 
 - [ ] **Step 3: Verify typecheck + Biome**
 
@@ -390,8 +390,8 @@ Expected: clean.
 git add src/lib/prompt-handoff.ts src/components/layout/chat-input.tsx
 git commit -m "feat(home): persist seed-prompt draft across refresh before send
 
-The home textarea is the most expensive single input in the app — the long
-product description that seeds the whole flow — and it was bare useState. A
+The home textarea is the most expensive single input in the app :  the long
+product description that seeds the whole flow :  and it was bare useState. A
 refresh before pressing send wiped it. Add sessionStorage home-draft helpers
 (not project-scoped; predates any project), restore on mount, debounce-save on
 change (300ms), clear only on a successful project-creation send. Distinct from
@@ -527,7 +527,7 @@ git commit -m "feat(onboarding): persist 3-step wizard state across refresh
 
 Onboarding was a 3-step wizard (name -> role -> goals) with all state in
 useState and no persistence until the final submit. A refresh at step 2 or 3
-restarted at step 1, losing name + role + goals — same class as the /ask bug.
+restarted at step 1, losing name + role + goals :  same class as the /ask bug.
 Mirror saveAskState: sessionStorage snapshot, restore on mount, debounce-save
 on change (200ms), clear only on successful submit. Tab-scoped."
 ```
@@ -536,26 +536,26 @@ on change (200ms), clear only on successful submit. Tab-scoped."
 
 ## Verification (whole plan)
 
-- [ ] **Full typecheck:** `npx tsc --noEmit` — clean.
-- [ ] **Biome lint/format:** `pnpm exec biome check --write src/` — clean, no new unsuppressed errors (the added biome-ignore lines are intentional and follow repo convention).
-- [ ] **Manual smoke test (dev server, if user permits — they previously rejected running it this session; if not run, state typecheck-only).** For each fixed bug:
+- [ ] **Full typecheck:** `npx tsc --noEmit` :  clean.
+- [ ] **Biome lint/format:** `pnpm exec biome check --write src/` :  clean, no new unsuppressed errors (the added biome-ignore lines are intentional and follow repo convention).
+- [ ] **Manual smoke test (dev server, if user permits :  they previously rejected running it this session; if not run, state typecheck-only).** For each fixed bug:
   1. **PRD mid-gen refresh (Task 1):** start a PRD generation, refresh mid-stream, observe the project + conversation still exist (no NOT_FOUND). Re-enter, generate succeeds (one quota burn, not the pre-fix double).
   2. **PRD prompt bubble (Task 2):** complete a PRD generation, refresh, confirm the first user prompt bubble is present in chat history above the assistant summary.
   3. **PRD draft (Task 3):** type a follow-up in the PRD chat, refresh, confirm draft restored. Send it, confirm it clears.
   4. **Home draft (Task 4):** type a long product description on home, refresh, confirm draft restored. Type < 20 chars, attempt send (rejected), confirm draft preserved. Send valid, confirm next visit starts empty.
   5. **Onboarding (Task 5):** fill name (step 1) + role (step 2), refresh, confirm restored to step 2 with name + role. Complete step 3, submit, confirm next onboarding starts fresh.
 
-- [ ] **No DB migration needed** — none of these tasks touch schema; all persisted state is client sessionStorage or already-existing DB columns written via existing service signatures.
+- [ ] **No DB migration needed** :  none of these tasks touch schema; all persisted state is client sessionStorage or already-existing DB columns written via existing service signatures.
 
 ## What this plan deliberately does NOT fix (deferred / out of scope)
 
 - **`consumePendingPrdPrompt` consume-before-success** (`prompt-handoff.ts:91` removes the key unconditionally before the auto-submit `fetch` resolves). A failed auto-submit (quota 403, 429, network) loses the prompt with no retry source. Fixing properly means splitting into `peekPendingPrdPrompt` (read, no delete) + `consumePendingPrdPrompt` (delete) and deleting only after the SSE `done` event confirms success. Behavioral change to the auto-submit effect in `chat-panel.tsx:652-672` with careful handling of the StrictMode double-invoke guard (`autoSubmitAttemptedRef`). Worth doing but DEFERRED to keep this plan's diff reviewable. Flag it.
-- **PRD retry-card vs NOT_FOUND race + double quota burn** (`prd-detail.tsx:228` + `:185-196`): a mid-generate refresh can land on either the retry card OR the NOT_FOUND error (race), and the retry re-fires generation (second quota burn). Task 1 reduces this surface (project no longer deleted → NOT_FOUND less likely) but the retry-card path can still double-burn. A fuller fix would mark the project `prdStatus="generating"` and have the loader return that state, letting the UI show "generation in progress, reconnecting" instead of a retry button. Real schema/UI work — DEFERRED. Task 1 removes the worst symptom (project deleted).
-- **`api-keys` raw key shown once, lost on refresh** (`api-keys-client.tsx:104-123`): a created secret is shown exactly once in client state. Standard API-key UX (show once, warn to copy) and arguably correct — persisting a raw secret to sessionStorage reintroduces it in cleartext. LEFT AS-IS unless real users report it.
-- **`forgot-password.tsx`** — file missing from disk this session; user said to ignore it.
+- **PRD retry-card vs NOT_FOUND race + double quota burn** (`prd-detail.tsx:228` + `:185-196`): a mid-generate refresh can land on either the retry card OR the NOT_FOUND error (race), and the retry re-fires generation (second quota burn). Task 1 reduces this surface (project no longer deleted → NOT_FOUND less likely) but the retry-card path can still double-burn. A fuller fix would mark the project `prdStatus="generating"` and have the loader return that state, letting the UI show "generation in progress, reconnecting" instead of a retry button. Real schema/UI work :  DEFERRED. Task 1 removes the worst symptom (project deleted).
+- **`api-keys` raw key shown once, lost on refresh** (`api-keys-client.tsx:104-123`): a created secret is shown exactly once in client state. Standard API-key UX (show once, warn to copy) and arguably correct :  persisting a raw secret to sessionStorage reintroduces it in cleartext. LEFT AS-IS unless real users report it.
+- **`forgot-password.tsx`** :  file missing from disk this session; user said to ignore it.
 
 ## Self-Review notes
 
-- **Spec coverage:** Each tolol-bug-class finding maps to a task: PRD mid-gen deletion (T1), PRD prompt bubble (T2), PRD draft (T3), home draft (T4), onboarding (T5). Kanban, AC, Task, settings — confirmed SAFE/expected-ephemeral by the audit, no task (no scope creep).
+- **Spec coverage:** Each tolol-bug-class finding maps to a task: PRD mid-gen deletion (T1), PRD prompt bubble (T2), PRD draft (T3), home draft (T4), onboarding (T5). Kanban, AC, Task, settings :  confirmed SAFE/expected-ephemeral by the audit, no task (no scope creep).
 - **Placeholder scan:** All steps show actual code or exact edit instructions with line anchors; no "TODO", "add error handling", "similar to Task N".
 - **Type consistency:** `OnboardingState.goals: string[]` matches the existing `tujuan: string[]`. `OnboardingState.step: number` avoids the `setStep((s) => s + 1)` union-fit issue. Helper names (`savePrdDraft`/`saveHomeDraft`/`saveOnboardingState`) are unique across the file to avoid collision with existing `saveSetupPrompt`/`saveAskState`.

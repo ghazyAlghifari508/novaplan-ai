@@ -62,7 +62,7 @@ const SiDeepseek = ({
 	</svg>
 );
 
-// Big Pickle — stylized pickle silhouette (no official brand icon exists)
+// Big Pickle: stylized pickle silhouette (no official brand icon exists)
 const SiBigPickle = ({
 	size,
 	className,
@@ -109,7 +109,7 @@ export function ModelIcon({ model, isLocked, size = 12 }: ModelIconProps) {
 		case "bigpickle":
 			return <SiBigPickle size={size} className={className} />;
 		case "ling":
-			// InclusionAI (Ant Group) org logo — no public SVG, use raster avatar
+			// InclusionAI (Ant Group) org logo: no public SVG, use raster avatar
 			return (
 				<img
 					src="/icons/inclusionai.png"

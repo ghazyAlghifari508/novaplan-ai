@@ -85,7 +85,7 @@ function layoutGraph(
   // Pass 1: compute feature subtree heights (sum of its task cards + gaps)
   // ownH = task card's real visual height (content-driven). slotH = space reserved
   // for the task's row (may be taller than ownH when its details stack exceeds the
-  // card height) — the task card is centered within slotH so edges targeting the
+  // card height), the task card is centered within slotH so edges targeting the
   // slot's vertical center always line up with the card, not empty space.
   const featureHeights: number[] = [];
   const featureTaskOwnHeights: number[][] = [];
@@ -159,7 +159,7 @@ function layoutGraph(
       const ownH = ownHs[ti];
       const slotH = slotHs[ti];
       // Card centered within its slot so its true visual midpoint (cardY + ownH/2)
-      // equals the slot midpoint (taskCursorY + slotH/2) — edges target the slot
+      // equals the slot midpoint (taskCursorY + slotH/2), edges target the slot
       // midpoint, so this keeps them landing on the actual rendered card, not
       // empty space below it when the detail stack makes the slot taller than the card.
       const cardY = taskCursorY + slotH / 2 - ownH / 2;
@@ -233,7 +233,7 @@ function layoutGraph(
   return { nodes, edges, width: maxX + 80, height: maxY + 80 };
 }
 
-// Dot-grid CSS — thicker, more visible
+// Dot-grid CSS: thicker, more visible
 const DOT_BG_IMAGE = "radial-gradient(circle, var(--color-graphite) 1.5px, transparent 1.5px)";
 const DOT_BG_SIZE = "20px 20px";
 
@@ -486,7 +486,7 @@ function DetailNode({ node, onOpen }: { node: LayoutNode; onOpen: (node: LayoutN
   );
 }
 
-// Rendered via portal to document.body — must not live under the canvas's
+// Rendered via portal to document.body, must not live under the canvas's
 // panned/scaled wrapper, since `fixed` positioning is relative to the nearest
 // transformed ancestor, not the viewport, and would render mispositioned.
 function DetailModal({ node, onClose }: { node: LayoutNode; onClose: () => void }) {
@@ -514,7 +514,7 @@ function DetailModal({ node, onClose }: { node: LayoutNode; onClose: () => void 
   );
 }
 
-// Modal daftar subtask — UI match DetailModal (portal, overlay, color border, X close).
+// Modal daftar subtask: UI match DetailModal (portal, overlay, color border, X close).
 function TaskSubtasksModal({ node, onClose }: { node: LayoutNode; onClose: () => void }) {
   const color = COLORS[node.colorIdx];
   const allSubtasks = node.subtasks ?? [];

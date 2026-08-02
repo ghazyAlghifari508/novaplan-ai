@@ -92,7 +92,7 @@ export const Route = createFileRoute("/api/ask/options")({
 				const modelsToTry = selectModels(plan, model);
 
 				try {
-					// ponytail: non-stream — payload is 5-7 short questions, progressive
+					// ponytail: non-stream: payload is 5-7 short questions, progressive
 					// reveal buys no UX here. Collect fully, then parse once.
 					const { generator, firstChunk } = await tryStreamWithFallback(
 						modelsToTry,

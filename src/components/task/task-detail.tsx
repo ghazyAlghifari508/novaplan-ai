@@ -25,13 +25,13 @@ export function TaskDetail({ projectId, projectName, taskTree, hasAc, taskStatus
   const showToast = useUIStore((s) => s.showToast);
   const setTaskGenerated = useChatStore((s) => s.setTaskGenerated);
 
-  // Sync store flag from server-loaded status on mount/project switch — avoids
+  // Sync store flag from server-loaded status on mount/project switch, avoids
   // stale true/false leaking across different projects' Task pages.
   useEffect(() => {
     setTaskGenerated(taskStatus === "completed");
   }, [projectId, taskStatus, setTaskGenerated]);
 
-  // Init true when no tasks yet — prevents flash of empty state before useEffect fires
+  // Init true when no tasks yet, prevents flash of empty state before useEffect fires
   const [isGenerating, setIsGenerating] = useState(() => !taskTree && hasAc);
   const [hasError, setHasError] = useState(false);
   const [generatedTaskTree, setGeneratedTaskTree] = useState<TaskTree | null>(null);
@@ -102,7 +102,7 @@ export function TaskDetail({ projectId, projectName, taskTree, hasAc, taskStatus
           try {
             const data = JSON.parse(line.slice(6));
             if (data.type === "delta") {
-              // ponytail: delta content not displayed — skeleton shown instead
+              // ponytail: delta content not displayed, skeleton shown instead
             } else if (data.type === "done") {
               const tree = data.taskTree as TaskTree;
               setGeneratedTaskTree(tree);

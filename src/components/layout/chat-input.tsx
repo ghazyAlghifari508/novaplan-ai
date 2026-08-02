@@ -175,7 +175,7 @@ export function ChatInput({ className }: ChatInputProps) {
 		}
 
 		if (!isAuthenticated) {
-			// ponytail: back to home, not /ask — the project doesn't exist yet at this
+			// ponytail: back to home, not /ask, the project doesn't exist yet at this
 			// point, so there is no /ask/$id to land on and no bare /ask route.
 			router.push(`/login?redirect=${encodeURIComponent("/")}`);
 			return;

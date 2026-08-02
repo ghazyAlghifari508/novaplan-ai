@@ -61,7 +61,7 @@ export function useCanvasZoom({
     isPanningRef.current = false;
   }, []);
 
-  // ponytail: no e.preventDefault() — causes passive listener warning.
+  // ponytail: no e.preventDefault(), causes passive listener warning.
   // Canvas div uses touch-action: none + overflow-hidden to block native scroll.
   const onWheel = useCallback((e: React.WheelEvent) => {
     const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;

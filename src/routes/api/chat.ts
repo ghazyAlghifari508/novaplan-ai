@@ -278,7 +278,7 @@ export const Route = createFileRoute("/api/chat")({
 							}
 
 							// ponytail: only genuine conversation modes persist chat bubbles.
-							// generate/resume originate from the home prompt — persisting them
+							// generate/resume originate from the home prompt, persisting them
 							// here leaked the seed prompt + "Selesai menyusun PRD awal." into
 							// the chat panel after the loader repopulated the store on refresh.
 							// PRD content itself is saved via savePrdVersion below; the chat

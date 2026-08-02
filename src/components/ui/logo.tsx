@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 // ponytail: single theme-aware logo.
 // All app surfaces use CSS-variable colors that flip with the theme class
 // (charcoal is dark in dark mode, light in light mode), so there is NO surface
-// that stays dark in both modes — every logo must follow the theme.
+// that stays dark in both modes, every logo must follow the theme.
 // Tailwind's `dark:` variant can't be used: the @custom-variant lives in
 // globals.css, which loads as a ?url stylesheet Tailwind can't see, so `dark:`
 // falls back to the OS media query and mismatches the app theme. useTheme()

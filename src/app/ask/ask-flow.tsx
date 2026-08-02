@@ -116,7 +116,7 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 	};
 
 	// ponytail: deps kosong disengaja. `useRouter()` dari shim next-compat bikin
-	// objek baru tiap render — kalau masuk dep array, effect re-run terus dan
+	// objek baru tiap render, kalau masuk dep array, effect re-run terus dan
 	// cleanup abort membunuh fetch yang sedang jalan, sementara guard hasFetched
 	// memblokir fetch ulang → layar "Gagal memuat pertanyaan." padahal tidak ada
 	// error. Fetch cukup sekali per mount; hasFetched menjaga StrictMode
@@ -183,7 +183,7 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 	}, []);
 
 	// Persist across refresh/hard-refresh: write state whenever it changes.
-	// Only once questions exist — avoids persisting an empty placeholder.
+	// Only once questions exist, avoids persisting an empty placeholder.
 	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional full-state snapshot
 	useEffect(() => {
 		if (questions.length === 0 || !promptRef.current) return;
@@ -218,7 +218,7 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 			const a = nonTechAnswers[q.id];
 			return a && (a.value || a.skipped);
 		});
-	// ponytail: every tech field is skippable — Lewati = undefined = "Biarkan AI
+	// ponytail: every tech field is skippable: Lewati = undefined = "Biarkan AI
 	// yang memilih" in submit(). No field is mandatory; Generate PRD stays enabled
 	// so non-technical users can let the AI pick the whole stack.
 	const allTechAnswered = true;
@@ -303,7 +303,7 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 			{session === 1 ? (
 				<div className="space-y-4 pb-8">
 					<p className="font-inter text-xs text-fog italic">
-						Pilih &ldquo;Lewati&rdquo; jika tidak yakin — AI akan menentukan yang terbaik berdasarkan kebutuhan aplikasi Anda.
+						Pilih &ldquo;Lewati&rdquo; jika tidak yakin, AI akan menentukan yang terbaik berdasarkan kebutuhan aplikasi Anda.
 					</p>
 					{questions.map((q) => (
 						<QuestionCard
@@ -331,7 +331,7 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 			) : (
 				<div className="space-y-6 pb-8">
 					<p className="font-inter text-xs text-fog italic">
-						Pilih &ldquo;Lewati&rdquo; jika tidak yakin — AI akan memilih stack yang paling sesuai untuk aplikasi Anda.
+						Pilih &ldquo;Lewati&rdquo; jika tidak yakin, AI akan memilih stack yang paling sesuai untuk aplikasi Anda.
 					</p>
 					<div className="grid gap-4 sm:grid-cols-2">
 						<StackDropdown

@@ -172,7 +172,7 @@ export function QuestionCard({
 					})}
 				</div>
 			) : (
-				/* select — original pill options */
+				/* select: original pill options */
 				<>
 					<div className="flex flex-wrap gap-2">
 						{options?.map((opt) => (

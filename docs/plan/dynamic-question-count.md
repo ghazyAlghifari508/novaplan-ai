@@ -4,7 +4,7 @@
 `ASK_OPTIONS_GENERATION_PROMPT` hardcodes "5-7 pertanyaan". AI always hits 7. Simple apps get over-questioned; complex apps under-questioned.
 
 ## Fix
-AI selects question count based on prompt complexity. No code heuristic — prompt carries the decision.
+AI selects question count based on prompt complexity. No code heuristic :  prompt carries the decision.
 
 ### Tiers
 - **Sederhana** (landing page, portfolio, single-feature tool): 3-4 questions
@@ -13,25 +13,25 @@ AI selects question count based on prompt complexity. No code heuristic — prom
 
 ### Changes
 
-**`src/lib/prompts-ask.ts`** — rewrite rule 1:
+**`src/lib/prompts-ask.ts`** :  rewrite rule 1:
 - Remove "5-7" hardcode
 - Add 3-tier guidance with examples
 - Add rule: "JANGAN paksakan jumlah maksimum. Setiap pertanyaan harus menambah info yang benar-benar mengubah PRD. Jika ragu, tanyakan lebih sedikit."
 - Keep JSON schema, pill options, non-tech constraints unchanged
 
-**`src/lib/services/ask-service.ts`** — `parseAskOptionsJson`:
+**`src/lib/services/ask-service.ts`** :  `parseAskOptionsJson`:
 - Add bounds check: `< 3 || > 10` → return null (reject)
 - Existing per-question validation unchanged
 
-**`src/lib/services/ask-service.test.ts`** — add 2 cases:
+**`src/lib/services/ask-service.test.ts`** :  add 2 cases:
 - Rejects < 3 questions
 - Rejects > 10 questions
 
 ### Not changed
-- `ask-flow.tsx` — already handles dynamic `questions.length`
-- `options.ts` route — already passes through whatever count AI returns
-- `prompt-handoff.ts` — persistence already stores whatever questions exist
-- `question-card.tsx` — renders N cards, no count assumption
+- `ask-flow.tsx` :  already handles dynamic `questions.length`
+- `options.ts` route :  already passes through whatever count AI returns
+- `prompt-handoff.ts` :  persistence already stores whatever questions exist
+- `question-card.tsx` :  renders N cards, no count assumption
 
 ## Verification
 - `npx tsc --noEmit`

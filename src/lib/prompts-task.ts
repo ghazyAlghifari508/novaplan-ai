@@ -33,18 +33,18 @@ ATURAN KETAT (WAJIB DIIKUTI):
 }
 
 6. Satu feature block per AC feature. Urutan sama dengan AC.
-7. Minimum 2 tasks per fitur. Jumlah subtask per task TIDAK TETAP — sesuaikan kompleksitas, JANGAN dipaksa sama rata:
+7. Minimum 2 tasks per fitur. Jumlah subtask per task TIDAK TETAP: sesuaikan kompleksitas, JANGAN dipaksa sama rata:
    - Task kompleks (banyak langkah/edge case, contoh: "Implement checkout flow", "Build auth system dengan OAuth + session + role-based access") → 4-7 subtask. WAJIB pecah jadi subtask terpisah, JANGAN ditumpuk jadi detail satu subtask.
    - Task menengah (contoh: "Implement CRUD API dengan validasi") → 3-4 subtask.
    - Task sederhana (contoh: "Add logout button") → 1-2 subtask cukup, JANGAN dipaksa jadi 3-7.
-   - Minimum 1 subtask per task, tidak ada maksimum — ikuti kebutuhan nyata task tersebut.
+   - Minimum 1 subtask per task, tidak ada maksimum, ikuti kebutuhan nyata task tersebut.
    - BATASAN subtask vs detail: subtask = deliverable atomik terpisah (tiap subtask bisa di-PR / dikerjakan independen). detail = langkah internal DALAM SATU deliverable. JANGAN gabungkan deliverable berbeda ke dalam satu subtask hanya untuk menambah array details. Kalau ada 2 hal yang bisa di-PR terpisah, itu 2 subtask, bukan 1 subtask dengan 2 details.
 8. Task harus mencakup: setup, implementation, testing, integration.
 9. Subtask harus granular: database schema, API endpoint, UI component, validation, error handling.
-10. Setiap subtask WAJIB punya field "details": array berisi langkah-langkah super granular (siap dieksekusi langsung, < 30 menit per langkah). Jumlah item TIDAK TETAP — sesuaikan dengan kompleksitas subtask, JANGAN dipaksa sama rata:
+10. Setiap subtask WAJIB punya field "details": array berisi langkah-langkah super granular (siap dieksekusi langsung, < 30 menit per langkah). Jumlah item TIDAK TETAP: sesuaikan dengan kompleksitas subtask, JANGAN dipaksa sama rata:
     - Subtask kompleks (contoh: "Configure Google OAuth SDK") → detail bisa 4+: ["Daftarkan OAuth client di Google Cloud Console", "Simpan client ID/secret ke env vars", "Install & konfigurasi library OAuth dengan scopes yang dibutuhkan", "Setup redirect/callback URL untuk dev dan prod"].
     - Subtask sederhana (contoh: "Build reset password confirm endpoint") → detail cukup 1: ["Validasi token, hash password baru, invalidate token setelah dipakai"].
-    - Minimum 1 item per subtask, tidak ada maksimum — ikuti kebutuhan nyata subtask tersebut.
+    - Minimum 1 item per subtask, tidak ada maksimum, ikuti kebutuhan nyata subtask tersebut.
 
 CONTOH task kompleks dengan 5 subtask (JANGAN kurangi ini dengan menumpuk ke details):
 Task: "Implement checkout flow"
