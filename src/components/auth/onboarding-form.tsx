@@ -1,10 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store";
+import {
+  clearOnboardingState,
+  getOnboardingState,
+  saveOnboardingState,
+} from "@/lib/prompt-handoff";
 
 const ROLES = [
   { value: "pm", label: "Product Manager" },
@@ -24,10 +29,20 @@ const GOALS = [
 ];
 
 export function OnboardingForm() {
-  const [step, setStep] = useState(1);
-  const [fullName, setFullName] = useState("");
-  const [role, setRole] = useState("");
-  const [tujuan, setTujuan] = useState<string[]>([]);
+  const restored = useRef(getOnboardingState()).current;
+  const stepInit = restored?.step ?? 1;
+  const [step, setStep] = useState<number>(stepInit < 1 || stepInit > 3 ? 1 : stepInit);
+  const [fullName, setFullName] = useState(restored?.fullName ?? "");
+  const [role, setRole] = useState(restored?.role ?? "");
+  const [tujuan, setTujuan] = useState<string[]>(restored?.goals ?? []);
+  // ponytail: 200ms debounce snapshots the wizard so a refresh mid-onboarding
+  // restores step + name + role + goals instead of wiping them to step 1.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional wizard snapshot
+  useEffect(() => {
+    const t = setTimeout(() =>
+      saveOnboardingState({ step, fullName, role, goals: tujuan }), 200);
+    return () => clearTimeout(t);
+  }, [step, fullName, role, tujuan]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -88,6 +103,7 @@ export function OnboardingForm() {
     }
 
     setUser({ id: result.user.id, email: result.user.email });
+    clearOnboardingState();
     window.location.assign("/");
   };
 

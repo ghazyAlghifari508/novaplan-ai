@@ -217,3 +217,38 @@ export function getHomeDraft(): string {
 export function clearHomeDraft() {
   getStorage()?.removeItem(HOME_DRAFT_KEY);
 }
+
+/* ---------- Onboarding multi-step state (survives refresh) ---------- */
+const ONBOARDING_STATE_KEY = "novaplan:onboarding-state";
+
+export interface OnboardingState {
+  step: number;
+  fullName: string;
+  role: string;
+  goals: string[];
+}
+
+/** Persist the 3-step onboarding wizard state so a refresh mid-wizard
+ *  (before the final submit) restores step + name + role + goals instead of
+ *  restarting at step 1. Tab-scoped. */
+export function saveOnboardingState(state: OnboardingState) {
+  getStorage()?.setItem(ONBOARDING_STATE_KEY, JSON.stringify(state));
+}
+
+export function getOnboardingState(): OnboardingState | null {
+  const storage = getStorage();
+  const raw = storage?.getItem(ONBOARDING_STATE_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as OnboardingState;
+    if (!parsed || typeof parsed.step !== "number") return null;
+    return parsed;
+  } catch {
+    storage?.removeItem(ONBOARDING_STATE_KEY);
+    return null;
+  }
+}
+
+export function clearOnboardingState() {
+  getStorage()?.removeItem(ONBOARDING_STATE_KEY);
+}
