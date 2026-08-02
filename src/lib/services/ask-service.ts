@@ -17,6 +17,11 @@ export function parseAskOptionsJson(jsonString: string): AskQuestion[] | null {
 			parsed.questions.length === 0
 		)
 			return null;
+		// ponytail: AI picks count by complexity tier (3-10). Reject outside
+		// bounds so a runaway model can't flood the ask flow with 20 questions
+		// or starve it with 1.
+		if (parsed.questions.length < 3 || parsed.questions.length > 10)
+			return null;
 
 		for (const q of parsed.questions) {
 			if (!q.id || typeof q.id !== "string") return null;
