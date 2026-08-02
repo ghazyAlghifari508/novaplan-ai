@@ -110,6 +110,12 @@ export const Route = createFileRoute("/api/chat")({
             const emit = (payload: Record<string, unknown>) => {
               try { controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`)); } catch {}
             };
+            // ponytail: bare controller.enqueue at the two delta points threw when
+            // the client disconnected (refresh), which fell into the catch and
+            // deleted the project. Guard like emit() does; abort handling below.
+            const enqueueDelta = (chunk: string) => {
+              try { controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "delta", content: chunk })}\n\n`)); } catch {}
+            };
             const safeDone = (extras: Record<string, unknown>) => {
               if (eventDone) return;
               eventDone = true;
@@ -144,11 +150,11 @@ export const Route = createFileRoute("/api/chat")({
               }
 
               fullResponse += firstChunk;
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "delta", content: firstChunk })}\n\n`));
+              enqueueDelta(firstChunk);
 
               for await (const chunk of generator) {
                 fullResponse += chunk;
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "delta", content: chunk })}\n\n`));
+                enqueueDelta(chunk);
               }
 
               let assistantReply: string;
@@ -235,12 +241,32 @@ export const Route = createFileRoute("/api/chat")({
               if (mode === "revise" && finalPrdToSave) donePayload.content = finalPrdToSave;
               safeDone(donePayload);
             } catch (error) {
-              try {
-                await rollbackStreamInserts(user.id, createdConversationId, createdProjectId);
-              } catch (rollbackError) {
-                console.error("Failed to roll back chat stream inserts:", rollbackError);
+              const errMsg = (error as Error)?.message ?? String(error);
+              const errName = (error as Error)?.name ?? "";
+              const isClientAbort =
+                errName === "AbortError" ||
+                /aborted|Invalid state: The stream closed|Controller is already closed|ReadableStream/i.test(errMsg);
+
+              // ponytail: a client disconnect mid-stream (refresh, tab close,
+              // network blip) is normal, NOT a reason to delete the just-created
+              // project + conversation. Roll back only on a real generation error
+              // that produced no content yet. A project with a partial/no PRD is
+              // recoverable; a deleted project loses the user's entry entirely.
+              if (isClientAbort && fullResponse.length > 0) {
+                console.warn("Chat stream: client disconnected mid-generation; kept project + conversation.");
+              } else if (isClientAbort) {
+                console.warn("Chat stream: client disconnected before content; kept project for retry.");
+              } else if (fullResponse.length === 0) {
+                try {
+                  await rollbackStreamInserts(user.id, createdConversationId, createdProjectId);
+                } catch (rollbackError) {
+                  console.error("Failed to roll back chat stream inserts:", rollbackError);
+                }
+                safeError(sanitizeErrorForClient(error));
+              } else {
+                console.error("Chat stream errored after content; kept partial state:", errMsg);
+                safeError(sanitizeErrorForClient(error));
               }
-              safeError(sanitizeErrorForClient(error));
             } finally {
               try { if (!eventDone && !eventErrored) controller.close(); } catch {}
             }
