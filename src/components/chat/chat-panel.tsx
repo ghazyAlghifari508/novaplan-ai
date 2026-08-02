@@ -1,70 +1,105 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, startTransition } from "react";
-import { useChatStore, useUIStore } from "@/store";
-import { ChatBubble } from "./chat-bubble";
-import { TypingIndicator } from "./typing-indicator";
-import { ModelDropdown } from "./model-dropdown";
-import { LimitModal } from "./limit-modal";
-import { ResumeErrorModal } from "./resume-error-modal";
-import { cn } from "@/lib/utils";
-import { consumePendingPrdPrompt, getPrdDraft, savePrdDraft, clearPrdDraft } from "@/lib/prompt-handoff";
 import { useRouter } from "next/navigation";
-import type { Plan } from "@/types/database";
+import {
+	startTransition,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 import { ALL_MODELS, DEFAULT_MODEL_ID } from "@/lib/model-config";
+import {
+	clearPrdDraft,
+	consumePendingPrdPrompt,
+	getPrdDraft,
+	savePrdDraft,
+} from "@/lib/prompt-handoff";
+import { cn } from "@/lib/utils";
+import { useChatStore, useUIStore } from "@/store";
+import type { Plan } from "@/types/database";
+import { ChatBubble } from "./chat-bubble";
+import { LimitModal } from "./limit-modal";
+import { ModelDropdown } from "./model-dropdown";
+import { ResumeErrorModal } from "./resume-error-modal";
+import { TypingIndicator } from "./typing-indicator";
 
 // ─────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────
 
 function livePatchPrd(baseContent: string, streamContent: string): string {
-  if (!baseContent) return streamContent;
+	if (!baseContent) return streamContent;
 
-  const ALL_SECTION_NAMES_PATCH = [
-    "Overview", "Goals & Success Metrics", "Requirements", "Core Features",
-    "User Flow", "Architecture & Tech Stack", "Database Schema",
-    "Design & Technical Constraints",
-  ];
+	const ALL_SECTION_NAMES_PATCH = [
+		"Overview",
+		"Goals & Success Metrics",
+		"Requirements",
+		"Core Features",
+		"User Flow",
+		"Architecture & Tech Stack",
+		"Database Schema",
+		"Design & Technical Constraints",
+	];
 
-  let patched = baseContent;
-  const regex = /:::UPDATE_SECTION\[(.*?)\]:::\s*([\s\S]*?)(?::::END_UPDATE:::|$)/g;
-  let match;
+	let patched = baseContent;
+	const regex =
+		/:::UPDATE_SECTION\[(.*?)\]:::\s*([\s\S]*?)(?::::END_UPDATE:::|$)/g;
+	let match;
 
-  while ((match = regex.exec(streamContent)) !== null) {
-    const sectionName = match[1].trim();
-    const newContent = match[2].trim();
+	while ((match = regex.exec(streamContent)) !== null) {
+		const sectionName = match[1].trim();
+		const newContent = match[2].trim();
 
-    const escaped = sectionName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const openingTag = `<!-- SECTION: ${escaped} -->`;
+		const escaped = sectionName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+		const openingTag = `<!-- SECTION: ${escaped} -->`;
 
-    // Strategy 1: strict with closing tag (well-formed PRD).
-    let sectionRegex = new RegExp(`${openingTag}[\\s\\S]*?<!-- \\/SECTION -->`, 'gi');
-    if (sectionRegex.test(patched)) {
-      patched = patched.replace(sectionRegex, `${openingTag}\n${newContent}\n<!-- /SECTION -->`);
-      continue;
-    }
+		// Strategy 1: strict with closing tag (well-formed PRD).
+		let sectionRegex = new RegExp(
+			`${openingTag}[\\s\\S]*?<!-- \\/SECTION -->`,
+			"gi",
+		);
+		if (sectionRegex.test(patched)) {
+			patched = patched.replace(
+				sectionRegex,
+				`${openingTag}\n${newContent}\n<!-- /SECTION -->`,
+			);
+			continue;
+		}
 
-    // Strategy 2: lenient - opening tag to next section or end-of-doc.
-    // Handles PRD whose stored content lacks closing tags (zero <!-- /SECTION --> found).
-    const sectionIdx = ALL_SECTION_NAMES_PATCH.indexOf(sectionName);
-    const nextSection = sectionIdx >= 0 && sectionIdx < ALL_SECTION_NAMES_PATCH.length - 1
-      ? ALL_SECTION_NAMES_PATCH[sectionIdx + 1] : null;
-    const endBoundary = nextSection
-      ? `(?:[\\s\\S]*?<!-- SECTION: ${nextSection.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} -->)`
-      : '(?:[\\s\\S]*|$)';
-    sectionRegex = new RegExp(`${openingTag}[\\s\\S]*?${endBoundary}`, 'gi');
-    if (sectionRegex.test(patched)) {
-      const endMarker = nextSection ? `\n\n<!-- SECTION: ${nextSection} -->` : '';
-      patched = patched.replace(sectionRegex, `${openingTag}\n${newContent}${endMarker}`);
-    }
-  }
-  return patched;
+		// Strategy 2: lenient - opening tag to next section or end-of-doc.
+		// Handles PRD whose stored content lacks closing tags (zero <!-- /SECTION --> found).
+		const sectionIdx = ALL_SECTION_NAMES_PATCH.indexOf(sectionName);
+		const nextSection =
+			sectionIdx >= 0 && sectionIdx < ALL_SECTION_NAMES_PATCH.length - 1
+				? ALL_SECTION_NAMES_PATCH[sectionIdx + 1]
+				: null;
+		const endBoundary = nextSection
+			? `(?:[\\s\\S]*?<!-- SECTION: ${nextSection.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} -->)`
+			: "(?:[\\s\\S]*|$)";
+		sectionRegex = new RegExp(`${openingTag}[\\s\\S]*?${endBoundary}`, "gi");
+		if (sectionRegex.test(patched)) {
+			const endMarker = nextSection
+				? `\n\n<!-- SECTION: ${nextSection} -->`
+				: "";
+			patched = patched.replace(
+				sectionRegex,
+				`${openingTag}\n${newContent}${endMarker}`,
+			);
+		}
+	}
+	return patched;
 }
 
 function cleanChatBubble(streamContent: string): string {
-  const cleaned = streamContent.replace(/:::UPDATE_SECTION\[(.*?)\]:::\s*([\s\S]*?)(?::::END_UPDATE:::|$)/g, "").trim();
-  if (!cleaned) return "";
-  return cleaned;
+	const cleaned = streamContent
+		.replace(
+			/:::UPDATE_SECTION\[(.*?)\]:::\s*([\s\S]*?)(?::::END_UPDATE:::|$)/g,
+			"",
+		)
+		.trim();
+	if (!cleaned) return "";
+	return cleaned;
 }
 // Constants
 // ─────────────────────────────────────────────
@@ -72,14 +107,14 @@ function cleanChatBubble(streamContent: string): string {
 const MIN_PROMPT_LENGTH = 20;
 
 const ALL_PRD_SECTIONS = [
-  "Overview",
-  "Goals & Success Metrics",
-  "Requirements",
-  "Core Features",
-  "User Flow",
-  "Architecture & Tech Stack",
-  "Database Schema",
-  "Design & Technical Constraints",
+	"Overview",
+	"Goals & Success Metrics",
+	"Requirements",
+	"Core Features",
+	"User Flow",
+	"Architecture & Tech Stack",
+	"Database Schema",
+	"Design & Technical Constraints",
 ];
 
 // ─────────────────────────────────────────────
@@ -87,20 +122,20 @@ const ALL_PRD_SECTIONS = [
 // ─────────────────────────────────────────────
 
 interface ChatPanelProps {
-  projectId?: string;
-  conversationId?: string;
-  className?: string;
-  onProjectCreated?: (projectId: string) => void;
-  onPrdRevised?: (content: string) => void;
-  enableAutoSubmit?: boolean;
-  inputDisabled?: boolean;
-  currentPrdContent?: string;
-  selectedVersionNum?: number; // Version number currently viewed (for revision context)
-  userPlan?: Plan; // Pass from server to avoid client fetch
-  // AC mode props (PRD-04)
-  acMode?: boolean;
-  currentAcContent?: string;
-  onStreamContent?: (content: string) => void;
+	projectId?: string;
+	conversationId?: string;
+	className?: string;
+	onProjectCreated?: (projectId: string) => void;
+	onPrdRevised?: (content: string) => void;
+	enableAutoSubmit?: boolean;
+	inputDisabled?: boolean;
+	currentPrdContent?: string;
+	selectedVersionNum?: number; // Version number currently viewed (for revision context)
+	userPlan?: Plan; // Pass from server to avoid client fetch
+	// AC mode props (PRD-04)
+	acMode?: boolean;
+	currentAcContent?: string;
+	onStreamContent?: (content: string) => void;
 }
 
 // ─────────────────────────────────────────────
@@ -108,713 +143,913 @@ interface ChatPanelProps {
 // ─────────────────────────────────────────────
 
 export function ChatPanel({
-  projectId,
-  conversationId: initialConversationId,
-  className,
-  onProjectCreated,
-  onPrdRevised,
-  enableAutoSubmit = true,
-  inputDisabled = false,
-  currentPrdContent = "",
-  selectedVersionNum,
-  userPlan: initialUserPlan = "free",
-  acMode = false,
-  currentAcContent = "",
-  onStreamContent,
+	projectId,
+	conversationId: initialConversationId,
+	className,
+	onProjectCreated,
+	onPrdRevised,
+	enableAutoSubmit = true,
+	inputDisabled = false,
+	currentPrdContent = "",
+	selectedVersionNum,
+	userPlan: initialUserPlan = "free",
+	acMode = false,
+	currentAcContent = "",
+	onStreamContent,
 }: ChatPanelProps) {
-  // ── Local State ──
-  const draftKey = projectId ?? "new";
-  const [input, setInput] = useState(() => getPrdDraft(projectId ?? "new"));
-  // ponytail: keep follow-up draft in sessionStorage so refresh mid-typing
-  // doesn't wipe a half-typed PRD revision question.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional draft snapshot
-  useEffect(() => {
-    const t = setTimeout(() => savePrdDraft(draftKey, input), 300);
-    return () => clearTimeout(t);
-  }, [input, draftKey]);
-  const [conversationId, setConversationId] = useState(initialConversationId);
-  const [streamingContent, setStreamingContent] = useState("");
-  const [showLimitModal, setShowLimitModal] = useState(false);
-  const [limitErrorMsg, setLimitErrorMsg] = useState("");
-  const [showResumeModal, setShowResumeModal] = useState(false);
-  const [resumeErrorMsg, setResumeErrorMsg] = useState("");
-  const [partialContentStore, setPartialContentStore] = useState("");
-  const [originalMessageStore, setOriginalMessageStore] = useState("");
-  const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL_ID);
-  const [userPlan, setUserPlan] = useState<Plan>(initialUserPlan);
-  const [isRevising, setIsRevising] = useState(false);
-  // Section generation progress tracking - persisted in Zustand so it
-  // survives router.refresh() after generation completes.
-  const completedSections = useChatStore((s) => s.completedSections);
-  const setCompletedSections = useChatStore((s) => s.setCompletedSections);
-  const [currentSection, setCurrentSection] = useState<string | null>(null);
+	// ── Local State ──
+	const draftKey = projectId ?? "new";
+	const [input, setInput] = useState(() => getPrdDraft(projectId ?? "new"));
+	// ponytail: keep follow-up draft in sessionStorage so refresh mid-typing
+	// doesn't wipe a half-typed PRD revision question.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional draft snapshot
+	useEffect(() => {
+		const t = setTimeout(() => savePrdDraft(draftKey, input), 300);
+		return () => clearTimeout(t);
+	}, [input, draftKey]);
+	const [conversationId, setConversationId] = useState(initialConversationId);
+	const [streamingContent, setStreamingContent] = useState("");
+	const [showLimitModal, setShowLimitModal] = useState(false);
+	const [limitErrorMsg, setLimitErrorMsg] = useState("");
+	const [showResumeModal, setShowResumeModal] = useState(false);
+	const [resumeErrorMsg, setResumeErrorMsg] = useState("");
+	const [partialContentStore, setPartialContentStore] = useState("");
+	const [originalMessageStore, setOriginalMessageStore] = useState("");
+	const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL_ID);
+	const [userPlan, setUserPlan] = useState<Plan>(initialUserPlan);
+	const [isRevising, setIsRevising] = useState(false);
+	// Section generation progress tracking - persisted in Zustand so it
+	// survives router.refresh() after generation completes.
+	const completedSections = useChatStore((s) => s.completedSections);
+	const setCompletedSections = useChatStore((s) => s.setCompletedSections);
+	const [currentSection, setCurrentSection] = useState<string | null>(null);
 
-  // ── Refs ──
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const isSubmittingRef = useRef(false);
-  const autoSubmitAttemptedRef = useRef(false);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const streamingContentRef = useRef(""); // ref to avoid React state timing issues
+	// ── Refs ──
+	const inputRef = useRef<HTMLTextAreaElement>(null);
+	const scrollRef = useRef<HTMLDivElement>(null);
+	const isSubmittingRef = useRef(false);
+	const autoSubmitAttemptedRef = useRef(false);
+	const abortControllerRef = useRef<AbortController | null>(null);
+	const streamingContentRef = useRef(""); // ref to avoid React state timing issues
 
-  // ── Store ──
-  const showToast = useUIStore((s) => s.showToast);
-  const router = useRouter();
-  const {
-    messages,
-    isStreaming,
-    isGeneratingPRD,
-    addMessage,
-    setStreaming,
-    setGeneratingPRD,
-    setStreamingPRDContent,
-  } = useChatStore();
+	// ── Store ──
+	const showToast = useUIStore((s) => s.showToast);
+	const router = useRouter();
+	const {
+		messages,
+		isStreaming,
+		isGeneratingPRD,
+		addMessage,
+		setStreaming,
+		setGeneratingPRD,
+		setStreamingPRDContent,
+	} = useChatStore();
 
-  // When generation starts, default first section to loading so the progress
-  // card shows "Overview" spinning from first paint instead of all pending.
-  useEffect(() => {
-    if (isGeneratingPRD && !currentSection) {
-      setCurrentSection("Overview");
-    }
-  }, [isGeneratingPRD, currentSection]);
+	// When generation starts, default first section to loading so the progress
+	// card shows "Overview" spinning from first paint instead of all pending.
+	useEffect(() => {
+		if (isGeneratingPRD && !currentSection) {
+			setCurrentSection("Overview");
+		}
+	}, [isGeneratingPRD, currentSection]);
 
-  // On mount, if we already have a complete PRD (e.g. after refresh), fill
-  // completedSections from the content so the progress card shows all green
-  // checkmarks instead of disappearing entirely.
-  useEffect(() => {
-    if (!currentPrdContent || completedSections.length > 0) return;
-    const found: string[] = [];
-    const regex = /<!-- SECTION: (.+?) -->/g;
-    let m;
-    while ((m = regex.exec(currentPrdContent)) !== null) {
-      const name = m[1].trim();
-      if (ALL_PRD_SECTIONS.includes(name) && !found.includes(name)) {
-        found.push(name);
-      }
-    }
-    if (found.length > 0) {
-      setCompletedSections(found);
-    }
-  }, []);
+	// On mount, if we already have a complete PRD (e.g. after refresh), fill
+	// completedSections from the content so the progress card shows all green
+	// checkmarks instead of disappearing entirely.
+	useEffect(() => {
+		if (!currentPrdContent || completedSections.length > 0) return;
+		const found: string[] = [];
+		const regex = /<!-- SECTION: (.+?) -->/g;
+		let m;
+		while ((m = regex.exec(currentPrdContent)) !== null) {
+			const name = m[1].trim();
+			if (ALL_PRD_SECTIONS.includes(name) && !found.includes(name)) {
+				found.push(name);
+			}
+		}
+		if (found.length > 0) {
+			setCompletedSections(found);
+		}
+	}, []);
 
-  // ── Derived ──
-  const isEffectivelyDisabled = inputDisabled && messages.length === 0;
+	// ── Derived ──
+	const isEffectivelyDisabled = inputDisabled && messages.length === 0;
 
-  // ── Effects ──
+	// ── Effects ──
 
-  // Restore model from session (plan already passed from server)
-  useEffect(() => {
-    const storedModel = sessionStorage.getItem("novaplan:selected-model");
-    if (storedModel && ALL_MODELS.some((m) => m.id === storedModel)) {
-      setSelectedModel(storedModel);
-    }
-  }, []);
+	// Restore model from session (plan already passed from server)
+	useEffect(() => {
+		const storedModel = sessionStorage.getItem("novaplan:selected-model");
+		if (storedModel && ALL_MODELS.some((m) => m.id === storedModel)) {
+			setSelectedModel(storedModel);
+		}
+	}, []);
 
-  // Auto-scroll on new messages
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages, streamingContent]);
+	// Auto-scroll on new messages
+	useEffect(() => {
+		if (scrollRef.current) {
+			scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+		}
+	}, [messages, streamingContent]);
 
-  // Sync isSubmitting with streaming state
-  useEffect(() => {
-    if (!isStreaming) {
-      isSubmittingRef.current = false;
-    }
-  }, [isStreaming]);
+	// Sync isSubmitting with streaming state
+	useEffect(() => {
+		if (!isStreaming) {
+			isSubmittingRef.current = false;
+		}
+	}, [isStreaming]);
 
-  // ── Handlers ──
+	// ── Handlers ──
 
-  const handleCancel = useCallback(() => {
-    abortControllerRef.current?.abort();
-    abortControllerRef.current = null;
-    setStreaming(false);
-    isSubmittingRef.current = false;
-  }, [setStreaming]);
+	const handleCancel = useCallback(() => {
+		abortControllerRef.current?.abort();
+		abortControllerRef.current = null;
+		setStreaming(false);
+		isSubmittingRef.current = false;
+	}, [setStreaming]);
 
-  /**
-   * Stream an API call to /api/chat and handle SSE events.
-   * Shared between handleSend (user-typed) and handleSendWithMessage (auto-submit).
-   */
-  const streamApiCall = useCallback(
-    async (
-      body: Record<string, unknown>,
-      chatMode: string,
-      /** The original user message, used to restore input on error */
-      originalMessage: string,
-      /** If this is a resume call, the previous partial content */
-      existingPartialContent: string = "",
-    ) => {
-      const abortController = new AbortController();
-      abortControllerRef.current = abortController;
+	/**
+	 * Stream an API call to /api/chat and handle SSE events.
+	 * Shared between handleSend (user-typed) and handleSendWithMessage (auto-submit).
+	 */
+	const streamApiCall = useCallback(
+		async (
+			body: Record<string, unknown>,
+			chatMode: string,
+			/** The original user message, used to restore input on error */
+			originalMessage: string,
+			/** If this is a resume call, the previous partial content */
+			existingPartialContent: string = "",
+		) => {
+			const abortController = new AbortController();
+			abortControllerRef.current = abortController;
 
-      let fullContent = "";
-      // ponytail: tracks whether the server ever sent a terminal "done" event.
-      // When the connection closes silently before that event, the PRD is
-      // usually already saved server-side; refresh instead of leaving the UI
-      // frozen.
-      let gotDoneEvent = false;
-      let gotErrorEvent = false;
-      let sawAnyDelta = false;
-      try {
-        const endpoint = acMode ? "/api/ac/revise" : "/api/chat";
-        const response = await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-          signal: abortController.signal,
-        });
+			let fullContent = "";
+			// ponytail: tracks whether the server ever sent a terminal "done" event.
+			// When the connection closes silently before that event, the PRD is
+			// usually already saved server-side; refresh instead of leaving the UI
+			// frozen.
+			let gotDoneEvent = false;
+			let gotErrorEvent = false;
+			let sawAnyDelta = false;
+			try {
+				const endpoint = acMode ? "/api/ac/revise" : "/api/chat";
+				const response = await fetch(endpoint, {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(body),
+					signal: abortController.signal,
+				});
 
-        if (!response.ok) {
-          const err = await response.json();
-          setStreaming(false);
-          setGeneratingPRD(false);
-          isSubmittingRef.current = false;
+				if (!response.ok) {
+					const err = await response.json();
+					setStreaming(false);
+					setGeneratingPRD(false);
+					isSubmittingRef.current = false;
 
-          if (response.status === 403 || response.status === 429) {
-            setLimitErrorMsg(err.error || "Limit tercapai");
-            setShowLimitModal(true);
-          } else {
-            showToast(err.error || "Terjadi kesalahan", "error");
-          }
-          return;
-        }
+					if (response.status === 403 || response.status === 429) {
+						setLimitErrorMsg(err.error || "Limit tercapai");
+						setShowLimitModal(true);
+					} else {
+						showToast(err.error || "Terjadi kesalahan", "error");
+					}
+					return;
+				}
 
-        const reader = response.body?.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
+				const reader = response.body?.getReader();
+				const decoder = new TextDecoder();
+				let buffer = "";
 
-        while (reader) {
-          const { done, value } = await reader.read();
-          if (done) break;
+				while (reader) {
+					const { done, value } = await reader.read();
+					if (done) break;
 
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() || "";
+					buffer += decoder.decode(value, { stream: true });
+					const lines = buffer.split("\n");
+					buffer = lines.pop() || "";
 
-          for (const line of lines) {
-            if (!line.startsWith("data: ")) continue;
-            const data = line.slice(6);
+					for (const line of lines) {
+						if (!line.startsWith("data: ")) continue;
+						const data = line.slice(6);
 
-            try {
-              const parsed = JSON.parse(data);
+						try {
+							const parsed = JSON.parse(data);
 
-              if (parsed.type === "started") {
-                // no-op: heartbeat from server, just lets the client know
-                // generation is in flight.
-              } else if (parsed.type === "delta") {
-                sawAnyDelta = true;
-                fullContent += parsed.content;
+							if (parsed.type === "started") {
+								// no-op: heartbeat from server, just lets the client know
+								// generation is in flight.
+							} else if (parsed.type === "delta") {
+								sawAnyDelta = true;
+								fullContent += parsed.content;
 
-                // Detect completed sections from streaming content (for PRD generate/revise modes)
-                if (chatMode === "generate" || chatMode === "revise" || chatMode === "resume") {
-                  const sectionRegex = /<!-- SECTION: (.+?) -->/g;
-                  let sectionMatch;
-                  const foundSections: string[] = [];
-                  while ((sectionMatch = sectionRegex.exec(fullContent)) !== null) {
-                    foundSections.push(sectionMatch[1].trim());
-                  }
-                  // Completed sections = all but the last one found (which may still be in progress)
-                  // ponytail: use functional updater so every invocation merges against
-                  // latest state, not the stale closure - otherwise earlier checkmarks
-                  // get overwritten when a new section arrives mid-stream.
-                  if (foundSections.length > 0) {
-                    const lastSection = foundSections[foundSections.length - 1];
-                    const prev = foundSections.slice(0, -1);
-                    // ponytail: Zustand setter takes a value, not a functional updater -
-                    // read current state via getState() and merge manually.
-                    const currentCompleted = useChatStore.getState().completedSections;
-                    const merged = [...currentCompleted];
-                    prev.forEach((s) => {
-                      if (!merged.includes(s)) merged.push(s);
-                    });
-                    setCompletedSections(merged);
-                    setCurrentSection(lastSection);
-                  }
-                }
-                const displayContent = existingPartialContent ? existingPartialContent + fullContent : fullContent;
-                if (acMode && onStreamContent) {
-                  // AC mode: stream to parent component
-                  onStreamContent(displayContent);
-                } else if (chatMode === "generate" || chatMode === "resume") {
-                  setStreamingPRDContent(displayContent);
-                } else if (chatMode === "revise") {
-                  // Live-patch current PRD with streaming revision content so viewer
-                  // shows full PRD 1-8 with the revised section streaming in real-time.
-                  const patched = livePatchPrd(currentPrdContent, displayContent);
-                  setStreamingPRDContent(patched);
-                  // Also show natural-language preamble in chat bubble
-                  const cleaned = cleanChatBubble(displayContent);
-                  streamingContentRef.current = cleaned;
-                  setStreamingContent(cleaned);
-                } else {
-                  // For chat mode, stream into chat bubble instead of PRD Viewer
-                  setStreamingContent(displayContent);
-                }
-              } else if (parsed.type === "done") {
-                gotDoneEvent = true;
-                if (parsed.conversationId) {
-                  setConversationId(parsed.conversationId);
-                }
-                // Mark ALL sections found in the final content as completed.
-                // Re-parse from the full accumulated content since at done
-                // time every section is fully written - no spinner should remain.
-                const allDone: string[] = [];
-                const sectionRegex = /<!-- SECTION: (.+?) -->/g;
-                let sm;
-                const finalContentHere = existingPartialContent ? existingPartialContent + fullContent : fullContent;
-                while ((sm = sectionRegex.exec(finalContentHere)) !== null) {
-                  const name = sm[1].trim();
-                  if (ALL_PRD_SECTIONS.includes(name) && !allDone.includes(name)) {
-                    allDone.push(name);
-                  }
-                }
-                if (allDone.length > 0) {
-                  setCompletedSections(allDone);
-                }
-                setCurrentSection(null);
-                if (parsed.projectId && onProjectCreated && !projectId) {
-                  // New project: clear Zustand state before navigation
-                  setGeneratingPRD(false);
-                  setStreamingPRDContent("");
-                  onProjectCreated(parsed.projectId);
-                } else if (chatMode === "generate") {
-                  setGeneratingPRD(false);
-                  startTransition(() => { router.refresh(); });
-                } else if (chatMode === "revise") {
-                  setGeneratingPRD(false);
-                  setIsRevising(false);
-                  // Preserve the streaming natural-language bubble before
-                  // streamingContent gets cleared in finally.
-                  const streamingNaturalLanguage = streamingContentRef.current || streamingContent;
-                  // Restore completedSections from the FRESH merged PRD.
-                  // parsed.content from server has all sections 1-8; parent
-                  // prop currentPrdContent may be stale (not yet updated).
-                  const freshContent = (typeof parsed.content === "string" && parsed.content) || currentPrdContent;
-                  if (freshContent) {
-                    const allSecs: string[] = [];
-                    const sr = /<!-- SECTION: (.+?) -->/g;
-                    let sm;
-                    while ((sm = sr.exec(freshContent)) !== null) {
-                      const n = sm[1].trim();
-                      if (ALL_PRD_SECTIONS.includes(n) && !allSecs.includes(n)) {
-                        allSecs.push(n);
-                      }
-                    }
-                    if (allSecs.length > 0) setCompletedSections(allSecs);
-                  }
-                  // Server now persists this same preamble as assistantReply
-                  // (see route.ts) - one bubble only, so refresh shows the
-                  // exact text the user saw live instead of a second,
-                  // separately-generated summary.
-                  const finalReply = parsed.summaryMessage || streamingNaturalLanguage;
-                  if (finalReply) {
-                    addMessage({
-                      id: crypto.randomUUID(),
-                      role: "assistant",
-                      content: finalReply,
-                      timestamp: Date.now(),
-                    });
-                  }
-                  // Push the server-merged full PRD (sections 1-8) up to the
-                  // PRD viewer immediately - don't wait for a refresh.
-                  if (typeof parsed.content === "string" && parsed.content) {
-                    onPrdRevised?.(parsed.content);
-                  }
-                }
-              } else if (parsed.type === "error") {
-                gotErrorEvent = true;
-                const errorMsg = parsed.error ||
-                  (chatMode === "generate" || chatMode === "revise" || chatMode === "resume"
-                    ? "Gagal menyusun PRD. Silakan coba lagi."
-                    : "Gagal memproses pesan. Silakan coba lagi.");
+								// Detect completed sections from streaming content (for PRD generate/revise modes)
+								if (
+									chatMode === "generate" ||
+									chatMode === "revise" ||
+									chatMode === "resume"
+								) {
+									const sectionRegex = /<!-- SECTION: (.+?) -->/g;
+									let sectionMatch;
+									const foundSections: string[] = [];
+									while (
+										(sectionMatch = sectionRegex.exec(fullContent)) !== null
+									) {
+										foundSections.push(sectionMatch[1].trim());
+									}
+									// Completed sections = all but the last one found (which may still be in progress)
+									// ponytail: use functional updater so every invocation merges against
+									// latest state, not the stale closure - otherwise earlier checkmarks
+									// get overwritten when a new section arrives mid-stream.
+									if (foundSections.length > 0) {
+										const lastSection = foundSections[foundSections.length - 1];
+										const prev = foundSections.slice(0, -1);
+										// ponytail: Zustand setter takes a value, not a functional updater -
+										// read current state via getState() and merge manually.
+										const currentCompleted =
+											useChatStore.getState().completedSections;
+										const merged = [...currentCompleted];
+										prev.forEach((s) => {
+											if (!merged.includes(s)) merged.push(s);
+										});
+										setCompletedSections(merged);
+										setCurrentSection(lastSection);
+									}
+								}
+								const displayContent = existingPartialContent
+									? existingPartialContent + fullContent
+									: fullContent;
+								if (acMode && onStreamContent) {
+									// AC mode: stream to parent component
+									onStreamContent(displayContent);
+								} else if (chatMode === "generate" || chatMode === "resume") {
+									setStreamingPRDContent(displayContent);
+								} else if (chatMode === "revise") {
+									// Live-patch current PRD with streaming revision content so viewer
+									// shows full PRD 1-8 with the revised section streaming in real-time.
+									const patched = livePatchPrd(
+										currentPrdContent,
+										displayContent,
+									);
+									setStreamingPRDContent(patched);
+									// Also show natural-language preamble in chat bubble
+									const cleaned = cleanChatBubble(displayContent);
+									streamingContentRef.current = cleaned;
+									setStreamingContent(cleaned);
+								} else {
+									// For chat mode, stream into chat bubble instead of PRD Viewer
+									setStreamingContent(displayContent);
+								}
+							} else if (parsed.type === "done") {
+								gotDoneEvent = true;
+								if (parsed.conversationId) {
+									setConversationId(parsed.conversationId);
+								}
+								// Mark ALL sections found in the final content as completed.
+								// Re-parse from the full accumulated content since at done
+								// time every section is fully written - no spinner should remain.
+								const allDone: string[] = [];
+								const sectionRegex = /<!-- SECTION: (.+?) -->/g;
+								let sm;
+								const finalContentHere = existingPartialContent
+									? existingPartialContent + fullContent
+									: fullContent;
+								while ((sm = sectionRegex.exec(finalContentHere)) !== null) {
+									const name = sm[1].trim();
+									if (
+										ALL_PRD_SECTIONS.includes(name) &&
+										!allDone.includes(name)
+									) {
+										allDone.push(name);
+									}
+								}
+								if (allDone.length > 0) {
+									setCompletedSections(allDone);
+								}
+								setCurrentSection(null);
+								if (parsed.projectId && onProjectCreated && !projectId) {
+									// New project: clear Zustand state before navigation
+									setGeneratingPRD(false);
+									setStreamingPRDContent("");
+									onProjectCreated(parsed.projectId);
+								} else if (chatMode === "generate") {
+									setGeneratingPRD(false);
+									startTransition(() => {
+										router.refresh();
+									});
+								} else if (chatMode === "revise") {
+									setGeneratingPRD(false);
+									setIsRevising(false);
+									// Preserve the streaming natural-language bubble before
+									// streamingContent gets cleared in finally.
+									const streamingNaturalLanguage =
+										streamingContentRef.current || streamingContent;
+									// Restore completedSections from the FRESH merged PRD.
+									// parsed.content from server has all sections 1-8; parent
+									// prop currentPrdContent may be stale (not yet updated).
+									const freshContent =
+										(typeof parsed.content === "string" && parsed.content) ||
+										currentPrdContent;
+									if (freshContent) {
+										const allSecs: string[] = [];
+										const sr = /<!-- SECTION: (.+?) -->/g;
+										let sm;
+										while ((sm = sr.exec(freshContent)) !== null) {
+											const n = sm[1].trim();
+											if (
+												ALL_PRD_SECTIONS.includes(n) &&
+												!allSecs.includes(n)
+											) {
+												allSecs.push(n);
+											}
+										}
+										if (allSecs.length > 0) setCompletedSections(allSecs);
+									}
+									// Server now persists this same preamble as assistantReply
+									// (see route.ts) - one bubble only, so refresh shows the
+									// exact text the user saw live instead of a second,
+									// separately-generated summary.
+									const finalReply =
+										parsed.summaryMessage || streamingNaturalLanguage;
+									if (finalReply) {
+										addMessage({
+											id: crypto.randomUUID(),
+											role: "assistant",
+											content: finalReply,
+											timestamp: Date.now(),
+										});
+									}
+									// Push the server-merged full PRD (sections 1-8) up to the
+									// PRD viewer immediately - don't wait for a refresh.
+									if (typeof parsed.content === "string" && parsed.content) {
+										onPrdRevised?.(parsed.content);
+									}
+								}
+							} else if (parsed.type === "error") {
+								gotErrorEvent = true;
+								const errorMsg =
+									parsed.error ||
+									(chatMode === "generate" ||
+									chatMode === "revise" ||
+									chatMode === "resume"
+										? "Gagal menyusun PRD. Silakan coba lagi."
+										: "Gagal memproses pesan. Silakan coba lagi.");
 
-                // If error occurs during PRD generation and we already have some partial content
-                const currentDisplayContent = existingPartialContent ? existingPartialContent + fullContent : fullContent;
-                if ((chatMode === "generate" || chatMode === "resume") && currentDisplayContent.length > 0) {
-                  setGeneratingPRD(false);
-                  setResumeErrorMsg(errorMsg);
-                  setPartialContentStore(currentDisplayContent);
-                  setOriginalMessageStore(originalMessage);
-                  setShowResumeModal(true);
-                  return; // Don't add chat bubble, let user interact with modal
-                }
+								// If error occurs during PRD generation and we already have some partial content
+								const currentDisplayContent = existingPartialContent
+									? existingPartialContent + fullContent
+									: fullContent;
+								if (
+									(chatMode === "generate" || chatMode === "resume") &&
+									currentDisplayContent.length > 0
+								) {
+									setGeneratingPRD(false);
+									setResumeErrorMsg(errorMsg);
+									setPartialContentStore(currentDisplayContent);
+									setOriginalMessageStore(originalMessage);
+									setShowResumeModal(true);
+									return; // Don't add chat bubble, let user interact with modal
+								}
 
-                showToast(errorMsg, "error");
-                addMessage({
-                  id: crypto.randomUUID(),
-                  role: "assistant",
-                  content: `❌ **Pengiriman Gagal**\n\n${errorMsg}\n\n*Pesan kamu telah dikembalikan ke kotak input. Silakan coba kirim ulang.*`,
-                  timestamp: Date.now(),
-                });
+								showToast(errorMsg, "error");
+								addMessage({
+									id: crypto.randomUUID(),
+									role: "assistant",
+									content: `❌ **Pengiriman Gagal**\n\n${errorMsg}\n\n*Pesan kamu telah dikembalikan ke kotak input. Silakan coba kirim ulang.*`,
+									timestamp: Date.now(),
+								});
 
-                setGeneratingPRD(false);
-                setInput(originalMessage);
-                return;
-              }
-            } catch {
-              continue;
-            }
-          }
-        }
+								setGeneratingPRD(false);
+								setInput(originalMessage);
+								return;
+							}
+						} catch {}
+					}
+				}
 
-        // ── Post-stream: add final message ──
-        // ponytail: if the server side closed the stream without a `done` event
-        // (proxy timeout / partial save) the PRD was almost always persisted;
-        // refresh so the panel reflects what the server actually has instead of
-        // leaving the UI frozen and confusing the user.
-        if (!gotDoneEvent && !gotErrorEvent && (chatMode === "generate" || chatMode === "revise" || chatMode === "resume")) {
-          startTransition(() => { router.refresh(); });
-          if (fullContent.trim().length === 0) {
-            showToast("Koneksi terputus. PRD mungkin sudah tersimpan sebagian - coba refresh halaman.", "info");
-          }
-        }
+				// ── Post-stream: add final message ──
+				// ponytail: if the server side closed the stream without a `done` event
+				// (proxy timeout / partial save) the PRD was almost always persisted;
+				// refresh so the panel reflects what the server actually has instead of
+				// leaving the UI frozen and confusing the user.
+				if (
+					!gotDoneEvent &&
+					!gotErrorEvent &&
+					(chatMode === "generate" ||
+						chatMode === "revise" ||
+						chatMode === "resume")
+				) {
+					startTransition(() => {
+						router.refresh();
+					});
+					if (fullContent.trim().length === 0) {
+						showToast(
+							"Koneksi terputus. PRD mungkin sudah tersimpan sebagian - coba refresh halaman.",
+							"info",
+						);
+					}
+				}
 
-        if (chatMode === "generate" || chatMode === "resume" || chatMode === "revise") {
-          const finalDisplayContent = existingPartialContent ? existingPartialContent + fullContent : fullContent;
-          if (finalDisplayContent.trim()) {
-            if (chatMode === "resume") {
-              setGeneratingPRD(false);
-              startTransition(() => { router.refresh(); });
-            }
-            // revise - not reached if done event handled it, but keep
-            // state clean in case the stream ended without a done event.
-          } else {
-            addMessage({
-              id: crypto.randomUUID(),
-              role: "assistant",
-              content: "Gagal menyusun PRD. AI tidak menghasilkan konten. Silakan coba lagi.",
-              timestamp: Date.now(),
-            });
-            setGeneratingPRD(false);
-          }
-        } else {
-          // chatMode === 'chat'
-          addMessage({
-            id: crypto.randomUUID(),
-            role: "assistant",
-            content: fullContent,
-            timestamp: Date.now(),
-          });
-        }
-      } catch (err: unknown) {
-        if (err instanceof Error && err.name === "AbortError") {
-          showToast("Proses dihentikan.", "info");
-        } else {
-          showToast("Terjadi kesalahan koneksi.", "error");
-        }
-      } finally {
-        setStreaming(false);
-        setStreamingContent("");
-        setGeneratingPRD(false);
-        if (chatMode !== "generate" && chatMode !== "resume" && chatMode !== "revise") {
-          setStreamingPRDContent("");
-        }
-        isSubmittingRef.current = false;
-        abortControllerRef.current = null;
-      }
-    },
-    [acMode, addMessage, currentPrdContent, currentSection, onProjectCreated, onPrdRevised, onStreamContent, projectId, setCompletedSections, setGeneratingPRD, setStreaming, setStreamingPRDContent, showToast, router],
-  );
+				if (
+					chatMode === "generate" ||
+					chatMode === "resume" ||
+					chatMode === "revise"
+				) {
+					const finalDisplayContent = existingPartialContent
+						? existingPartialContent + fullContent
+						: fullContent;
+					if (finalDisplayContent.trim()) {
+						if (chatMode === "resume") {
+							setGeneratingPRD(false);
+							startTransition(() => {
+								router.refresh();
+							});
+						}
+						// revise - not reached if done event handled it, but keep
+						// state clean in case the stream ended without a done event.
+					} else {
+						addMessage({
+							id: crypto.randomUUID(),
+							role: "assistant",
+							content:
+								"Gagal menyusun PRD. AI tidak menghasilkan konten. Silakan coba lagi.",
+							timestamp: Date.now(),
+						});
+						setGeneratingPRD(false);
+					}
+				} else {
+					// chatMode === 'chat'
+					addMessage({
+						id: crypto.randomUUID(),
+						role: "assistant",
+						content: fullContent,
+						timestamp: Date.now(),
+					});
+				}
+			} catch (err: unknown) {
+				if (err instanceof Error && err.name === "AbortError") {
+					showToast("Proses dihentikan.", "info");
+				} else {
+					showToast("Terjadi kesalahan koneksi.", "error");
+				}
+			} finally {
+				setStreaming(false);
+				setStreamingContent("");
+				setGeneratingPRD(false);
+				if (
+					chatMode !== "generate" &&
+					chatMode !== "resume" &&
+					chatMode !== "revise"
+				) {
+					setStreamingPRDContent("");
+				}
+				isSubmittingRef.current = false;
+				abortControllerRef.current = null;
+			}
+		},
+		[
+			acMode,
+			addMessage,
+			currentPrdContent,
+			currentSection,
+			onProjectCreated,
+			onPrdRevised,
+			onStreamContent,
+			projectId,
+			setCompletedSections,
+			setGeneratingPRD,
+			setStreaming,
+			setStreamingPRDContent,
+			showToast,
+			router,
+		],
+	);
 
-  /** Called when the user types a message and clicks send. */
-  const handleSend = async (overrideMode?: "chat" | "revise") => {
-    const trimmed = input.trim();
-    if (!trimmed || isStreaming || isSubmittingRef.current) return;
+	/** Called when the user types a message and clicks send. */
+	const handleSend = async (overrideMode?: "chat" | "revise") => {
+		const trimmed = input.trim();
+		if (!trimmed || isStreaming || isSubmittingRef.current) return;
 
-    const resolvedMode = overrideMode || (projectId ? "revise" : "generate");
+		const resolvedMode = overrideMode || (projectId ? "revise" : "generate");
 
-    if (resolvedMode === "generate" && trimmed.length < MIN_PROMPT_LENGTH) {
-      addMessage({
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: `Deskripsikan produkmu lebih detail (minimal ${MIN_PROMPT_LENGTH} karakter) agar saya bisa menghasilkan PRD yang berkualitas. Contoh: *"Buatkan PRD untuk aplikasi e-commerce fashion yang mendukung payment gateway dan tracking pengiriman."*`,
-        timestamp: Date.now(),
-      });
-      setInput("");
-      return;
-    }
+		if (resolvedMode === "generate" && trimmed.length < MIN_PROMPT_LENGTH) {
+			addMessage({
+				id: crypto.randomUUID(),
+				role: "assistant",
+				content: `Deskripsikan produkmu lebih detail (minimal ${MIN_PROMPT_LENGTH} karakter) agar saya bisa menghasilkan PRD yang berkualitas. Contoh: *"Buatkan PRD untuk aplikasi e-commerce fashion yang mendukung payment gateway dan tracking pengiriman."*`,
+				timestamp: Date.now(),
+			});
+			setInput("");
+			return;
+		}
 
-    isSubmittingRef.current = true;
-    // ponytail: only chat/revise show a user bubble. generate/resume come from
-    // the home prompt and must NEVER appear in the chat panel - the progress
-    // card above already communicates generation. The chat panel's job after a
-    // PRD exists is revision conversation, not echoing the original prompt.
-    if (resolvedMode === "chat" || resolvedMode === "revise") {
-      addMessage({ id: crypto.randomUUID(), role: "user", content: trimmed, timestamp: Date.now() });
-    }
-    if (resolvedMode === "revise") setIsRevising(true);
-    setInput("");
-    clearPrdDraft();
-    setStreaming(true);
-    setStreamingContent("");
-    streamingContentRef.current = "";
-    if (resolvedMode !== "revise") {
-      setStreamingPRDContent("");
-    }
-    // ponytail: revise never touches streamingPRDContent - the PRD viewer
-    // stays on the current full PRD at all times.
+		isSubmittingRef.current = true;
+		// ponytail: only chat/revise show a user bubble. generate/resume come from
+		// the home prompt and must NEVER appear in the chat panel - the progress
+		// card above already communicates generation. The chat panel's job after a
+		// PRD exists is revision conversation, not echoing the original prompt.
+		if (resolvedMode === "chat" || resolvedMode === "revise") {
+			addMessage({
+				id: crypto.randomUUID(),
+				role: "user",
+				content: trimmed,
+				timestamp: Date.now(),
+			});
+		}
+		if (resolvedMode === "revise") setIsRevising(true);
+		setInput("");
+		clearPrdDraft();
+		setStreaming(true);
+		setStreamingContent("");
+		streamingContentRef.current = "";
+		if (resolvedMode !== "revise") {
+			setStreamingPRDContent("");
+		}
+		// ponytail: revise never touches streamingPRDContent - the PRD viewer
+		// stays on the current full PRD at all times.
 
-    const body: Record<string, unknown> = { message: trimmed, mode: resolvedMode, preferences: {} };
+		const body: Record<string, unknown> = {
+			message: trimmed,
+			mode: resolvedMode,
+			preferences: {},
+		};
 
-    if (typeof window !== "undefined") {
-      const model = sessionStorage.getItem("novaplan:selected-model");
-      if (model) body.preferences = { model };
-    }
-    if (conversationId) body.conversationId = conversationId;
-    if (projectId) body.projectId = projectId;
-    // ponytail: pass selectedVersionNum so server merges against viewed version, not always latest
-    if (selectedVersionNum && resolvedMode === "revise") body.selectedVersionNum = selectedVersionNum;
-    if (resolvedMode === "generate" || resolvedMode === "revise") setGeneratingPRD(true);
+		if (typeof window !== "undefined") {
+			const model = sessionStorage.getItem("novaplan:selected-model");
+			if (model) body.preferences = { model };
+		}
+		if (conversationId) body.conversationId = conversationId;
+		if (projectId) body.projectId = projectId;
+		// ponytail: pass selectedVersionNum so server merges against viewed version, not always latest
+		if (selectedVersionNum && resolvedMode === "revise")
+			body.selectedVersionNum = selectedVersionNum;
+		if (resolvedMode === "generate" || resolvedMode === "revise")
+			setGeneratingPRD(true);
 
-    await streamApiCall(body, resolvedMode, trimmed);
-  };
+		await streamApiCall(body, resolvedMode, trimmed);
+	};
 
-  /**
-   * Handle resuming a broken PRD generation from the modal.
-   */
-  const handleResumePRD = async (newModelId: string) => {
-    setSelectedModel(newModelId);
-    sessionStorage.setItem("novaplan:selected-model", newModelId);
-    setShowResumeModal(false);
+	/**
+	 * Handle resuming a broken PRD generation from the modal.
+	 */
+	const handleResumePRD = async (newModelId: string) => {
+		setSelectedModel(newModelId);
+		sessionStorage.setItem("novaplan:selected-model", newModelId);
+		setShowResumeModal(false);
 
-    if (isSubmittingRef.current || !partialContentStore) return;
+		if (isSubmittingRef.current || !partialContentStore) return;
 
-    isSubmittingRef.current = true;
-    setStreaming(true);
-    setGeneratingPRD(true);
-    // DO NOT CLEAR setStreamingPRDContent! We want the partial text to remain visible.
-    
-    const body: Record<string, unknown> = {
-      message: originalMessageStore,
-      mode: "resume",
-      partialContent: partialContentStore,
-      preferences: { model: newModelId },
-      // Ensure the user's clean prompt is persisted in the DB so the chat
-      // bubble never shows the internal AI template after page remount.
-      displayMessage: originalMessageStore,
-    };
+		isSubmittingRef.current = true;
+		setStreaming(true);
+		setGeneratingPRD(true);
+		// DO NOT CLEAR setStreamingPRDContent! We want the partial text to remain visible.
 
-    if (conversationId) body.conversationId = conversationId;
-    if (projectId) body.projectId = projectId;
+		const body: Record<string, unknown> = {
+			message: originalMessageStore,
+			mode: "resume",
+			partialContent: partialContentStore,
+			preferences: { model: newModelId },
+			// Ensure the user's clean prompt is persisted in the DB so the chat
+			// bubble never shows the internal AI template after page remount.
+			displayMessage: originalMessageStore,
+		};
 
-    await streamApiCall(body, "resume", originalMessageStore, partialContentStore);
-  };
+		if (conversationId) body.conversationId = conversationId;
+		if (projectId) body.projectId = projectId;
 
-  /**
-   * Called programmatically (e.g. auto-submit from the /ask question flow).
-   * Differs from handleSend: it receives the message as a parameter.
-   */
-  const handleSendWithMessage = useCallback(
-    async (msg: string, chatMode: "chat" | "generate" | "revise", displayMessage?: string | null) => {
-      if (isSubmittingRef.current) return;
-      isSubmittingRef.current = true;
+		await streamApiCall(
+			body,
+			"resume",
+			originalMessageStore,
+			partialContentStore,
+		);
+	};
 
-      // ponytail: generate/resume are triggered by the home prompt and must
-      // NOT surface as a chat bubble - that leaked the internal template
-      // wrapper ("Generate PRD lengkap...") into the panel. Only chat/revise
-      // (genuine conversation) render a user bubble.
-      if (displayMessage !== null && (chatMode === "chat" || chatMode === "revise")) {
-        addMessage({ id: crypto.randomUUID(), role: "user", content: displayMessage || msg, timestamp: Date.now() });
-      }
+	/**
+	 * Called programmatically (e.g. auto-submit from the /ask question flow).
+	 * Differs from handleSend: it receives the message as a parameter.
+	 */
+	const handleSendWithMessage = useCallback(
+		async (
+			msg: string,
+			chatMode: "chat" | "generate" | "revise",
+			displayMessage?: string | null,
+		) => {
+			if (isSubmittingRef.current) return;
+			isSubmittingRef.current = true;
 
-      setStreaming(true);
-      setStreamingContent("");
-      streamingContentRef.current = "";
-      if (chatMode === "revise") setIsRevising(true);
-      if (chatMode !== "revise") {
-        setStreamingPRDContent("");
-      }
-      // ponytail: revise never touches streamingPRDContent - the PRD viewer
-      // stays on the current full PRD at all times.
-      if (chatMode === "generate" || chatMode === "revise") setGeneratingPRD(true);
-      if (chatMode === "generate") {
-        setCompletedSections([]);
-        setCurrentSection("Overview");
-      }
+			// ponytail: generate/resume are triggered by the home prompt and must
+			// NOT surface as a chat bubble - that leaked the internal template
+			// wrapper ("Generate PRD lengkap...") into the panel. Only chat/revise
+			// (genuine conversation) render a user bubble.
+			if (
+				displayMessage !== null &&
+				(chatMode === "chat" || chatMode === "revise")
+			) {
+				addMessage({
+					id: crypto.randomUUID(),
+					role: "user",
+					content: displayMessage || msg,
+					timestamp: Date.now(),
+				});
+			}
 
-      const body: Record<string, unknown> = { message: msg, mode: chatMode, preferences: {} };
-      if (typeof window !== "undefined") {
-        const model = sessionStorage.getItem("novaplan:selected-model");
-        if (model) body.preferences = { model };
-      }
-      // Send the original user message for database storage (without template wrapping)
-      if (displayMessage && displayMessage !== msg) {
-        body.displayMessage = displayMessage;
-      }
-      if (conversationId) body.conversationId = conversationId;
-      if (projectId) body.projectId = projectId;
-      // ponytail: pass selectedVersionNum so server merges against viewed version
-      if (selectedVersionNum && chatMode === "revise") body.selectedVersionNum = selectedVersionNum;
+			setStreaming(true);
+			setStreamingContent("");
+			streamingContentRef.current = "";
+			if (chatMode === "revise") setIsRevising(true);
+			if (chatMode !== "revise") {
+				setStreamingPRDContent("");
+			}
+			// ponytail: revise never touches streamingPRDContent - the PRD viewer
+			// stays on the current full PRD at all times.
+			if (chatMode === "generate" || chatMode === "revise")
+				setGeneratingPRD(true);
+			if (chatMode === "generate") {
+				setCompletedSections([]);
+				setCurrentSection("Overview");
+			}
 
-      // Pass the clean display message as `originalMessage` so that if the
-      // stream breaks mid-generation, `originalMessageStore` holds the user's
-      // original prompt - not the internal AI template wrapper. This prevents
-      // the template text from leaking into the chat bubble after a resume.
-      await streamApiCall(body, chatMode, displayMessage || msg);
-    },
-    [addMessage, conversationId, currentPrdContent, projectId, selectedVersionNum, setCompletedSections, setGeneratingPRD, setStreaming, streamApiCall],
-  );
+			const body: Record<string, unknown> = {
+				message: msg,
+				mode: chatMode,
+				preferences: {},
+			};
+			if (typeof window !== "undefined") {
+				const model = sessionStorage.getItem("novaplan:selected-model");
+				if (model) body.preferences = { model };
+			}
+			// Send the original user message for database storage (without template wrapping)
+			if (displayMessage && displayMessage !== msg) {
+				body.displayMessage = displayMessage;
+			}
+			if (conversationId) body.conversationId = conversationId;
+			if (projectId) body.projectId = projectId;
+			// ponytail: pass selectedVersionNum so server merges against viewed version
+			if (selectedVersionNum && chatMode === "revise")
+				body.selectedVersionNum = selectedVersionNum;
 
-  // ── Auto-submit from /ask question flow ──
-  useEffect(() => {
-    // Reset auto-submit guard when re-mounting project (ChatPanel stays mounted
-    // with CSS display:none, so ref persists across navigations otherwise).
-    autoSubmitAttemptedRef.current = false;
-    if (!enableAutoSubmit || isStreaming || messages.length > 0) return;
+			// Pass the clean display message as `originalMessage` so that if the
+			// stream breaks mid-generation, `originalMessageStore` holds the user's
+			// original prompt - not the internal AI template wrapper. This prevents
+			// the template text from leaking into the chat bubble after a resume.
+			await streamApiCall(body, chatMode, displayMessage || msg);
+		},
+		[
+			addMessage,
+			conversationId,
+			currentPrdContent,
+			projectId,
+			selectedVersionNum,
+			setCompletedSections,
+			setGeneratingPRD,
+			setStreaming,
+			streamApiCall,
+		],
+	);
 
-    const pending = consumePendingPrdPrompt();
-    if (!pending) return;
+	// ── Auto-submit from /ask question flow ──
+	useEffect(() => {
+		// Reset auto-submit guard when re-mounting project (ChatPanel stays mounted
+		// with CSS display:none, so ref persists across navigations otherwise).
+		autoSubmitAttemptedRef.current = false;
+		if (!enableAutoSubmit || isStreaming || messages.length > 0) return;
 
-    autoSubmitAttemptedRef.current = true;
+		const pending = consumePendingPrdPrompt();
+		if (!pending) return;
 
-    if (pending.mode === "auto") {
-      setGeneratingPRD(true);
-      const autoMessage = `Generate PRD lengkap berdasarkan informasi berikut:\n\n${pending.prompt}\n\nGunakan section markers sesuai standar.`;
-      // Use displayMessage (original user input) for the chat bubble, fallback to prompt
-      const bubbleMessage = pending.displayMessage || pending.prompt;
-      void handleSendWithMessage(autoMessage, "generate", bubbleMessage);
-    } else {
-      void handleSendWithMessage(pending.prompt, "chat");
-    }
-  }, [enableAutoSubmit, handleSendWithMessage, isStreaming, messages.length, setGeneratingPRD]);
+		autoSubmitAttemptedRef.current = true;
 
-  // ── Render ──
+		if (pending.mode === "auto") {
+			setGeneratingPRD(true);
+			const autoMessage = `Generate PRD lengkap berdasarkan informasi berikut:\n\n${pending.prompt}\n\nGunakan section markers sesuai standar.`;
+			// Use displayMessage (original user input) for the chat bubble, fallback to prompt
+			const bubbleMessage = pending.displayMessage || pending.prompt;
+			void handleSendWithMessage(autoMessage, "generate", bubbleMessage);
+		} else {
+			void handleSendWithMessage(pending.prompt, "chat");
+		}
+	}, [
+		enableAutoSubmit,
+		handleSendWithMessage,
+		isStreaming,
+		messages.length,
+		setGeneratingPRD,
+	]);
 
-  return (
-    <div
-      className={cn("flex h-full flex-col border-l border-graphite", className)}
-      style={{ background: "var(--bg-elevated)" }}
-    >
-      {/* Scrollable content: progress card + messages */}
-      <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto p-4">
+	// ── Render ──
 
-        {/* Section Generation Progress */}
-        {(currentSection || completedSections.length > 0 || isGeneratingPRD) && (
-          <div>
-            {!isRevising && (
-              <div className="mb-1.5 text-xs font-[510] uppercase tracking-wide text-mist">
-                {isGeneratingPRD
-                  ? "PRD sedang di-generate oleh AI"
-                  : completedSections.length >= ALL_PRD_SECTIONS.length
-                    ? "✅ PRD selesai digenerate"
-                    : "Proses generate PRD"}
-              </div>
-            )}
-            <div className="rounded-lg border border-graphite bg-charcoal/40 px-4 py-3">
-              <div className="space-y-2">
-                {ALL_PRD_SECTIONS.map((section, i) => {
-                  const isCompleted = completedSections.includes(section);
-                  const isCurrent = section === currentSection;
-                  const isPending = !isCompleted && !isCurrent;
-                  return (
-                    <div key={i} className="flex items-center gap-2.5">
-                      {isCompleted ? (
-                        <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor" className="text-emerald shrink-0">
-                          <path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z" />
-                        </svg>
-                      ) : isCurrent ? (
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="shrink-0 animate-spin text-indigo">
-                          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity="0.25" />
-                          <path d="M12 2a10 10 0 019.95 9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                        </svg>
-                      ) : (
-                        <svg width="10" height="10" viewBox="0 0 16 16" fill="none" className="text-slate/40 shrink-0">
-                          <circle cx="4" cy="8" r="4" stroke="currentColor" strokeWidth="1.5" />
-                        </svg>
-                      )}
-                      <span className={cn("truncate text-sm", isCompleted ? "text-emerald" : isCurrent ? "text-snow" : "text-slate")}>{section}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
+	return (
+		<div
+			className={cn("flex h-full flex-col border-l border-graphite", className)}
+			style={{ background: "var(--bg-elevated)" }}
+		>
+			{/* Scrollable content: progress card + messages */}
+			<div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto p-4">
+				{/* Section Generation Progress */}
+				{(currentSection ||
+					completedSections.length > 0 ||
+					isGeneratingPRD) && (
+					<div>
+						{!isRevising && (
+							<div className="mb-1.5 text-xs font-[510] uppercase tracking-wide text-mist">
+								{isGeneratingPRD
+									? "PRD sedang di-generate oleh AI"
+									: completedSections.length >= ALL_PRD_SECTIONS.length
+										? "✅ PRD selesai digenerate"
+										: "Proses generate PRD"}
+							</div>
+						)}
+						<div className="rounded-lg border border-graphite bg-charcoal/40 px-4 py-3">
+							<div className="space-y-2">
+								{ALL_PRD_SECTIONS.map((section, i) => {
+									const isCompleted = completedSections.includes(section);
+									const isCurrent = section === currentSection;
+									const isPending = !isCompleted && !isCurrent;
+									return (
+										<div key={i} className="flex items-center gap-2.5">
+											{isCompleted ? (
+												<svg
+													width="10"
+													height="10"
+													viewBox="0 0 16 16"
+													fill="currentColor"
+													className="text-emerald shrink-0"
+												>
+													<path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z" />
+												</svg>
+											) : isCurrent ? (
+												<svg
+													width="12"
+													height="12"
+													viewBox="0 0 24 24"
+													fill="none"
+													className="shrink-0 animate-spin text-indigo"
+												>
+													<circle
+														cx="12"
+														cy="12"
+														r="10"
+														stroke="currentColor"
+														strokeWidth="3"
+														opacity="0.25"
+													/>
+													<path
+														d="M12 2a10 10 0 019.95 9"
+														stroke="currentColor"
+														strokeWidth="3"
+														strokeLinecap="round"
+													/>
+												</svg>
+											) : (
+												<svg
+													width="10"
+													height="10"
+													viewBox="0 0 16 16"
+													fill="none"
+													className="text-slate/40 shrink-0"
+												>
+													<circle
+														cx="4"
+														cy="8"
+														r="4"
+														stroke="currentColor"
+														strokeWidth="1.5"
+													/>
+												</svg>
+											)}
+											<span
+												className={cn(
+													"truncate text-sm",
+													isCompleted
+														? "text-emerald"
+														: isCurrent
+															? "text-snow"
+															: "text-slate",
+												)}
+											>
+												{section}
+											</span>
+										</div>
+									);
+								})}
+							</div>
+						</div>
+					</div>
+				)}
 
-        {/* Messages */}
-        {messages.map((msg) => (
-          <ChatBubble key={msg.id} role={msg.role} content={msg.content} />
-        ))}
-        {isStreaming && streamingContent && (
-          <ChatBubble role="assistant" content={streamingContent} isStreaming />
-        )}
-        {isRevising && !streamingContent && <TypingIndicator />}
-      </div>
+				{/* Messages */}
+				{messages.map((msg) => (
+					<ChatBubble key={msg.id} role={msg.role} content={msg.content} />
+				))}
+				{isStreaming && streamingContent && (
+					<ChatBubble role="assistant" content={streamingContent} isStreaming />
+				)}
+				{isRevising && !streamingContent && <TypingIndicator />}
+			</div>
 
-      {/* Input Area */}
-      <div className="border-t border-graphite p-4">
-        <div
-          className="relative flex flex-col rounded-md bg-charcoal shadow-[var(--shadow-inset)] transition-shadow duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] focus-within:shadow-[inset_0_0_0_1px_rgba(94,106,210,0.85)]"
-        >
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
-              }
-            }}
-            placeholder={isEffectivelyDisabled ? "Pilih proyek dari daftar atau buat baru dari beranda" : projectId ? "Ketik pesan atau instruksi revisi PRD..." : "Ceritakan ide produkmu..."}
-            className={cn(
-              "w-full resize-none border-none bg-transparent px-3 pb-2 pt-3 text-[14px] text-snow outline-none placeholder:text-slate",
-              isEffectivelyDisabled && "cursor-not-allowed opacity-70"
-            )}
-            style={{ color: "var(--text-primary)", caretColor: "var(--text-primary)" }}
-            rows={2}
-            disabled={isStreaming || isEffectivelyDisabled}
-          />
-          <div className="flex items-center justify-between px-3 pb-3 pt-1">
-            <ModelDropdown
-              selectedModel={selectedModel}
-              onSelect={setSelectedModel}
-              userPlan={userPlan}
-              isDisabled={isEffectivelyDisabled}
-              isStreaming={isStreaming}
-            />
+			{/* Input Area */}
+			<div className="border-t border-graphite p-4">
+				<div className="relative flex flex-col rounded-md bg-charcoal shadow-[var(--shadow-inset)] transition-shadow duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] focus-within:shadow-[inset_0_0_0_1px_rgba(94,106,210,0.85)]">
+					<textarea
+						ref={inputRef}
+						value={input}
+						onChange={(e) => setInput(e.target.value)}
+						onKeyDown={(e) => {
+							if (e.key === "Enter" && !e.shiftKey) {
+								e.preventDefault();
+								handleSend();
+							}
+						}}
+						placeholder={
+							isEffectivelyDisabled
+								? "Pilih proyek dari daftar atau buat baru dari beranda"
+								: projectId
+									? "Ketik pesan atau instruksi revisi PRD..."
+									: "Ceritakan ide produkmu..."
+						}
+						className={cn(
+							"w-full resize-none border-none bg-transparent px-3 pb-2 pt-3 text-[14px] text-snow outline-none placeholder:text-slate",
+							isEffectivelyDisabled && "cursor-not-allowed opacity-70",
+						)}
+						style={{
+							color: "var(--text-primary)",
+							caretColor: "var(--text-primary)",
+						}}
+						rows={2}
+						disabled={isStreaming || isEffectivelyDisabled}
+					/>
+					<div className="flex items-center justify-between px-3 pb-3 pt-1">
+						<ModelDropdown
+							selectedModel={selectedModel}
+							onSelect={setSelectedModel}
+							userPlan={userPlan}
+							isDisabled={isEffectivelyDisabled}
+							isStreaming={isStreaming}
+						/>
 
-            <button
-              onClick={isStreaming ? handleCancel : () => handleSend()}
-              disabled={!isStreaming && (!input.trim() || isSubmittingRef.current || isEffectivelyDisabled)}
-              className={cn(
-                "flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] disabled:opacity-30 active:scale-[0.98]",
-                isStreaming ? "bg-crimson text-white hover:bg-crimson/90" : "btn-primary hover:brightness-105"
-              )}
-              title={isStreaming ? "Hentikan Proses" : (projectId ? "Update PRD" : "Generate PRD")}
-            >
-              {isStreaming ? (
-                <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
-                  <rect x="3" y="3" width="10" height="10" rx="1" />
-                </svg>
-              ) : (
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                  <path d="M2 8L14 8M10 4L14 8L10 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
+						<button
+							onClick={isStreaming ? handleCancel : () => handleSend()}
+							disabled={
+								!isStreaming &&
+								(!input.trim() ||
+									isSubmittingRef.current ||
+									isEffectivelyDisabled)
+							}
+							className={cn(
+								"flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] disabled:opacity-30 active:scale-[0.98]",
+								isStreaming
+									? "bg-crimson text-white hover:bg-crimson/90"
+									: "btn-primary hover:brightness-105",
+							)}
+							title={
+								isStreaming
+									? "Hentikan Proses"
+									: projectId
+										? "Update PRD"
+										: "Generate PRD"
+							}
+						>
+							{isStreaming ? (
+								<svg
+									width="12"
+									height="12"
+									viewBox="0 0 16 16"
+									fill="currentColor"
+								>
+									<rect x="3" y="3" width="10" height="10" rx="1" />
+								</svg>
+							) : (
+								<svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+									<path
+										d="M2 8L14 8M10 4L14 8L10 12"
+										stroke="currentColor"
+										strokeWidth="2"
+										strokeLinecap="round"
+										strokeLinejoin="round"
+									/>
+								</svg>
+							)}
+						</button>
+					</div>
+				</div>
+			</div>
 
-      {/* Limit Modal */}
-      <LimitModal
-        isOpen={showLimitModal}
-        onClose={() => setShowLimitModal(false)}
-        errorMessage={limitErrorMsg}
-      />
+			{/* Limit Modal */}
+			<LimitModal
+				isOpen={showLimitModal}
+				onClose={() => setShowLimitModal(false)}
+				errorMessage={limitErrorMsg}
+			/>
 
-      {/* Resume PRD Modal */}
-      <ResumeErrorModal
-        isOpen={showResumeModal}
-        onClose={() => setShowResumeModal(false)}
-        onResume={handleResumePRD}
-        errorMessage={resumeErrorMsg}
-        userPlan={userPlan}
-        currentModelId={selectedModel}
-      />
-    </div>
-  );
+			{/* Resume PRD Modal */}
+			<ResumeErrorModal
+				isOpen={showResumeModal}
+				onClose={() => setShowResumeModal(false)}
+				onResume={handleResumePRD}
+				errorMessage={resumeErrorMsg}
+				userPlan={userPlan}
+				currentModelId={selectedModel}
+			/>
+		</div>
+	);
 }
