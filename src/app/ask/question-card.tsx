@@ -88,19 +88,6 @@ export function QuestionCard({
 				>
 					+ Lainnya
 				</button>
-				<button
-					type="button"
-					onClick={() => {
-						setShowCustomInput(false);
-						onAnswer({ value: "", isCustom: false, skipped: true });
-					}}
-					className={cn(
-						"rounded-full px-4 py-2 font-inter text-sm transition-colors",
-						answer?.skipped ? "bg-steel text-snow" : "text-fog hover:text-snow",
-					)}
-				>
-					Lewati
-				</button>
 			</div>
 			{showCustomInput && (
 				<div className="mt-3 flex gap-2">
