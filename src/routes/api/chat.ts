@@ -277,27 +277,19 @@ export const Route = createFileRoute("/api/chat")({
 								assistantReply = fullResponse;
 							}
 
-							let userMessageToSave = displayMessage || message;
+							// ponytail: only genuine conversation modes persist chat bubbles.
+							// generate/resume originate from the home prompt — persisting them
+							// here leaked the seed prompt + "Selesai menyusun PRD awal." into
+							// the chat panel after the loader repopulated the store on refresh.
+							// PRD content itself is saved via savePrdVersion below; the chat
+							// panel is for follow-up Q&A only.
 							if (
-								(mode === "generate" || mode === "resume") &&
-								!displayMessage
+								conversationIdToUse &&
+								(mode === "chat" || mode === "revise")
 							) {
-								userMessageToSave = userMessageToSave
-									.replace(
-										/^Generate PRD lengkap berdasarkan informasi berikut:\s*\n*/i,
-										"",
-									)
-									.replace(
-										/\n*Gunakan section markers sesuai standar\.\s*$/i,
-										"",
-									)
-									.trim();
-							}
-
-							if (conversationIdToUse) {
 								await saveMessages(
 									conversationIdToUse,
-									userMessageToSave,
+									displayMessage || message,
 									assistantReply,
 									plan,
 								);

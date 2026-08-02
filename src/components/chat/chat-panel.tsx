@@ -708,9 +708,6 @@ export function ChatPanel({
 			mode: "resume",
 			partialContent: partialContentStore,
 			preferences: { model: newModelId },
-			// Ensure the user's clean prompt is persisted in the DB so the chat
-			// bubble never shows the internal AI template after page remount.
-			displayMessage: originalMessageStore,
 		};
 
 		if (conversationId) body.conversationId = conversationId;
@@ -777,10 +774,6 @@ export function ChatPanel({
 			if (typeof window !== "undefined") {
 				const model = sessionStorage.getItem("novaplan:selected-model");
 				if (model) body.preferences = { model };
-			}
-			// Send the original user message for database storage (without template wrapping)
-			if (displayMessage && displayMessage !== msg) {
-				body.displayMessage = displayMessage;
 			}
 			if (conversationId) body.conversationId = conversationId;
 			if (projectId) body.projectId = projectId;
