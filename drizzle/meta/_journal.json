@@ -15,6 +15,13 @@
       "when": 1785308494290,
       "tag": "0001_woozy_wasp",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785660082703,
+      "tag": "0002_classy_black_queen",
+      "breakpoints": true
     }
   ]
 }
