@@ -8,7 +8,7 @@ import { ModelDropdown } from "./model-dropdown";
 import { LimitModal } from "./limit-modal";
 import { ResumeErrorModal } from "./resume-error-modal";
 import { cn } from "@/lib/utils";
-import { consumePendingPrdPrompt } from "@/lib/prompt-handoff";
+import { consumePendingPrdPrompt, getPrdDraft, savePrdDraft, clearPrdDraft } from "@/lib/prompt-handoff";
 import { useRouter } from "next/navigation";
 import type { Plan } from "@/types/database";
 import { ALL_MODELS, DEFAULT_MODEL_ID } from "@/lib/model-config";
@@ -123,7 +123,15 @@ export function ChatPanel({
   onStreamContent,
 }: ChatPanelProps) {
   // ── Local State ──
-  const [input, setInput] = useState("");
+  const draftKey = projectId ?? "new";
+  const [input, setInput] = useState(() => getPrdDraft(projectId ?? "new"));
+  // ponytail: keep follow-up draft in sessionStorage so refresh mid-typing
+  // doesn't wipe a half-typed PRD revision question.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional draft snapshot
+  useEffect(() => {
+    const t = setTimeout(() => savePrdDraft(draftKey, input), 300);
+    return () => clearTimeout(t);
+  }, [input, draftKey]);
   const [conversationId, setConversationId] = useState(initialConversationId);
   const [streamingContent, setStreamingContent] = useState("");
   const [showLimitModal, setShowLimitModal] = useState(false);
@@ -538,6 +546,7 @@ export function ChatPanel({
     }
     if (resolvedMode === "revise") setIsRevising(true);
     setInput("");
+    clearPrdDraft();
     setStreaming(true);
     setStreamingContent("");
     streamingContentRef.current = "";

@@ -160,3 +160,37 @@ export function getAskState(projectId: string): AskState | null {
 export function clearAskState() {
   getStorage()?.removeItem(ASK_STATE_KEY);
 }
+
+/* ---------- PRD chat follow-up draft (survives refresh) ---------- */
+const PRD_DRAFT_KEY = "novaplan:prd-draft";
+
+/** Persist the PRD chat input draft, keyed per project so drafts don't leak
+ *  between projects. Tab-scoped (sessionStorage): a draft is session work. */
+export function savePrdDraft(projectId: string, draft: string) {
+  const storage = getStorage();
+  if (!storage) return;
+  if (!draft) {
+    storage.removeItem(PRD_DRAFT_KEY);
+    return;
+  }
+  storage.setItem(PRD_DRAFT_KEY, JSON.stringify({ projectId, draft }));
+}
+
+/** Read-only restore. Returns "" if missing or for a different project. */
+export function getPrdDraft(projectId: string): string {
+  const storage = getStorage();
+  const raw = storage?.getItem(PRD_DRAFT_KEY);
+  if (!raw) return "";
+  try {
+    const parsed = JSON.parse(raw) as { projectId: string; draft: string };
+    if (!parsed || parsed.projectId !== projectId) return "";
+    return parsed.draft ?? "";
+  } catch {
+    storage?.removeItem(PRD_DRAFT_KEY);
+    return "";
+  }
+}
+
+export function clearPrdDraft() {
+  getStorage()?.removeItem(PRD_DRAFT_KEY);
+}
