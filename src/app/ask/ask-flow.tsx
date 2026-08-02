@@ -160,6 +160,17 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 	const answeredCount = Object.values(nonTechAnswers).filter(
 		(a) => a.value || a.skipped,
 	).length;
+	const allNonTechAnswered =
+		questions.length > 0 &&
+		questions.every((q) => {
+			const a = nonTechAnswers[q.id];
+			return a && (a.value || a.skipped);
+		});
+	const allTechAnswered =
+		Boolean(techAnswers.database) &&
+		Boolean(techAnswers.deployment) &&
+		(Boolean(techAnswers.fullstackFramework) ||
+			(Boolean(techAnswers.frontend) && Boolean(techAnswers.backend)));
 
 	const submit = (tech: TechAnswers) => {
 		const nonTechLines = questions.map((q) => {
@@ -253,8 +264,9 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 					<div className="flex justify-end pt-2">
 						<button
 							type="button"
+							disabled={!allNonTechAnswered}
 							onClick={() => setSession(2)}
-							className="btn-primary rounded-md px-6 py-2.5 font-inter text-sm font-[510]"
+							className="btn-primary rounded-md px-6 py-2.5 font-inter text-sm font-[510] disabled:opacity-40 disabled:cursor-not-allowed"
 						>
 							Lanjut
 						</button>
@@ -340,8 +352,9 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 						</button>
 						<button
 							type="button"
+							disabled={!allTechAnswered}
 							onClick={() => submit(techAnswers)}
-							className="btn-primary rounded-md px-6 py-2.5 font-inter text-sm font-[510]"
+							className="btn-primary rounded-md px-6 py-2.5 font-inter text-sm font-[510] disabled:opacity-40 disabled:cursor-not-allowed"
 						>
 							Generate PRD
 						</button>
