@@ -4,7 +4,12 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
 import { PRD_REVISION_PROMPT, PRD_SYSTEM_PROMPT } from "@/lib/prompts";
-import { checkQuota, incrementPrdCount } from "@/lib/quota";
+import {
+	checkQuota,
+	checkRevisionQuota,
+	incrementPrdCount,
+	incrementRevisionCount,
+} from "@/lib/quota";
 import { checkRateLimit, recordRequest } from "@/lib/rate-limit";
 import {
 	selectModels,
@@ -86,6 +91,20 @@ export const Route = createFileRoute("/api/chat")({
 								error:
 									"Limit pembuatan PRD kamu sudah tercapai. Silakan upgrade ke paket Hengker untuk akses tanpa batas, atau tunggu reset kuota bulan depan.",
 								quota: { used: quotaCheck.used, limit: quotaCheck.limit },
+							},
+							{ status: 403 },
+						);
+					}
+				}
+
+				if (mode === "revise") {
+					const revisionCheck = await checkRevisionQuota(user.id);
+					if (!revisionCheck.allowed) {
+						return Response.json(
+							{
+								error:
+									"Limit revisi PRD kamu sudah tercapai. Silakan upgrade ke paket Hengker untuk akses tanpa batas, atau tunggu reset kuota bulan depan.",
+								quota: { used: revisionCheck.used, limit: revisionCheck.limit },
 							},
 							{ status: 403 },
 						);
@@ -381,6 +400,8 @@ export const Route = createFileRoute("/api/chat")({
 
 								try {
 									if (mode === "generate") await incrementPrdCount(user.id);
+									if (mode === "revise")
+										await incrementRevisionCount(user.id);
 								} catch (err) {
 									console.error(
 										"Failed to increment PRD count for user",
