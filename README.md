@@ -238,6 +238,23 @@ Novaplan exposes a public REST API under `/api/v1`. Endpoints cover:
 - Status: `PATCH /api/v1/tasks/:id/status`, `PATCH /api/v1/subtasks/:id/status`
 - Kanban: `GET /api/v1/projects/:id/kanban`
 
+## Troubleshooting
+
+**The app shows an error on generation.**
+Check that `NINE_ROUTER_URL` is reachable and that `pnpm dev` started without errors. The AI calls go through the local router, so a stopped router means empty generations.
+
+**The login screen never completes.**
+Confirm `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL` are set and that `BETTER_AUTH_URL` matches the host you are browsing on.
+
+**The database connection fails.**
+Make sure Postgres is running and `DATABASE_URL` is correct. Use `pnpm db:studio` to verify the connection, then `pnpm db:push` to sync the schema.
+
+**Runs are slower than expected.**
+The fallback chain tries the premium model first. If it is slow, switch to the free tier model in the model dropdown.
+
+**I changed a file but the app did not reload.**
+Vite hot-reloads by default. If a route was added or renamed, run `pnpm generate-routes` or restart the dev server.
+
 ## Roadmap
 
 Ideas that are likely to land next:
