@@ -88,6 +88,17 @@ Novaplan is a full-stack app where a single TanStack Start server handles both t
 
 The four-stage pipeline is stateless at each step: you answer questions, get an artifact, and re-generate as needed. Nothing is mutated destructively; each stage writes a new version.
 
+## Authentication
+
+Authentication is handled by [Better Auth](https://better-auth.com), a server-side auth library for TypeScript. Novaplan supports:
+
+- Email and password sign-up with server-side session cookies
+- Social login via Google and GitHub OAuth
+- Protected server functions and API routes that verify the session on every request
+- A per-user plan (Free / Pro / Hengker) that gates AI rate limits and feature access
+
+Session tokens are stored in HTTP-only cookies, and the secret lives only in the server environment, never in the client bundle.
+
 ## Getting Started
 
 ### Prerequisites
