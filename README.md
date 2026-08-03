@@ -231,8 +231,14 @@ Novaplan exposes a public REST API under `/api/v1`. Endpoints cover:
 
 ## Contributing
 
-Contributions are welcome. Open an issue or a pull request.
+Contributions are welcome. The project uses Biome for linting and formatting and Node's built-in test runner for unit tests.
+
+1. Fork the repository and create a feature branch.
+2. Run `pnpm install` and `pnpm dev` to get a working local setup.
+3. Keep changes scoped. Run `pnpm check` before opening a pull request.
+4. Add a test alongside any non-trivial logic.
+5. Open a pull request against `main`.
 
 ## License
 
-Private project.
+Private project. Not licensed for redistribution.
