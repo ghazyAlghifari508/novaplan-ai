@@ -11,6 +11,27 @@
 
 AI-powered product development planner. Answer a guided flow of questions and Novaplan turns your idea into a full PRD, a set of acceptance criteria (AC), and an executable task kanban board.
 
+## Table of Contents
+
+- [Overview](#overview)
+- [How it works](#how-it-works)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
+- [Authentication](#authentication)
+- [Security](#security)
+- [Billing](#billing)
+- [Getting Started](#getting-started)
+- [Scripts](#scripts)
+- [Project Structure](#project-structure)
+- [API](#api)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Troubleshooting](#troubleshooting)
+- [Roadmap](#roadmap)
+- [FAQ](#faq)
+- [Contributing](#contributing)
+
 Built with TanStack Start, React 19, and Vite, backed by Postgres (Drizzle ORM) and a local AI router.
 
 ## Why Novaplan
