@@ -273,6 +273,20 @@ Novaplan exposes a public REST API under `/api/v1`. All endpoints are JSON and s
 - Status: `PATCH /api/v1/tasks/:id/status`, `PATCH /api/v1/subtasks/:id/status`
 - Kanban: `GET /api/v1/projects/:id/kanban`
 
+## Testing
+
+Unit tests live next to the code they cover and use Node's built-in test runner (no extra framework):
+
+```bash
+node --test src/lib/*.test.ts src/lib/**/*.test.ts
+```
+
+End-to-end flows are covered with Playwright. Run them with:
+
+```bash
+pnpm exec playwright test
+```
+
 ## Deployment
 
 Novaplan is a standard Node server that builds to a production bundle:
