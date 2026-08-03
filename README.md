@@ -229,6 +229,23 @@ Novaplan exposes a public REST API under `/api/v1`. Endpoints cover:
 - Status: `PATCH /api/v1/tasks/:id/status`, `PATCH /api/v1/subtasks/:id/status`
 - Kanban: `GET /api/v1/projects/:id/kanban`
 
+## FAQ
+
+**Do I need an OpenAI API key?**
+No. Novaplan calls your local AI router, so no hosted API key is required.
+
+**Which stack should I pick?**
+Any. The ask flow lets you mix frontend, backend, database, and hosting choices. Toggle web or mobile and the available stacks update.
+
+**Is my data stored on my machine?**
+Yes, in the Postgres database you configure. Novaplan is self-hosted; there is no Novaplan cloud.
+
+**How is the task count decided?**
+Novaplan scales subtask counts and non-tech question counts to your app's complexity, so a small idea stays small and a large product gets the coverage it needs.
+
+**How do I start over on a stage?**
+Open the project, pick the stage, and re-generate. Every version is kept in history.
+
 ## Contributing
 
 Contributions are welcome. The project uses Biome for linting and formatting and Node's built-in test runner for unit tests.
