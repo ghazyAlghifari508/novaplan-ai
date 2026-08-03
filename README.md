@@ -115,9 +115,11 @@ Sensitive payment configuration lives in the server environment and is never exp
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 20 or newer
+- pnpm (any recent version)
 - Docker (for local Postgres) or any reachable Postgres instance
 - A running 9router (or any OpenAI-compatible server) on `http://localhost:20128`
+- A modern browser (Chrome, Edge, Firefox, or Safari)
 
 ### Environment Variables
 
