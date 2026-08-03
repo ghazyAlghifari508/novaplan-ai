@@ -103,6 +103,18 @@ Authentication is handled by [Better Auth](https://better-auth.com), a server-si
 
 Session tokens are stored in HTTP-only cookies, and the secret lives only in the server environment, never in the client bundle.
 
+## Security
+
+Security is handled at the platform layer where possible:
+
+- Session cookies are HTTP-only and SameSite.
+- Passwords are hashed by Better Auth with a server-side secret.
+- Server functions and API routes verify the session before mutating data.
+- User-provided markdown is sanitized with DOMPurify before rendering.
+- Payment secrets live only in server environment variables.
+
+Report a vulnerability by opening a private issue or contacting the maintainer directly.
+
 ## Billing
 
 Novaplan uses [Midtrans](https://midtrans.com) for payments. The flow is web-standard:
