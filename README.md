@@ -46,10 +46,10 @@ Novaplan removes the blank page problem. Instead of writing specs from scratch, 
 
 The product pipeline has four stages:
 
-1. **Ask** – answer a guided question flow (tech stack, platform, complexity)
-2. **PRD** – a full product requirements document with version history
-3. **AC** – acceptance criteria generated per feature
-4. **Task** – a kanban board with executable, complexity-scaled tasks
+1. **Ask** - answer a guided question flow (tech stack, platform, complexity)
+2. **PRD** - a full product requirements document with version history
+3. **AC** - acceptance criteria generated per feature
+4. **Task** - a kanban board with executable, complexity-scaled tasks
 
 Every stage keeps a revision history, so you can compare versions and re-generate. You never lose a version: the pipeline is append-only per stage.
 
