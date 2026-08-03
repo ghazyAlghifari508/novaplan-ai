@@ -125,7 +125,9 @@ Sensitive payment configuration lives in the server environment and is never exp
 
 ### Environment Variables
 
-The table below documents every variable the app reads. Sensitive values must be set server-side only.
+The table below documents every variable the app reads. Sensitive values must be set server-side only and never committed.
+
+> Generate `BETTER_AUTH_SECRET` with `openssl rand -base64 32`.
 
 | Variable | Required | Description |
 | --- | --- | --- |
