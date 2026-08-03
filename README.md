@@ -191,6 +191,15 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+## Usage
+
+1. **Sign up.** Email/password, Google, or GitHub. Free plan is enough to try everything.
+2. **Start a project.** Give it a name and answer the ask-flow questions. Toggle web/mobile to shape the stack.
+3. **Read the PRD.** Open the project, review each section, and regenerate what misses.
+4. **Approve acceptance criteria.** Pick an implementation option where offered.
+5. **Execute on the kanban.** Move tasks across columns, open details, and use the whiteboard for sketches.
+6. **Share or export.** Use a share link for collaborators, or export the PRD and project bundle.
+
 ## Scripts
 
 ```bash
