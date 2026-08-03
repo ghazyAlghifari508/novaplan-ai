@@ -1,198 +1,146 @@
-Welcome to your new TanStack Start app!
+# Novaplan AI
 
-# Getting Started
+AI-powered product development planner. Answer a guided flow of questions and Novaplan turns your idea into a full PRD, a set of acceptance criteria (AC), and an executable task kanban board.
 
-To run this application:
+Built with TanStack Start, React 19, and Vite, backed by Postgres (Drizzle ORM) and a local AI router.
+
+## Overview
+
+Novaplan removes the blank page problem. Instead of writing specs from scratch, you answer focused questions about your product, stack, and audience. The AI generates each artifact from the answers, and you can keep revising it in the same flow.
+
+The pipeline has four stages:
+
+1. **Ask** – answer a guided question flow (tech stack, platform, complexity)
+2. **PRD** – a full product requirements document with version history
+3. **AC** – acceptance criteria generated per feature
+4. **Task** – a kanban board with executable, complexity-scaled tasks
+
+Every stage keeps a revision history, so you can compare versions and re-generate.
+
+## Features
+
+- Guided question flow with dynamic scaling: subtask and non-tech question counts scale to app complexity
+- Cross-block and block-skip support inside the ask flow
+- Full PRD generation with mermaid diagrams and a table of contents
+- Acceptance criteria viewer with an implementation-options picker
+- Kanban board with per-card task details, whiteboard canvas, zoom, and auto-refresh polling
+- Version history and project sharing via unauthenticated share links
+- Public REST API (`/api/v1`) for projects, tasks, subtasks, and kanban status
+- User accounts with Better Auth: email/password plus Google and GitHub OAuth
+- Three plans (Free / Pro / Hengker) with per-minute AI rate limits
+- Payments via Midtrans (snap + webhook)
+- AI model tiers with automatic fallback routing through a local 9router
+- Dark/light theme toggle
+
+## Tech Stack
+
+| Layer | Choice |
+| --- | --- |
+| Framework | TanStack Start (React Router file-based routing) |
+| UI | React 19, Tailwind CSS 4, Radix UI, shadcn-style components |
+| Styling | Tailwind CSS v4 via `@tailwindcss/vite` |
+| Data | Postgres, Drizzle ORM, `pg` |
+| Auth | Better Auth (email/password, Google, GitHub) |
+| AI | Local 9router endpoint (`http://localhost:20128`) with OpenAI-compatible completions |
+| State | TanStack Query + Zustand |
+| Rendering | Mermaid for diagrams, react-markdown + remark-gfm, DOMPurify |
+| Lint / Format | Biome |
+| Tests | Playwright, unit tests with Node's built-in test runner |
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 20+
+- Docker (for local Postgres) or any reachable Postgres instance
+- A running 9router (or any OpenAI-compatible server) on `http://localhost:20128`
+
+### Installation
 
 ```bash
+# 1. Install dependencies
 pnpm install
+
+# 2. Copy environment variables and fill them in
+cp .env.example .env
+```
+
+Required values in `.env`:
+
+```env
+DATABASE_URL="postgresql://novaplan:novaplan_local@localhost:5432/novaplan"
+BETTER_AUTH_SECRET="<openssl rand -base64 32>"
+BETTER_AUTH_URL="http://localhost:3000"
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+GITHUB_CLIENT_ID=""
+GITHUB_CLIENT_SECRET=""
+NINE_ROUTER_URL="http://localhost:20128"
+```
+
+### Start the database
+
+```bash
+docker run -d \
+  --name novaplan-db \
+  -e POSTGRES_USER=novaplan \
+  -e POSTGRES_PASSWORD=novaplan_local \
+  -e POSTGRES_DB=novaplan \
+  -p 5432:5432 \
+  postgres:16
+```
+
+### Push the schema and run
+
+```bash
+pnpm db:push
 pnpm dev
 ```
 
-# Building For Production
+Open [http://localhost:3000](http://localhost:3000).
 
-To build this application for production:
-
-```bash
-pnpm build
-```
-
-## Styling
-
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
-
-### Removing Tailwind CSS
-
-If you prefer not to use Tailwind CSS:
-
-1. Remove the demo pages in `src/routes/demo/`
-2. Replace the Tailwind import in `src/styles.css` with your own styles
-3. Remove `tailwindcss()` from the plugins array in `vite.config.ts`
-4. Remove `@tailwindcss/vite` and `tailwindcss` from `package.json`
-
-## Linting & Formatting
-
-This project uses [Biome](https://biomejs.dev/) for linting and formatting. The following scripts are available:
-
+## Scripts
 
 ```bash
-pnpm lint
-pnpm format
-pnpm check
+pnpm dev          # start the dev server on port 3000
+pnpm build        # production build
+pnpm preview      # preview the production build
+pnpm db:generate  # generate a Drizzle migration
+pnpm db:migrate   # apply migrations
+pnpm db:push      # push schema directly (fast iteration)
+pnpm db:studio    # open Drizzle Studio
+pnpm lint         # Biome lint
+pnpm format       # Biome format
+pnpm check        # Biome check
 ```
 
+## Project Structure
 
-
-## Routing
-
-This project uses [TanStack Router](https://tanstack.com/router) with file-based routing. Routes are managed as files in `src/routes`.
-
-### Adding A Route
-
-To add a new route to your application just add a new file in the `./src/routes` directory.
-
-TanStack will automatically generate the content of the route file for you.
-
-Now that you have two routes you can use a `Link` component to navigate between them.
-
-### Adding Links
-
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
-
-```tsx
-import { Link } from "@tanstack/react-router";
+```
+src/
+  app/            app-wide config, server actions (ask flow, settings, PRD)
+  components/     feature components: ask, chat, kanban, prd, task, settings, ui
+  db/             Drizzle schema and client
+  hooks/          shared hooks (canvas zoom, kanban polling, panel resize)
+  lib/            AI client, auth, constants, model config, utilities
+  routes/         file-based routes + server API routes
+  routes/api/v1/  public REST API
+  store/          Zustand store
 ```
 
-Then anywhere in your JSX you can use it like so:
+## API
 
-```tsx
-<Link to="/about">About</Link>
-```
+Novaplan exposes a public REST API under `/api/v1`. Endpoints cover:
 
-This will create a link that will navigate to the `/about` route.
+- Projects: `GET/POST /api/v1/projects`, `GET /api/v1/projects/:id`
+- Tasks: `GET /api/v1/projects/:id/tasks`
+- Status: `PATCH /api/v1/tasks/:id/status`, `PATCH /api/v1/subtasks/:id/status`
+- Kanban: `GET /api/v1/projects/:id/kanban`
 
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
+## Contributing
 
-### Using A Layout
+Contributions are welcome. Open an issue or a pull request.
 
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you render `{children}` in the `shellComponent`.
+## License
 
-Here is an example layout that includes a header:
-
-```tsx
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-
-export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'My App' },
-    ],
-  }),
-  shellComponent: ({ children }) => (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        <header>
-          <nav>
-            <Link to="/">Home</Link>
-            <Link to="/about">About</Link>
-          </nav>
-        </header>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  ),
-})
-```
-
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
-## Server Functions
-
-TanStack Start provides server functions that allow you to write server-side code that seamlessly integrates with your client components.
-
-```tsx
-import { createServerFn } from '@tanstack/react-start'
-
-const getServerTime = createServerFn({
-  method: 'GET',
-}).handler(async () => {
-  return new Date().toISOString()
-})
-
-// Use in a component
-function MyComponent() {
-  const [time, setTime] = useState('')
-  
-  useEffect(() => {
-    getServerTime().then(setTime)
-  }, [])
-  
-  return <div>Server time: {time}</div>
-}
-```
-
-## API Routes
-
-You can create API routes by using the `server` property in your route definitions:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-import { json } from '@tanstack/react-start'
-
-export const Route = createFileRoute('/api/hello')({
-  server: {
-    handlers: {
-      GET: () => json({ message: 'Hello, World!' }),
-    },
-  },
-})
-```
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-
-export const Route = createFileRoute('/people')({
-  loader: async () => {
-    const response = await fetch('https://swapi.dev/api/people')
-    return response.json()
-  },
-  component: PeopleComponent,
-})
-
-function PeopleComponent() {
-  const data = Route.useLoaderData()
-  return (
-    <ul>
-      {data.results.map((person) => (
-        <li key={person.name}>{person.name}</li>
-      ))}
-    </ul>
-  )
-}
-```
-
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
-
-
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
-
-# Learn More
-
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
-
-For TanStack Start specific documentation, visit [TanStack Start](https://tanstack.com/start).
+Private project.
