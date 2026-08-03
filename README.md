@@ -261,6 +261,17 @@ Novaplan exposes a public REST API under `/api/v1`. All endpoints are JSON and s
 - Status: `PATCH /api/v1/tasks/:id/status`, `PATCH /api/v1/subtasks/:id/status`
 - Kanban: `GET /api/v1/projects/:id/kanban`
 
+## Deployment
+
+Novaplan is a standard Node server that builds to a production bundle:
+
+```bash
+pnpm build
+pnpm preview
+```
+
+Point the deployment at a managed Postgres instance, set the environment variables above, and expose the server over HTTPS. Because the AI calls go to your own router, there is no external model provider to configure in production.
+
 ## Troubleshooting
 
 **The app shows an error on generation.**
