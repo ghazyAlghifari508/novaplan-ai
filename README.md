@@ -117,6 +117,22 @@ Sensitive payment configuration lives in the server environment and is never exp
 - Docker (for local Postgres) or any reachable Postgres instance
 - A running 9router (or any OpenAI-compatible server) on `http://localhost:20128`
 
+### Environment Variables
+
+The table below documents every variable the app reads. Sensitive values must be set server-side only.
+
+| Variable | Required | Description |
+| --- | --- | --- |
+| `DATABASE_URL` | Yes | Postgres connection string |
+| `BETTER_AUTH_SECRET` | Yes | Session secret (32+ random bytes base64) |
+| `BETTER_AUTH_URL` | Yes | Public base URL of the app (`http://localhost:3000` in dev) |
+| `GOOGLE_CLIENT_ID` | For Google login | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | For Google login | Google OAuth client secret |
+| `GITHUB_CLIENT_ID` | For GitHub login | GitHub OAuth client ID |
+| `GITHUB_CLIENT_SECRET` | For GitHub login | GitHub OAuth client secret |
+| `NINE_ROUTER_URL` | Yes | Base URL of the local AI router |
+
+
 ### Installation
 
 ```bash
