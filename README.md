@@ -156,6 +156,19 @@ GITHUB_CLIENT_SECRET=""
 NINE_ROUTER_URL="http://localhost:20128"
 ```
 
+### Database & migrations
+
+The Postgres schema is defined in `src/db/schema.ts` with Drizzle. There are two ways to sync the database:
+
+- `pnpm db:push` applies the schema directly. Fast for local iteration.
+- `pnpm db:generate` + `pnpm db:migrate` create and run a migration file. Use this in shared environments.
+
+`pnpm db:studio` opens Drizzle Studio for inspecting the database.
+
+### Local AI router
+
+Novaplan does not call a hosted model API directly. It talks to a local [9router](https://9router.com)-style OpenAI-compatible server at `NINE_ROUTER_URL`. Point it at any server exposing `/v1/chat/completions` and the app works unchanged.
+
 ### Start the database
 
 ```bash
