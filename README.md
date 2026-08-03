@@ -229,6 +229,16 @@ Novaplan exposes a public REST API under `/api/v1`. Endpoints cover:
 - Status: `PATCH /api/v1/tasks/:id/status`, `PATCH /api/v1/subtasks/:id/status`
 - Kanban: `GET /api/v1/projects/:id/kanban`
 
+## Roadmap
+
+Ideas that are likely to land next:
+
+- Multi-user collaboration on a single project
+- More AI model providers behind the router abstraction
+- Export to GitHub Issues and Jira
+- Custom PRD templates
+- In-app notifications for long generations
+
 ## FAQ
 
 **Do I need an OpenAI API key?**
