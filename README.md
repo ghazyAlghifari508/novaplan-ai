@@ -235,6 +235,8 @@ pnpm check        # Biome check
 
 ## Project Structure
 
+The source tree is organized by feature, with shared libraries kept under `lib/`:
+
 ```
 src/
   app/            app-wide config, server actions (ask flow, settings, PRD)
