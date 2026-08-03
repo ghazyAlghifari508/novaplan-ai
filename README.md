@@ -1,8 +1,23 @@
 # Novaplan AI
 
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=fff)](#tech-stack)
+[![React](https://img.shields.io/badge/React_19-149ECA?logo=react&logoColor=fff)](#tech-stack)
+[![TanStack Start](https://img.shields.io/badge/TanStack_Start-FF4154?logo=tanstack&logoColor=fff)](#tech-stack)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_4-06B6D4?logo=tailwindcss&logoColor=fff)](#tech-stack)
+[![Postgres](https://img.shields.io/badge/Postgres-4169E1?logo=postgresql&logoColor=fff)](#tech-stack)
+[![Drizzle ORM](https://img.shields.io/badge/Drizzle-386641?logo=drizzle&logoColor=fff)](#tech-stack)
+[![Better Auth](https://img.shields.io/badge/Better_Auth-0F766E?logo=auth0&logoColor=fff)](#authentication)
+[![Biome](https://img.shields.io/badge/Biome-60A5FA?logo=biome&logoColor=fff)](#development)
+
 AI-powered product development planner. Answer a guided flow of questions and Novaplan turns your idea into a full PRD, a set of acceptance criteria (AC), and an executable task kanban board.
 
 Built with TanStack Start, React 19, and Vite, backed by Postgres (Drizzle ORM) and a local AI router.
+
+## Why Novaplan
+
+Writing a product spec from scratch is slow and the blank page is hostile. Most ideas die before the first sentence gets written. Novaplan inverts the process: instead of staring at an empty document, you answer a short, guided flow of questions and let the AI assemble the artifact for you.
+
+The output is structured, editable, and versioned, so a one-line idea becomes a reviewable spec in minutes.
 
 ## Overview
 
@@ -15,7 +30,16 @@ The pipeline has four stages:
 3. **AC** – acceptance criteria generated per feature
 4. **Task** – a kanban board with executable, complexity-scaled tasks
 
-Every stage keeps a revision history, so you can compare versions and re-generate.
+Every stage keeps a revision history, so you can compare versions and re-generate. You never lose a version: the pipeline is append-only per stage.
+
+## How it works
+
+1. **Answer the flow.** Pick a stack (frontend, backend, database, hosting) and toggle between web and mobile. The question count scales to your app's complexity.
+2. **Review the PRD.** Novaplan drafts a complete product requirements document with a table of contents and architecture diagrams. Regenerate any section or revise the whole doc.
+3. **Approve the AC.** Each feature gets acceptance criteria plus an implementation-options picker, so the team knows both *what* to build and *how* to build it.
+4. **Execute on the board.** Novaplan breaks the scope into a kanban board of complexity-scaled tasks. Track status, open task details, and sketch on the whiteboard canvas.
+
+If anything misses the mark, go back a stage. Every revision is saved to version history.
 
 ## Features
 
