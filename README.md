@@ -23,7 +23,7 @@ The output is structured, editable, and versioned, so a one-line idea becomes a 
 
 Novaplan removes the blank page problem. Instead of writing specs from scratch, you answer focused questions about your product, stack, and audience. The AI generates each artifact from the answers, and you can keep revising it in the same flow.
 
-The pipeline has four stages:
+The product pipeline has four stages:
 
 1. **Ask** – answer a guided question flow (tech stack, platform, complexity)
 2. **PRD** – a full product requirements document with version history
