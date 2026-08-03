@@ -74,6 +74,7 @@ Novaplan is a full-stack TypeScript app. The same codebase serves both the inter
 | Rendering | Mermaid for diagrams, react-markdown + remark-gfm, DOMPurify |
 | Lint / Format | Biome |
 | Tests | Playwright, unit tests with Node's built-in test runner |
+| Package Manager | pnpm |
 
 ## Architecture
 
