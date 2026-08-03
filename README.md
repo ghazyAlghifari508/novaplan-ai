@@ -99,6 +99,16 @@ Authentication is handled by [Better Auth](https://better-auth.com), a server-si
 
 Session tokens are stored in HTTP-only cookies, and the secret lives only in the server environment, never in the client bundle.
 
+## Billing
+
+Novaplan uses [Midtrans](https://midtrans.com) for payments. The flow is web-standard:
+
+1. The client requests a payment on the server via `POST /api/payments/create`, which returns a Midtrans redirect URL.
+2. The user completes the payment on Midtrans's hosted page.
+3. A webhook at `POST /api/payments/webhook` verifies the transaction and updates the user's plan server-side.
+
+Sensitive payment configuration lives in the server environment and is never exposed to the client.
+
 ## Getting Started
 
 ### Prerequisites
