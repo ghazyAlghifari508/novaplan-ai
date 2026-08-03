@@ -75,6 +75,19 @@ Novaplan is a full-stack TypeScript app. The same codebase serves both the inter
 | Lint / Format | Biome |
 | Tests | Playwright, unit tests with Node's built-in test runner |
 
+## Architecture
+
+Novaplan is a full-stack app where a single TanStack Start server handles both the browser UI and the server-side work:
+
+- **File-based routes** under `src/routes/` drive the ask flow, PRD, AC, kanban, settings, auth, and pricing pages.
+- **Server functions and API routes** wrap the AI calls, persistence, and business logic. Generation happens server-side; the client only streams the result.
+- **A local 9router** exposes an OpenAI-compatible endpoint that Novaplan calls for all AI completions. Models are split into free and premium tiers with automatic fallback to the next available model.
+- **Drizzle ORM + Postgres** store users, projects, PRD versions, AC, tasks, and kanban state. Migrations are managed with `drizzle-kit`.
+- **Better Auth** handles session management server-side with email/password plus OAuth providers, and hashing with a server-only secret.
+- **A public REST API** under `/api/v1` mirrors the core workflows so the same engine can be driven programmatically.
+
+The four-stage pipeline is stateless at each step: you answer questions, get an artifact, and re-generate as needed. Nothing is mutated destructively; each stage writes a new version.
+
 ## Getting Started
 
 ### Prerequisites
