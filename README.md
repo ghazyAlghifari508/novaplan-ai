@@ -60,6 +60,8 @@ If anything misses the mark, go back a stage. Every revision is saved to version
 
 ## Tech Stack
 
+Novaplan is a full-stack TypeScript app. The same codebase serves both the interactive planner and a public REST API.
+
 | Layer | Choice |
 | --- | --- |
 | Framework | TanStack Start (React Router file-based routing) |
