@@ -57,7 +57,9 @@ If anything misses the mark, go back a stage. Every revision is saved to version
 - Three plans (Free / Pro / Hengker) with per-minute AI rate limits
 - Payments via Midtrans (snap + webhook)
 - AI model tiers with automatic fallback routing through a local 9router
-- Dark/light theme toggle
+- Dark/light theme toggle with a preference-respecting default
+- Error reporting endpoint and an in-app feedback form
+- API keys page for programmatic access to the `/api/v1` endpoints
 
 ## Tech Stack
 
