@@ -52,6 +52,7 @@ If anything misses the mark, go back a stage. Every revision is saved to version
 - Optional blocks for specific app-building phases (auth, payments, notifications, etc.)
 - Model switcher with free and premium model tiers per request
 - Public REST API (`/api/v1`) for projects, tasks, subtasks, and kanban status
+- Share links that let collaborators view a project without an account
 - User accounts with Better Auth: email/password plus Google and GitHub OAuth
 - Three plans (Free / Pro / Hengker) with per-minute AI rate limits
 - Payments via Midtrans (snap + webhook)
