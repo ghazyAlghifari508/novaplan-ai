@@ -68,7 +68,7 @@ If anything misses the mark, go back a stage. Every revision is saved to version
 - Cross-block and block-skip support inside the ask flow
 - Full PRD generation with mermaid diagrams and a table of contents
 - Acceptance criteria viewer with an implementation-options picker
-- Kanban board with per-card task details, whiteboard canvas, zoom, and auto-refresh polling
+- Kanban board with per-card task details, subtask breakdown, whiteboard canvas, zoom, and auto-refresh polling
 - Version history and project sharing via unauthenticated share links
 - Optional blocks for specific app-building phases (auth, payments, notifications, etc.)
 - Model switcher with free and premium model tiers per request
