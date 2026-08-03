@@ -137,6 +137,19 @@ The table below documents every variable the app reads. Sensitive values must be
 | `NINE_ROUTER_URL` | Yes | Base URL of the local AI router |
 
 
+### Quick start
+
+```bash
+git clone https://github.com/ghazyAlghifari508/novaplan-ai.git
+cd novaplan-ai
+cp .env.example .env   # fill DATABASE_URL, BETTER_AUTH_SECRET, NINE_ROUTER_URL
+pnpm install
+pnpm db:push
+pnpm dev
+```
+
+The full walkthrough is below.
+
 ### Installation
 
 ```bash
