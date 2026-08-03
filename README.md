@@ -244,6 +244,8 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+> First run: create an account, then start a project from the home page and answer the ask-flow questions. The PRD, AC, and task board appear as soon as each stage finishes.
+
 ## Usage
 
 1. **Sign up.** Email/password, Google, or GitHub. Free plan is enough to try everything.
