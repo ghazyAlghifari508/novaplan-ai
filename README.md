@@ -227,6 +227,7 @@ src/
   routes/         file-based routes + server API routes
   routes/api/v1/  public REST API
   store/          Zustand store
+  tests/          unit tests for pure logic (constants, kanban utils)
 ```
 
 ## API
