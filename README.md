@@ -248,7 +248,7 @@ src/
 
 ## API
 
-Novaplan exposes a public REST API under `/api/v1`. Endpoints cover:
+Novaplan exposes a public REST API under `/api/v1`. All endpoints are JSON and session-authenticated where the action mutates data. Endpoints cover:
 
 - Projects: `GET/POST /api/v1/projects`, `GET /api/v1/projects/:id`
 - Tasks: `GET /api/v1/projects/:id/tasks`
