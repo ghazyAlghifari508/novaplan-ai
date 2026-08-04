@@ -113,6 +113,7 @@ export const projects = pgTable("projects", {
   acStatus: text("ac_status").default("pending"),
   taskStatus: text("task_status").default("pending"),
   shareToken: text("share_token"),
+  lastUrl: text("last_url"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

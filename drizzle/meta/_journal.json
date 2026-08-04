@@ -22,6 +22,13 @@
       "when": 1785660082703,
       "tag": "0002_classy_black_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1785858346200,
+      "tag": "0003_absent_iron_monger",
+      "breakpoints": true
     }
   ]
 }
