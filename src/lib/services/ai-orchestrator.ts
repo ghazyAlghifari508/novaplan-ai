@@ -2,7 +2,7 @@
  * AI model selection + streaming orchestration - pure logic, copied from old
  * project. Depends only on ai-client streamChat + model-config.
  */
-import { streamChat } from "@/lib/ai-client";
+import { streamChat, type StreamOutcome } from "@/lib/ai-client";
 import { ALL_MODELS, getUnlockedModelIds, isModelUnlocked } from "@/lib/model-config";
 import type { Plan } from "@/types/database";
 
@@ -30,6 +30,8 @@ export async function tryStreamWithFallback(
   generator: AsyncGenerator<string, void, undefined>;
   firstChunk: string;
   abortController: AbortController;
+  /** Filled once `generator` is fully drained. See isTruncatedGeneration. */
+  outcome: StreamOutcome;
 }> {
   let lastError = "";
 
@@ -40,7 +42,8 @@ export async function tryStreamWithFallback(
       if (externalSignal.aborted) abortController.abort();
       else externalSignal.addEventListener("abort", () => abortController.abort(), { once: true });
     }
-    const gen = streamChat(messages, modelToTry, abortController.signal, maxTokens);
+    const outcome: StreamOutcome = {};
+    const gen = streamChat(messages, modelToTry, abortController.signal, maxTokens, outcome);
 
     try {
       const first = await gen.next();
@@ -49,7 +52,7 @@ export async function tryStreamWithFallback(
         throw new Error("Respons kosong dari chunk model.");
       }
 
-      return { generator: gen, firstChunk: first.value, abortController };
+      return { generator: gen, firstChunk: first.value, abortController, outcome };
     } catch (e) {
       lastError = e instanceof Error ? e.message : String(e);
       abortController.abort();

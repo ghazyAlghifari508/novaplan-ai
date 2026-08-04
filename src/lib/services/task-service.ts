@@ -14,6 +14,7 @@
 import { asc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { projects, tasks } from "@/db/schema";
+import { advanceStep } from "@/lib/flow-progress";
 
 export interface TaskTree {
   features: Array<{
@@ -73,7 +74,17 @@ export async function saveTaskTree(
       });
     }
 
-    await db.update(projects).set({ taskStatus: "completed", updatedAt: new Date() }).where(eq(projects.id, projectId));
+    // Task is the furthest stage, so persist step='task' here - the completion
+    // point - not from a navbar click. History routes off projects.step alone,
+    // and before this nothing in the generate path ever wrote it.
+    const [proj] = await db.select({ step: projects.step }).from(projects).where(eq(projects.id, projectId)).limit(1);
+    const updateData: { taskStatus: string; updatedAt: Date; step?: string } = {
+      taskStatus: "completed",
+      updatedAt: new Date(),
+    };
+    const next = advanceStep(proj?.step, "task");
+    if (next) updateData.step = next;
+    await db.update(projects).set(updateData).where(eq(projects.id, projectId));
     return { success: true };
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);

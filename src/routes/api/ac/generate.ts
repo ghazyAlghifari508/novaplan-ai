@@ -3,6 +3,7 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
+import { isTruncatedGeneration } from "@/lib/flow-progress";
 import { depthDirective } from "@/lib/prompt-depth";
 import { AC_GENERATION_PROMPT } from "@/lib/prompts-ac";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -55,8 +56,19 @@ export const Route = createFileRoute("/api/ac/generate")({
               try { controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`)); } catch {}
             };
 
-            const safeDone = async () => {
+            // Never persist a generation the model didn't finish. A dropped
+            // stream used to be saved anyway, producing AC v2 (1440 chars,
+            // cut mid-table) that outranked the complete v1 (19818) in the
+            // viewer. Reject instead - ac-detail's saveFailed banner lets the
+            // user retry, and the good version stays the latest.
+            const safeDone = async (finishReason: string | undefined) => {
               if (eventDone || eventErrored) return;
+              if (isTruncatedGeneration(fullResponse, finishReason)) {
+                safeError(
+                  "Generasi AC terputus di tengah jalan dan tidak disimpan. Coba generate ulang.",
+                );
+                return;
+              }
               eventDone = true;
               try {
                 const { acVersionId, version } = await saveAcVersion(projectId, fullResponse, "Initial AC generation", "generate");
@@ -78,7 +90,7 @@ export const Route = createFileRoute("/api/ac/generate")({
 
             try {
               emit({ type: "started", model: modelsToTry[0] });
-              const { generator, firstChunk } = await tryStreamWithFallback(modelsToTry, messages, request.signal, 64000);
+              const { generator, firstChunk, outcome } = await tryStreamWithFallback(modelsToTry, messages, request.signal, 64000);
 
               fullResponse += firstChunk;
               emit({ type: "delta", content: firstChunk });
@@ -88,7 +100,7 @@ export const Route = createFileRoute("/api/ac/generate")({
                 emit({ type: "delta", content: chunk });
               }
 
-              await safeDone();
+              await safeDone(outcome.finishReason);
             } catch (err: unknown) {
               console.error("AC generate stream error:", err);
               safeError(sanitizeErrorForClient(err, "ac"));

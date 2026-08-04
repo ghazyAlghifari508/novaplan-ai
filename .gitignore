@@ -15,3 +15,6 @@ test-home.png
 .vinxi
 __unconfig*
 todos.json
+
+# local DB row backups (contain user content)
+.backups/

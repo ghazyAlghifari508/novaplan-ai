@@ -3,6 +3,7 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { messages, quotas, subscriptions } from "@/db/schema";
+import { isTruncatedGeneration } from "@/lib/flow-progress";
 import { AC_REVISION_PROMPT } from "@/lib/prompts-ac";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { checkRevisionQuota } from "@/lib/quota";
@@ -62,8 +63,15 @@ export const Route = createFileRoute("/api/ac/revise")({
               try { controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`)); } catch {}
             };
 
-            const safeDone = async () => {
+            // A half-streamed revision writes a half-written section into the
+            // AC as a new version. Reject it - the previous version stays
+            // latest and the user can retry.
+            const safeDone = async (finishReason: string | undefined) => {
               if (eventDone || eventErrored) return;
+              if (isTruncatedGeneration(fullResponse, finishReason)) {
+                safeError("Revisi AC terputus di tengah jalan dan tidak disimpan. Coba lagi.");
+                return;
+              }
               eventDone = true;
               try {
                 let patchedMarkdown = latestAcMarkdown;
@@ -107,7 +115,7 @@ export const Route = createFileRoute("/api/ac/revise")({
 
             try {
               emit({ type: "started", model: modelsToTry[0] });
-              const { generator, firstChunk } = await tryStreamWithFallback(modelsToTry, messagesArr, undefined, 64000);
+              const { generator, firstChunk, outcome } = await tryStreamWithFallback(modelsToTry, messagesArr, undefined, 64000);
 
               fullResponse += firstChunk;
               emit({ type: "delta", content: firstChunk });
@@ -117,7 +125,7 @@ export const Route = createFileRoute("/api/ac/revise")({
                 emit({ type: "delta", content: chunk });
               }
 
-              await safeDone();
+              await safeDone(outcome.finishReason);
             } catch (err: unknown) {
               console.error("AC revise stream error:", err);
               safeError(sanitizeErrorForClient(err));

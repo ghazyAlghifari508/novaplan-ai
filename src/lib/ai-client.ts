@@ -20,15 +20,28 @@ interface ChatMessage {
 }
 
 /**
+ * Mutable box the caller passes in to learn WHY the stream ended.
+ *
+ * ponytail: an out-param, not a return value - streamChat is a generator, so
+ * its return channel is already spoken for, and callers only need the reason
+ * after the loop drains. Consumed by isTruncatedGeneration in lib/flow-progress
+ * to decide whether a generation is safe to persist.
+ */
+export interface StreamOutcome {
+  finishReason?: string;
+}
+
+/**
  * Stream chat completion as an AsyncGenerator<string>.
  * Preserves the old raw-fetch streamChat signature so ai-orchestrator + all
- * 5 AI routes port unchanged.
+ * 5 AI routes port unchanged; `outcome` is optional and additive.
  */
 export async function* streamChat(
   messages: ChatMessage[],
   model?: string,
   signal?: AbortSignal,
   maxTokens = 32768,
+  outcome?: StreamOutcome,
 ): AsyncGenerator<string, void, undefined> {
   const result = streamText({
     model: provider(model || "oc/ling-3.0-flash-free(high)"),
@@ -39,9 +52,25 @@ export async function* streamChat(
     stopSequences: ["<|eot_id|>", "<|end_of_text|>", "===DONE==="],
   });
 
-  for await (const chunk of result.textStream) {
-    if (!chunk) continue;
-    yield chunk;
+  try {
+    for await (const chunk of result.textStream) {
+      if (!chunk) continue;
+      yield chunk;
+    }
+  } catch (err) {
+    // A dropped/aborted stream is exactly the case that used to persist a
+    // partial document as a new version. Mark it before rethrowing.
+    if (outcome) outcome.finishReason = "error";
+    throw err;
+  }
+
+  if (outcome) {
+    // ponytail: PromiseLike, not Promise - no .catch(), so try/catch it.
+    try {
+      outcome.finishReason = await result.finishReason;
+    } catch {
+      outcome.finishReason = "error";
+    }
   }
 }
 

@@ -5,9 +5,12 @@
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { acVersions, projects } from "@/db/schema";
+import { advanceStep } from "@/lib/flow-progress";
 
 /**
- * Save AC version (generate or revise). Advances projects.step='ac' on generate.
+ * Save AC version (generate or revise). Advances projects.step to 'ac' on
+ * generate - but only forward: re-generating AC after Task is done must not
+ * rewind step to 'ac' (that sent History back to the AC page).
  */
 export async function saveAcVersion(
   projectId: string,
@@ -40,7 +43,15 @@ export async function saveAcVersion(
     acStatus: "completed",
     updatedAt: new Date(),
   };
-  if (mode === "generate") updateData.step = "ac";
+  if (mode === "generate") {
+    const [proj] = await db
+      .select({ step: projects.step })
+      .from(projects)
+      .where(eq(projects.id, projectId))
+      .limit(1);
+    const next = advanceStep(proj?.step, "ac");
+    if (next) updateData.step = next;
+  }
   await db.update(projects).set(updateData).where(eq(projects.id, projectId));
 
   return { acVersionId: inserted.id, version: nextVersion };
