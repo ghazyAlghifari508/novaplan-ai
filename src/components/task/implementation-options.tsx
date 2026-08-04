@@ -195,14 +195,20 @@ export function ImplementationOptions({
   const handlePromptAi = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await fetchContent();
+      const [data, autoKeyData] = await Promise.all([
+        fetchContent(),
+        fetch("/api/settings/api-keys/auto", { method: "POST" })
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null),
+      ]);
+      const apiKey = autoKeyData?.rawKey || "<GANTI_DENGAN_API_KEY_KAMU>";
       const prompt = AI_AGENT_PROMPT_TEMPLATE
         .replace(/{projectName}/g, data.projectName || projectName)
         .replace(/{prdContent}/g, data.prd || "(Belum ada PRD)")
         .replace(/{acContent}/g, data.ac || "(Belum ada AC)")
         .replace(/{tasksContent}/g, data.tasks || "(Belum ada tasks)")
         .replace(/{projectId}/g, projectId)
-        .replace(/{apiKey}/g, "<GANTI_DENGAN_API_KEY_KAMU>");
+        .replace(/{apiKey}/g, apiKey);
 
       setPromptText(prompt);
       setShowPromptModal(true);
@@ -211,7 +217,7 @@ export function ImplementationOptions({
     } finally {
       setIsLoading(false);
     }
-  }, [fetchContent, projectName, showToast]);
+  }, [fetchContent, projectName, showToast, projectId]);
 
   const handleCopyPrompt = useCallback(async () => {
     try {
