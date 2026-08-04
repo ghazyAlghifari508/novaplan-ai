@@ -112,8 +112,8 @@ export function KanbanCard({ card, colorIndex, highlighted = false }: KanbanCard
 
       {/* Task Details Dialog */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-lg max-h-[85vh] flex flex-col min-h-0 overflow-hidden p-6 bg-obsidian border border-graphite rounded-xl">
-          <DialogHeader className="shrink-0 pb-2 border-b border-graphite/40">
+        <DialogContent className="!flex !flex-col max-w-lg max-h-[85vh] p-6 bg-obsidian border border-graphite rounded-xl overflow-hidden">
+          <DialogHeader className="shrink-0 pb-3 border-b border-graphite/40">
             <div className="flex items-center gap-2 text-xs font-semibold text-indigo uppercase tracking-wider mb-1">
               <Layers size={14} />
               {card.type} Detail
