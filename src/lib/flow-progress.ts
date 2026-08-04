@@ -48,3 +48,18 @@ export function isTruncatedGeneration(
   // paid an AI call for. Only explicit failure reasons discard it.
   return finishReason !== undefined && TRUNCATING_REASONS.has(finishReason);
 }
+
+/**
+ * True when a URL is a project-internal route for the given project, i.e. a
+ * route in the /(ask|prd|ac|task|kanban)/<projectId> namespace. History stores
+ * last_url so it can send users back to where they were; this guard makes sure
+ * that never lands on an arbitrary path or another project's page (anti-spoof).
+ * Rejects non-project routes and `javascript:`/malformed URLs outright.
+ */
+const HISTORY_URL_RE =
+  /^\/(?:ask|prd|ac|task|kanban)\/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/;
+
+export function isValidHistoryUrl(url: string, projectId: string): boolean {
+  const m = HISTORY_URL_RE.exec(url);
+  return m !== null && m[1] === projectId;
+}

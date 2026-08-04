@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { advanceStep, stepRank, isTruncatedGeneration } from "./flow-progress";
+import {
+  advanceStep,
+  stepRank,
+  isTruncatedGeneration,
+  isValidHistoryUrl,
+} from "./flow-progress";
 
 describe("stepRank", () => {
   it("ranks the flow in order", () => {
@@ -78,5 +83,35 @@ describe("isTruncatedGeneration", () => {
   it("rejects empty content regardless of reason", () => {
     expect(isTruncatedGeneration("", "stop")).toBe(true);
     expect(isTruncatedGeneration("   ", "stop")).toBe(true);
+  });
+});
+
+describe("isValidHistoryUrl", () => {
+  const id = "fca689ff-e194-45eb-b6fa-0188cc327759";
+
+  it("accepts valid project-internal URLs that belong to this project", () => {
+    expect(isValidHistoryUrl(`/prd/${id}`, id)).toBe(true);
+    expect(isValidHistoryUrl(`/ac/${id}`, id)).toBe(true);
+    expect(isValidHistoryUrl(`/task/${id}`, id)).toBe(true);
+    expect(isValidHistoryUrl(`/ask/${id}`, id)).toBe(true);
+    expect(isValidHistoryUrl(`/kanban/${id}`, id)).toBe(true);
+  });
+
+  it("rejects URLs whose project ID does not match", () => {
+    expect(isValidHistoryUrl(`/ac/00000000-0000-0000-0000-000000000000`, id)).toBe(false);
+  });
+
+  it("rejects URLs outside the project namespace", () => {
+    expect(isValidHistoryUrl("/history", id)).toBe(false);
+    expect(isValidHistoryUrl("/settings", id)).toBe(false);
+    expect(isValidHistoryUrl("/pricing", id)).toBe(false);
+    expect(isValidHistoryUrl("/", id)).toBe(false);
+  });
+
+  it("rejects malformed or empty input", () => {
+    expect(isValidHistoryUrl("", id)).toBe(false);
+    expect(isValidHistoryUrl("/ac/", id)).toBe(false);
+    expect(isValidHistoryUrl("/ac", id)).toBe(false);
+    expect(isValidHistoryUrl("javascript:alert(1)", id)).toBe(false);
   });
 });
