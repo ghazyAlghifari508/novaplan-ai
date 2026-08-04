@@ -112,38 +112,38 @@ export function KanbanCard({ card, colorIndex, highlighted = false }: KanbanCard
 
       {/* Task Details Dialog */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-md mx-4 sm:mx-auto sm:translate-x-[-50%] sm:translate-y-[-50%] bottom-4 left-0 right-0 top-auto translate-y-0 sm:top-[50%] rounded-xl sm:rounded-lg">
-          <DialogHeader>
+        <DialogContent className="max-w-lg max-h-[85vh] flex flex-col overflow-hidden p-6 bg-obsidian border border-graphite rounded-xl">
+          <DialogHeader className="shrink-0 pb-2 border-b border-graphite/40">
             <div className="flex items-center gap-2 text-xs font-semibold text-indigo uppercase tracking-wider mb-1">
-              <Layers size={12} />
+              <Layers size={14} />
               {card.type} Detail
             </div>
-            <DialogTitle className="text-lg font-bold text-snow">
+            <DialogTitle className="text-xl font-bold text-snow leading-snug">
               {card.name}
             </DialogTitle>
-            <DialogDescription className="text-xs text-fog">
+            <DialogDescription className="text-xs text-fog mt-1">
               Fitur: <span className="font-[510] text-snow">{card.featureName}</span>
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="flex-1 overflow-y-auto pr-1 mt-4 space-y-4 custom-scrollbar">
             {/* Status Section */}
-            <div className="flex items-center justify-between rounded-md bg-white/5 p-3">
-              <span className="text-xs text-fog font-medium">Status</span>
+            <div className="flex items-center justify-between rounded-lg border border-graphite/40 bg-onyx/60 p-3">
+              <span className="text-xs text-fog font-medium">Status Task</span>
               <span
-                className={`inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-xs font-semibold uppercase ${
+                className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold uppercase ${
                   card.status === "completed"
-                    ? "bg-emerald/15 text-emerald"
+                    ? "bg-emerald/15 text-emerald border border-emerald/30"
                     : card.status === "in_progress"
-                      ? "bg-indigo/15 text-indigo"
+                      ? "bg-indigo/15 text-indigo border border-indigo/30"
                       : card.status === "failed"
-                        ? "bg-crimson/15 text-crimson"
-                        : "bg-steel/15 text-steel"
+                        ? "bg-crimson/15 text-crimson border border-crimson/30"
+                        : "bg-steel/15 text-mist border border-steel/30"
                 }`}
               >
-                {card.status === "completed" && <CheckCircle2 size={12} />}
-                {card.status === "in_progress" && <Play size={12} />}
-                {card.status === "failed" && <AlertTriangle size={12} />}
+                {card.status === "completed" && <CheckCircle2 size={13} />}
+                {card.status === "in_progress" && <Play size={13} />}
+                {card.status === "failed" && <AlertTriangle size={13} />}
                 {card.status}
               </span>
             </div>
@@ -151,37 +151,37 @@ export function KanbanCard({ card, colorIndex, highlighted = false }: KanbanCard
             {/* Description */}
             {card.description && (
               <div>
-                <h4 className="text-xs font-semibold text-snow mb-1">Deskripsi</h4>
-                <p className="text-sm text-fog bg-onyx/50 p-2.5 rounded border border-graphite/40 whitespace-pre-wrap">
+                <h4 className="text-xs font-semibold text-snow mb-1.5">Deskripsi</h4>
+                <div className="text-xs text-snow/90 bg-onyx/80 p-3 rounded-lg border border-graphite/50 whitespace-pre-wrap leading-relaxed">
                   {card.description}
-                </p>
+                </div>
               </div>
             )}
 
             {/* Subtasks Checklist */}
             {card.type === "task" && card.subtasks && card.subtasks.length > 0 && (
               <div>
-                <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center justify-between mb-2">
                   <h4 className="text-xs font-semibold text-snow">Subtasks</h4>
-                  <span className="text-[10px] text-fog font-medium bg-white/5 px-1.5 py-0.5 rounded">
-                    {card.subtaskCompleted}/{card.subtaskCount}
+                  <span className="text-[11px] text-fog font-mono bg-onyx px-2 py-0.5 rounded border border-graphite/40">
+                    {card.subtaskCompleted} / {card.subtaskCount} Selesai
                   </span>
                 </div>
-                <ul className="space-y-1.5 bg-onyx/30 p-2.5 rounded border border-graphite/40 max-h-40 overflow-y-auto custom-scrollbar">
-                  {card.subtasks.map((sub) => (
-                    <li key={sub.id} className="flex items-start gap-2 text-xs">
+                <ul className="space-y-2 bg-onyx/60 p-3 rounded-lg border border-graphite/50 max-h-56 overflow-y-auto custom-scrollbar">
+                  {card.subtasks.map((sub, idx) => (
+                    <li key={sub.id || idx} className="flex items-start gap-2.5 text-xs p-1.5 rounded hover:bg-white/5 transition-colors">
                       <div className="mt-0.5 shrink-0">
                         {sub.status === "completed" ? (
-                          <CheckSquare size={14} className="text-emerald" />
+                          <CheckSquare size={15} className="text-emerald" />
                         ) : sub.status === "in_progress" ? (
-                          <Play size={14} className="text-indigo" />
+                          <Play size={15} className="text-indigo animate-pulse" />
                         ) : sub.status === "failed" ? (
-                          <AlertTriangle size={14} className="text-crimson" />
+                          <AlertTriangle size={15} className="text-crimson" />
                         ) : (
-                          <div className="h-3.5 w-3.5 rounded-sm border border-graphite/60 bg-transparent" />
+                          <div className="h-3.5 w-3.5 rounded-sm border border-graphite/80 bg-transparent mt-0.5" />
                         )}
                       </div>
-                      <span className={`leading-relaxed ${sub.status === "completed" ? "text-fog line-through" : "text-snow/90"}`}>
+                      <span className={`leading-relaxed ${sub.status === "completed" ? "text-fog line-through" : "text-snow"}`}>
                         {sub.name}
                       </span>
                     </li>
@@ -192,17 +192,17 @@ export function KanbanCard({ card, colorIndex, highlighted = false }: KanbanCard
 
             {/* Timestamps */}
             <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="rounded border border-graphite/40 bg-onyx/30 p-2.5">
-                <span className="block text-[10px] text-fog/60 uppercase">Mulai Kerja</span>
-                <span className="font-mono text-snow/90 flex items-center gap-1 mt-1">
-                  <Calendar size={12} />
+              <div className="rounded-lg border border-graphite/50 bg-onyx/60 p-3">
+                <span className="block text-[10px] text-fog uppercase tracking-wider font-semibold">Mulai Kerja</span>
+                <span className="font-mono text-xs text-snow/90 flex items-center gap-1.5 mt-1.5">
+                  <Calendar size={13} className="text-indigo" />
                   {card.startedAt ? `${formatDate(card.startedAt)} ${formatTime(card.startedAt)}` : "-"}
                 </span>
               </div>
-              <div className="rounded border border-graphite/40 bg-onyx/30 p-2.5">
-                <span className="block text-[10px] text-fog/60 uppercase">Selesai/Gagal</span>
-                <span className="font-mono text-snow/90 flex items-center gap-1 mt-1">
-                  <Calendar size={12} />
+              <div className="rounded-lg border border-graphite/50 bg-onyx/60 p-3">
+                <span className="block text-[10px] text-fog uppercase tracking-wider font-semibold">Selesai / Gagal</span>
+                <span className="font-mono text-xs text-snow/90 flex items-center gap-1.5 mt-1.5">
+                  <Calendar size={13} className="text-indigo" />
                   {card.completedAt ? `${formatDate(card.completedAt)} ${formatTime(card.completedAt)}` : "-"}
                 </span>
               </div>
@@ -212,13 +212,13 @@ export function KanbanCard({ card, colorIndex, highlighted = false }: KanbanCard
             {card.type === "task" && card.dependencies && card.dependencies.length > 0 && (
               <div>
                 <h4 className="text-xs font-semibold text-snow mb-1.5">
-                  Bergantung pada
+                  Bergantung pada Task
                 </h4>
-                <ul className="space-y-1">
+                <ul className="space-y-1.5">
                   {card.dependencies.map((depId) => (
                     <li
                       key={depId}
-                      className="text-xs text-amber font-mono bg-amber/5 px-2 py-1 rounded border border-amber/10 truncate"
+                      className="text-xs text-amber font-mono bg-amber/10 px-2.5 py-1.5 rounded-md border border-amber/20 truncate"
                       title={depId}
                     >
                       Task ID: {depId}
