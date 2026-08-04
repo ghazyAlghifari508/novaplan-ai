@@ -49,8 +49,8 @@ export function parseTaskJson(jsonString: string): TaskTree | null {
 }
 
 /**
- * Save task tree. Each feature becomes one `tasks` row; its tasks' subtasks
- * are flattened into the row's jsonb `subtasks`. Status update non-fatal.
+ * Save task tree. One `tasks` row per task (not per feature).
+ * featureName preserves feature grouping. Each subtask gets status: "pending".
  */
 export async function saveTaskTree(
   projectId: string,
@@ -59,26 +59,30 @@ export async function saveTaskTree(
   try {
     await db.delete(tasks).where(eq(tasks.projectId, projectId));
 
-    for (let i = 0; i < taskTree.features.length; i++) {
-      const feature = taskTree.features[i];
-      const subtasks = feature.tasks.flatMap((t) =>
-        t.subtasks.map((s) => ({ name: s.name, description: s.description, parent: t.name, details: s.details ?? [] })),
-      );
-      await db.insert(tasks).values({
-        id: crypto.randomUUID(),
-        projectId,
-        title: feature.name,
-        description: feature.tasks.map((t) => t.description).join("\n\n") || null,
-        subtasks,
-        order: i,
-      });
+    let order = 0;
+    for (const feature of taskTree.features) {
+      for (const task of feature.tasks) {
+        const subtaskRows = task.subtasks.map((s) => ({
+          name: s.name,
+          description: s.description,
+          details: s.details ?? [],
+          status: "pending" as const,
+        }));
+        await db.insert(tasks).values({
+          id: crypto.randomUUID(),
+          projectId,
+          title: task.name,
+          description: task.description || null,
+          featureName: feature.name,
+          status: "pending",
+          subtasks: subtaskRows,
+          order: order++,
+        });
+      }
     }
 
-    // Task is the furthest stage, so persist step='task' here - the completion
-    // point - not from a navbar click. History routes off projects.step alone,
-    // and before this nothing in the generate path ever wrote it.
     const [proj] = await db.select({ step: projects.step }).from(projects).where(eq(projects.id, projectId)).limit(1);
-    const updateData: { taskStatus: string; updatedAt: Date; step?: string } = {
+    const updateData: Record<string, unknown> = {
       taskStatus: "completed",
       updatedAt: new Date(),
     };
@@ -94,7 +98,8 @@ export async function saveTaskTree(
 }
 
 /**
- * Reconstruct TaskTree from flat tasks rows. Each row = one feature.
+ * Fetch task tree. DB rows are one-per-task with featureName for grouping.
+ * Reconstruct features → tasks → subtasks from the flat rows.
  */
 export async function getTaskTree(projectId: string): Promise<TaskTree | null> {
   try {
@@ -102,6 +107,7 @@ export async function getTaskTree(projectId: string): Promise<TaskTree | null> {
       .select({
         title: tasks.title,
         description: tasks.description,
+        featureName: tasks.featureName,
         subtasks: tasks.subtasks,
       })
       .from(tasks)
@@ -110,24 +116,24 @@ export async function getTaskTree(projectId: string): Promise<TaskTree | null> {
 
     if (rows.length === 0) return null;
 
-    const features: TaskTree["features"] = rows.map((row) => {
-      const subtasks = Array.isArray(row.subtasks)
-        ? (row.subtasks as Array<{ name: string; description: string; parent?: string; details?: string[] }>)
-        : [];
-      // Group subtasks by parent task name to rebuild the tasks→subtasks nesting.
-      const byParent = new Map<string, { name: string; description: string; subtasks: Array<{ name: string; description: string; details: string[] }> }>();
-      for (const s of subtasks) {
-        const parent = s.parent || s.name;
-        if (!byParent.has(parent)) byParent.set(parent, { name: parent, description: "", subtasks: [] });
-        byParent.get(parent)!.subtasks.push({ name: s.name, description: s.description, details: s.details ?? [] });
-      }
-      return {
-        name: row.title,
-        tasks: Array.from(byParent.values()),
-      };
-    });
+    const featureMap = new Map<string, TaskTree["features"][number]>();
+    for (const row of rows) {
+      const fname = row.featureName || "Umum";
+      if (!featureMap.has(fname)) featureMap.set(fname, { name: fname, tasks: [] });
 
-    return { features };
+      const subtasks = Array.isArray(row.subtasks)
+        ? (row.subtasks as Array<{ name: string; description: string; details?: string[]; status?: string }>)
+            .map((s) => ({ name: s.name, description: s.description || "", details: s.details ?? [] }))
+        : [];
+
+      featureMap.get(fname)!.tasks.push({
+        name: row.title,
+        description: row.description || "",
+        subtasks,
+      });
+    }
+
+    return { features: Array.from(featureMap.values()) };
   } catch (error) {
     console.error("getTaskTree error:", error);
     throw error;
