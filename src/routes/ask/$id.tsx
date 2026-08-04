@@ -5,6 +5,9 @@ import { AskFlow } from "@/app/ask/ask-flow";
 import { db } from "@/db";
 import { projects } from "@/db/schema";
 import { requireUserServer } from "@/lib/session";
+import { usePathname } from "@/lib/next-compat/navigation";
+import { useLastRoute } from "@/lib/use-last-route";
+import { useEffect } from "react";
 
 // ponytail: requireUserServer is a server fn → its auth/db imports get pruned
 // from the client bundle. Plain `requireUser` would drag pg (→ Buffer) in.
@@ -52,5 +55,11 @@ export const Route = createFileRoute("/ask/$id")({
 
 function AskPage() {
 	const d = Route.useLoaderData();
+	const pathname = usePathname();
+	const reportLastRoute = useLastRoute(d.projectId);
+
+	useEffect(() => {
+		reportLastRoute(pathname);
+	}, [pathname, reportLastRoute]);
 	return <AskFlow projectId={d.projectId} projectName={d.projectName} />;
 }

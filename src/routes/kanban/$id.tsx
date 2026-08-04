@@ -4,6 +4,9 @@ import { and, eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { projects } from '@/db/schema'
 import { requireUserServer } from '@/lib/session'
+import { usePathname } from '@/lib/next-compat/navigation'
+import { useLastRoute } from '@/lib/use-last-route'
+import { useEffect } from 'react'
 import { KanbanBoard } from '@/components/kanban/kanban-board'
 
 // ponytail: server-only db logic - loader runs on client too, must not import db there.
@@ -32,5 +35,11 @@ export const Route = createFileRoute('/kanban/$id')({
 
 function KanbanPage() {
   const { projectId, projectName } = Route.useLoaderData()
+  const pathname = usePathname()
+  const reportLastRoute = useLastRoute(projectId)
+
+  useEffect(() => {
+    reportLastRoute(pathname)
+  }, [pathname, reportLastRoute])
   return <KanbanBoard projectId={projectId} projectName={projectName} />
 }

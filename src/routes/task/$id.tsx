@@ -4,6 +4,9 @@ import { and, eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { projects } from '@/db/schema'
 import { requireUserServer } from '@/lib/session'
+import { usePathname } from '@/lib/next-compat/navigation'
+import { useLastRoute } from '@/lib/use-last-route'
+import { useEffect } from 'react'
 import { getLatestAcContent } from '@/lib/services/ac-service'
 import { getTaskTree } from '@/lib/services/task-service'
 import { TaskDetail } from '@/components/task/task-detail'
@@ -45,6 +48,12 @@ export const Route = createFileRoute('/task/$id')({
 
 function TaskPage() {
   const d = Route.useLoaderData()
+  const pathname = usePathname()
+  const reportLastRoute = useLastRoute(d.projectId)
+
+  useEffect(() => {
+    reportLastRoute(pathname)
+  }, [pathname, reportLastRoute])
   return (
     <TaskDetail
       projectId={d.projectId}

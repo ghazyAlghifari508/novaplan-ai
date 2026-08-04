@@ -4,6 +4,9 @@ import { and, eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { projects } from '@/db/schema'
 import { requireUserServer, getUserPlanAndQuota } from '@/lib/session'
+import { usePathname } from '@/lib/next-compat/navigation'
+import { useLastRoute } from '@/lib/use-last-route'
+import { useEffect } from 'react'
 import { getLatestPrdContent } from '@/lib/services/prd-service'
 import { getAcVersions } from '@/lib/services/ac-service'
 import { AcDetail } from '@/components/ac/ac-detail'
@@ -46,6 +49,12 @@ export const Route = createFileRoute('/ac/$id')({
 
 function AcDetailPage() {
   const d = Route.useLoaderData()
+  const pathname = usePathname()
+  const reportLastRoute = useLastRoute(d.projectId)
+
+  useEffect(() => {
+    reportLastRoute(pathname)
+  }, [pathname, reportLastRoute])
   return (
     <AcDetail
       projectId={d.projectId}

@@ -4,6 +4,9 @@ import { and, asc, desc, eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { conversations, messages, prdVersions, projects } from '@/db/schema'
 import { requireUserServer, getUserPlanAndQuota } from '@/lib/session'
+import { usePathname } from '@/lib/next-compat/navigation'
+import { useLastRoute } from '@/lib/use-last-route'
+import { useEffect } from 'react'
 import { PrdDetail } from '@/components/prd/prd-detail'
 
 // ponytail: requireUserServer is a server fn → its auth/db imports get pruned
@@ -68,6 +71,12 @@ export const Route = createFileRoute('/prd/$id')({
 
 function PrdPage() {
   const d = Route.useLoaderData()
+  const pathname = usePathname()
+  const reportLastRoute = useLastRoute(d.projectId)
+
+  useEffect(() => {
+    reportLastRoute(pathname)
+  }, [pathname, reportLastRoute])
   return (
     <PrdDetail
       projectId={d.projectId}
