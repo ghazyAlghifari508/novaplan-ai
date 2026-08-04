@@ -51,6 +51,7 @@ import { Route as ApiTaskProjectIdRouteImport } from './routes/api/task/$project
 import { Route as ApiTaskGenerateRouteImport } from './routes/api/task/generate'
 import { Route as ApiUserPlanRouteImport } from './routes/api/user/plan'
 import { Route as PrdShareTokenRouteImport } from './routes/prd/share/$token'
+import { Route as ApiProjectsIdLastRouteRouteImport } from './routes/api/projects/$id/last-route'
 import { Route as ApiProjectsIdStepRouteImport } from './routes/api/projects/$id/step'
 import { Route as ApiSettingsApiKeysIndexRouteImport } from './routes/api/settings/api-keys/index'
 import { Route as ApiSettingsApiKeysIdRouteImport } from './routes/api/settings/api-keys/$id'
@@ -270,6 +271,11 @@ const PrdShareTokenRoute = PrdShareTokenRouteImport.update({
   path: '/prd/share/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiProjectsIdLastRouteRoute = ApiProjectsIdLastRouteRouteImport.update({
+  id: '/last-route',
+  path: '/last-route',
+  getParentRoute: () => ApiProjectsIdRoute,
+} as any)
 const ApiProjectsIdStepRoute = ApiProjectsIdStepRouteImport.update({
   id: '/step',
   path: '/step',
@@ -354,6 +360,7 @@ export interface FileRoutesByFullPath {
   '/api/user/plan': typeof ApiUserPlanRoute
   '/prd/share/$token': typeof PrdShareTokenRoute
   '/api/projects/': typeof ApiProjectsIndexRoute
+  '/api/projects/$id/last-route': typeof ApiProjectsIdLastRouteRoute
   '/api/projects/$id/step': typeof ApiProjectsIdStepRoute
   '/api/settings/api-keys/$id': typeof ApiSettingsApiKeysIdRoute
   '/api/v1/projects/$id': typeof ApiV1ProjectsIdRouteWithChildren
@@ -405,6 +412,7 @@ export interface FileRoutesByTo {
   '/api/user/plan': typeof ApiUserPlanRoute
   '/prd/share/$token': typeof PrdShareTokenRoute
   '/api/projects': typeof ApiProjectsIndexRoute
+  '/api/projects/$id/last-route': typeof ApiProjectsIdLastRouteRoute
   '/api/projects/$id/step': typeof ApiProjectsIdStepRoute
   '/api/settings/api-keys/$id': typeof ApiSettingsApiKeysIdRoute
   '/api/v1/projects/$id': typeof ApiV1ProjectsIdRouteWithChildren
@@ -458,6 +466,7 @@ export interface FileRoutesById {
   '/api/user/plan': typeof ApiUserPlanRoute
   '/prd/share/$token': typeof PrdShareTokenRoute
   '/api/projects/': typeof ApiProjectsIndexRoute
+  '/api/projects/$id/last-route': typeof ApiProjectsIdLastRouteRoute
   '/api/projects/$id/step': typeof ApiProjectsIdStepRoute
   '/api/settings/api-keys/$id': typeof ApiSettingsApiKeysIdRoute
   '/api/v1/projects/$id': typeof ApiV1ProjectsIdRouteWithChildren
@@ -512,6 +521,7 @@ export interface FileRouteTypes {
     | '/api/user/plan'
     | '/prd/share/$token'
     | '/api/projects/'
+    | '/api/projects/$id/last-route'
     | '/api/projects/$id/step'
     | '/api/settings/api-keys/$id'
     | '/api/v1/projects/$id'
@@ -563,6 +573,7 @@ export interface FileRouteTypes {
     | '/api/user/plan'
     | '/prd/share/$token'
     | '/api/projects'
+    | '/api/projects/$id/last-route'
     | '/api/projects/$id/step'
     | '/api/settings/api-keys/$id'
     | '/api/v1/projects/$id'
@@ -615,6 +626,7 @@ export interface FileRouteTypes {
     | '/api/user/plan'
     | '/prd/share/$token'
     | '/api/projects/'
+    | '/api/projects/$id/last-route'
     | '/api/projects/$id/step'
     | '/api/settings/api-keys/$id'
     | '/api/v1/projects/$id'
@@ -964,6 +976,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrdShareTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/projects/$id/last-route': {
+      id: '/api/projects/$id/last-route'
+      path: '/last-route'
+      fullPath: '/api/projects/$id/last-route'
+      preLoaderRoute: typeof ApiProjectsIdLastRouteRouteImport
+      parentRoute: typeof ApiProjectsIdRoute
+    }
     '/api/projects/$id/step': {
       id: '/api/projects/$id/step'
       path: '/step'
@@ -1048,10 +1067,12 @@ const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
 )
 
 interface ApiProjectsIdRouteChildren {
+  ApiProjectsIdLastRouteRoute: typeof ApiProjectsIdLastRouteRoute
   ApiProjectsIdStepRoute: typeof ApiProjectsIdStepRoute
 }
 
 const ApiProjectsIdRouteChildren: ApiProjectsIdRouteChildren = {
+  ApiProjectsIdLastRouteRoute: ApiProjectsIdLastRouteRoute,
   ApiProjectsIdStepRoute: ApiProjectsIdStepRoute,
 }
 
