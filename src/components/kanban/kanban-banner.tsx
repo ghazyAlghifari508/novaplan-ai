@@ -73,13 +73,10 @@ export function KanbanBanner({
         <div className="flex items-center justify-between rounded-md border border-indigo/30 bg-indigo/10 p-3 text-sm text-indigo animate-slide-down">
           <div className="flex items-center gap-2">
             <Info size={16} className="shrink-0" />
-            <span>Belum ada update status. Pastikan CLI/MCP terhubung.</span>
+            <span>Belum ada update status. Jalankan NovaPlan CLI untuk update otomatis.</span>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Link href="/settings" className="inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-[510] border border-indigo/30 hover:bg-indigo/10 transition-colors">
-              <KeyRound size={12} />
-              Buat API Key
-            </Link>
+            
             {onDismiss && (
               <Button variant="ghost" size="sm" onClick={onDismiss} className="h-8 text-indigo/60 hover:text-indigo hover:bg-indigo/10" aria-label="Dismiss">
                 <X size={14} />

@@ -190,7 +190,7 @@ export function KanbanBoard({ projectId, projectName }: KanbanBoardProps) {
 
       {/* Main Column Layout Area */}
       <div
-        className="flex-1 overflow-x-auto overflow-y-hidden p-6 flex gap-6 select-none custom-scrollbar"
+        className="flex-1 overflow-x-auto overflow-y-hidden select-none custom-scrollbar"
         role="list"
         aria-label="Kanban columns"
       >
@@ -210,7 +210,7 @@ export function KanbanBoard({ projectId, projectName }: KanbanBoardProps) {
             </Link>
           </div>
         ) : (
-          <>
+          <div className="mx-auto flex h-full w-max gap-6 p-6">
             <KanbanColumn
               ref={(el) => {
                 columnRefsRef.current.pending = el;
@@ -247,7 +247,7 @@ export function KanbanBoard({ projectId, projectName }: KanbanBoardProps) {
               cards={columns?.failed || []}
               highlightedCardId={highlightedCardId}
             />
-          </>
+          </div>
         )}
       </div>
     </div>
