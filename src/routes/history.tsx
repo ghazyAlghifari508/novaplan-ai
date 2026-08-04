@@ -10,6 +10,7 @@ export interface HistoryItem {
   id: string;
   name: string;
   step: string | null;
+  lastUrl: string | null;
   updatedAt: Date;
   preview: string | null;
 }
@@ -24,6 +25,7 @@ const loadHistory = createServerFn({ method: "GET" }).handler(async () => {
       id: projects.id,
       name: projects.name,
       step: projects.step,
+      lastUrl: projects.lastUrl,
       updatedAt: projects.updatedAt,
     })
     .from(projects)
@@ -66,6 +68,7 @@ const loadHistory = createServerFn({ method: "GET" }).handler(async () => {
       id: p.id,
       name: p.name,
       step: p.step,
+      lastUrl: p.lastUrl,
       updatedAt: p.updatedAt ?? new Date(0),
       preview,
     };

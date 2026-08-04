@@ -6,7 +6,7 @@
  * Task was done rewound step 'task' -> 'ac' and History sent the user back to
  * the AC page. Step is now monotonic: it only ever moves forward.
  */
-import type { FlowStep } from "@/lib/flow-step";
+import { stepToRoute, type FlowStep } from "@/lib/flow-step";
 
 /** Flow order. Index = progress rank; higher wins. */
 const STEP_ORDER: FlowStep[] = ["question", "prd", "ac", "task"];
@@ -62,4 +62,22 @@ const HISTORY_URL_RE =
 export function isValidHistoryUrl(url: string, projectId: string): boolean {
   const m = HISTORY_URL_RE.exec(url);
   return m !== null && m[1] === projectId;
+}
+
+/**
+ * URL a History card links to. Prefers last_url when it's a valid
+ * project-internal route for this project; falls back to stepToRoute so
+ * brand-new projects and cleared/corrupted last_url rows keep working.
+ * Lives here (pure module) so the client component can import it without
+ * dragging db/pg into the client bundle.
+ */
+export function resolveHistoryUrl(item: {
+  id: string;
+  step: string | null | undefined;
+  lastUrl: string | null | undefined;
+}): string {
+  if (item.lastUrl && isValidHistoryUrl(item.lastUrl, item.id)) {
+    return item.lastUrl;
+  }
+  return stepToRoute(item.step, item.id);
 }

@@ -4,6 +4,7 @@ import {
   stepRank,
   isTruncatedGeneration,
   isValidHistoryUrl,
+  resolveHistoryUrl,
 } from "./flow-progress";
 
 describe("stepRank", () => {
@@ -113,5 +114,26 @@ describe("isValidHistoryUrl", () => {
     expect(isValidHistoryUrl("/ac/", id)).toBe(false);
     expect(isValidHistoryUrl("/ac", id)).toBe(false);
     expect(isValidHistoryUrl("javascript:alert(1)", id)).toBe(false);
+  });
+});
+
+describe("resolveHistoryUrl", () => {
+  const id = "fca689ff-e194-45eb-b6fa-0188cc327759";
+
+  it("prefers a valid lastUrl for this project", () => {
+    expect(resolveHistoryUrl({ id, step: "prd", lastUrl: `/kanban/${id}` })).toBe(`/kanban/${id}`);
+  });
+
+  it("falls back to stepToRoute when lastUrl is null", () => {
+    expect(resolveHistoryUrl({ id, step: "ac", lastUrl: null })).toBe(`/ac/${id}`);
+  });
+
+  it("falls back when lastUrl belongs to another project", () => {
+    expect(resolveHistoryUrl({ id, step: "task", lastUrl: "/ac/00000000-0000-0000-0000-000000000000" })).toBe(`/task/${id}`);
+  });
+
+  it("falls back when lastUrl is non-project or malformed", () => {
+    expect(resolveHistoryUrl({ id, step: "prd", lastUrl: "/history" })).toBe(`/prd/${id}`);
+    expect(resolveHistoryUrl({ id, step: "prd", lastUrl: "javascript:alert(1)" })).toBe(`/prd/${id}`);
   });
 });

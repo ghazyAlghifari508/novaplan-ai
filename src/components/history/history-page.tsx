@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Trash2, ArrowRight } from "lucide-react";
 import { DeleteProjectModal } from "@/components/prd/delete-project-modal";
 import { useUIStore } from "@/store";
-import { stepToRoute } from "@/lib/flow-step";
+import { resolveHistoryUrl } from "@/lib/flow-progress";
 import type { HistoryItem } from "@/routes/history";
 
 const STEP_BADGE: Record<string, { label: string; className: string }> = {
@@ -80,7 +80,7 @@ export function HistoryPage({ items }: { items: HistoryItem[] }) {
         <ul className="space-y-3">
           {localItems.map((item) => {
             const badge = STEP_BADGE[item.step ?? "prd"] ?? STEP_BADGE.prd;
-            const href = stepToRoute(item.step, item.id);
+            const href = resolveHistoryUrl(item);
             return (
               <li key={item.id}>
                 <a
