@@ -42,12 +42,55 @@ Tugasmu: implementasikan aplikasi berdasarkan dokumen perencanaan berikut.
 ### Features & Tasks
 {tasksContent}
 
+## Setup NovaPlan CLI
+
+Pertama, install dan konfigurasi NovaPlan CLI:
+
+\`\`\`bash
+npm install -g novaplan
+novaplan login --api-key {apiKey} --api-url http://localhost:3000
+\`\`\`
+
+## Perintah CLI
+
+### Lihat task berikutnya yang harus dikerjakan:
+\`\`\`bash
+novaplan task next {projectId}
+\`\`\`
+
+### Lihat semua task:
+\`\`\`bash
+novaplan task list {projectId}
+\`\`\`
+
+### Mulai mengerjakan task:
+\`\`\`bash
+novaplan task update <taskId> --status in_progress
+\`\`\`
+
+### Tandai task selesai:
+\`\`\`bash
+novaplan task update <taskId> --status completed
+\`\`\`
+
+### Tandai task gagal:
+\`\`\`bash
+novaplan task update <taskId> --status failed
+\`\`\`
+
+### Update status subtask:
+\`\`\`bash
+novaplan subtask update <taskId> --index <subtaskIndex> --status in_progress
+\`\`\`
+
 ## Instruksi Implementasi
-1. Baca dan pahami semua dokumen di atas
-2. Kerjakan task satu per satu sesuai urutan
-3. Setiap selesai task/subtask, tandai sebagai completed
-4. Jika ada kendala, catat dan lanjutkan ke task berikutnya
-5. Lanjutkan sampai semua task selesai`;
+1. Jalankan \`novaplan task next {projectId}\` untuk lihat task berikutnya
+2. Jalankan \`novaplan task update <taskId> --status in_progress\` untuk mulai
+3. Kerjakan task sesuai deskripsi dan subtask
+4. Setiap selesai subtask, update: \`novaplan subtask update <taskId> --index <i> --status completed\`
+5. Setelah semua subtask selesai: \`novaplan task update <taskId> --status completed\`
+6. Ulangi dari langkah 1 sampai semua task selesai
+7. Jika ada kendala: \`novaplan task update <taskId> --status failed\` lalu lanjut ke task berikutnya`;
 
 /**
  * PRD-07: Implementation Options dropdown + modal.
@@ -153,13 +196,13 @@ export function ImplementationOptions({
     setIsLoading(true);
     try {
       const data = await fetchContent();
-      const prompt = AI_AGENT_PROMPT_TEMPLATE.replace(
-        "{projectName}",
-        data.projectName || projectName,
-      )
-        .replace("{prdContent}", data.prd || "(Belum ada PRD)")
-        .replace("{acContent}", data.ac || "(Belum ada AC)")
-        .replace("{tasksContent}", data.tasks || "(Belum ada tasks)");
+      const prompt = AI_AGENT_PROMPT_TEMPLATE
+        .replace(/{projectName}/g, data.projectName || projectName)
+        .replace(/{prdContent}/g, data.prd || "(Belum ada PRD)")
+        .replace(/{acContent}/g, data.ac || "(Belum ada AC)")
+        .replace(/{tasksContent}/g, data.tasks || "(Belum ada tasks)")
+        .replace(/{projectId}/g, projectId)
+        .replace(/{apiKey}/g, "<GANTI_DENGAN_API_KEY_KAMU>");
 
       setPromptText(prompt);
       setShowPromptModal(true);
