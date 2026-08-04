@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect, useTransition } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { User, Settings, CreditCard, LogOut, ArrowRight, MessageSquare } from "lucide-react";
+import { User, Settings, CreditCard, LogOut, ArrowRight, MessageSquare, Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { FlowStepNav, routeToStep } from "./flow-step-nav";
 import { useUIStore, useChatStore } from "@/store";
@@ -15,6 +15,7 @@ export function Navbar() {
   const [isLoading, setIsLoading] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isStepLoading, setIsStepLoading] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isGeneratingPRD = useChatStore((s) => s.isGeneratingPRD);
   const streamingPRDContent = useChatStore((s) => s.streamingPRDContent);
   const isGeneratingAC = useChatStore((s) => s.isGeneratingAC);
@@ -128,8 +129,8 @@ export function Navbar() {
           <Logo height={28} />
         </div>
 
-        {/* Center: navlinks */}
-        <div className="flex flex-1 items-center justify-center">
+        {/* Center: navlinks - Desktop */}
+        <div className="hidden md:flex flex-1 items-center justify-center">
           {isFlowStepRoute ? (
             <FlowStepNav />
           ) : (
@@ -161,6 +162,17 @@ export function Navbar() {
             </div>
           )}
         </div>
+
+        {/* Mobile: hamburger menu toggle */}
+        {!isFlowStepRoute && (
+          <button
+            className="md:hidden p-2 text-fog hover:text-snow transition-colors"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        )}
 
         {/* Right: actions */}
         <div className="flex w-[200px] shrink-0 items-center justify-end gap-2">
@@ -251,6 +263,40 @@ export function Navbar() {
           )}
         </div>
       </div>
+
+      {/* Mobile Menu Drawer */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden border-t border-graphite bg-obsidian px-6 py-4 space-y-3 animate-in slide-in-from-top-2 duration-200">
+          <Link
+            href="/"
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-[510] text-snow hover:bg-white/5"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            Home
+          </Link>
+          <Link
+            href="/pricing"
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-[510] text-snow hover:bg-white/5"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            Pricing
+          </Link>
+          <Link
+            href="/history"
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-[510] text-snow hover:bg-white/5"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            History
+          </Link>
+          <Link
+            href="/settings"
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-[510] text-snow hover:bg-white/5"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            Settings
+          </Link>
+        </div>
+      )}
     </nav>
   );
 }
