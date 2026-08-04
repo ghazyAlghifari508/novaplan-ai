@@ -44,7 +44,12 @@ export async function* streamChat(
   outcome?: StreamOutcome,
 ): AsyncGenerator<string, void, undefined> {
   const result = streamText({
-    model: provider(model || "oc/ling-3.0-flash-free(high)"),
+    // ponytail: provider.chat(), not provider(). The v5 default routes to the
+    // Responses API, whose stream 9router answers with a chat-completions body;
+    // the mismatch makes the SDK report finishReason "other" on a stream that
+    // finished cleanly ("stop" on the wire), and isTruncatedGeneration then
+    // discards a complete document. .chat() pins /v1/chat/completions.
+    model: provider.chat(model || "oc/ling-3.0-flash-free(high)"),
     messages,
     allowSystemInMessages: true,
     abortSignal: signal,
@@ -82,7 +87,7 @@ export async function completeChat(
   model?: string,
 ): Promise<string> {
   const { text } = await generateText({
-    model: provider(model || "oc/ling-3.0-flash-free(high)"),
+    model: provider.chat(model || "oc/ling-3.0-flash-free(high)"),
     messages,
     allowSystemInMessages: true,
   });
