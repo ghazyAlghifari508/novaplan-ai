@@ -181,6 +181,9 @@ export const tasks = pgTable("tasks", {
   subtasks: jsonb("subtasks"),
   position: jsonb("position"), // { x, y } for kanban
   order: integer("order").default(0),
+  featureName: text("feature_name"),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

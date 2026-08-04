@@ -29,6 +29,13 @@
       "when": 1785858346200,
       "tag": "0003_absent_iron_monger",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1785871277002,
+      "tag": "0004_groovy_lord_hawal",
+      "breakpoints": true
     }
   ]
 }
