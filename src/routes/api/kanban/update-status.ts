@@ -35,7 +35,10 @@ export const Route = createFileRoute("/api/kanban/update-status")({
         const [project] = await db.select({ id: projects.id }).from(projects).where(and(eq(projects.id, projectId), eq(projects.userId, keyRecord.userId))).limit(1);
         if (!project) return Response.json({ error: "Project not found or access denied" }, { status: 404 });
 
-        const updated = await db.update(tasks).set({ status, updatedAt: new Date() }).where(and(eq(tasks.id, taskId), eq(tasks.projectId, projectId))).returning({ id: tasks.id });
+        const updateData: Record<string, unknown> = { status, updatedAt: new Date() };
+        if (status === "in_progress") updateData.startedAt = new Date();
+        if (status === "completed" || status === "failed") updateData.completedAt = new Date();
+        const updated = await db.update(tasks).set(updateData).where(and(eq(tasks.id, taskId), eq(tasks.projectId, projectId))).returning({ id: tasks.id });
         if (!updated.length) return Response.json({ error: "task not found in this project" }, { status: 404 });
 
         db.update(apiKeys).set({ lastUsedAt: new Date() }).where(eq(apiKeys.id, keyRecord.id)).catch(() => {});
