@@ -3,6 +3,7 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
+import { depthDirective } from "@/lib/prompt-depth";
 import { AC_GENERATION_PROMPT } from "@/lib/prompts-ac";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { requireUser } from "@/lib/session";
@@ -35,13 +36,13 @@ export const Route = createFileRoute("/api/ac/generate")({
 
         await db.update(projects).set({ acStatus: "generating" }).where(eq(projects.id, projectId));
 
-        const systemPrompt = `${AC_GENERATION_PROMPT}\n\n--- PRD CONTENT ---\n${prdContent}`;
+        const modelsToTry = selectModels(plan, model);
+        // ponytail: depth keyed off the primary model, not the plan.
+        const systemPrompt = `${AC_GENERATION_PROMPT}\n${depthDirective("ac", modelsToTry[0])}\n\n--- PRD CONTENT ---\n${prdContent}`;
         const messages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
           { role: "system", content: systemPrompt },
           { role: "user", content: "Generate acceptance criteria based on the PRD above." },
         ];
-
-        const modelsToTry = selectModels(plan, model);
 
         const stream = new ReadableStream<Uint8Array>({
           async start(controller) {

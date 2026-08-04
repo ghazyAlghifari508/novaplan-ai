@@ -170,10 +170,6 @@ export function getAskState(projectId: string): AskState | null {
 	}
 }
 
-export function clearAskState() {
-	getStorage()?.removeItem(ASK_STATE_KEY);
-}
-
 /* ---------- PRD chat follow-up draft (survives refresh) ---------- */
 const PRD_DRAFT_KEY = "novaplan:prd-draft";
 

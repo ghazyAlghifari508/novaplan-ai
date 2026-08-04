@@ -4,13 +4,12 @@ import { usePathname } from "next/navigation";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useChatStore } from "@/store";
-
-// ponytail: route is source of truth, not projects.step.
-// DB step lags actual navigation (e.g. user revisits /prd after reaching /ac).
-// Route→step avoids stale-indicator bugs. Wire project.step later only to drive
-// server-side redirects, never the indicator's active state.
-
-export type FlowStep = "question" | "prd" | "ac" | "task";
+// ponytail: pure step<->route logic extracted to @/lib/flow-step so server
+// code + tests can use it without next/navigation. Re-export keeps existing
+// `import { routeToStep } from "./flow-step-nav"` call sites working.
+export { routeToStep, type FlowStep } from "@/lib/flow-step";
+import type { FlowStep } from "@/lib/flow-step";
+import { routeToStep } from "@/lib/flow-step";
 
 const STEPS: { key: FlowStep; label: string }[] = [
   { key: "question", label: "Question" },
@@ -18,14 +17,6 @@ const STEPS: { key: FlowStep; label: string }[] = [
   { key: "ac", label: "AC" },
   { key: "task", label: "Task" },
 ];
-
-export function routeToStep(pathname: string): FlowStep {
-  if (pathname.startsWith("/ask/") || pathname === "/ask") return "question";
-  if (pathname.startsWith("/ac/") || pathname === "/ac") return "ac";
-  if (pathname.startsWith("/task/") || pathname === "/task") return "task";
-  if (pathname.startsWith("/kanban/") || pathname === "/kanban") return "task";
-  return "prd";
-}
 
 export function FlowStepNav() {
   const pathname = usePathname();

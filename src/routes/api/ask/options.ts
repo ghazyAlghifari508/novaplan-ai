@@ -111,6 +111,17 @@ export const Route = createFileRoute("/api/ask/options")({
 						);
 					}
 
+					// Mark project at question-stage server-side so it appears in
+					// History immediately on generation, not only once a PRD exists.
+					// Mirrors ac-service saveAcVersion's step-on-generate write.
+					// ponytail: non-fatal - a failed marker write must not block the
+					// questions the user just paid an AI call to generate.
+					await db
+						.update(projects)
+						.set({ step: "question", updatedAt: new Date() })
+						.where(and(eq(projects.id, projectId), eq(projects.userId, user.id)))
+						.catch((e) => console.error("ask step marker failed:", e));
+
 					return Response.json({ questions });
 				} catch (err: unknown) {
 					console.error("Ask options generate error:", err);

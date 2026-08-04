@@ -150,6 +150,14 @@ export function Navbar() {
               >
                 Pricing
               </Link>
+              <Link
+                href="/history"
+                className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
+                  pathname === "/history" ? "bg-white/10 text-snow" : "text-fog hover:bg-white/5 hover:text-snow"
+                }`}
+              >
+                History
+              </Link>
             </div>
           )}
         </div>

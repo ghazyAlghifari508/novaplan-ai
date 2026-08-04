@@ -3,6 +3,7 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
+import { depthDirective } from "@/lib/prompt-depth";
 import { TASK_GENERATION_PROMPT } from "@/lib/prompts-task";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { requireUser } from "@/lib/session";
@@ -44,13 +45,13 @@ export const Route = createFileRoute("/api/task/generate")({
 
         await db.update(projects).set({ taskStatus: "generating" }).where(eq(projects.id, projectId));
 
-        const systemPrompt = `${TASK_GENERATION_PROMPT}\n\n--- ACCEPTANCE CRITERIA ---\n${acMarkdown}`;
+        const modelsToTry = selectModels(plan, model);
+        // ponytail: depth keyed off the primary model, not the plan.
+        const systemPrompt = `${TASK_GENERATION_PROMPT}\n${depthDirective("task", modelsToTry[0])}\n\n--- ACCEPTANCE CRITERIA ---\n${acMarkdown}`;
         const messages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
           { role: "system", content: systemPrompt },
           { role: "user", content: "Generate the task tree JSON based on the AC above." },
         ];
-
-        const modelsToTry = selectModels(plan, model);
 
         const stream = new ReadableStream<Uint8Array>({
           async start(controller) {

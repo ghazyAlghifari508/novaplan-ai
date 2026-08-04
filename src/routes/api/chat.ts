@@ -3,6 +3,7 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
+import { depthDirective } from "@/lib/prompt-depth";
 import { PRD_REVISION_PROMPT, PRD_SYSTEM_PROMPT } from "@/lib/prompts";
 import {
 	checkQuota,
@@ -153,6 +154,13 @@ export const Route = createFileRoute("/api/chat")({
 					}
 				}
 
+				const modelsToTry = selectModels(
+					plan,
+					preferences?.model as string | undefined,
+				);
+				// ponytail: depth keyed off the primary model, not the plan.
+				systemPrompt += `\n${depthDirective("prd", modelsToTry[0])}`;
+
 				let fullMessages: Array<{
 					role: "system" | "user" | "assistant";
 					content: string;
@@ -176,11 +184,6 @@ export const Route = createFileRoute("/api/chat")({
 						{ role: "user" as const, content: message },
 					];
 				}
-
-				const modelsToTry = selectModels(
-					plan,
-					preferences?.model as string | undefined,
-				);
 
 				const stream = new ReadableStream({
 					async start(controller) {

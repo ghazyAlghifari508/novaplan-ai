@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as HistoryRouteImport } from './routes/history'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MaintenanceRouteImport } from './routes/maintenance'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
@@ -67,6 +68,11 @@ const IndexRoute = IndexRouteImport.update({
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistoryRoute = HistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -308,6 +314,7 @@ const ApiV1TasksIdStatusRoute = ApiV1TasksIdStatusRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/maintenance': typeof MaintenanceRoute
   '/onboarding': typeof OnboardingRoute
@@ -359,6 +366,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/maintenance': typeof MaintenanceRoute
   '/onboarding': typeof OnboardingRoute
@@ -410,6 +418,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/maintenance': typeof MaintenanceRoute
   '/onboarding': typeof OnboardingRoute
@@ -463,6 +472,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/history'
     | '/login'
     | '/maintenance'
     | '/onboarding'
@@ -514,6 +524,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/history'
     | '/login'
     | '/maintenance'
     | '/onboarding'
@@ -564,6 +575,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/history'
     | '/login'
     | '/maintenance'
     | '/onboarding'
@@ -616,6 +628,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  HistoryRoute: typeof HistoryRoute
   LoginRoute: typeof LoginRoute
   MaintenanceRoute: typeof MaintenanceRoute
   OnboardingRoute: typeof OnboardingRoute
@@ -669,6 +682,13 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/history': {
+      id: '/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof HistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -1056,6 +1076,7 @@ const ApiV1ProjectsIdRouteWithChildren = ApiV1ProjectsIdRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  HistoryRoute: HistoryRoute,
   LoginRoute: LoginRoute,
   MaintenanceRoute: MaintenanceRoute,
   OnboardingRoute: OnboardingRoute,

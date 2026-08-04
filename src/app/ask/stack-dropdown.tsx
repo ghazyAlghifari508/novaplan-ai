@@ -5,10 +5,13 @@ import {
 	Check,
 	ChevronDown,
 	type LucideIcon,
+	Search,
 	X,
 } from "lucide-react";
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
+import { stackIconUrl, stackIconNeedsDarkInvert } from "@/lib/stack-data";
 
 interface StackDropdownProps {
 	label: string;
@@ -21,6 +24,7 @@ interface StackDropdownProps {
 	disabled: boolean;
 	skipped?: boolean;
 	allowSkip?: boolean;
+	dropUp?: boolean;
 	onChange: (value: string | undefined) => void;
 	onToggleSkip?: () => void;
 }
@@ -36,6 +40,7 @@ export function StackDropdown({
 	disabled,
 	skipped,
 	allowSkip,
+	dropUp,
 	onChange,
 	onToggleSkip,
 }: StackDropdownProps) {
@@ -47,6 +52,21 @@ export function StackDropdown({
 	const [customMode, setCustomMode] = useState(false);
 	const [customDraft, setCustomDraft] = useState("");
 	const [highlightIdx, setHighlightIdx] = useState(-1);
+	const [searchQuery, setSearchQuery] = useState("");
+	const { resolvedTheme } = useTheme();
+	const isDark = resolvedTheme === "dark";
+
+	/** Returns inline style to invert black-fill icons in dark mode, undefined otherwise. */
+	const invertIfDark = (label: string) =>
+		stackIconNeedsDarkInvert(label) && isDark
+			? ({ filter: "brightness(0) invert(1)" } as React.CSSProperties)
+			: undefined;
+
+	const filtered = useMemo(() => {
+		if (!searchQuery.trim()) return options;
+		const q = searchQuery.toLowerCase();
+		return options.filter((o) => o.toLowerCase().includes(q));
+	}, [options, searchQuery]);
 
 	const isCustomValue = Boolean(value) && !options.includes(value ?? "");
 	const displayValue = value || "";
@@ -67,6 +87,7 @@ export function StackDropdown({
 				return;
 			setOpen(false);
 			setCustomMode(false);
+			setSearchQuery("");
 		};
 		document.addEventListener("pointerdown", handler);
 		return () => document.removeEventListener("pointerdown", handler);
@@ -92,6 +113,7 @@ export function StackDropdown({
 			setOpen(false);
 			setCustomMode(false);
 			setHighlightIdx(-1);
+			setSearchQuery("");
 		},
 		[onChange, isCustomValue, value],
 	);
@@ -111,7 +133,7 @@ export function StackDropdown({
 
 		if (!open) return;
 
-		const allItems = [...options, "__custom__"];
+		const allItems = [...filtered, "__custom__"];
 		const maxIdx = allItems.length - 1;
 
 		switch (e.key) {
@@ -134,11 +156,16 @@ export function StackDropdown({
 				e.preventDefault();
 				setOpen(false);
 				setCustomMode(false);
+				setSearchQuery("");
 				break;
 		}
 	};
 
 	const clearable = Boolean(displayValue || isCustomValue || customMode);
+
+	// Icon for selected value shown in trigger
+	const selectedIconUrl = value && !isCustomValue ? stackIconUrl(value) : null;
+	const selectedIconStyle = selectedIconUrl && isDark && stackIconNeedsDarkInvert(value ?? "") ? { filter: "brightness(0) invert(1)" } as React.CSSProperties : undefined;
 
 	return (
 		<div
@@ -206,11 +233,14 @@ export function StackDropdown({
 					onClick={() => {
 						if (disabled || skipped) return;
 						setOpen((o) => !o);
-						if (!open) setHighlightIdx(options.indexOf(value ?? ""));
+						if (!open) {
+							setSearchQuery("");
+							setHighlightIdx(options.indexOf(value ?? ""));
+						}
 					}}
 					onKeyDown={handleKeyDown}
 					className={cn(
-						"flex w-full items-center justify-between rounded-lg border px-4 py-3 font-inter text-sm transition-all focus-visible:outline-none",
+						"flex w-full items-center justify-between gap-2 rounded-lg border px-4 py-3 font-inter text-sm transition-all focus-visible:outline-none",
 						open ? "border-(--text-secondary)" : "border-(--border-subtle)",
 					)}
 					style={{
@@ -218,7 +248,10 @@ export function StackDropdown({
 						color: displayValue ? "var(--text-primary)" : "var(--text-muted)",
 					}}
 				>
-					<span className="truncate">
+					<span className="flex items-center gap-2 truncate">
+						{selectedIconUrl && (
+							<img src={selectedIconUrl} alt="" width={16} height={16} className="shrink-0" style={selectedIconStyle} loading="lazy" />
+						)}
 						{skipped
 							? "Dilewati"
 							: displayValue && !isCustomValue
@@ -241,11 +274,34 @@ export function StackDropdown({
 					<div
 						ref={listRef}
 						role="listbox"
-						className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-(--border-subtle) py-1 shadow-(--shadow-overlay)"
+						className={cn(
+							"absolute z-50 max-h-60 w-full overflow-y-auto rounded-lg border border-(--border-subtle) py-1 shadow-(--shadow-overlay)",
+							dropUp ? "bottom-full mb-1" : "mt-1",
+						)}
 						style={{ background: "var(--bg-elevated)" }}
 					>
-						{options.map((opt, i) => {
+						{/* Search */}
+						<div className="sticky top-0 z-10 border-b border-(--border-subtle) px-3 py-2" style={{ background: "var(--bg-elevated)" }}>
+							<div className="flex items-center gap-2 rounded-md border border-(--border-subtle) px-3 py-1.5" style={{ background: "var(--bg-input)" }}>
+								<Search size={14} className="shrink-0 text-fog" />
+								<input
+									type="text"
+									value={searchQuery}
+									onChange={(e) => { setSearchQuery(e.target.value); setHighlightIdx(-1); }}
+									placeholder="Cari..."
+									className="w-full bg-transparent font-inter text-sm outline-none"
+									style={{ color: "var(--text-primary)" }}
+								/>
+							</div>
+						</div>
+
+						{filtered.length === 0 && (
+							<p className="px-4 py-3 font-inter text-sm text-fog italic">Tidak ditemukan</p>
+						)}
+
+						{filtered.map((opt, i) => {
 							const selected = opt === value;
+							const iconUrl = stackIconUrl(opt);
 							return (
 								<div
 									key={opt}
@@ -257,7 +313,7 @@ export function StackDropdown({
 										selectOption(opt);
 									}}
 									className={cn(
-										"flex cursor-pointer items-center justify-between px-4 py-2.5 font-inter text-sm transition-colors",
+										"flex cursor-pointer items-center justify-between gap-2 px-4 py-2.5 font-inter text-sm transition-colors",
 										i === highlightIdx
 											? "bg-white/10 text-snow"
 											: selected
@@ -265,7 +321,12 @@ export function StackDropdown({
 												: "text-fog hover:bg-white/5 hover:text-snow",
 									)}
 								>
-									<span className="truncate">{opt}</span>
+									<span className="flex items-center gap-2 truncate">
+										{iconUrl && (
+											<img src={iconUrl} alt="" width={16} height={16} className="shrink-0" style={invertIfDark(opt)} loading="lazy" />
+										)}
+										{opt}
+									</span>
 									{selected && (
 										<Check size={14} className="shrink-0 text-fog" />
 									)}
@@ -310,7 +371,7 @@ export function StackDropdown({
 								}}
 								className={cn(
 									"flex cursor-pointer items-center gap-2 px-4 py-2.5 font-inter text-sm transition-colors",
-									highlightIdx === options.length
+									highlightIdx === filtered.length
 										? "bg-white/10 text-snow"
 										: "text-fog hover:bg-white/5 hover:text-snow",
 								)}

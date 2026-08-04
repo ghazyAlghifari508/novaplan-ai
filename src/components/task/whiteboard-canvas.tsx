@@ -18,8 +18,11 @@ const SUBTASK_LINE_H = 24;
 const TASK_HEADER_H = 44;
 const TASK_FOOTER_H = 32;
 const MAX_VISIBLE_SUBTASKS = 3;
-const DETAIL_W = 240;
-const DETAIL_H = 52;
+const DETAIL_W = 260;
+const DETAIL_HEADER_H = 34;
+const DETAIL_LINE_H = 20;
+const DETAIL_FOOTER_H = 24;
+const MAX_VISIBLE_DETAILS = 3;
 const DETAIL_GAP_Y = 12;
 
 const LEVEL_GAP_X = 120;
@@ -49,6 +52,8 @@ interface LayoutNode {
   subtasks?: Array<{ name: string }>;
   totalSubtasks?: number;
   parentSubtask?: string;
+  details?: string[];
+  totalDetails?: number;
 }
 
 interface LayoutEdge {
@@ -74,12 +79,21 @@ function layoutGraph(
     return TASK_HEADER_H + visible * SUBTASK_LINE_H + (subtaskCount > MAX_VISIBLE_SUBTASKS ? TASK_FOOTER_H : 12);
   }
 
-  function detailsCount(task: TaskTree["features"][number]["tasks"][number]): number {
-    return task.subtasks.reduce((s, sub) => s + (sub.details?.length ?? 0), 0);
+  // ponytail: one detail node per subtask (was one per detail item).
+  function detailGroups(task: TaskTree["features"][number]["tasks"][number]) {
+    return task.subtasks
+      .map((sub) => ({ parentSubtask: sub.name, items: sub.details ?? [] }))
+      .filter((g) => g.items.length > 0);
   }
 
-  function detailStackH(count: number): number {
-    return count === 0 ? 0 : count * DETAIL_H + (count - 1) * DETAIL_GAP_Y;
+  function detailNodeH(itemCount: number): number {
+    const visible = Math.min(itemCount, MAX_VISIBLE_DETAILS);
+    return DETAIL_HEADER_H + visible * DETAIL_LINE_H + (itemCount > MAX_VISIBLE_DETAILS ? DETAIL_FOOTER_H : 10);
+  }
+
+  function detailStackH(groups: ReturnType<typeof detailGroups>): number {
+    if (groups.length === 0) return 0;
+    return groups.reduce((s, g) => s + detailNodeH(g.items.length), 0) + (groups.length - 1) * DETAIL_GAP_Y;
   }
 
   // Pass 1: compute feature subtree heights (sum of its task cards + gaps)
@@ -92,7 +106,7 @@ function layoutGraph(
   const featureTaskSlotHeights: number[][] = [];
   for (const feature of features) {
     const ownHs = feature.tasks.map((t) => Math.max(TASK_MIN_H, taskCardH(t.subtasks.length)));
-    const slotHs = feature.tasks.map((t, ti) => Math.max(ownHs[ti], detailStackH(detailsCount(t))));
+    const slotHs = feature.tasks.map((t, ti) => Math.max(ownHs[ti], detailStackH(detailGroups(t))));
     featureTaskOwnHeights.push(ownHs);
     featureTaskSlotHeights.push(slotHs);
     const total = slotHs.reduce((s, h) => s + h, 0) + Math.max(0, slotHs.length - 1) * SIBLING_GAP_Y;
@@ -188,24 +202,26 @@ function layoutGraph(
       });
 
       // Details: one node per detail item, flattened across this task's subtasks
-      const details = task.subtasks.flatMap((sub) =>
-        (sub.details ?? []).map((text) => ({ text, parentSubtask: sub.name })),
-      );
-      if (details.length > 0) {
+      const groups = detailGroups(task);
+      if (groups.length > 0) {
         const detailX = taskX + TASK_W + LEVEL_GAP_X;
-        const totalDetailH = detailStackH(details.length);
-        let detailCursorY = slotMidY - totalDetailH / 2;
+        let detailCursorY = slotMidY - detailStackH(groups) / 2;
 
-        for (let di = 0; di < details.length; di++) {
+        for (let di = 0; di < groups.length; di++) {
+          const group = groups[di];
+          const h = detailNodeH(group.items.length);
+
           nodes.push({
             id: `f-${fi}-t-${ti}-d-${di}`,
             type: "detail",
-            label: details[di].text,
-            parentSubtask: details[di].parentSubtask,
+            label: group.parentSubtask,
+            parentSubtask: group.parentSubtask,
+            details: group.items,
+            totalDetails: group.items.length,
             x: detailX,
             y: detailCursorY,
             w: DETAIL_W,
-            h: DETAIL_H,
+            h,
             colorIdx,
           });
 
@@ -213,11 +229,11 @@ function layoutGraph(
             x1: taskX + TASK_W,
             y1: slotMidY,
             x2: detailX,
-            y2: detailCursorY + DETAIL_H / 2,
+            y2: detailCursorY + h / 2,
             color: COLORS[colorIdx].accent,
           });
 
-          detailCursorY += DETAIL_H + DETAIL_GAP_Y;
+          detailCursorY += h + DETAIL_GAP_Y;
         }
       }
 
@@ -300,6 +316,8 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     if (openDetail || openTask) return;
+    // ponytail: blocks native text-selection drag that fought panning.
+    if (e.pointerType === "mouse") e.preventDefault();
     startPan(e);
   }, [openDetail, openTask, startPan]);
 
@@ -316,7 +334,7 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({
   return (
     <div
       ref={containerRef}
-      className="relative h-full w-full touch-none overflow-hidden overscroll-none bg-onyx outline-none focus-visible:ring-2 focus-visible:ring-indigo/40 cursor-grab active:cursor-grabbing"
+      className="relative h-full w-full touch-none select-none overflow-hidden overscroll-none bg-onyx outline-none focus-visible:ring-2 focus-visible:ring-indigo/40 cursor-grab active:cursor-grabbing"
       style={{
         backgroundImage: DOT_BG_IMAGE,
         backgroundSize: `${20 * zoom}px ${20 * zoom}px`,
@@ -473,15 +491,29 @@ function DetailNode({ node, onOpen }: { node: LayoutNode; onOpen: (node: LayoutN
   const color = COLORS[node.colorIdx];
   return (
     <div
-      className={`absolute rounded-md border ${color.border} bg-obsidian shadow-sm animate-fadeIn px-3 py-2 cursor-pointer`}
+      className={`absolute overflow-hidden rounded-md border ${color.border} bg-obsidian shadow-sm animate-fadeIn cursor-pointer`}
       style={{ left: node.x, top: node.y, width: node.w, height: node.h }}
       onClick={(e) => { e.stopPropagation(); onOpen(node); }}
       onPointerDown={(e) => e.stopPropagation()}
     >
-      {node.parentSubtask && (
-        <p className="truncate text-[9px] uppercase tracking-wide text-fog/60">{node.parentSubtask}</p>
+      <div className="px-3 pt-2 pb-1.5">
+        <p className="truncate text-[9px] uppercase tracking-wide text-fog/60" title={node.parentSubtask}>
+          {node.parentSubtask}
+        </p>
+      </div>
+      <ul className="px-3">
+        {(node.details ?? []).slice(0, MAX_VISIBLE_DETAILS).map((d) => (
+          <li key={d} className="flex items-start gap-1.5 truncate font-inter text-[11px] leading-5 text-snow" title={d}>
+            <span className={`mt-[7px] size-1 shrink-0 rounded-full ${color.badge}`} />
+            <span className="truncate">{d}</span>
+          </li>
+        ))}
+      </ul>
+      {(node.totalDetails ?? 0) > MAX_VISIBLE_DETAILS && (
+        <p className="px-3 pt-1 text-[10px] font-[510] text-indigo">
+          +{(node.totalDetails ?? 0) - MAX_VISIBLE_DETAILS} lainnya
+        </p>
       )}
-      <p className="truncate font-inter text-[11px] text-snow">{node.label}</p>
     </div>
   );
 }
@@ -497,18 +529,26 @@ function DetailModal({ node, onClose }: { node: LayoutNode; onClose: () => void 
       onClick={onClose}
     >
       <div
-        className={`w-full max-w-md rounded-xl border ${color.border} bg-obsidian p-5 shadow-[var(--shadow-overlay)] animate-in zoom-in-95 duration-200`}
+        className={`w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-xl border ${color.border} bg-obsidian p-5 shadow-[var(--shadow-overlay)] animate-in zoom-in-95 duration-200`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mb-3 flex items-start justify-between gap-3">
-          {node.parentSubtask && (
-            <p className="text-xs uppercase tracking-wide text-fog/60">{node.parentSubtask}</p>
-          )}
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-wide text-fog/60">Detail subtask</p>
+            <p className="font-inter text-sm font-[510] text-snow">{node.parentSubtask}</p>
+          </div>
           <button onClick={onClose} className="ml-auto shrink-0 text-fog transition-colors hover:text-snow">
             <X size={18} />
           </button>
         </div>
-        <p className="font-inter text-sm leading-relaxed text-snow">{node.label}</p>
+        <ul className="space-y-2">
+          {(node.details ?? []).map((d) => (
+            <li key={d} className="flex items-start gap-2">
+              <span className={`mt-1.5 size-1.5 shrink-0 rounded-full ${color.badge}`} />
+              <span className="font-inter text-sm leading-relaxed text-snow">{d}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );

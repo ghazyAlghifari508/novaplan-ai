@@ -8,65 +8,20 @@ import {
 	getAskState,
 	getSetupPrompt,
 	saveAskState,
-	clearAskState,
 	savePendingPrdPrompt,
 } from "@/lib/prompt-handoff";
+import {
+	FRONTEND_WEB_OPTIONS,
+	FRONTEND_MOBILE_OPTIONS,
+	BACKEND_OPTIONS,
+	FULLSTACK_FRAMEWORK_OPTIONS,
+	FULLSTACK_MOBILE_OPTIONS,
+	DATABASE_OPTIONS,
+	DEPLOYMENT_OPTIONS,
+	DEPLOYMENT_MOBILE_OPTIONS,
+} from "@/lib/stack-data";
 import { type NonTechAnswer, QuestionCard } from "./question-card";
 import { StackDropdown } from "./stack-dropdown";
-
-const FRONTEND_WEB_OPTIONS = [
-	"React (Vite)",
-	"Next.js",
-	"Vue.js",
-	"Svelte",
-	"Astro",
-	"Native HTML/CSS/JS",
-	"TanStack Start",
-	"Nuxt",
-	"Angular",
-];
-const FRONTEND_MOBILE_OPTIONS = [
-	"Flutter",
-	"React Native",
-	"Native iOS (Swift)",
-	"Native Android (Kotlin)",
-	"Expo",
-];
-const BACKEND_OPTIONS = [
-	"Express.js",
-	"Fastify",
-	"Go",
-	"Python (FastAPI/Django)",
-	"Supabase",
-	"Insforge",
-	"Convex",
-	"Firebase",
-];
-const FULLSTACK_FRAMEWORK_OPTIONS = [
-	"Laravel Blade",
-	"Laravel + React (Inertia)",
-	"Laravel + Vue (Inertia)",
-	"Next.js (FE+BE)",
-	"Nuxt.js (FE+BE)",
-	"TanStack Start (FE+BE)",
-];
-const DATABASE_OPTIONS = [
-	"PostgreSQL",
-	"MySQL",
-	"SQLite",
-	"MongoDB",
-	"Neon",
-	"Supabase Postgres",
-];
-const DEPLOYMENT_OPTIONS = [
-	"Vercel",
-	"Docker/K8s (self-hosted)",
-	"Coolify",
-	"VPS Manual",
-	"Railway",
-	"Netlify",
-	"GitHub Pages",
-];
 
 interface AskQuestion {
 	id: string;
@@ -208,6 +163,10 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 	);
 	const frontendOptions =
 		platform === "mobile" ? FRONTEND_MOBILE_OPTIONS : FRONTEND_WEB_OPTIONS;
+	const fullstackOptions =
+		platform === "mobile" ? FULLSTACK_MOBILE_OPTIONS : FULLSTACK_FRAMEWORK_OPTIONS;
+	const deploymentOptions =
+		platform === "mobile" ? DEPLOYMENT_MOBILE_OPTIONS : DEPLOYMENT_OPTIONS;
 
 	const answeredCount = Object.values(nonTechAnswers).filter(
 		(a) => a.value || a.skipped,
@@ -248,7 +207,6 @@ Database: ${tech.database || "Biarkan AI yang memilih"}
 Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 
 		savePendingPrdPrompt(compiledPrompt, "auto", projectName);
-		clearAskState();
 		router.push(`/prd/${projectId}`);
 	};
 
@@ -367,12 +325,12 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 							onToggleSkip={() => toggleSkipTech("backend")}
 						/>
 						<StackDropdown
-							label="Fullstack Framework"
-							subtitle="Frontend + backend jadi satu"
+							label={platform === "mobile" ? "Mobile + Backend" : "Fullstack Framework"}
+							subtitle={platform === "mobile" ? "Mobile FE + backend jadi satu" : "Frontend + backend jadi satu"}
 							icon={Layers}
 							accent="#e879a6"
 							placeholder="Pilih framework..."
-							options={FULLSTACK_FRAMEWORK_OPTIONS}
+							options={fullstackOptions}
 							value={techAnswers.fullstackFramework}
 							disabled={fullstackDisabled}
 							skipped={skippedTech.has("fullstackFramework")}
@@ -404,11 +362,12 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 							icon={Rocket}
 							accent="#a78bfa"
 							placeholder="Pilih platform..."
-							options={DEPLOYMENT_OPTIONS}
+							options={deploymentOptions}
 							value={techAnswers.deployment}
 							disabled={false}
 							skipped={skippedTech.has("deployment")}
 							allowSkip
+							dropUp
 							onChange={(v) =>
 								setTechAnswers((prev) => ({ ...prev, deployment: v }))
 							}
