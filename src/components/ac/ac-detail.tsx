@@ -7,7 +7,8 @@ import { TableOfContents } from "@/components/prd/table-of-contents";
 import { usePanelResize } from "@/hooks/use-panel-resize";
 import { useUIStore, useChatStore } from "@/store";
 import type { AcVersion, Plan } from "@/types/database";
-import { FileText, ArrowRight } from "lucide-react";
+import { FileText, ArrowRight, X } from "lucide-react";
+import { ChatPanel } from "@/components/chat";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -40,6 +41,7 @@ export function AcDetail({
   const abortRef = useRef<AbortController | null>(null);
   const contentRef = useRef("");
 
+  const [activeTab, setActiveTab] = useState<"doc" | "chat">("doc");
   const acContent = latestAcVersion?.content || null;
 
   const handleRetrySave = useCallback(async () => {
@@ -206,64 +208,110 @@ export function AcDetail({
   const isStreaming = isGenerating;
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-onyx text-(--text-primary)">
-      {/* Left: TOC */}
-      <aside
-        style={{ width: `${leftWidth}px`, background: "var(--bg-page)" }}
-        className={cn(
-          "relative hidden h-full shrink-0 overflow-y-auto border-r border-(--color-graphite) bg-onyx p-4 md:block",
-          !isDraggingLeft && "transition-[width] duration-300",
-        )}
-      >
-        <TableOfContents content={isStreaming ? streamingContent : acContent || ""} maxLevel={2} />
-        <div
-          className="absolute right-[-4px] top-0 z-10 h-full w-2 cursor-col-resize transition-colors hover:bg-indigo/20"
-          onMouseDown={onStartDragLeft}
-        />
-      </aside>
+    <div className="flex h-dvh flex-col overflow-hidden bg-onyx text-(--text-primary)">
+      {/* Mobile Tab Toggle (<md) */}
+      <div className="flex shrink-0 border-b border-graphite bg-charcoal md:hidden">
+        <button
+          onClick={() => setActiveTab("doc")}
+          className={cn(
+            "flex-1 py-2.5 text-center text-sm font-[510] transition-colors border-b-2",
+            activeTab === "doc"
+              ? "border-indigo text-snow bg-white/5"
+              : "border-transparent text-fog hover:text-snow"
+          )}
+        >
+          Dokumen
+        </button>
+        <button
+          onClick={() => setActiveTab("chat")}
+          className={cn(
+            "flex-1 py-2.5 text-center text-sm font-[510] transition-colors border-b-2",
+            activeTab === "chat"
+              ? "border-indigo text-snow bg-white/5"
+              : "border-transparent text-fog hover:text-snow"
+          )}
+        >
+          Chat
+        </button>
+      </div>
 
-      {/* Center */}
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden" style={{ background: "var(--bg-page)" }}>
-        {/* Topbar */}
-        <div className="flex shrink-0 items-center border-b border-(--color-graphite) bg-obsidian px-4 py-3">
-          <h1 className="truncate font-(--font-inter) text-lg font-[510] text-(--text-primary)">AC - {projectName}</h1>
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left: TOC */}
+        <aside
+          style={{ width: `${leftWidth}px`, background: "var(--bg-page)" }}
+          className={cn(
+            "relative hidden h-full shrink-0 overflow-y-auto border-r border-(--color-graphite) bg-onyx p-4 md:block",
+            !isDraggingLeft && "transition-[width] duration-300",
+          )}
+        >
+          <TableOfContents content={isStreaming ? streamingContent : acContent || ""} maxLevel={2} />
+          <div
+            className="absolute right-[-4px] top-0 z-10 h-full w-2 cursor-col-resize transition-colors hover:bg-indigo/20"
+            onMouseDown={onStartDragLeft}
+          />
+        </aside>
+
+        {/* Center Document View */}
+        <div
+          className={cn(
+            "flex min-w-0 flex-1 flex-col overflow-hidden",
+            activeTab !== "doc" && "hidden md:flex"
+          )}
+          style={{ background: "var(--bg-page)" }}
+        >
+          {/* Topbar */}
+          <div className="flex shrink-0 items-center border-b border-(--color-graphite) bg-obsidian px-4 py-3">
+            <h1 className="truncate font-(--font-inter) text-lg font-[510] text-(--text-primary)">AC - {projectName}</h1>
+          </div>
+
+          {saveFailed && (
+            <div
+              role="alert"
+              className="flex shrink-0 flex-wrap items-center gap-3 border-b border-(--color-graphite) bg-amber-500/10 px-4 py-3 text-sm"
+            >
+              <span className="text-amber-500">
+                AC berhasil digenerate tetapi gagal disimpan karena masalah koneksi database.
+              </span>
+              <button
+                onClick={handleRetrySave}
+                disabled={isRetrySaving}
+                className="rounded-md bg-amber-500 px-3 py-1.5 font-[510] text-black transition-opacity hover:opacity-90 disabled:opacity-50"
+              >
+                {isRetrySaving ? "Menyimpan..." : "Retry Simpan (Tanpa AI)"}
+              </button>
+              <button
+                onClick={handleGenerate}
+                disabled={isRetrySaving}
+                className="rounded-md border border-(--color-graphite) px-3 py-1.5 text-(--text-secondary) transition-colors hover:bg-white/5 disabled:opacity-50"
+              >
+                Generate Ulang
+              </button>
+            </div>
+          )}
+
+          {/* AC Viewer */}
+          <div className="flex-1 overflow-hidden">
+            <AcViewer
+              content={acContent}
+              streamingContent={streamingContent}
+              isStreaming={isStreaming}
+              hasError={hasError}
+              projectName={projectName}
+              plan={plan}
+              className=""
+            />
+          </div>
         </div>
 
-        {saveFailed && (
-          <div
-            role="alert"
-            className="flex shrink-0 flex-wrap items-center gap-3 border-b border-(--color-graphite) bg-amber-500/10 px-4 py-3 text-sm"
-          >
-            <span className="text-amber-500">
-              AC berhasil digenerate tetapi gagal disimpan karena masalah koneksi database.
-            </span>
-            <button
-              onClick={handleRetrySave}
-              disabled={isRetrySaving}
-              className="rounded-md bg-amber-500 px-3 py-1.5 font-[510] text-black transition-opacity hover:opacity-90 disabled:opacity-50"
-            >
-              {isRetrySaving ? "Menyimpan..." : "Retry Simpan (Tanpa AI)"}
-            </button>
-            <button
-              onClick={handleGenerate}
-              disabled={isRetrySaving}
-              className="rounded-md border border-(--color-graphite) px-3 py-1.5 text-(--text-secondary) transition-colors hover:bg-white/5 disabled:opacity-50"
-            >
-              Generate Ulang
-            </button>
-          </div>
-        )}
-
-        {/* AC Viewer */}
-        <div className="flex-1 overflow-hidden">
-          <AcViewer
-            content={acContent}
-            streamingContent={streamingContent}
-            isStreaming={isStreaming}
-            hasError={hasError}
-            projectName={projectName}
-            plan={plan}
-            className=""
+        {/* Mobile Chat Panel (<md) */}
+        <div className={cn("flex-1 overflow-hidden md:hidden", activeTab !== "chat" && "hidden")}>
+          <ChatPanel
+            projectId={projectId}
+            className="h-full w-full border-none"
+            enableAutoSubmit={false}
+            acMode={true}
+            currentAcContent={acContent || streamingContent}
+            userPlan={plan}
           />
         </div>
       </div>

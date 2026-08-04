@@ -190,7 +190,7 @@ export function KanbanBoard({ projectId, projectName }: KanbanBoardProps) {
 
       {/* Main Column Layout Area */}
       <div
-        className="flex-1 overflow-x-auto overflow-y-hidden select-none custom-scrollbar"
+        className="flex-1 overflow-x-auto overflow-y-hidden select-none custom-scrollbar snap-x snap-mandatory sm:snap-none"
         role="list"
         aria-label="Kanban columns"
       >

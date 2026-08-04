@@ -229,7 +229,7 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 				<button
 					type="button"
 					onClick={() => router.push("/")}
-					className="btn-primary rounded-md px-4 py-2 font-inter text-sm"
+					className="btn-primary rounded-md px-4 py-2 min-h-[44px] inline-flex items-center justify-center font-inter text-sm"
 				>
 					Kembali ke Home
 				</button>
@@ -238,7 +238,7 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 	}
 
 	return (
-		<div className="hide-scrollbar mx-auto flex-1 w-full max-w-3xl overflow-y-auto px-6 py-12 min-h-0">
+		<div className="hide-scrollbar mx-auto flex-1 w-full max-w-3xl overflow-y-auto px-4 sm:px-6 py-6 sm:py-12 min-h-0">
 			<div className="mb-8 flex items-center justify-between">
 				<div>
 					<p className="font-inter text-xs uppercase tracking-wide text-fog">
@@ -280,7 +280,7 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 							type="button"
 							disabled={!allNonTechAnswered}
 							onClick={() => setSession(2)}
-							className="btn-primary rounded-md px-6 py-2.5 font-inter text-sm font-[510] disabled:opacity-40 disabled:cursor-not-allowed"
+							className="btn-primary rounded-md px-6 py-2.5 min-h-[44px] inline-flex items-center justify-center font-inter text-sm font-[510] disabled:opacity-40 disabled:cursor-not-allowed"
 						>
 							Lanjut
 						</button>

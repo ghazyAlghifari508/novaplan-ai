@@ -74,32 +74,39 @@ export function FlowStepNav() {
         })}
       </ol>
 
-      {/* Mobile: abbreviated step dots */}
-      <ol
-        aria-label="Flow step (mobile)"
-        className="flex items-center gap-1.5 md:hidden"
-      >
-        {STEPS.map((step, idx) => {
-          const isCompleted = idx < currentIdx || (step.key === "task" && isTaskGenerated);
-          const isActive = idx === currentIdx && !isCompleted;
+      {/* Mobile: abbreviated step dots + active step label */}
+      <div className="flex items-center gap-2 md:hidden">
+        <ol
+          aria-label="Flow step (mobile)"
+          className="flex items-center gap-1.5"
+        >
+          {STEPS.map((step, idx) => {
+            const isCompleted = idx < currentIdx || (step.key === "task" && isTaskGenerated);
+            const isActive = idx === currentIdx && !isCompleted;
 
-          return (
-            <li key={step.key} className="flex items-center gap-1" aria-current={isActive ? "step" : undefined}>
-              {idx > 0 && <span aria-hidden className="h-px w-1.5 bg-graphite" />}
-              <span
-                className={cn(
-                  "flex h-4 w-4 items-center justify-center rounded-full text-[8px] font-[510] transition-colors",
-                  isCompleted && "bg-emerald text-charcoal",
-                  isActive && "bg-indigo text-white",
-                  !isCompleted && !isActive && "border border-graphite text-fog"
-                )}
-              >
-                {isCompleted ? <Check size={8} strokeWidth={3} /> : idx + 1}
-              </span>
-            </li>
-          );
-        })}
-      </ol>
+            return (
+              <li key={step.key} className="flex items-center gap-1" aria-current={isActive ? "step" : undefined}>
+                {idx > 0 && <span aria-hidden className="h-px w-1.5 bg-graphite" />}
+                <span
+                  className={cn(
+                    "flex h-4 w-4 items-center justify-center rounded-full text-[8px] font-[510] transition-colors",
+                    isCompleted && "bg-emerald text-charcoal",
+                    isActive && "bg-indigo text-white",
+                    !isCompleted && !isActive && "border border-graphite text-fog"
+                  )}
+                >
+                  {isCompleted ? <Check size={8} strokeWidth={3} /> : idx + 1}
+                </span>
+              </li>
+            );
+          })}
+        </ol>
+        {STEPS[currentIdx] && (
+          <span className="font-inter text-xs font-[510] text-snow">
+            Step {currentIdx + 1}/{STEPS.length}: {STEPS[currentIdx].label}
+          </span>
+        )}
+      </div>
     </>
   );
 }

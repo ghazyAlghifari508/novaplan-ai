@@ -58,6 +58,7 @@ export function PrdDetail({
   // ── State ──
   const [currentContent, setCurrentContent] = useState(latestVersion?.content || "");
   const [selectedVersionNum, setSelectedVersionNum] = useState(latestVersion?.version || 1);
+  const [activeTab, setActiveTab] = useState<"doc" | "chat">("doc");
   // ponytail: versions list must be client-refreshable after revision - server-rendered
   // allVersions stays stale until next page load. Track locally so version history
   // appears immediately after revision without requiring a full page refresh.
@@ -219,12 +220,42 @@ export function PrdDetail({
   // ── Render ──
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-onyx text-snow">
-      {/* ═══════════ Center Panel ═══════════ */}
-      <div
-        className="flex flex-1 flex-col overflow-hidden min-w-0"
-        style={{ background: "var(--bg-page)" }}
-      >
+    <div className="flex h-dvh flex-col overflow-hidden bg-onyx text-snow">
+      {/* ═══════════ Mobile Tab Toggle (<md) ═══════════ */}
+      <div className="flex shrink-0 border-b border-graphite bg-charcoal md:hidden">
+        <button
+          onClick={() => setActiveTab("doc")}
+          className={cn(
+            "flex-1 py-2.5 text-center text-sm font-[510] transition-colors border-b-2",
+            activeTab === "doc"
+              ? "border-indigo text-snow bg-white/5"
+              : "border-transparent text-fog hover:text-snow"
+          )}
+        >
+          Dokumen
+        </button>
+        <button
+          onClick={() => setActiveTab("chat")}
+          className={cn(
+            "flex-1 py-2.5 text-center text-sm font-[510] transition-colors border-b-2",
+            activeTab === "chat"
+              ? "border-indigo text-snow bg-white/5"
+              : "border-transparent text-fog hover:text-snow"
+          )}
+        >
+          Chat
+        </button>
+      </div>
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* ═══════════ Center Panel (Document View) ═══════════ */}
+        <div
+          className={cn(
+            "flex flex-1 flex-col overflow-hidden min-w-0",
+            activeTab !== "doc" && "hidden md:flex"
+          )}
+          style={{ background: "var(--bg-page)" }}
+        >
         {projectId && !isCheckingGeneration && !isGeneratingPRD && !streamingPRDContent && !latestVersion ? (
           /* Error/Retry state - project exists but has no PRD version */
           <div className="flex-1 flex items-center justify-center p-4 sm:p-6">
@@ -320,8 +351,25 @@ export function PrdDetail({
         </div>
       </div>
 
-      {/* ═══════════ Mobile Chat Overlay ═══════════ */}
-      <div className="xl:hidden print:hidden">
+      {/* ═══════════ Mobile Chat View (<md) & Drawer (md to xl) ═══════════ */}
+      {/* 1. Full panel for Mobile View tab toggle (<md) */}
+      <div className={cn("flex-1 overflow-hidden md:hidden", activeTab !== "chat" && "hidden")}>
+        <ChatPanel
+          projectId={projectId}
+          conversationId={conversationId}
+          onProjectCreated={handleProjectCreated}
+          onPrdRevised={handlePrdRevised}
+          className="h-full w-full border-none"
+          enableAutoSubmit={false}
+          inputDisabled={!projectId && !isGeneratingPRD}
+          currentPrdContent={currentContent}
+          userPlan={plan}
+          selectedVersionNum={selectedVersionNum}
+        />
+      </div>
+
+      {/* 2. Slide-over drawer for tablet screens (md to xl) */}
+      <div className="hidden md:block xl:hidden print:hidden">
         {isChatOpen && (
           <div
             role="dialog"
@@ -344,7 +392,7 @@ export function PrdDetail({
                 projectId={projectId}
                 conversationId={conversationId}
                 onProjectCreated={handleProjectCreated}
-                onPrdRevised={setCurrentContent}
+                onPrdRevised={handlePrdRevised}
                 className="w-full border-none"
                 enableAutoSubmit={false}
                 inputDisabled={!projectId && !isGeneratingPRD}
@@ -355,6 +403,7 @@ export function PrdDetail({
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

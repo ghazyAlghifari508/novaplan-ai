@@ -198,7 +198,7 @@ export function StackDropdown({
 						type="button"
 						onClick={toggleSkip}
 						className={cn(
-							"shrink-0 rounded-full px-3 py-1 font-inter text-xs transition-colors",
+							"shrink-0 rounded-full px-3 py-1 min-h-[44px] inline-flex items-center justify-center font-inter text-xs transition-colors",
 							skipped ? "bg-steel text-snow" : "text-fog hover:text-snow",
 						)}
 					>
@@ -215,7 +215,7 @@ export function StackDropdown({
 							setCustomDraft("");
 							setOpen(false);
 						}}
-						className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-crimson transition-colors hover:bg-crimson/10"
+						className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-crimson transition-colors hover:bg-crimson/10"
 						aria-label={`Hapus pilihan ${label}`}
 					>
 						<X size={14} />
@@ -240,7 +240,7 @@ export function StackDropdown({
 					}}
 					onKeyDown={handleKeyDown}
 					className={cn(
-						"flex w-full items-center justify-between gap-2 rounded-lg border px-4 py-3 font-inter text-sm transition-all focus-visible:outline-none",
+						"flex w-full items-center justify-between gap-2 rounded-lg border px-4 py-3 min-h-[44px] font-inter text-sm transition-all focus-visible:outline-none",
 						open ? "border-(--text-secondary)" : "border-(--border-subtle)",
 					)}
 					style={{
@@ -313,7 +313,7 @@ export function StackDropdown({
 										selectOption(opt);
 									}}
 									className={cn(
-										"flex cursor-pointer items-center justify-between gap-2 px-4 py-2.5 font-inter text-sm transition-colors",
+										"flex cursor-pointer items-center justify-between gap-2 px-4 py-2.5 min-h-[44px] font-inter text-sm transition-colors",
 										i === highlightIdx
 											? "bg-white/10 text-snow"
 											: selected

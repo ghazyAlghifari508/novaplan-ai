@@ -86,7 +86,7 @@ export function QuestionCard({
 					type="button"
 					onClick={toggleSkip}
 					className={cn(
-						"shrink-0 rounded-full px-3 py-1 font-inter text-xs transition-colors",
+						"shrink-0 rounded-full px-3 py-1 min-h-[44px] inline-flex items-center justify-center font-inter text-xs transition-colors",
 						isSkipped
 							? "bg-steel text-snow"
 							: "text-fog hover:text-snow",
@@ -122,7 +122,7 @@ export function QuestionCard({
 						</button>
 					</div>
 				) : (
-					<div className="flex gap-2">
+					<div className="flex gap-2 min-h-[44px]">
 						<input
 							type="text"
 							value={textInput}
@@ -144,14 +144,14 @@ export function QuestionCard({
 							type="button"
 							onClick={submitText}
 							disabled={!textInput.trim()}
-							className="btn-primary rounded-lg px-4 py-2 font-inter text-sm font-[510] disabled:opacity-40 disabled:cursor-not-allowed"
+							className="btn-primary rounded-lg px-4 py-2 min-h-[44px] flex items-center justify-center text-center font-inter text-sm font-[510] disabled:opacity-40 disabled:cursor-not-allowed"
 						>
 							Simpan
 						</button>
 					</div>
 				)
 			) : type === "multiselect" ? (
-				<div className="flex flex-wrap gap-2">
+				<div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
 					{options?.map((opt) => {
 						const selected = answer?.values?.includes(opt) ?? false;
 						return (
@@ -160,7 +160,7 @@ export function QuestionCard({
 								key={opt}
 								onClick={() => toggleOption(opt)}
 								className={cn(
-									"rounded-full px-4 py-2 font-inter text-sm transition-colors",
+									"rounded-full px-4 py-2 min-h-[44px] font-inter text-sm transition-colors",
 									selected
 										? "btn-primary"
 										: "border border-(--border-subtle) text-fog hover:bg-white/5 hover:text-snow",
@@ -174,7 +174,7 @@ export function QuestionCard({
 			) : (
 				/* select: original pill options */
 				<>
-					<div className="flex flex-wrap gap-2">
+					<div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
 						{options?.map((opt) => (
 							<button
 								type="button"
@@ -184,7 +184,7 @@ export function QuestionCard({
 									onAnswer({ value: opt, isCustom: false, skipped: false });
 								}}
 								className={cn(
-									"rounded-full px-4 py-2 font-inter text-sm transition-colors",
+									"rounded-full px-4 py-2 min-h-[44px] font-inter text-sm transition-colors",
 									answer?.value === opt && !answer.isCustom
 										? "btn-primary"
 										: "border border-(--border-subtle) text-fog hover:bg-white/5 hover:text-snow",
@@ -197,7 +197,7 @@ export function QuestionCard({
 							type="button"
 							onClick={() => setShowCustomInput(true)}
 							className={cn(
-								"rounded-full border border-dashed border-(--border-subtle) px-4 py-2 font-inter text-sm transition-colors",
+								"rounded-full border border-dashed border-(--border-subtle) px-4 py-2 min-h-[44px] flex items-center justify-center text-center font-inter text-sm transition-colors",
 								answer?.isCustom
 									? "btn-primary border-solid"
 									: "text-fog hover:bg-white/5 hover:text-snow",
@@ -228,7 +228,7 @@ export function QuestionCard({
 							<button
 								type="button"
 								onClick={submitCustom}
-								className="btn-primary rounded-lg px-4 py-2 font-inter text-sm font-[510]"
+								className="btn-primary rounded-lg px-4 py-2 min-h-[44px] flex items-center justify-center text-center font-inter text-sm font-[510]"
 							>
 								Simpan
 							</button>
