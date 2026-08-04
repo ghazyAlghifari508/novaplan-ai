@@ -112,7 +112,7 @@ export function KanbanCard({ card, colorIndex, highlighted = false }: KanbanCard
 
       {/* Task Details Dialog */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-lg max-h-[85vh] flex flex-col overflow-hidden p-6 bg-obsidian border border-graphite rounded-xl">
+        <DialogContent className="max-w-lg max-h-[85vh] flex flex-col min-h-0 overflow-hidden p-6 bg-obsidian border border-graphite rounded-xl">
           <DialogHeader className="shrink-0 pb-2 border-b border-graphite/40">
             <div className="flex items-center gap-2 text-xs font-semibold text-indigo uppercase tracking-wider mb-1">
               <Layers size={14} />
@@ -126,7 +126,7 @@ export function KanbanCard({ card, colorIndex, highlighted = false }: KanbanCard
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto pr-1 mt-4 space-y-4 custom-scrollbar">
+          <div className="flex-1 min-h-0 overflow-y-auto pr-1.5 mt-4 space-y-4 custom-scrollbar">
             {/* Status Section */}
             <div className="flex items-center justify-between rounded-lg border border-graphite/40 bg-onyx/60 p-3">
               <span className="text-xs text-fog font-medium">Status Task</span>
