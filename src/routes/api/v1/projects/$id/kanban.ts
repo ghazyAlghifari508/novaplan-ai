@@ -9,10 +9,14 @@ interface TaskCard {
   type: "task";
   featureName: string;
   name: string;
-  description: string;
-  status: string;
+  description: string | null;
+  status: "pending" | "in_progress" | "completed" | "failed";
   subtaskCount: number;
+  subtaskCompleted: number;
   dependencies: string[];
+  startedAt: string | null;
+  completedAt: string | null;
+  subtasks: Array<{ name: string; status: string }>;
 }
 
 export const Route = createFileRoute("/api/v1/projects/$id/kanban")({
@@ -33,15 +37,20 @@ export const Route = createFileRoute("/api/v1/projects/$id/kanban")({
 
         const columns: Record<string, TaskCard[]> = { pending: [], in_progress: [], completed: [], failed: [] };
         for (const t of taskRows) {
+          const sub = Array.isArray(t.subtasks) ? t.subtasks as Array<Record<string, unknown>> : [];
           const card: TaskCard = {
             id: t.id,
             type: "task",
-            featureName: "Umum",
+            featureName: t.featureName || "Umum",
             name: t.title,
-            description: t.description ?? "",
-            status: t.status ?? "pending",
-            subtaskCount: Array.isArray(t.subtasks) ? (t.subtasks as unknown[]).length : 0,
+            description: t.description,
+            status: (t.status ?? "pending") as TaskCard["status"],
+            subtaskCount: sub.length,
+            subtaskCompleted: sub.filter((s) => s.status === "completed").length,
             dependencies: Array.isArray(t.dependencies) ? (t.dependencies as string[]) : [],
+            startedAt: t.startedAt ? (t.startedAt as Date).toISOString() : null,
+            completedAt: t.completedAt ? (t.completedAt as Date).toISOString() : null,
+            subtasks: sub.map((s) => ({ name: s.name as string, status: (s.status as string) ?? "pending" })),
           };
           (columns[card.status] ?? columns.pending).push(card);
         }

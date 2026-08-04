@@ -18,16 +18,26 @@ export const Route = createFileRoute("/api/v1/projects/$id/tasks")({
         const url = new URL(request.url);
         const statusFilter = url.searchParams.get("status");
         const rows = await db.select().from(tasks).where(eq(tasks.projectId, projectId)).orderBy(asc(tasks.order));
-        const filtered = statusFilter ? rows.filter((t) => t.status === statusFilter) : rows;
+        const filtered = statusFilter ? rows.filter((t) => (t.status ?? "pending") === statusFilter) : rows;
 
         return Response.json({
           tasks: filtered.map((t) => ({
             id: t.id,
             name: t.title,
-            status: t.status,
-            featureName: "Umum",
+            description: t.description,
+            status: t.status ?? "pending",
+            featureName: t.featureName || "Umum",
+            startedAt: t.startedAt ? (t.startedAt as Date).toISOString() : null,
+            completedAt: t.completedAt ? (t.completedAt as Date).toISOString() : null,
             dependencies: Array.isArray(t.dependencies) ? (t.dependencies as string[]) : [],
-            subtasks: Array.isArray(t.subtasks) ? (t.subtasks as Array<{ name: string; description: string }>) : [],
+            subtasks: Array.isArray(t.subtasks)
+              ? (t.subtasks as Array<Record<string, unknown>>).map((s) => ({
+                  name: s.name,
+                  description: s.description,
+                  status: s.status ?? "pending",
+                  details: s.details ?? [],
+                }))
+              : [],
           })),
         });
       },
