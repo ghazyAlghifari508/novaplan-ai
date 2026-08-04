@@ -58,7 +58,7 @@ export function KanbanCard({ card, colorIndex, highlighted = false }: KanbanCard
         tabIndex={0}
         onClick={() => setIsOpen(true)}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setIsOpen(true); } }}
-        className={`group relative flex cursor-pointer flex-col rounded-lg border border-graphite bg-obsidian p-3 shadow-sm transition-all duration-300 hover:border-steel hover:shadow-md hover:scale-[1.01] border-l-4 ${colorClass} ${highlighted ? "ring-2 ring-amber animate-flash" : ""}`}
+        className={`group relative flex cursor-pointer flex-col rounded-lg border border-graphite bg-obsidian p-3 shadow-sm transition-all duration-200 hover:border-steel hover:shadow-md ${highlighted ? "ring-2 ring-amber animate-flash" : ""}`}
       >
         <div className="flex items-start justify-between gap-2">
           <span className="font-inter text-sm font-[510] text-snow line-clamp-2">
@@ -75,8 +75,7 @@ export function KanbanCard({ card, colorIndex, highlighted = false }: KanbanCard
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
           {/* Feature Badge */}
-          <span className="inline-flex items-center gap-1 rounded-full bg-steel/10 px-2 py-0.5 text-[10px] text-mist">
-            <span className={`h-1.5 w-1.5 rounded-full bg-current ${COLORS[idx].split(" ")[2]}`} />
+          <span className="inline-flex items-center gap-1 rounded-md bg-white/5 border border-graphite/40 px-2 py-0.5 text-[10px] text-mist">
             {card.featureName}
           </span>
 
