@@ -15,6 +15,9 @@ interface TaskCard {
   subtaskCount: number;
   subtaskCompleted: number;
   dependencies: string[];
+  startedAt: string | null;
+  completedAt: string | null;
+  subtasks: Array<{ id: string; name: string; status: string }>;
 }
 
 export const Route = createFileRoute("/api/kanban/$pid")({
@@ -28,23 +31,26 @@ export const Route = createFileRoute("/api/kanban/$pid")({
         if (!project) return Response.json({ error: "Project not found" }, { status: 404 });
 
         const [taskRows, acRows] = await Promise.all([
-          db.select({ id: tasks.id, title: tasks.title, description: tasks.description, status: tasks.status, dependencies: tasks.dependencies, subtasks: tasks.subtasks, createdAt: tasks.createdAt }).from(tasks).where(eq(tasks.projectId, projectId)).orderBy(asc(tasks.order)),
+          db.select({ id: tasks.id, title: tasks.title, description: tasks.description, status: tasks.status, featureName: tasks.featureName, dependencies: tasks.dependencies, subtasks: tasks.subtasks, startedAt: tasks.startedAt, completedAt: tasks.completedAt, createdAt: tasks.createdAt }).from(tasks).where(eq(tasks.projectId, projectId)).orderBy(asc(tasks.order)),
           db.select({ createdAt: acVersions.createdAt }).from(acVersions).where(eq(acVersions.projectId, projectId)).orderBy(desc(acVersions.version)).limit(1),
         ]);
 
         const columns: Record<string, TaskCard[]> = { pending: [], in_progress: [], completed: [], failed: [] };
         for (const t of taskRows) {
-          const sub = Array.isArray(t.subtasks) ? (t.subtasks as unknown[]) : [];
+          const sub = Array.isArray(t.subtasks) ? t.subtasks as Array<Record<string, unknown>> : [];
           const card: TaskCard = {
             id: t.id,
             type: "task",
-            featureName: "Umum",
+            featureName: t.featureName || "Umum",
             name: t.title,
             description: t.description ?? "",
             status: (t.status ?? "pending") as TaskCard["status"],
             subtaskCount: sub.length,
-            subtaskCompleted: 0,
+            subtaskCompleted: sub.filter((s) => s.status === "completed").length,
             dependencies: Array.isArray(t.dependencies) ? (t.dependencies as string[]) : [],
+            startedAt: t.startedAt ? (t.startedAt as Date).toISOString() : null,
+            completedAt: t.completedAt ? (t.completedAt as Date).toISOString() : null,
+            subtasks: sub.map((s) => ({ id: "", name: s.name as string, status: (s.status as string) ?? "pending" })),
           };
           (columns[card.status] ?? columns.pending).push(card);
         }
