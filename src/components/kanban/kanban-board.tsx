@@ -155,7 +155,7 @@ export function KanbanBoard({ projectId, projectName }: KanbanBoardProps) {
             </span>
           )}
           <Link href={`/task/${projectId}`} className="btn-primary px-3 py-1.5 rounded-md text-xs font-[510]">
-            Ke Workspace Diagram
+            Roadmap
           </Link>
         </div>
       </div>
