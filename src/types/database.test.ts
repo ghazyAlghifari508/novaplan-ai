@@ -1,33 +1,41 @@
 import { describe, it, expect } from "vitest";
-import { PLAN_LIMITS, FEATURES } from "./database";
+import { PLAN_CREDITS, PLAN_PRICES, FEATURES } from "./database";
 
-describe("PLAN_LIMITS", () => {
-  it("free tier has 3 PRDs and 3 revisions", () => {
-    expect(PLAN_LIMITS.free.prd).toBe(3);
-    expect(PLAN_LIMITS.free.revision).toBe(3);
+describe("PLAN_CREDITS", () => {
+  it("free gets 2 lifetime credits", () => {
+    expect(PLAN_CREDITS.free).toBe(2);
   });
 
-  it("pro tier has 25 PRDs and 20 revisions", () => {
-    expect(PLAN_LIMITS.pro.prd).toBe(25);
-    expect(PLAN_LIMITS.pro.revision).toBe(20);
+  it("pro gets 10 credits", () => {
+    expect(PLAN_CREDITS.pro).toBe(10);
   });
 
-  it("hengker tier has unlimited", () => {
-    expect(PLAN_LIMITS.hengker.prd).toBe(-1);
-    expect(PLAN_LIMITS.hengker.revision).toBe(-1);
+  it("hengker gets 35 credits", () => {
+    expect(PLAN_CREDITS.hengker).toBe(35);
+  });
+});
+
+describe("PLAN_PRICES", () => {
+  it("matches the approved one-time price sheet", () => {
+    expect(PLAN_PRICES.free).toBe(0);
+    expect(PLAN_PRICES.pro).toBe(49000);
+    expect(PLAN_PRICES.hengker).toBe(149000);
   });
 });
 
 describe("FEATURES", () => {
-  it("free tier has no share, no API", () => {
+  it("free is PRD-only, no share", () => {
+    expect(FEATURES.free.fullWorkflow).toBe(false);
     expect(FEATURES.free.shareLink).toBe(false);
   });
 
-  it("pro tier has share", () => {
+  it("pro unlocks full workflow + share", () => {
+    expect(FEATURES.pro.fullWorkflow).toBe(true);
     expect(FEATURES.pro.shareLink).toBe(true);
   });
 
-  it("hengker tier has everything", () => {
+  it("hengker adds priority queue", () => {
+    expect(FEATURES.hengker.fullWorkflow).toBe(true);
     expect(FEATURES.hengker.priorityQueue).toBe(true);
   });
 });

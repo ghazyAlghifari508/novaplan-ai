@@ -55,6 +55,7 @@ import { Route as ApiProjectsIdLastRouteRouteImport } from './routes/api/project
 import { Route as ApiProjectsIdStepRouteImport } from './routes/api/projects/$id/step'
 import { Route as ApiSettingsApiKeysIndexRouteImport } from './routes/api/settings/api-keys/index'
 import { Route as ApiSettingsApiKeysIdRouteImport } from './routes/api/settings/api-keys/$id'
+import { Route as ApiSettingsApiKeysAutoRouteImport } from './routes/api/settings/api-keys/auto'
 import { Route as ApiV1ProjectsIdRouteImport } from './routes/api/v1/projects/$id'
 import { Route as ApiV1ProjectsIdKanbanRouteImport } from './routes/api/v1/projects/$id/kanban'
 import { Route as ApiV1ProjectsIdTasksRouteImport } from './routes/api/v1/projects/$id/tasks'
@@ -291,6 +292,11 @@ const ApiSettingsApiKeysIdRoute = ApiSettingsApiKeysIdRouteImport.update({
   path: '/api/settings/api-keys/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSettingsApiKeysAutoRoute = ApiSettingsApiKeysAutoRouteImport.update({
+  id: '/api/settings/api-keys/auto',
+  path: '/api/settings/api-keys/auto',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiV1ProjectsIdRoute = ApiV1ProjectsIdRouteImport.update({
   id: '/api/v1/projects/$id',
   path: '/api/v1/projects/$id',
@@ -363,6 +369,7 @@ export interface FileRoutesByFullPath {
   '/api/projects/$id/last-route': typeof ApiProjectsIdLastRouteRoute
   '/api/projects/$id/step': typeof ApiProjectsIdStepRoute
   '/api/settings/api-keys/$id': typeof ApiSettingsApiKeysIdRoute
+  '/api/settings/api-keys/auto': typeof ApiSettingsApiKeysAutoRoute
   '/api/v1/projects/$id': typeof ApiV1ProjectsIdRouteWithChildren
   '/api/settings/api-keys/': typeof ApiSettingsApiKeysIndexRoute
   '/api/v1/projects/$id/kanban': typeof ApiV1ProjectsIdKanbanRoute
@@ -415,6 +422,7 @@ export interface FileRoutesByTo {
   '/api/projects/$id/last-route': typeof ApiProjectsIdLastRouteRoute
   '/api/projects/$id/step': typeof ApiProjectsIdStepRoute
   '/api/settings/api-keys/$id': typeof ApiSettingsApiKeysIdRoute
+  '/api/settings/api-keys/auto': typeof ApiSettingsApiKeysAutoRoute
   '/api/v1/projects/$id': typeof ApiV1ProjectsIdRouteWithChildren
   '/api/settings/api-keys': typeof ApiSettingsApiKeysIndexRoute
   '/api/v1/projects/$id/kanban': typeof ApiV1ProjectsIdKanbanRoute
@@ -469,6 +477,7 @@ export interface FileRoutesById {
   '/api/projects/$id/last-route': typeof ApiProjectsIdLastRouteRoute
   '/api/projects/$id/step': typeof ApiProjectsIdStepRoute
   '/api/settings/api-keys/$id': typeof ApiSettingsApiKeysIdRoute
+  '/api/settings/api-keys/auto': typeof ApiSettingsApiKeysAutoRoute
   '/api/v1/projects/$id': typeof ApiV1ProjectsIdRouteWithChildren
   '/api/settings/api-keys/': typeof ApiSettingsApiKeysIndexRoute
   '/api/v1/projects/$id/kanban': typeof ApiV1ProjectsIdKanbanRoute
@@ -524,6 +533,7 @@ export interface FileRouteTypes {
     | '/api/projects/$id/last-route'
     | '/api/projects/$id/step'
     | '/api/settings/api-keys/$id'
+    | '/api/settings/api-keys/auto'
     | '/api/v1/projects/$id'
     | '/api/settings/api-keys/'
     | '/api/v1/projects/$id/kanban'
@@ -576,6 +586,7 @@ export interface FileRouteTypes {
     | '/api/projects/$id/last-route'
     | '/api/projects/$id/step'
     | '/api/settings/api-keys/$id'
+    | '/api/settings/api-keys/auto'
     | '/api/v1/projects/$id'
     | '/api/settings/api-keys'
     | '/api/v1/projects/$id/kanban'
@@ -629,6 +640,7 @@ export interface FileRouteTypes {
     | '/api/projects/$id/last-route'
     | '/api/projects/$id/step'
     | '/api/settings/api-keys/$id'
+    | '/api/settings/api-keys/auto'
     | '/api/v1/projects/$id'
     | '/api/settings/api-keys/'
     | '/api/v1/projects/$id/kanban'
@@ -674,6 +686,7 @@ export interface RootRouteChildren {
   PrdShareTokenRoute: typeof PrdShareTokenRoute
   ApiProjectsIndexRoute: typeof ApiProjectsIndexRoute
   ApiSettingsApiKeysIdRoute: typeof ApiSettingsApiKeysIdRoute
+  ApiSettingsApiKeysAutoRoute: typeof ApiSettingsApiKeysAutoRoute
   ApiV1ProjectsIdRoute: typeof ApiV1ProjectsIdRouteWithChildren
   ApiSettingsApiKeysIndexRoute: typeof ApiSettingsApiKeysIndexRoute
   ApiV1SubtasksIdStatusRoute: typeof ApiV1SubtasksIdStatusRoute
@@ -1004,6 +1017,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSettingsApiKeysIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/settings/api-keys/auto': {
+      id: '/api/settings/api-keys/auto'
+      path: '/api/settings/api-keys/auto'
+      fullPath: '/api/settings/api-keys/auto'
+      preLoaderRoute: typeof ApiSettingsApiKeysAutoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v1/projects/$id': {
       id: '/api/v1/projects/$id'
       path: '/api/v1/projects/$id'
@@ -1131,6 +1151,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrdShareTokenRoute: PrdShareTokenRoute,
   ApiProjectsIndexRoute: ApiProjectsIndexRoute,
   ApiSettingsApiKeysIdRoute: ApiSettingsApiKeysIdRoute,
+  ApiSettingsApiKeysAutoRoute: ApiSettingsApiKeysAutoRoute,
   ApiV1ProjectsIdRoute: ApiV1ProjectsIdRouteWithChildren,
   ApiSettingsApiKeysIndexRoute: ApiSettingsApiKeysIndexRoute,
   ApiV1SubtasksIdStatusRoute: ApiV1SubtasksIdStatusRoute,

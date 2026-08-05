@@ -3,14 +3,9 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
+import { checkCredits, consumeCredit } from "@/lib/credits";
 import { depthDirective } from "@/lib/prompt-depth";
 import { PRD_REVISION_PROMPT, PRD_SYSTEM_PROMPT } from "@/lib/prompts";
-import {
-	checkQuota,
-	checkRevisionQuota,
-	incrementPrdCount,
-	incrementRevisionCount,
-} from "@/lib/quota";
 import { checkRateLimit, recordRequest } from "@/lib/rate-limit";
 import {
 	selectModels,
@@ -84,28 +79,18 @@ export const Route = createFileRoute("/api/chat")({
 						{ status: 429 },
 					);
 
+				// ponytail: 1 credit = 1 project, burned here at PRD generation.
+				// Revisi is unlimited on every tier, so no gate for mode "revise".
 				if (mode === "generate") {
-					const quotaCheck = await checkQuota(user.id);
-					if (!quotaCheck.allowed) {
+					const creditCheck = await checkCredits(user.id);
+					if (!creditCheck.allowed) {
 						return Response.json(
 							{
 								error:
-									"Limit pembuatan PRD kamu sudah tercapai. Silakan upgrade ke paket Hengker untuk akses tanpa batas, atau tunggu reset kuota bulan depan.",
-								quota: { used: quotaCheck.used, limit: quotaCheck.limit },
-							},
-							{ status: 403 },
-						);
-					}
-				}
-
-				if (mode === "revise") {
-					const revisionCheck = await checkRevisionQuota(user.id);
-					if (!revisionCheck.allowed) {
-						return Response.json(
-							{
-								error:
-									"Limit revisi PRD kamu sudah tercapai. Silakan upgrade ke paket Hengker untuk akses tanpa batas, atau tunggu reset kuota bulan depan.",
-								quota: { used: revisionCheck.used, limit: revisionCheck.limit },
+									"Kredit kamu sudah habis. Beli kredit untuk membuat proyek baru.",
+								code: "NO_CREDITS",
+								plan: creditCheck.plan,
+								remaining: creditCheck.remaining,
 							},
 							{ status: 403 },
 						);
@@ -211,7 +196,7 @@ export const Route = createFileRoute("/api/chat")({
 								);
 							} catch {}
 						};
-							const enqueueThinking = (text: string) => {
+						const enqueueThinking = (text: string) => {
 							try {
 								controller.enqueue(
 									encoder.encode(
@@ -408,12 +393,11 @@ export const Route = createFileRoute("/api/chat")({
 								);
 
 								try {
-									if (mode === "generate") await incrementPrdCount(user.id);
-									if (mode === "revise")
-										await incrementRevisionCount(user.id);
+									// One credit per project, at generate only. Revisi is free.
+									if (mode === "generate") await consumeCredit(user.id);
 								} catch (err) {
 									console.error(
-										"Failed to increment PRD count for user",
+										"Failed to consume credit for user",
 										user.id,
 										err,
 									);

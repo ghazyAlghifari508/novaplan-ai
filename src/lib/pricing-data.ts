@@ -1,5 +1,3 @@
-export type BillingCycle = "monthly" | "annually";
-
 export interface Feature {
 	key: string;
 	name: string;
@@ -8,162 +6,81 @@ export interface Feature {
 }
 
 export interface PriceTier {
-	id: string;
+	id: "free" | "pro" | "hengker";
 	name: string;
 	description: string;
-	priceMonthly: number;
-	priceAnnually: number;
+	/** One-time price in IDR. Credits never expire, no billing cycle. */
+	price: number;
+	credits: number;
 	isPopular: boolean;
 	buttonLabel: string;
 	features: Feature[];
+}
+
+/**
+ * Shared row order so the comparison table lines up across tiers.
+ * Model names mirror src/lib/model-config.ts - keep them in sync.
+ */
+const FEATURE_ROWS = [
+	{ key: "prd", name: "Generate PRD" },
+	{ key: "revisi", name: "Revisi tanpa batas" },
+	{ key: "export-md", name: "Export ke Markdown" },
+	{ key: "model-free", name: "Model Free (Ling 3.0 Flash, Big Pickle)" },
+	{ key: "workflow", name: "Full workflow (AC + Task + Kanban)" },
+	{ key: "model-pro", name: "Model Pro (Nemotron 3 Ultra, MiMo v2.5)" },
+	{ key: "share", name: "Bagikan PRD (Share Link)" },
+	{ key: "version-30", name: "Riwayat 30 versi" },
+	{ key: "model-hengker", name: "Model Hengker (DeepSeek v4 Flash)" },
+	{ key: "version-unlimited", name: "Riwayat versi tak terbatas" },
+	{ key: "priority", name: "Antrean prioritas" },
+] as const;
+
+function buildFeatures(included: readonly string[]): Feature[] {
+	return FEATURE_ROWS.map((row) => ({
+		key: row.key,
+		name: row.name,
+		isIncluded: included.includes(row.key),
+	}));
 }
 
 export const novaPlanPlans: [PriceTier, PriceTier, PriceTier] = [
 	{
 		id: "free",
 		name: "Free",
-		description: "Cocok untuk pemula yang ingin mencoba NovaPlan.",
-		priceMonthly: 0,
-		priceAnnually: 0,
+		description: "Coba NovaPlan dengan 2 kredit sekali pakai.",
+		price: 0,
+		credits: 2,
 		isPopular: false,
 		buttonLabel: "Mulai Gratis",
-		features: [
-			{ key: "prd-3", name: "Hingga 3 PRD per bulan", isIncluded: true },
-			{ key: "revisi-3", name: "Hingga 3 Revisi per bulan", isIncluded: true },
-			{ key: "export-md", name: "Export ke Markdown", isIncluded: true },
-			{
-				key: "model-standar",
-				name: "Akses Model Standar (Llama 3.1)",
-				isIncluded: true,
-			},
-			{ key: "prd-25", name: "Hingga 25 PRD per bulan", isIncluded: false },
-			{
-				key: "revisi-20",
-				name: "Hingga 20 Revisi per bulan",
-				isIncluded: false,
-			},
-			{
-				key: "model-pro",
-				name: "Akses Model Pro (Claude Sonnet, Gemini Flash, Kimi)",
-				isIncluded: false,
-			},
-			{ key: "share", name: "Bagikan PRD (Share Link)", isIncluded: false },
-			{ key: "version-30", name: "Riwayat Versi (30 hari)", isIncluded: false },
-			{ key: "prd-unlimited", name: "PRD Tak Terbatas", isIncluded: false },
-			{
-				key: "revisi-unlimited",
-				name: "Revisi Tak Terbatas",
-				isIncluded: false,
-			},
-			{
-				key: "model-hengker",
-				name: "Akses Model Hengker (GPT 5.5, Claude Opus, Deepseek v4)",
-				isIncluded: false,
-			},
-			{
-				key: "version-unlimited",
-				name: "Riwayat Versi Tak Terbatas",
-				isIncluded: false,
-			},
-			{ key: "priority", name: "Antrean Prioritas", isIncluded: false },
-		],
+		features: buildFeatures(["prd", "revisi", "export-md", "model-free"]),
 	},
 	{
 		id: "pro",
 		name: "Pro",
-		description: "Untuk Product Manager dan tim yang butuh kecepatan.",
-		priceMonthly: 25000,
-		priceAnnually: 240000,
+		description: "10 kredit, full workflow dari PRD sampai Kanban.",
+		price: 49000,
+		credits: 10,
 		isPopular: true,
-		buttonLabel: "Pilih Pro",
-		features: [
-			{ key: "prd-3", name: "Hingga 3 PRD per bulan", isIncluded: true },
-			{ key: "revisi-3", name: "Hingga 3 Revisi per bulan", isIncluded: true },
-			{ key: "export-md", name: "Export ke Markdown", isIncluded: true },
-			{
-				key: "model-standar",
-				name: "Akses Model Standar (Llama 3.1)",
-				isIncluded: true,
-			},
-			{ key: "prd-25", name: "Hingga 25 PRD per bulan", isIncluded: true },
-			{
-				key: "revisi-20",
-				name: "Hingga 20 Revisi per bulan",
-				isIncluded: true,
-			},
-			{
-				key: "model-pro",
-				name: "Akses Model Pro (Claude Sonnet, Gemini Flash, Kimi)",
-				isIncluded: true,
-			},
-			{ key: "share", name: "Bagikan PRD (Share Link)", isIncluded: true },
-			{ key: "version-30", name: "Riwayat Versi (30 hari)", isIncluded: true },
-			{ key: "prd-unlimited", name: "PRD Tak Terbatas", isIncluded: false },
-			{
-				key: "revisi-unlimited",
-				name: "Revisi Tak Terbatas",
-				isIncluded: false,
-			},
-			{
-				key: "model-hengker",
-				name: "Akses Model Hengker (GPT 5.5, Claude Opus, Deepseek v4)",
-				isIncluded: false,
-			},
-			{
-				key: "version-unlimited",
-				name: "Riwayat Versi Tak Terbatas",
-				isIncluded: false,
-			},
-			{ key: "priority", name: "Antrean Prioritas", isIncluded: false },
-		],
+		buttonLabel: "Beli Pro",
+		features: buildFeatures([
+			"prd",
+			"revisi",
+			"export-md",
+			"model-free",
+			"workflow",
+			"model-pro",
+			"share",
+			"version-30",
+		]),
 	},
 	{
 		id: "hengker",
 		name: "Hengker",
-		description: "Fitur penuh untuk para profesional.",
-		priceMonthly: 75000,
-		priceAnnually: 720000,
+		description: "35 kredit, model premium, dan antrean prioritas.",
+		price: 149000,
+		credits: 35,
 		isPopular: false,
-		buttonLabel: "Pilih Hengker",
-		features: [
-			{ key: "prd-3", name: "Hingga 3 PRD per bulan", isIncluded: true },
-			{ key: "revisi-3", name: "Hingga 3 Revisi per bulan", isIncluded: true },
-			{ key: "export-md", name: "Export ke Markdown", isIncluded: true },
-			{
-				key: "model-standar",
-				name: "Akses Model Standar (Llama 3.1)",
-				isIncluded: true,
-			},
-			{ key: "prd-25", name: "Hingga 25 PRD per bulan", isIncluded: true },
-			{
-				key: "revisi-20",
-				name: "Hingga 20 Revisi per bulan",
-				isIncluded: true,
-			},
-			{
-				key: "model-pro",
-				name: "Akses Model Pro (Claude Sonnet, Gemini Flash, Kimi)",
-				isIncluded: true,
-			},
-			{ key: "share", name: "Bagikan PRD (Share Link)", isIncluded: true },
-			{ key: "version-30", name: "Riwayat Versi (30 hari)", isIncluded: true },
-			{ key: "prd-unlimited", name: "PRD Tak Terbatas", isIncluded: true },
-			{
-				key: "revisi-unlimited",
-				name: "Revisi Tak Terbatas",
-				isIncluded: true,
-			},
-			{
-				key: "model-hengker",
-				name: "Akses Model Hengker (GPT 5.5, Claude Opus, Deepseek v4)",
-				isIncluded: true,
-			},
-			{
-				key: "version-unlimited",
-				name: "Riwayat Versi Tak Terbatas",
-				isIncluded: true,
-			},
-			{ key: "priority", name: "Antrean Prioritas", isIncluded: true },
-		],
+		buttonLabel: "Beli Hengker",
+		features: buildFeatures(FEATURE_ROWS.map((row) => row.key)),
 	},
 ];

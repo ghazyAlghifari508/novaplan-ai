@@ -1,8 +1,9 @@
 "use client";
 
+import { Check, X } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
-import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { syncPaymentStatus } from "@/app/actions/payment";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -12,26 +13,16 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Check, X } from "lucide-react";
-
-// --- 1. Typescript Interfaces (API) ---
 
 import {
-	type BillingCycle,
 	type Feature,
-	type PriceTier,
 	novaPlanPlans,
+	type PriceTier,
 } from "@/lib/pricing-data";
+import { cn } from "@/lib/utils";
+import { useUIStore } from "@/store";
 
-interface PricingComponentProps extends React.HTMLAttributes<HTMLDivElement> {
-	plans: [PriceTier, PriceTier, PriceTier];
-	billingCycle: BillingCycle;
-	onCycleChange: (cycle: BillingCycle) => void;
-	onPlanSelect: (planId: string, cycle: BillingCycle) => void;
-	currentPlan?: string;
-}
-
-// --- 2. Utility Components ---
+// --- Utility Components ---
 
 const FeatureItem: React.FC<{ feature: Feature }> = ({ feature }) => {
 	const Icon = feature.isIncluded ? Check : X;
@@ -55,12 +46,16 @@ const FeatureItem: React.FC<{ feature: Feature }> = ({ feature }) => {
 	);
 };
 
-// --- 3. Main Component: PricingComponent ---
+// --- Main Pricing Cards ---
+
+interface PricingComponentProps extends React.HTMLAttributes<HTMLDivElement> {
+	plans: [PriceTier, PriceTier, PriceTier];
+	onPlanSelect: (planId: string) => void;
+	currentPlan?: string;
+}
 
 const PricingComponent: React.FC<PricingComponentProps> = ({
 	plans,
-	billingCycle,
-	onCycleChange,
 	onPlanSelect,
 	currentPlan = "free",
 	className,
@@ -71,55 +66,14 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
 		return null;
 	}
 
-	const annualDiscountPercent = 20;
-
-	const CycleToggle = (
-		<div className="mb-10 mt-6 flex justify-center font-inter">
-			<div className="flex items-center gap-1 rounded-md bg-charcoal p-1 shadow-[var(--shadow-inset)]">
-				<button
-					onClick={() => onCycleChange("monthly")}
-					aria-label="Monthly Billing"
-					className={cn(
-						"rounded px-6 py-1.5 text-sm font-[510] transition-colors",
-						billingCycle === "monthly"
-							? "bg-steel text-snow"
-							: "text-fog hover:text-snow",
-					)}
-				>
-					Bulanan
-				</button>
-				<button
-					onClick={() => onCycleChange("annually")}
-					aria-label="Annual Billing"
-					className={cn(
-						"relative rounded px-6 py-1.5 text-sm font-[510] transition-colors",
-						billingCycle === "annually"
-							? "bg-steel text-snow"
-							: "text-fog hover:text-snow",
-					)}
-				>
-					Tahunan
-					<span className="absolute -top-6 right-0 whitespace-nowrap rounded-[4px] bg-indigo/20 px-2 py-0.5 text-xs font-[510] text-mist shadow-[inset_0_0_0_1px_rgba(94,106,210,0.45)]">
-						Hemat {annualDiscountPercent}%
-					</span>
-				</button>
-			</div>
-		</div>
-	);
-
-	// Unique feature names across all plans (order from plan[0])
 	const allFeatures = plans[0].features.map((f) => f.name);
+
+	const formatIdr = (num: number) => num.toLocaleString("id-ID");
 
 	const PricingCards = (
 		<div className="grid gap-6 md:grid-cols-3">
 			{plans.map((plan) => {
 				const isFeatured = plan.isPopular;
-				const currentPrice =
-					billingCycle === "monthly" ? plan.priceMonthly : plan.priceAnnually;
-				const originalMonthlyPrice = plan.priceMonthly;
-				const priceSuffix = billingCycle === "monthly" ? "/bln" : "/thn";
-
-				const formatIdr = (num: number) => num.toLocaleString("id-ID");
 
 				return (
 					<Card
@@ -149,23 +103,12 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
 							</CardDescription>
 							<div className="mt-4 font-inter">
 								<p className="text-4xl font-light text-snow">
-									{currentPrice === 0
-										? "Gratis"
-										: `Rp ${formatIdr(currentPrice)}`}
-									{currentPrice !== 0 && (
-										<span className="ml-1 text-base font-normal text-fog">
-											{priceSuffix}
-										</span>
-									)}
+									{plan.price === 0 ? "Gratis" : `Rp ${formatIdr(plan.price)}`}
 								</p>
-								{billingCycle === "annually" && currentPrice > 0 && (
+								{plan.credits > 0 && (
 									<p className="mt-1 text-xs font-[510] text-fog">
-										Ditagih tahunan (Rp {formatIdr(plan.priceAnnually)})
-									</p>
-								)}
-								{billingCycle === "annually" && currentPrice > 0 && (
-									<p className="mt-1 text-xs text-slate line-through">
-										Rp {formatIdr(originalMonthlyPrice)}/bln
+										{plan.credits} kredit
+										{plan.price > 0 ? " (sekali bayar)" : " (lifetime)"}
 									</p>
 								)}
 							</div>
@@ -194,31 +137,28 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
 									planHierarchy[plan.id as keyof typeof planHierarchy] ?? 0;
 
 								const isCurrentPlan = currentPlan === plan.id;
-								const isDowngrade = cardLevel < currentLevel;
-								const isUpgrade = cardLevel > currentLevel;
 								const isFreeCard = plan.id === "free";
 
 								let buttonLabel = plan.buttonLabel;
 								let isDisabled = false;
 
-								if (isCurrentPlan) {
-									buttonLabel = "Plan Aktif";
-									isDisabled = true;
-								} else if (isDowngrade || (isFreeCard && currentLevel > 0)) {
+								if (isFreeCard && currentLevel > 0) {
 									buttonLabel =
 										"Plan Aktif: " +
 										currentPlan.charAt(0).toUpperCase() +
 										currentPlan.slice(1);
 									isDisabled = true;
-								} else if (isUpgrade) {
-									buttonLabel = `Upgrade ke ${plan.name}`;
+								} else if (isCurrentPlan && !isFreeCard) {
+									// Non-free: allow re-purchase (top-up), not blocked.
+									buttonLabel = `Beli Lagi ${plan.name}`;
+								} else if (isCurrentPlan) {
+									buttonLabel = "Plan Aktif";
+									isDisabled = true;
 								}
 
 								return (
 									<Button
-										onClick={() =>
-											!isDisabled && onPlanSelect(plan.id, billingCycle)
-										}
+										onClick={() => !isDisabled && onPlanSelect(plan.id)}
 										disabled={isDisabled}
 										className={cn(
 											"w-full font-inter font-[510] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
@@ -325,12 +265,10 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
 					Pilih Paket yang Sesuai
 				</h2>
 				<p className="mx-auto mt-3 max-w-2xl font-inter text-[17px] leading-relaxed text-fog">
-					Tingkatkan produktivitas tim Anda dengan dokumentasi produk yang lebih
-					cepat dan terstruktur.
+					1 kredit = 1 proyek penuh (PRD + AC + Task + Kanban). Kredit tidak
+					pernah hangus.
 				</p>
 			</header>
-
-			{CycleToggle}
 
 			<section aria-labelledby="pricing-plans">{PricingCards}</section>
 
@@ -344,18 +282,14 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
 	);
 };
 
-import { useSearchParams } from "next/navigation";
-import { useUIStore } from "@/store";
-import { syncPaymentStatus } from "@/app/actions/payment";
+// --- Wrapper with state ---
 
 export default function PricingWrapper() {
-	const [cycle, setCycle] = React.useState<BillingCycle>("annually");
 	const [currentPlan, setCurrentPlan] = React.useState<string>("free");
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const showToast = useUIStore((state) => state.showToast);
 
-	// Fetch current plan on mount
 	React.useEffect(() => {
 		const fetchPlan = async () => {
 			try {
@@ -389,7 +323,7 @@ export default function PricingWrapper() {
 					if (res.success && res.plan) {
 						setCurrentPlan(res.plan);
 						showToast(
-							`Berhasil upgrade ke paket ${res.plan.charAt(0).toUpperCase() + res.plan.slice(1)}! Nikmati fitur premium Anda.`,
+							`Berhasil beli kredit untuk paket ${res.plan.charAt(0).toUpperCase() + res.plan.slice(1)}!`,
 							"success",
 						);
 						router.replace("/pricing");
@@ -402,14 +336,7 @@ export default function PricingWrapper() {
 		}
 	}, [searchParams, showToast, router]);
 
-	const handleCycleChange = (newCycle: BillingCycle) => {
-		setCycle(newCycle);
-	};
-
-	const handlePlanSelect = async (
-		planId: string,
-		currentCycle: BillingCycle,
-	) => {
+	const handlePlanSelect = async (planId: string) => {
 		if (planId === "free") {
 			router.push("/");
 			return;
@@ -418,10 +345,8 @@ export default function PricingWrapper() {
 		try {
 			const res = await fetch("/api/payments/create", {
 				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({ planId, cycle: currentCycle }),
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ planId }),
 			});
 			const data = await res.json();
 
@@ -437,7 +362,6 @@ export default function PricingWrapper() {
 				return;
 			}
 
-			// Redirect to Midtrans snap
 			if (data.redirect_url) {
 				window.location.href = data.redirect_url;
 			}
@@ -450,8 +374,6 @@ export default function PricingWrapper() {
 	return (
 		<PricingComponent
 			plans={novaPlanPlans}
-			billingCycle={cycle}
-			onCycleChange={handleCycleChange}
 			onPlanSelect={handlePlanSelect}
 			currentPlan={currentPlan}
 		/>
