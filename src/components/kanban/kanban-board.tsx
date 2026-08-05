@@ -100,11 +100,11 @@ export function KanbanBoard({ projectId, projectName }: KanbanBoardProps) {
           <div className="h-6 w-48 animate-pulse rounded bg-steel/20" />
           <div className="h-8 w-24 animate-pulse rounded bg-steel/20" />
         </div>
-        <div className="flex flex-1 gap-6 p-6 overflow-hidden">
+        <div className="flex flex-1 gap-6 py-6 px-0 overflow-hidden">
           {Array.from({ length: 4 }).map((_, idx) => (
             <div
               key={idx}
-              className="flex h-full w-[280px] shrink-0 flex-col rounded-xl border border-graphite bg-obsidian/30 animate-pulse"
+              className="flex h-full flex-1 min-w-[260px] shrink-0 flex-col rounded-xl border border-graphite bg-obsidian/30 animate-pulse"
             >
               <div className="h-12 border-b border-graphite/40 bg-obsidian/50 rounded-t-xl" />
               <div className="flex-1 p-3 space-y-3">
@@ -188,6 +188,27 @@ export function KanbanBoard({ projectId, projectName }: KanbanBoardProps) {
         </div>
       )}
 
+      {/* Progress Bar */}
+      {hasTasks && (() => {
+        const total = columns!.pending.length + columns!.in_progress.length + columns!.completed.length + columns!.failed.length;
+        const done = columns!.completed.length + columns!.failed.length;
+        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+        return (
+          <div className="shrink-0 px-4 pt-3 pb-1">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-medium text-mist">Progress</span>
+              <span className="text-xs text-fog font-mono">{done}/{total} task selesai ({pct}%)</span>
+            </div>
+            <div className="w-full h-2 rounded-full bg-steel/15 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-indigo to-emerald-400 transition-all duration-700 ease-out"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Main Column Layout Area */}
       <div
         className="flex-1 overflow-x-auto overflow-y-hidden select-none custom-scrollbar snap-x snap-mandatory sm:snap-none"
@@ -210,7 +231,7 @@ export function KanbanBoard({ projectId, projectName }: KanbanBoardProps) {
             </Link>
           </div>
         ) : (
-          <div className="mx-auto flex h-full w-max gap-6 p-6">
+          <div className="flex h-full w-full gap-4 py-6 px-4">
             <KanbanColumn
               ref={(el) => {
                 columnRefsRef.current.pending = el;

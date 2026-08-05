@@ -40,7 +40,7 @@ export const KanbanColumn = forwardRef<KanbanColumnHandle, KanbanColumnProps>(
     return (
       <div
         ref={columnRef}
-        className="flex h-full w-[85vw] sm:w-[280px] shrink-0 flex-col rounded-xl border border-graphite/45 bg-obsidian/40 snap-center"
+        className="flex h-full flex-1 min-w-[260px] shrink-0 flex-col rounded-xl border border-graphite/45 bg-obsidian/40 snap-center"
       >
         {/* Column Header */}
         <div className="flex items-center justify-between border-b border-graphite/40 px-4 py-3.5 bg-obsidian/60 rounded-t-xl">
