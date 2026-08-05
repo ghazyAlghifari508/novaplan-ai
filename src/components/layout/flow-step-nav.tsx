@@ -74,39 +74,19 @@ export function FlowStepNav() {
         })}
       </ol>
 
-      {/* Mobile: abbreviated step dots + active step label */}
-      <div className="flex items-center gap-2 md:hidden">
-        <ol
-          aria-label="Flow step (mobile)"
-          className="flex items-center gap-1.5"
+      {/* Mobile: compact active-step badge */}
+      {STEPS[currentIdx] && (
+        <span
+          aria-label={`Step ${currentIdx + 1}/${STEPS.length}: ${STEPS[currentIdx].label}`}
+          className="inline-flex items-center gap-1.5 rounded-full bg-indigo/15 border border-indigo/25 px-3 py-1 text-xs font-[510] text-indigo md:hidden"
         >
-          {STEPS.map((step, idx) => {
-            const isCompleted = idx < currentIdx || (step.key === "task" && isTaskGenerated);
-            const isActive = idx === currentIdx && !isCompleted;
-
-            return (
-              <li key={step.key} className="flex items-center gap-1" aria-current={isActive ? "step" : undefined}>
-                {idx > 0 && <span aria-hidden className="h-px w-1.5 bg-graphite" />}
-                <span
-                  className={cn(
-                    "flex h-4 w-4 items-center justify-center rounded-full text-[8px] font-[510] transition-colors",
-                    isCompleted && "bg-emerald text-charcoal",
-                    isActive && "bg-indigo text-white",
-                    !isCompleted && !isActive && "border border-graphite text-fog"
-                  )}
-                >
-                  {isCompleted ? <Check size={8} strokeWidth={3} /> : idx + 1}
-                </span>
-              </li>
-            );
-          })}
-        </ol>
-        {STEPS[currentIdx] && (
-          <span className="font-inter text-xs font-[510] text-snow">
-            Step {currentIdx + 1}/{STEPS.length}: {STEPS[currentIdx].label}
+          <span className="font-mono text-[10px] text-indigo/70">
+            {currentIdx + 1}/{STEPS.length}
           </span>
-        )}
-      </div>
+          <span className="h-1 w-1 rounded-full bg-indigo/40" />
+          <span>{STEPS[currentIdx].label}</span>
+        </span>
+      )}
     </>
   );
 }

@@ -125,9 +125,16 @@ export function Navbar() {
     >
       <div className="mx-auto flex h-full max-w-[1200px] items-center px-6">
         {/* Left: logo */}
-        <div className="flex w-[200px] shrink-0">
+        <div className="flex w-auto shrink-0 md:w-[200px]">
           <Logo height={28} />
         </div>
+
+        {/* Mobile: step dots (flow routes only) */}
+        {isFlowStepRoute && (
+          <div className="flex md:hidden flex-1 items-center justify-center">
+            <FlowStepNav />
+          </div>
+        )}
 
         {/* Center: navlinks - Desktop */}
         <div className="hidden md:flex flex-1 items-center justify-center">
@@ -175,10 +182,8 @@ export function Navbar() {
               {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           )}
-          {/* Desktop items */}
-          <div className="hidden md:flex items-center gap-2">
+          {/* Workspace action buttons - visible all screens */}
           {isFlowStepRoute ? (
-            /* Workspace action buttons */
             <>
               {step === "prd" && projectId && (
                 <>
@@ -207,61 +212,64 @@ export function Navbar() {
                   {isStepLoading || isGeneratingAC || isGeneratingPRD || !!streamingPRDContent ? "Memuat..." : <><span>Generate Task</span><ArrowRight size={12} /></>}</button>
               )}
             </>
-          ) : (
-            /* Non-workspace right items */
-            <>
-              <ThemeToggle />
-              {isLoading ? (
-                <div className="ml-1 flex items-center gap-2 sm:gap-3">
-                  <div className="h-8 w-[72px] animate-pulse rounded-md bg-white/5" />
-                  <div className="h-8 w-[84px] animate-pulse rounded-md bg-white/5" />
-                </div>
-              ) : !user ? (
-                <Link
-                  href="/login"
-                  className="btn-primary flex h-8 items-center justify-center rounded-md px-4 font-inter text-sm font-[510] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:brightness-105 active:scale-[0.98]"
-                >
-                  Log In
-                </Link>
-              ) : (
-                <div className="relative">
-                  <button
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    aria-label="User menu"
-                    aria-haspopup="true"
-                    aria-expanded={isDropdownOpen}
-                    className="flex h-8 w-8 items-center justify-center rounded-full bg-obsidian text-fog shadow-[var(--shadow-inset)] transition-colors duration-300 hover:text-snow"
+          ) : null}
+
+          {/* Desktop-only items */}
+          <div className="hidden md:flex items-center gap-2">
+            {!isFlowStepRoute && (
+              <>
+                <ThemeToggle />
+                {isLoading ? (
+                  <div className="ml-1 flex items-center gap-2 sm:gap-3">
+                    <div className="h-8 w-[72px] animate-pulse rounded-md bg-white/5" />
+                    <div className="h-8 w-[84px] animate-pulse rounded-md bg-white/5" />
+                  </div>
+                ) : !user ? (
+                  <Link
+                    href="/login"
+                    className="btn-primary flex h-8 items-center justify-center rounded-md px-4 font-inter text-sm font-[510] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:brightness-105 active:scale-[0.98]"
                   >
-                    <User size={16} />
-                  </button>
-                  {isDropdownOpen && (
-                    <>
-                      <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
-                      <div className="absolute right-0 top-full z-50 mt-2 flex w-56 flex-col overflow-hidden rounded-xl bg-obsidian py-2 font-inter shadow-[var(--shadow-overlay)]">
-                        <div className="px-4 py-2 mb-1">
-                          <p className="truncate text-sm font-[510] text-snow">{user?.email}</p>
+                    Log In
+                  </Link>
+                ) : (
+                  <div className="relative">
+                    <button
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      aria-label="User menu"
+                      aria-haspopup="true"
+                      aria-expanded={isDropdownOpen}
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-obsidian text-fog shadow-[var(--shadow-inset)] transition-colors duration-300 hover:text-snow"
+                    >
+                      <User size={16} />
+                    </button>
+                    {isDropdownOpen && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
+                        <div className="absolute right-0 top-full z-50 mt-2 flex w-56 flex-col overflow-hidden rounded-xl bg-obsidian py-2 font-inter shadow-[var(--shadow-overlay)]">
+                          <div className="px-4 py-2 mb-1">
+                            <p className="truncate text-sm font-[510] text-snow">{user?.email}</p>
+                          </div>
+                          <div className="mb-1 h-px w-full bg-graphite" />
+                          <Link href="/settings/profile" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-[510] text-mist transition-colors hover:bg-white/5 hover:text-snow">
+                            <Settings size={16} className="text-fog" />
+                            Profile / Setting
+                          </Link>
+                          <Link href="/pricing" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-[510] text-mist transition-colors hover:bg-white/5 hover:text-snow">
+                            <CreditCard size={16} className="text-fog" />
+                            Pricing
+                          </Link>
+                          <div className="my-1 h-px w-full bg-graphite" />
+                          <button onClick={() => { setIsDropdownOpen(false); handleLogout(); }} className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-[510] text-crimson transition-colors hover:bg-crimson/10">
+                            <LogOut size={16} />
+                            Log Out
+                          </button>
                         </div>
-                        <div className="mb-1 h-px w-full bg-graphite" />
-                        <Link href="/settings/profile" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-[510] text-mist transition-colors hover:bg-white/5 hover:text-snow">
-                          <Settings size={16} className="text-fog" />
-                          Profile / Setting
-                        </Link>
-                        <Link href="/pricing" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-[510] text-mist transition-colors hover:bg-white/5 hover:text-snow">
-                          <CreditCard size={16} className="text-fog" />
-                          Pricing
-                        </Link>
-                        <div className="my-1 h-px w-full bg-graphite" />
-                        <button onClick={() => { setIsDropdownOpen(false); handleLogout(); }} className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-[510] text-crimson transition-colors hover:bg-crimson/10">
-                          <LogOut size={16} />
-                          Log Out
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
-            </>
-          )}
+                      </>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>
