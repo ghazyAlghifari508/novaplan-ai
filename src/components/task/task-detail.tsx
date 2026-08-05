@@ -238,10 +238,21 @@ export function TaskDetail({ projectId, projectName, taskTree, hasAc, taskStatus
                           <li key={ti}>
                             <p className="text-sm font-[510] text-snow">{task.name}</p>
                             {task.subtasks && task.subtasks.length > 0 && (
-                              <ul className="mt-1 space-y-0.5 pl-3">
+                              <ul className="mt-1 space-y-1 pl-3">
                                 {task.subtasks.map((sub, si) => (
-                                  <li key={si} className="flex items-center gap-1.5 text-xs text-fog">
-                                    <Circle size={5} className="shrink-0 fill-fog/40" /> {sub.name}
+                                  <li key={si} className="text-xs text-fog">
+                                    <div className="flex items-center gap-1.5">
+                                      <Circle size={5} className="shrink-0 fill-fog/40" /> {sub.name}
+                                    </div>
+                                    {sub.details && sub.details.length > 0 && (
+                                      <ul className="mt-0.5 space-y-0.5 pl-4">
+                                        {sub.details.map((detail, di) => (
+                                          <li key={di} className="text-[11px] text-fog/70">
+                                            – {detail}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    )}
                                   </li>
                                 ))}
                               </ul>
