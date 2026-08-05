@@ -88,9 +88,13 @@ export const Route = createFileRoute("/api/ac/generate")({
               try { controller.close(); } catch {}
             };
 
+            const enqueueThinking = (text: string) => {
+              try { controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "thinking", content: text })}\n\n`)); } catch {}
+            };
+
             try {
               emit({ type: "started", model: modelsToTry[0] });
-              const { generator, firstChunk, outcome } = await tryStreamWithFallback(modelsToTry, messages, request.signal, 64000);
+              const { generator, firstChunk, outcome } = await tryStreamWithFallback(modelsToTry, messages, request.signal, 64000, enqueueThinking);
 
               fullResponse += firstChunk;
               emit({ type: "delta", content: firstChunk });

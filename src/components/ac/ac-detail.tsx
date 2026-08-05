@@ -33,6 +33,7 @@ export function AcDetail({
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [streamingContent, setStreamingContent] = useState<string>("");
+  const [thinkingText, setThinkingText] = useState("");
   const [hasError, setHasError] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
   const [isRetrySaving, setIsRetrySaving] = useState(false);
@@ -105,7 +106,10 @@ export function AcDetail({
           if (line.startsWith("data: ")) {
             try {
               const data = JSON.parse(line.slice(6));
-              if (data.type === "delta") {
+              if (data.type === "thinking") {
+                setThinkingText((prev) => prev + data.content);
+              } else if (data.type === "delta") {
+                if (thinkingText) setThinkingText("");
                 contentRef.current += data.content;
                 setStreamingContent((prev) => prev + data.content);
               } else if (data.type === "done") {
@@ -263,6 +267,12 @@ export function AcDetail({
 
           {/* AC Viewer */}
           <div className="flex-1 overflow-hidden">
+            {isGenerating && thinkingText && !streamingContent && (
+              <details className="text-xs text-fog/60 mb-2 px-4" open>
+                <summary className="cursor-pointer select-none">🤔 AI sedang berpikir...</summary>
+                <pre className="mt-1 whitespace-pre-wrap text-xs text-fog/40 max-h-40 overflow-y-auto custom-scrollbar">{thinkingText}</pre>
+              </details>
+            )}
             <AcViewer
               content={acContent}
               streamingContent={streamingContent}

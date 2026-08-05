@@ -26,6 +26,7 @@ export async function tryStreamWithFallback(
   messages: Array<{ role: "system" | "user" | "assistant"; content: string }>,
   externalSignal?: AbortSignal,
   maxTokens?: number,
+  onThinking?: (text: string) => void,
 ): Promise<{
   generator: AsyncGenerator<string, void, undefined>;
   firstChunk: string;
@@ -43,7 +44,7 @@ export async function tryStreamWithFallback(
       else externalSignal.addEventListener("abort", () => abortController.abort(), { once: true });
     }
     const outcome: StreamOutcome = {};
-    const gen = streamChat(messages, modelToTry, abortController.signal, maxTokens, outcome);
+    const gen = streamChat(messages, modelToTry, abortController.signal, maxTokens, outcome, onThinking);
 
     try {
       const first = await gen.next();

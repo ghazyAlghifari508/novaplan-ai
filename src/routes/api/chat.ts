@@ -211,6 +211,17 @@ export const Route = createFileRoute("/api/chat")({
 								);
 							} catch {}
 						};
+							const enqueueThinking = (text: string) => {
+							try {
+								controller.enqueue(
+									encoder.encode(
+										`data: ${JSON.stringify({ type: "thinking", content: text })}
+
+`,
+									),
+								);
+							} catch {}
+						};
 						const safeDone = (extras: Record<string, unknown>) => {
 							if (eventDone) return;
 							eventDone = true;
@@ -244,6 +255,9 @@ export const Route = createFileRoute("/api/chat")({
 							const { generator, firstChunk } = await tryStreamWithFallback(
 								modelsToTry,
 								fullMessages,
+								undefined,
+								undefined,
+								enqueueThinking,
 							);
 							await recordRequest(user.id, "ai_generate");
 

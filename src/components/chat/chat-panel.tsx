@@ -169,6 +169,7 @@ export function ChatPanel({
 	}, [input, draftKey]);
 	const [conversationId, setConversationId] = useState(initialConversationId);
 	const [streamingContent, setStreamingContent] = useState("");
+	const [thinkingText, setThinkingText] = useState("");
 	const [showLimitModal, setShowLimitModal] = useState(false);
 	const [limitErrorMsg, setLimitErrorMsg] = useState("");
 	const [showResumeModal, setShowResumeModal] = useState(false);
@@ -338,7 +339,11 @@ export function ChatPanel({
 							if (parsed.type === "started") {
 								// no-op: heartbeat from server, just lets the client know
 								// generation is in flight.
+							} else if (parsed.type === "thinking") {
+								setThinkingText((prev) => prev + parsed.content);
+								continue;
 							} else if (parsed.type === "delta") {
+								if (thinkingText) setThinkingText("");
 								sawAnyDelta = true;
 								fullContent += parsed.content;
 
@@ -660,6 +665,7 @@ export function ChatPanel({
 		clearPrdDraft();
 		setStreaming(true);
 		setStreamingContent("");
+		setThinkingText("");
 		streamingContentRef.current = "";
 		if (resolvedMode !== "revise") {
 			setStreamingPRDContent("");
@@ -934,10 +940,16 @@ export function ChatPanel({
 				{messages.map((msg) => (
 					<ChatBubble key={msg.id} role={msg.role} content={msg.content} />
 				))}
+				{isStreaming && thinkingText && !streamingContent && (
+					<details className="text-xs text-fog/60 mb-2 px-4" open>
+						<summary className="cursor-pointer select-none">🤔 AI sedang berpikir...</summary>
+						<pre className="mt-1 whitespace-pre-wrap text-xs text-fog/40 max-h-40 overflow-y-auto custom-scrollbar">{thinkingText}</pre>
+					</details>
+				)}
 				{isStreaming && streamingContent && (
 					<ChatBubble role="assistant" content={streamingContent} isStreaming />
 				)}
-				{isRevising && !streamingContent && <TypingIndicator />}
+				{isRevising && !streamingContent && !thinkingText && <TypingIndicator />}
 			</div>
 
 			{/* Input Area */}

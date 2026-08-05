@@ -42,6 +42,7 @@ export async function* streamChat(
   signal?: AbortSignal,
   maxTokens = 32768,
   outcome?: StreamOutcome,
+  onThinking?: (text: string) => void,
 ): AsyncGenerator<string, void, undefined> {
   const result = streamText({
     // ponytail: provider.chat(), not provider(). The v5 default routes to the
@@ -58,9 +59,15 @@ export async function* streamChat(
   });
 
   try {
-    for await (const chunk of result.textStream) {
-      if (!chunk) continue;
-      yield chunk;
+    for await (const chunk of result.fullStream) {
+      if (chunk.type === "reasoning-delta") {
+        onThinking?.((chunk as { type: "reasoning-delta"; text: string }).text ?? "");
+        continue;
+      }
+      if (chunk.type === "text-delta") {
+        if (!chunk.text) continue;
+        yield chunk.text;
+      }
     }
   } catch (err) {
     // A dropped/aborted stream is exactly the case that used to persist a
