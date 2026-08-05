@@ -125,7 +125,7 @@ export function Navbar() {
     >
       <div className="mx-auto flex h-full max-w-[1200px] items-center px-6">
         {/* Left: logo */}
-        <div className="flex w-auto shrink-0 md:w-[200px]">
+        <div className="flex shrink-0 md:w-[200px] hidden md:flex">
           <Logo height={28} />
         </div>
 
@@ -189,7 +189,7 @@ export function Navbar() {
                 <>
                   <button
                     onClick={() => { useChatStore.getState().setGeneratingPRD(false); useUIStore.getState().toggleChatPanel(); }}
-                    className="flex items-center gap-1.5 rounded-md bg-charcoal px-3 py-1.5 text-xs font-[510] text-fog shadow-[var(--shadow-inset)] transition-colors hover:bg-white/5 hover:text-snow"
+                    className="hidden md:flex items-center gap-1.5 rounded-md bg-charcoal px-3 py-1.5 text-xs font-[510] text-fog shadow-[var(--shadow-inset)] transition-colors hover:bg-white/5 hover:text-snow"
                     aria-label="Buka/tutup chat"
                   >
                     <MessageSquare size={14} />
