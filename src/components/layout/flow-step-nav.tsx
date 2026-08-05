@@ -28,7 +28,7 @@ export function FlowStepNav() {
     <>
       <ol
         aria-label="Flow step"
-        className="hidden items-center gap-2 md:flex"
+        className="flex items-center gap-2 md:gap-2"
       >
         {STEPS.map((step, idx) => {
           const isCompleted = idx < currentIdx || (step.key === "task" && isTaskGenerated);
@@ -37,56 +37,40 @@ export function FlowStepNav() {
           return (
             <li
               key={step.key}
-              className="flex items-center gap-2"
+              className="flex items-center gap-1.5"
               aria-current={isActive ? "step" : undefined}
             >
               {idx > 0 && (
                 <span
                   aria-hidden
                   className={cn(
-                    "h-px w-5 transition-colors duration-300",
+                    "hidden h-px w-4 transition-colors duration-300 md:block",
                     idx <= currentIdx ? "bg-indigo/60" : "bg-graphite"
                   )}
                 />
               )}
-              <div className="flex items-center gap-1.5">
-                <span
-                  className={cn(
-                    "flex h-6 w-6 items-center justify-center rounded-full text-xs font-[510] transition-colors duration-300",
-                    isCompleted && "bg-emerald text-charcoal",
-                    isActive && "bg-indigo text-white",
-                    !isCompleted && !isActive && "border border-graphite text-fog"
-                  )}
-                >
-                  {isCompleted ? <Check size={12} strokeWidth={3} /> : idx + 1}
-                </span>
-                <span
-                  className={cn(
-                    "font-inter text-sm font-normal transition-colors duration-300",
-                    isActive ? "font-[510] text-snow" : "text-fog"
-                  )}
-                >
-                  {step.label}
-                </span>
-              </div>
+              <span
+                className={cn(
+                  "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-[510] transition-colors duration-300",
+                  isCompleted && "bg-emerald text-charcoal",
+                  isActive && "bg-indigo text-white",
+                  !isCompleted && !isActive && "border border-graphite text-fog"
+                )}
+              >
+                {isCompleted ? <Check size={12} strokeWidth={3} /> : idx + 1}
+              </span>
+              <span
+                className={cn(
+                  "hidden font-inter text-sm font-normal transition-colors duration-300 md:block",
+                  isActive ? "font-[510] text-snow" : "text-fog"
+                )}
+              >
+                {step.label}
+              </span>
             </li>
           );
         })}
       </ol>
-
-      {/* Mobile: compact active-step badge */}
-      {STEPS[currentIdx] && (
-        <span
-          aria-label={`Step ${currentIdx + 1}/${STEPS.length}: ${STEPS[currentIdx].label}`}
-          className="inline-flex items-center gap-1.5 rounded-full bg-indigo/15 border border-indigo/25 px-3 py-1 text-xs font-[510] text-indigo md:hidden"
-        >
-          <span className="font-mono text-[10px] text-indigo/70">
-            {currentIdx + 1}/{STEPS.length}
-          </span>
-          <span className="h-1 w-1 rounded-full bg-indigo/40" />
-          <span>{STEPS[currentIdx].label}</span>
-        </span>
-      )}
     </>
   );
 }
