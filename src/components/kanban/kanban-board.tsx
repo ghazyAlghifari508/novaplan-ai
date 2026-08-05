@@ -199,7 +199,7 @@ export function KanbanBoard({ projectId, projectName }: KanbanBoardProps) {
               <span className="text-xs font-medium text-mist">Progress</span>
               <span className="text-xs text-fog font-mono">{done}/{total} task selesai ({pct}%)</span>
             </div>
-            <div className="w-full h-2 rounded-full bg-steel/30 overflow-hidden">
+            <div className="w-full h-2.5 rounded-full bg-steel/50 overflow-hidden">
               <div
                 className="h-full rounded-full bg-indigo transition-all duration-700 ease-out"
                 style={{ width: `${pct}%` }}
