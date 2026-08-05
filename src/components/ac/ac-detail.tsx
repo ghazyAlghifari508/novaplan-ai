@@ -8,7 +8,6 @@ import { usePanelResize } from "@/hooks/use-panel-resize";
 import { useUIStore, useChatStore } from "@/store";
 import type { AcVersion, Plan } from "@/types/database";
 import { FileText, ArrowRight, X } from "lucide-react";
-import { ChatPanel } from "@/components/chat";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -41,7 +40,6 @@ export function AcDetail({
   const abortRef = useRef<AbortController | null>(null);
   const contentRef = useRef("");
 
-  const [activeTab, setActiveTab] = useState<"doc" | "chat">("doc");
   const acContent = latestAcVersion?.content || null;
 
   const handleRetrySave = useCallback(async () => {
@@ -209,32 +207,6 @@ export function AcDetail({
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-onyx text-(--text-primary)">
-      {/* Mobile Tab Toggle (<md) */}
-      <div className="flex shrink-0 border-b border-graphite bg-charcoal md:hidden">
-        <button
-          onClick={() => setActiveTab("doc")}
-          className={cn(
-            "flex-1 py-2.5 text-center text-sm font-[510] transition-colors border-b-2",
-            activeTab === "doc"
-              ? "border-indigo text-snow bg-white/5"
-              : "border-transparent text-fog hover:text-snow"
-          )}
-        >
-          Dokumen
-        </button>
-        <button
-          onClick={() => setActiveTab("chat")}
-          className={cn(
-            "flex-1 py-2.5 text-center text-sm font-[510] transition-colors border-b-2",
-            activeTab === "chat"
-              ? "border-indigo text-snow bg-white/5"
-              : "border-transparent text-fog hover:text-snow"
-          )}
-        >
-          Chat
-        </button>
-      </div>
-
       <div className="flex flex-1 overflow-hidden">
         {/* Left: TOC */}
         <aside
@@ -255,7 +227,7 @@ export function AcDetail({
         <div
           className={cn(
             "flex min-w-0 flex-1 flex-col overflow-hidden",
-            activeTab !== "doc" && "hidden md:flex"
+            
           )}
           style={{ background: "var(--bg-page)" }}
         >
@@ -303,17 +275,6 @@ export function AcDetail({
           </div>
         </div>
 
-        {/* Mobile Chat Panel (<md) */}
-        <div className={cn("flex-1 overflow-hidden md:hidden", activeTab !== "chat" && "hidden")}>
-          <ChatPanel
-            projectId={projectId}
-            className="h-full w-full border-none"
-            enableAutoSubmit={false}
-            acMode={true}
-            currentAcContent={acContent || streamingContent}
-            userPlan={plan}
-          />
-        </div>
       </div>
     </div>
   );
