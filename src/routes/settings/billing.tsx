@@ -2,7 +2,7 @@ import { createFileRoute, redirect } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { desc, eq } from 'drizzle-orm'
 import { db } from '@/db'
-import { payments, quotas, subscriptions } from '@/db/schema'
+import { payments, subscriptions } from '@/db/schema'
 import { requireUserServer } from '@/lib/session'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import Link from 'next/link'
@@ -10,16 +10,14 @@ import Link from 'next/link'
 // ponytail: server-only db logic - loader runs on client too, must not import db there.
 const loadBilling = createServerFn({ method: 'GET' }).handler(async () => {
   const user = await requireUserServer()
-  const [subRows, paymentRows, quotaRows] = await Promise.all([
-    db.select().from(subscriptions).where(eq(subscriptions.userId, user.id)).limit(1),
+  const [subRows, paymentRows] = await Promise.all([
+    db.select().from(subscriptions).where(eq(subscriptions.userId, user.id)).orderBy(desc(subscriptions.createdAt)).limit(1),
     db.select().from(payments).where(eq(payments.userId, user.id)).orderBy(desc(payments.createdAt)).limit(10),
-    db.select().from(quotas).where(eq(quotas.userId, user.id)).limit(1),
   ])
   // ponytail: server fn boundary rejects Date + unknown - coerce to plain JSON.
   const subscription = subRows[0] ? { ...subRows[0], createdAt: subRows[0].createdAt?.toISOString() ?? null, updatedAt: subRows[0].updatedAt?.toISOString() ?? null } : undefined
   const paymentsList = paymentRows.map((p) => ({ ...p, createdAt: p.createdAt?.toISOString() ?? null, updatedAt: p.updatedAt?.toISOString() ?? null, midtransResponse: p.midtransResponse as object | null }))
-  const quota = quotaRows[0] ? { ...quotaRows[0], createdAt: quotaRows[0].createdAt?.toISOString() ?? null, updatedAt: quotaRows[0].updatedAt?.toISOString() ?? null } : undefined
-  return { subscription, payments: paymentsList, quota }
+  return { subscription, payments: paymentsList }
 })
 
 export const Route = createFileRoute('/settings/billing')({
@@ -35,12 +33,15 @@ export const Route = createFileRoute('/settings/billing')({
 })
 
 function BillingPage() {
-  const { subscription, payments, quota } = Route.useLoaderData()
+  const { subscription, payments } = Route.useLoaderData()
+  const credits = (subscription as Record<string, unknown>)?.credits as number ?? 0
+  const creditsUsed = (subscription as Record<string, unknown>)?.creditsUsed as number ?? 0
+  const remaining = Math.max(0, credits - creditsUsed)
   return (
     <div className="flex flex-col gap-6">
       <div className="grid gap-6 lg:grid-cols-2 h-full">
         <div className="rounded-xl border border-(--border-subtle) bg-(--bg-card) p-6">
-          <h2 className="mb-6 font-inter font-[510] text-xl font-bold">Billing & Subscription</h2>
+          <h2 className="mb-6 font-inter font-[510] text-xl font-bold">Billing & Kredit</h2>
           <div className="flex items-center justify-between">
             <div>
               <span className="text-3xl font-bold capitalize">{subscription?.plan || 'free'}</span>
@@ -48,30 +49,31 @@ function BillingPage() {
                 {subscription?.status === 'active' ? 'Aktif' : 'Tidak aktif'}
               </p>
             </div>
-            {subscription?.plan !== 'hengker' && (
-              <Link
-                href="/pricing"
-                className="rounded-lg border border-(--border-subtle) px-4 py-2 text-sm font-medium hover:bg-(--bg-surface)"
-              >
-                Upgrade
-              </Link>
-            )}
+            <Link
+              href="/pricing"
+              className="rounded-lg border border-(--border-subtle) px-4 py-2 text-sm font-medium hover:bg-(--bg-surface)"
+            >
+              Beli Kredit
+            </Link>
           </div>
 
-          {quota && (
+          {credits > 0 && (
             <div className="mt-6 rounded-lg bg-(--bg-surface) p-4">
               <div className="mb-2 flex justify-between text-sm">
-                <span className="text-(--text-secondary)">PRD digunakan</span>
+                <span className="text-(--text-secondary)">Kredit digunakan</span>
                 <span className="font-medium">
-                  {quota.prdUsed} / {quota.prdLimit === -1 ? '∞' : quota.prdLimit}
+                  {creditsUsed} / {credits}
                 </span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-(--text-secondary)">Revisi digunakan</span>
-                <span className="font-medium">
-                  {quota.revisionUsed} / {quota.revisionLimit === -1 ? '∞' : quota.revisionLimit}
-                </span>
+              <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-(--bg-card)">
+                <div
+                  className="h-full rounded-full bg-indigo transition-all"
+                  style={{ width: `${credits > 0 ? ((credits - creditsUsed) / credits) * 100 : 0}%` }}
+                />
               </div>
+              <p className="mt-2 text-xs text-(--text-secondary)">
+                Sisa {remaining} kredit. Kredit tidak pernah hangus.
+              </p>
             </div>
           )}
         </div>
