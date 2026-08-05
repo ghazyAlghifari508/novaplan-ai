@@ -164,7 +164,19 @@ export function Navbar() {
         </div>
 
         {/* Right: actions */}
-        <div className="flex w-[200px] shrink-0 items-center justify-end gap-2">
+        <div className="flex md:w-[200px] shrink-0 items-center justify-end gap-2">
+          {/* Mobile hamburger */}
+          {!isFlowStepRoute && (
+            <button
+              className="md:hidden p-2 text-fog hover:text-snow transition-colors shrink-0"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          )}
+          {/* Desktop items */}
+          <div className="hidden md:flex items-center gap-2">
           {isFlowStepRoute ? (
             /* Workspace action buttons */
             <>
@@ -250,18 +262,8 @@ export function Navbar() {
               )}
             </>
           )}
+          </div>
         </div>
-
-        {/* Mobile: hamburger menu toggle (right aligned) */}
-        {!isFlowStepRoute && (
-          <button
-            className="md:hidden p-2 text-fog hover:text-snow transition-colors shrink-0"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-        )}
       </div>
 
       {/* Mobile Menu Drawer */}
