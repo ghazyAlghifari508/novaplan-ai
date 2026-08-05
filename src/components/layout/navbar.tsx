@@ -164,7 +164,7 @@ export function Navbar() {
         </div>
 
         {/* Right: actions */}
-        <div className="flex md:w-[200px] shrink-0 items-center justify-end gap-2">
+        <div className="flex md:w-[200px] shrink-0 items-center justify-end gap-2 ml-auto md:ml-0">
           {/* Mobile hamburger */}
           {!isFlowStepRoute && (
             <button
