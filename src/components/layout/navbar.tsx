@@ -125,7 +125,7 @@ export function Navbar() {
     >
       <div className="mx-auto flex h-full max-w-[1200px] items-center px-6">
         {/* Left: logo */}
-        <div className="flex shrink-0 md:w-[200px] hidden md:flex">
+        <div className="flex shrink-0 md:w-[200px]">
           <Logo height={28} />
         </div>
 
@@ -277,6 +277,10 @@ export function Navbar() {
       {/* Mobile Menu Drawer */}
       {isMobileMenuOpen && (
         <div className="md:hidden border-t border-graphite bg-obsidian px-6 py-4 space-y-3 animate-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-[510] text-fog">Tampilan</span>
+            <ThemeToggle />
+          </div>
           <Link
             href="/"
             className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-[510] text-snow hover:bg-white/5"
