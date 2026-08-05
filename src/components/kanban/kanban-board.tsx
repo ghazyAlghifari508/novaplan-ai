@@ -157,9 +157,8 @@ export function KanbanBoard({ projectId, projectName }: KanbanBoardProps) {
           <Link href={`/task/${projectId}`} className="btn-primary px-3 py-1.5 rounded-md text-xs font-[510]">
             Roadmap
           </Link>
-          <Link href="/" className="btn-primary px-3 py-1.5 rounded-md text-xs font-[510] flex items-center gap-1.5">
-            <Home size={14} />
-            Home
+          <Link href="/" className="px-3 py-1.5 rounded-md text-xs font-[510] flex items-center gap-1.5 border border-snow/40 text-snow hover:border-snow/70 transition-colors bg-transparent">
+            Kembali ke Beranda
           </Link>
         </div>
       </div>
