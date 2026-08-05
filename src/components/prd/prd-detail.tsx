@@ -301,8 +301,15 @@ export function PrdDetail({
         ) : (
           /* Default: PRD content (streaming or saved) */
           <div className="flex flex-1 flex-col overflow-hidden">
-            <PrdViewer
-              content={isGeneratingPRD || streamingPRDContent ? streamingPRDContent : currentContent}
+            {isGeneratingPRD && !streamingPRDContent && !latestVersion ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-6">
+                <div className="h-10 w-10 animate-spin rounded-full border-2 border-indigo border-t-transparent" />
+                <p className="mt-4 text-sm font-[510] text-snow">Sedang membuat PRD...</p>
+                <p className="mt-1 text-xs text-fog">Model AI sedang menganalisis jawaban Anda</p>
+              </div>
+            ) : (
+              <PrdViewer
+                content={isGeneratingPRD || streamingPRDContent ? streamingPRDContent : currentContent}
               projectName={projectName || ""}
               plan={plan}
               versions={versions?.map((v) => ({
@@ -316,6 +323,7 @@ export function PrdDetail({
               onSelectVersion={handleVersionSelect}
               className="flex-1 overflow-hidden"
             />
+            )}
           </div>
         )}
       </div>
