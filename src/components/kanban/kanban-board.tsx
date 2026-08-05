@@ -2,7 +2,7 @@
 
 import { useKanbanPolling } from "@/hooks/use-kanban-polling";
 import { KanbanBanner } from "./kanban-banner";
-import { Sparkles, Loader2, KanbanSquare, ArrowUpDown, X, AlertTriangle } from "lucide-react";
+import { Sparkles, Loader2, KanbanSquare, ArrowUpDown, X, AlertTriangle, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -156,6 +156,10 @@ export function KanbanBoard({ projectId, projectName }: KanbanBoardProps) {
           )}
           <Link href={`/task/${projectId}`} className="btn-primary px-3 py-1.5 rounded-md text-xs font-[510]">
             Roadmap
+          </Link>
+          <Link href="/" className="btn-primary px-3 py-1.5 rounded-md text-xs font-[510] flex items-center gap-1.5">
+            <Home size={14} />
+            Home
           </Link>
         </div>
       </div>
