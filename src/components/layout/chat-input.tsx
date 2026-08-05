@@ -369,8 +369,10 @@ export function ChatInput({ className }: ChatInputProps) {
 																/>
 																<span className="flex-1 text-left">
 																	{model.label}
+																	<span style={{color: model.reasoning ? "var(--color-indigo)" : "#10b981"}} className="text-[9px] ml-1.5">
+																		{model.reasoning ? "thinking" : "fast"}
+																	</span>
 																</span>
-t															<span style={{color: model.reasoning ? "var(--color-indigo)" : "#10b981"}} className="text-[9px] shrink-0">{model.reasoning ? "thinking" : "fast"}</span>
 																<div className="flex items-center gap-3 shrink-0 ml-2">
 																	<QualityBars quality={model.quality} />
 																	{!unlocked ? (
