@@ -99,6 +99,12 @@ export function ModelDropdown({
       >
         <ModelIcon model={selectedModel} />
         {selectedModelMeta.label}
+        <span className={cn(
+          "text-[9px] font-[510] px-1 py-0.5 rounded",
+          selectedModelMeta.reasoning ? "bg-indigo/15 text-indigo" : "bg-emerald-500/15 text-emerald-500"
+        )}>
+          {selectedModelMeta.reasoning ? "🧠" : "⚡"}
+        </span>
         <ChevronDown size={11} className={cn("transition-transform", isOpen && "rotate-180")} />
       </button>
 
@@ -134,6 +140,12 @@ export function ModelDropdown({
                         <div className="flex items-center gap-2 min-w-0 flex-1">
                           <ModelIcon model={model.id} isLocked={isLocked} />
                           <span style={{ color: "var(--text-primary)" }} className="truncate">{model.label}</span>
+                          <span className={cn(
+                            "text-[9px] font-[510] px-1 py-0.5 rounded shrink-0",
+                            model.reasoning ? "bg-indigo/15 text-indigo" : "bg-emerald-500/15 text-emerald-500"
+                          )}>
+                            {model.reasoning ? "🧠 thinking" : "⚡ fast"}
+                          </span>
                         </div>
                         <div className="flex items-center gap-3 shrink-0 ml-2">
                           <QualityBars quality={model.quality} />

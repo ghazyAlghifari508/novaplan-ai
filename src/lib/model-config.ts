@@ -32,6 +32,8 @@ export interface ModelDefinition {
 	colorClass: string;
 	/** Quality rating from 1 (poor) to 5 (excellent) */
 	quality: 1 | 2 | 3 | 4 | 5;
+	/** Whether model uses reasoning/thinking before output */
+	reasoning: boolean;
 }
 
 /**
@@ -64,6 +66,7 @@ export const ALL_MODELS: ModelDefinition[] = [
 		brand: "ling",
 		colorClass: "text-[#1677FF]",
 		quality: 4,
+		reasoning: false,
 	},
 	{
 		id: "oc/big-pickle",
@@ -72,6 +75,7 @@ export const ALL_MODELS: ModelDefinition[] = [
 		brand: "bigpickle",
 		colorClass: "text-[#7CB342]",
 		quality: 4,
+		reasoning: true,
 	},
 
 	// ── Pro Tier (reasoning + context besar) ──
@@ -82,6 +86,7 @@ export const ALL_MODELS: ModelDefinition[] = [
 		brand: "nvidia",
 		colorClass: "text-[#76B900]",
 		quality: 5,
+		reasoning: true,
 	},
 	{
 		id: "oc/mimo-v2.5-free",
@@ -90,6 +95,7 @@ export const ALL_MODELS: ModelDefinition[] = [
 		brand: "xiaomi",
 		colorClass: "text-[#FF6900]",
 		quality: 4,
+		reasoning: true,
 	},
 
 	// ── Hengker Tier (paling optimal) ──
@@ -100,6 +106,7 @@ export const ALL_MODELS: ModelDefinition[] = [
 		brand: "deepseek",
 		colorClass: "text-[#4D93E6]",
 		quality: 5,
+		reasoning: true,
 	},
 ];
 
