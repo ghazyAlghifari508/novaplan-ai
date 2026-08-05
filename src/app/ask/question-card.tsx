@@ -151,7 +151,7 @@ export function QuestionCard({
 					</div>
 				)
 			) : type === "multiselect" ? (
-				<div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+				<div className="flex flex-wrap gap-2">
 					{options?.map((opt) => {
 						const selected = answer?.values?.includes(opt) ?? false;
 						return (
@@ -174,7 +174,7 @@ export function QuestionCard({
 			) : (
 				/* select: original pill options */
 				<>
-					<div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+					<div className="flex flex-wrap gap-2">
 						{options?.map((opt) => (
 							<button
 								type="button"
