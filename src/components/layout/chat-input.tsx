@@ -302,6 +302,7 @@ export function ChatInput({ className }: ChatInputProps) {
 							>
 								<ModelIcon model={selectedModel} />
 								{selectedModelMeta.label}
+t							<span className="text-[9px] font-[510] px-1 py-0.5 rounded" style={{background: selectedModelMeta.reasoning ? "rgba(94,106,210,0.15)" : "rgba(16,185,129,0.15)", color: selectedModelMeta.reasoning ? "var(--color-indigo)" : "#10b981"}}>{selectedModelMeta.reasoning ? "🧠" : "⚡"}</span>
 								<ChevronDown
 									size={11}
 									className={cn(
@@ -366,6 +367,7 @@ export function ChatInput({ className }: ChatInputProps) {
 																/>
 																<span className="flex-1 text-left">
 																	{model.label}
+t															<span className="text-[9px] font-[510] px-1 py-0.5 rounded shrink-0" style={{background: model.reasoning ? "rgba(94,106,210,0.15)" : "rgba(16,185,129,0.15)", color: model.reasoning ? "var(--color-indigo)" : "#10b981"}}>{model.reasoning ? "🧠 thinking" : "⚡ fast"}</span>
 																</span>
 																<div className="flex items-center gap-3 shrink-0 ml-2">
 																	<QualityBars quality={model.quality} />

@@ -61,7 +61,7 @@ export const ALL_MODELS: ModelDefinition[] = [
 	// ── Free Tier (cepat, fungsional) ──
 	{
 		id: "oc/ling-3.0-flash-free(high)",
-		label: "Ling 3.0 Flash Free",
+		label: "Ling 3.0 Flash",
 		tier: "free",
 		brand: "ling",
 		colorClass: "text-[#1677FF]",
@@ -70,7 +70,7 @@ export const ALL_MODELS: ModelDefinition[] = [
 	},
 	{
 		id: "oc/big-pickle",
-		label: "Big Pickle Free",
+		label: "Big Pickle",
 		tier: "free",
 		brand: "bigpickle",
 		colorClass: "text-[#7CB342]",
@@ -81,7 +81,7 @@ export const ALL_MODELS: ModelDefinition[] = [
 	// ── Pro Tier (reasoning + context besar) ──
 	{
 		id: "oc/nemotron-3-ultra-free(high)",
-		label: "Nemotron 3 Ultra Free",
+		label: "Nemotron 3 Ultra",
 		tier: "pro",
 		brand: "nvidia",
 		colorClass: "text-[#76B900]",
@@ -90,7 +90,7 @@ export const ALL_MODELS: ModelDefinition[] = [
 	},
 	{
 		id: "oc/mimo-v2.5-free",
-		label: "MiMo v2.5 Free",
+		label: "MiMo v2.5",
 		tier: "pro",
 		brand: "xiaomi",
 		colorClass: "text-[#FF6900]",
@@ -101,7 +101,7 @@ export const ALL_MODELS: ModelDefinition[] = [
 	// ── Hengker Tier (paling optimal) ──
 	{
 		id: "oc/deepseek-v4-flash-free(high)",
-		label: "DeepSeek v4 Flash Free",
+		label: "DeepSeek v4 Flash",
 		tier: "hengker",
 		brand: "deepseek",
 		colorClass: "text-[#4D93E6]",
