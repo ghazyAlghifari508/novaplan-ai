@@ -302,7 +302,6 @@ export function ChatInput({ className }: ChatInputProps) {
 							>
 								<ModelIcon model={selectedModel} />
 								{selectedModelMeta.label}
-t							<span className="text-[9px] font-[510] px-1 py-0.5 rounded" style={{background: selectedModelMeta.reasoning ? "rgba(94,106,210,0.15)" : "rgba(16,185,129,0.15)", color: selectedModelMeta.reasoning ? "var(--color-indigo)" : "#10b981"}}>{selectedModelMeta.reasoning ? "🧠" : "⚡"}</span>
 								<ChevronDown
 									size={11}
 									className={cn(
