@@ -163,17 +163,6 @@ export function Navbar() {
           )}
         </div>
 
-        {/* Mobile: hamburger menu toggle */}
-        {!isFlowStepRoute && (
-          <button
-            className="md:hidden p-2 text-fog hover:text-snow transition-colors"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-        )}
-
         {/* Right: actions */}
         <div className="flex w-[200px] shrink-0 items-center justify-end gap-2">
           {isFlowStepRoute ? (
@@ -262,6 +251,17 @@ export function Navbar() {
             </>
           )}
         </div>
+
+        {/* Mobile: hamburger menu toggle (right aligned) */}
+        {!isFlowStepRoute && (
+          <button
+            className="md:hidden p-2 text-fog hover:text-snow transition-colors shrink-0"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        )}
       </div>
 
       {/* Mobile Menu Drawer */}
