@@ -54,7 +54,7 @@ interface PricingComponentProps extends React.HTMLAttributes<HTMLDivElement> {
 	currentPlan?: string;
 }
 
-const PricingComponent: React.FC<PricingComponentProps> = ({
+export const PricingComponent: React.FC<PricingComponentProps> = ({
 	plans,
 	onPlanSelect,
 	currentPlan = "free",
