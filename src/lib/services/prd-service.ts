@@ -14,36 +14,63 @@ export function generateShareToken(): string {
 
 /**
  * Derive a human-readable project name from the user's raw prompt.
+ * Uses AI to extract the core app concept, with regex fallback if AI fails.
  */
-export function deriveProjectName(message: string): string {
+export async function deriveProjectName(message: string): Promise<string> {
+  // Strip platform tags and known boilerplate
   let cleanMsg = message;
   cleanMsg = cleanMsg.replace(/Generate PRD lengkap berdasarkan informasi berikut:\s*/gi, "");
   cleanMsg = cleanMsg.replace(/\s*Gunakan section markers sesuai standar./gi, "");
-  cleanMsg = cleanMsg.replace(/\[.*?\]\s*/gi, "");
+  cleanMsg = cleanMsg.replace(/\[Platform:.*?\]\s*/gi, "");
+  cleanMsg = cleanMsg.trim();
 
+  // AI path: ask model to extract a short project title
+  try {
+    const { completeChat } = await import("@/lib/ai-client");
+    const title = await completeChat(
+      [
+        {
+          role: "system",
+          content:
+            "Extract a short project/app name (2-5 words) from the user's prompt. " +
+            "Return ONLY the name, nothing else. No quotes, no punctuation, no explanation. " +
+            "Use Title Case. Examples: 'Padel Booking', 'Kasir POS', 'LMS Gamifikasi', 'E-Commerce Marketplace'.",
+        },
+        { role: "user", content: cleanMsg },
+      ],
+      "oc/ling-3.0-flash-free(high)",
+    );
+    const cleaned = title.trim().replace(/^["']|["']$/g, "").replace(/\.$/, "");
+    if (cleaned.length >= 2 && cleaned.length <= 60) return cleaned;
+  } catch {
+    // Fall through to regex fallback
+  }
+
+  // Regex fallback: strip fillers, take last meaningful words
   const fillers = [
-    "tolong", "coba", "bantu", "harap",
-    "buatkan", "bikin", "generate", "tuliskan", "buat",
-    "gw", "saya", "kami", "aku",
-    "sebuah", "satu", "suatu",
-    "prd", "dokumen",
-    "untuk", "tentang", "membuat", "membangun", "bikinin",
-    "aplikasi", "website", "platform", "sistem", "web", "app", "apps", "mobile", "desktop", "software",
+    "tolong", "coba", "bantu", "harap", "buatkan", "bikin", "generate",
+    "tuliskan", "buat", "bikinin", "dong", "ya", "yaa",
+    "gw", "saya", "kami", "aku", "gue",
+    "sebuah", "satu", "suatu", "itu", "ini",
+    "prd", "dokumen", "file",
+    "untuk", "tentang", "dengan", "yang", "dan", "atau", "serta",
+    "dari", "ke", "di", "pada", "adalah", "akan", "bisa", "juga",
+    "the", "a", "an", "of", "and", "or", "for", "to", "in", "on",
+    "with", "that", "this", "is", "are", "was", "be", "has", "have",
+    "its", "it", "by", "from", "but", "not", "no", "so", "if",
+    "membuat", "membangun", "menggunakan", "ada",
+    "aplikasi", "website", "platform", "sistem", "web", "app",
+    "apps", "mobile", "desktop", "software", "project", "proyek",
+    "baru", "simple", "basic", "lengkap", "sederhana", "modern",
   ];
+  let fallback = cleanMsg.replace(/\[.*?\]\s*/g, "");
   const fillerRegex = new RegExp(`\\b(?:${fillers.join("|")})\\b`, "gi");
-  cleanMsg = cleanMsg.replace(fillerRegex, "");
-  cleanMsg = cleanMsg.replace(/\s+/g, " ").trim();
-
-  if (cleanMsg.length < 3) return "Project Baru";
-
-  const words = cleanMsg.split(" ");
-  let projectName = words.slice(0, 4).join(" ");
-  if (words.length > 4) projectName += "...";
-  projectName = projectName
-    .split(" ")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
-  return projectName.trim().length < 3 ? "Project Baru" : projectName;
+  fallback = fallback.replace(fillerRegex, "").replace(/[^\w\s-]/g, "").replace(/\s+/g, " ").trim();
+  if (fallback.length < 2) return "Project Baru";
+  const words = fallback.split(" ").filter((w) => w.length > 1);
+  if (words.length === 0) return "Project Baru";
+  const tail = words.slice(-4);
+  return tail.map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") || "Project Baru";
 }
 
 /**

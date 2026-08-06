@@ -18,7 +18,8 @@ export const Route = createFileRoute("/api/projects/")({
         }
 
         const id = crypto.randomUUID();
-        const [project] = await db.insert(projects).values({ id, userId: user.id, name: deriveProjectName(message), status: "draft", mode: "ai_auto" }).returning({ id: projects.id, name: projects.name });
+        const projectName = await deriveProjectName(message);
+        const [project] = await db.insert(projects).values({ id, userId: user.id, name: projectName, status: "draft", mode: "ai_auto" }).returning({ id: projects.id, name: projects.name });
 
         if (!project) return Response.json({ error: "Gagal membuat project" }, { status: 500 });
         return Response.json({ id: project.id, name: project.name });
