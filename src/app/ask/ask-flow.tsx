@@ -238,7 +238,7 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 	}
 
 	return (
-		<div className="hide-scrollbar mx-auto flex-1 w-full max-w-3xl overflow-y-auto px-4 sm:px-6 py-6 sm:py-12 min-h-0">
+		<div className="hide-scrollbar mx-auto flex-1 w-full max-w-3xl lg:max-w-4xl overflow-y-auto px-4 sm:px-6 py-6 sm:py-12 min-h-0">
 			<div className="mb-8 flex items-center justify-between">
 				<div>
 					<p className="font-inter text-xs uppercase tracking-wide text-fog">
