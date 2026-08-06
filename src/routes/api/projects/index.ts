@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { db } from "@/db";
 import { projects } from "@/db/schema";
-import { deriveProjectName } from "@/lib/services/prd-service";
 import { requireUser } from "@/lib/session";
+import { deriveProjectNameSync } from "@/lib/services/prd-service";
 
 export const Route = createFileRoute("/api/projects/")({
   server: {
@@ -18,7 +18,10 @@ export const Route = createFileRoute("/api/projects/")({
         }
 
         const id = crypto.randomUUID();
-        const projectName = await deriveProjectName(message);
+        // ponytail: sync regex-only name, skip AI call. chat.ts calls
+        // deriveProjectName (with AI) again inside the SSE stream, so the
+        // final name is AI-quality — user never sees the rough one.
+        const projectName = deriveProjectNameSync(message);
         const [project] = await db.insert(projects).values({ id, userId: user.id, name: projectName, status: "draft", mode: "ai_auto" }).returning({ id: projects.id, name: projects.name });
 
         if (!project) return Response.json({ error: "Gagal membuat project" }, { status: 500 });

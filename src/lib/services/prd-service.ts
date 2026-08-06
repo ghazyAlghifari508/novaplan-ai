@@ -13,6 +13,44 @@ export function generateShareToken(): string {
 }
 
 /**
+ * Synchronous regex-only project name derivation.
+ * Instant, no AI call. Used at project creation for speed.
+ * AI-quality name comes later via deriveProjectName() in chat.ts SSE stream.
+ */
+export function deriveProjectNameSync(message: string): string {
+  let cleanMsg = message;
+  cleanMsg = cleanMsg.replace(/Generate PRD lengkap berdasarkan informasi berikut:\s*/gi, "");
+  cleanMsg = cleanMsg.replace(/\s*Gunakan section markers sesuai standar./gi, "");
+  cleanMsg = cleanMsg.replace(/\[Platform:.*?\]\s*/gi, "");
+  cleanMsg = cleanMsg.trim();
+
+  const fillers = [
+    "tolong", "coba", "bantu", "harap", "buatkan", "bikin", "generate",
+    "tuliskan", "buat", "bikinin", "dong", "ya", "yaa",
+    "gw", "saya", "kami", "aku", "gue",
+    "sebuah", "satu", "suatu", "itu", "ini",
+    "prd", "dokumen", "file",
+    "untuk", "tentang", "dengan", "yang", "dan", "atau", "serta",
+    "dari", "ke", "di", "pada", "adalah", "akan", "bisa", "juga",
+    "the", "a", "an", "of", "and", "or", "for", "to", "in", "on",
+    "with", "that", "this", "is", "are", "was", "be", "has", "have",
+    "its", "it", "by", "from", "but", "not", "no", "so", "if",
+    "membuat", "membangun", "menggunakan", "ada",
+    "aplikasi", "website", "platform", "sistem", "web", "app",
+    "apps", "mobile", "desktop", "software", "project", "proyek",
+    "baru", "simple", "basic", "lengkap", "sederhana", "modern",
+  ];
+  let fallback = cleanMsg.replace(/\[.*?\]\s*/g, "");
+  const fillerRegex = new RegExp(`\\b(?:${fillers.join("|")})\\b`, "gi");
+  fallback = fallback.replace(fillerRegex, "").replace(/[^\w\s-]/g, "").replace(/\s+/g, " ").trim();
+  if (fallback.length < 2) return "Project Baru";
+  const words = fallback.split(" ").filter((w) => w.length > 1);
+  if (words.length === 0) return "Project Baru";
+  const tail = words.slice(-4);
+  return tail.map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") || "Project Baru";
+}
+
+/**
  * Derive a human-readable project name from the user's raw prompt.
  * Uses AI to extract the core app concept, with regex fallback if AI fails.
  */
