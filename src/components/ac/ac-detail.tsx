@@ -281,6 +281,7 @@ export function AcDetail({
 	const isStreaming = isGenerating;
 
 	return (
+		<>
 		<div className="flex h-dvh flex-col overflow-hidden bg-onyx text-(--text-primary)">
 			<div className="flex flex-1 overflow-hidden">
 				{/* Left: TOC */}
@@ -373,6 +374,6 @@ export function AcDetail({
 			stage="ac"
 			currentPlan={plan}
 		/>
-	</div>
+		</>
 	);
 }

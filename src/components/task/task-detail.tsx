@@ -262,6 +262,7 @@ export function TaskDetail({
 	const displayTitle = isGenerating ? "Menyusun task tree..." : projectName;
 
 	return (
+		<>
 		<div className="flex h-full flex-col bg-onyx text-snow">
 			{/* Topbar */}
 			<div className="flex items-center justify-between border-b border-graphite bg-obsidian px-4 py-3">
@@ -400,5 +401,6 @@ export function TaskDetail({
 			projectId={projectId}
 			stage="task"
 		/>
+		</>
 	);
 }
