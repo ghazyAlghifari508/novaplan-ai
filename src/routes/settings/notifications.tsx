@@ -34,7 +34,7 @@ function NotificationsPage() {
   return (
     <div className="rounded-xl border border-(--border-subtle) bg-(--bg-card) p-6">
       <h2 className="mb-6 font-inter font-[510] text-xl font-bold">Preferensi Notifikasi</h2>
-      <NotificationsForm preferences={preferences as never} />
+      <NotificationsForm preferences={preferences} />
     </div>
   )
 }

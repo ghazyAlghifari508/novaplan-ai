@@ -19,7 +19,7 @@ export const NotificationsForm = memo(function NotificationsForm({
           <input
             type="checkbox"
             name="quota_warning"
-            defaultChecked={preferences?.quota_warning !== false}
+            defaultChecked={preferences?.quotaWarning !== false}
             className="mt-0.5 h-4 w-4 accent-primary-black"
           />
           <div>
@@ -34,7 +34,7 @@ export const NotificationsForm = memo(function NotificationsForm({
           <input
             type="checkbox"
             name="prd_completed"
-            defaultChecked={preferences?.prd_completed !== false}
+            defaultChecked={preferences?.prdCompleted !== false}
             className="mt-0.5 h-4 w-4 accent-primary-black"
           />
           <div>
@@ -49,7 +49,7 @@ export const NotificationsForm = memo(function NotificationsForm({
           <input
             type="checkbox"
             name="payment_updates"
-            defaultChecked={preferences?.payment_updates !== false}
+            defaultChecked={preferences?.paymentUpdates !== false}
             className="mt-0.5 h-4 w-4 accent-primary-black"
           />
           <div>
@@ -64,7 +64,7 @@ export const NotificationsForm = memo(function NotificationsForm({
           <input
             type="checkbox"
             name="product_updates"
-            defaultChecked={preferences?.product_updates || false}
+            defaultChecked={preferences?.productUpdates || false}
             className="mt-0.5 h-4 w-4 accent-primary-black"
           />
           <div>

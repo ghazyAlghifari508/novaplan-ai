@@ -62,7 +62,7 @@ export const Route = createFileRoute('/prd/$id')({
   head: ({ loaderData }) => ({ meta: [{ title: loaderData?.projectName || 'PRD' }] }),
   component: PrdPage,
   errorComponent: ({ error }) => {
-    if (error.message === 'NOT_FOUND') {
+    if (error?.message === 'NOT_FOUND') {
       return <div className="p-10 text-center text-fog">PRD tidak ditemukan.</div>
     }
     return <div className="p-10 text-center text-crimson">Gagal memuat PRD.</div>

@@ -2,7 +2,7 @@ import { createFileRoute, redirect } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
-import { quotas, users } from '@/db/schema'
+import { users } from '@/db/schema'
 import { requireUserServer } from '@/lib/session'
 import { ProfileForm } from '@/components/settings/profile-form'
 

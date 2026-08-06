@@ -42,7 +42,7 @@ export const Route = createFileRoute("/ask/$id")({
 	}),
 	component: AskPage,
 	errorComponent: ({ error }) => {
-		if (error.message === "NOT_FOUND") {
+		if (error?.message === "NOT_FOUND") {
 			return (
 				<div className="p-10 text-center text-fog">Proyek tidak ditemukan.</div>
 			);

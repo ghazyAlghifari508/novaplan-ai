@@ -101,13 +101,13 @@ export const PLAN_PRICES: Record<Plan, number> = {
 
 export interface NotificationPreferences {
 	id: string;
-	user_id: string;
-	quota_warning: boolean;
-	prd_completed: boolean;
-	payment_updates: boolean;
-	product_updates: boolean;
-	created_at: string;
-	updated_at: string;
+	userId: string;
+	quotaWarning: boolean;
+	prdCompleted: boolean;
+	paymentUpdates: boolean;
+	productUpdates: boolean;
+	createdAt: string | null;
+	updatedAt: string | null;
 }
 
 export const FEATURES: Record<
