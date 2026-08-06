@@ -212,7 +212,7 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 
 	if (isLoadingQuestions) {
 		return (
-			<div className="flex h-full items-center justify-center">
+			<div className="flex h-full items-center justify-center bg-onyx">
 				<p className="animate-pulse font-inter text-fog">
 					Menyusun pertanyaan...
 				</p>
@@ -238,7 +238,8 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 	}
 
 	return (
-		<div className="hide-scrollbar mx-auto flex-1 w-full max-w-3xl lg:max-w-4xl overflow-y-auto px-4 sm:px-6 py-6 sm:py-12 min-h-0">
+		<div className="hide-scrollbar mx-auto flex-1 w-full overflow-y-auto bg-onyx min-h-0">
+			<div className="mx-auto max-w-3xl lg:max-w-4xl px-4 sm:px-6 py-6 sm:py-12">
 			<div className="mb-8 flex items-center justify-between">
 				<div>
 					<p className="font-inter text-xs uppercase tracking-wide text-fog">
@@ -394,6 +395,7 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 					</div>
 				</div>
 			)}
+		</div>
 		</div>
 	);
 }
