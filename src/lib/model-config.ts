@@ -24,6 +24,7 @@ export interface ModelDefinition {
 		| "bigpickle"
 		| "ling"
 		| "bot"
+		| "poolside"
 		| "sparkles";
 	/** Tailwind color class for this model's brand */
 	colorClass: string;
@@ -36,35 +37,26 @@ export interface ModelDefinition {
 /**
  * All available AI models in NovaPlan, ordered by tier.
  *
- * Analisa langsung dari endpoint 9Router + test tiap model:
+ * Tested 2026-08-06 against 9router /v1/chat/completions.
+ * ⚠️  Do NOT append (high) suffix — it breaks streaming (30s+ timeouts).
  *
- * FREE - cepat, fungsional, cukup untuk chat ringan:
- *   - Ling 3.0 Flash Free (~2s, flash, output presisi)
- *   - Big Pickle (cepat, output bagus)
+ * FREE - cepat, fungsional:
+ *   - Big Pickle (~5s, reasoning, output bagus)
+ *   - Laguna S 2.1 (~7s, reasoning, structured output)
  *
  * PRO - reasoning + context besar:
- *   - Nemotron 3 Ultra Free (reasoning ✅, 128K ctx, 1.4s)
- *   - MiMo v2.5 Free (1M ctx, vision, fitur lengkap, tapi lambat ~13.7s)
+ *   - Nemotron 3 Ultra (~7s, reasoning, output excellent)
+ *   - MiMo v2.5 (~7s, vision + reasoning, quality terbaik)
  *
  * HENGKER - paling optimal:
- *   - DeepSeek V4 Flash Free (reasoning ✅, 1M ctx, 2s, quality 5/5)
+ *   - DeepSeek V4 Flash (~5s, reasoning, output bagus)
  *
- * North Mini Code - DROP (gagal coding, output empty walau 400 tokens)
- *
- * ⚠️  When OpenCode Free deprecates a model, update the `id` here.
- *     This is the ONLY place model IDs should live.
+ * DROPPED:
+ *   - Ling 3.0 Flash (404, model removed from OpenCode)
+ *   - North Mini Code (39s, output empty — reasoning only)
  */
 export const ALL_MODELS: ModelDefinition[] = [
 	// ── Free Tier (cepat, fungsional) ──
-	{
-		id: "oc/ling-3.0-flash-free(high)",
-		label: "Ling 3.0 Flash",
-		tier: "free",
-		brand: "ling",
-		colorClass: "text-[#1677FF]",
-		quality: 4,
-		reasoning: false,
-	},
 	{
 		id: "oc/big-pickle",
 		label: "Big Pickle",
@@ -74,10 +66,19 @@ export const ALL_MODELS: ModelDefinition[] = [
 		quality: 4,
 		reasoning: true,
 	},
+	{
+		id: "oc/laguna-s-2.1-free",
+		label: "Laguna S 2.1",
+		tier: "free",
+		brand: "poolside",
+		colorClass: "text-[#A78BFA]",
+		quality: 4,
+		reasoning: true,
+	},
 
 	// ── Pro Tier (reasoning + context besar) ──
 	{
-		id: "oc/nemotron-3-ultra-free(high)",
+		id: "oc/nemotron-3-ultra-free",
 		label: "Nemotron 3 Ultra",
 		tier: "pro",
 		brand: "nvidia",
@@ -97,7 +98,7 @@ export const ALL_MODELS: ModelDefinition[] = [
 
 	// ── Hengker Tier (paling optimal) ──
 	{
-		id: "oc/deepseek-v4-flash-free(high)",
+		id: "oc/deepseek-v4-flash-free",
 		label: "DeepSeek v4 Flash",
 		tier: "hengker",
 		brand: "deepseek",

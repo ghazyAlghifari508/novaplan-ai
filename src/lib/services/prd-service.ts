@@ -38,7 +38,7 @@ export async function deriveProjectName(message: string): Promise<string> {
         },
         { role: "user", content: cleanMsg },
       ],
-      "oc/ling-3.0-flash-free(high)",
+      "oc/big-pickle",
     );
     const cleaned = title.trim().replace(/^["']|["']$/g, "").replace(/\.$/, "");
     if (cleaned.length >= 2 && cleaned.length <= 60) return cleaned;

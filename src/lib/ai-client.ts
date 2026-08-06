@@ -50,7 +50,7 @@ export async function* streamChat(
     // the mismatch makes the SDK report finishReason "other" on a stream that
     // finished cleanly ("stop" on the wire), and isTruncatedGeneration then
     // discards a complete document. .chat() pins /v1/chat/completions.
-    model: provider.chat(model || "oc/ling-3.0-flash-free(high)"),
+    model: provider.chat(model || "oc/big-pickle"),
     messages,
     allowSystemInMessages: true,
     abortSignal: signal,
@@ -94,7 +94,7 @@ export async function completeChat(
   model?: string,
 ): Promise<string> {
   const { text } = await generateText({
-    model: provider.chat(model || "oc/ling-3.0-flash-free(high)"),
+    model: provider.chat(model || "oc/big-pickle"),
     messages,
     allowSystemInMessages: true,
   });

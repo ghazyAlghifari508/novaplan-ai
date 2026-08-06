@@ -3,11 +3,11 @@ import { depthDirective, getDepthTier } from "./prompt-depth";
 
 describe("getDepthTier", () => {
 	it("resolves tier from model id, not user plan", () => {
-		expect(getDepthTier("oc/ling-3.0-flash-free(high)")).toBe("free");
+		expect(getDepthTier("oc/laguna-s-2.1-free")).toBe("free");
 		expect(getDepthTier("oc/big-pickle")).toBe("free");
-		expect(getDepthTier("oc/nemotron-3-ultra-free(high)")).toBe("pro");
+		expect(getDepthTier("oc/nemotron-3-ultra-free")).toBe("pro");
 		expect(getDepthTier("oc/mimo-v2.5-free")).toBe("pro");
-		expect(getDepthTier("oc/deepseek-v4-flash-free(high)")).toBe("hengker");
+		expect(getDepthTier("oc/deepseek-v4-flash-free")).toBe("hengker");
 	});
 
 	it("falls back to free tier for unknown model id", () => {
@@ -18,9 +18,9 @@ describe("getDepthTier", () => {
 describe("depthDirective", () => {
 	const kinds = ["prd", "ac", "task"] as const;
 	const models = [
-		"oc/ling-3.0-flash-free(high)",
-		"oc/nemotron-3-ultra-free(high)",
-		"oc/deepseek-v4-flash-free(high)",
+		"oc/laguna-s-2.1-free",
+		"oc/nemotron-3-ultra-free",
+		"oc/deepseek-v4-flash-free",
 	];
 
 	it("returns a non-empty directive for every kind and tier", () => {
