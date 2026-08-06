@@ -144,7 +144,11 @@ export const Route = createFileRoute("/api/ac/generate")({
 									"generate",
 								);
 								emit({ type: "done", acVersionId, version });
-								try { await consumeCredit(user.id); } catch (e) { console.error("AC credit burn failed:", e); }
+								try {
+									await consumeCredit(user.id);
+								} catch (e) {
+									console.error("AC credit burn failed:", e);
+								}
 							} catch (err) {
 								console.error("saveAcVersion failed:", err);
 								emit({

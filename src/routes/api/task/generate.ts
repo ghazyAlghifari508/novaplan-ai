@@ -68,7 +68,8 @@ export const Route = createFileRoute("/api/task/generate")({
 				if (!creditCheck.allowed) {
 					return Response.json(
 						{
-							error: "Kredit kamu sudah habis. Beli kredit untuk generate Task.",
+							error:
+								"Kredit kamu sudah habis. Beli kredit untuk generate Task.",
 							code: "NO_CREDITS",
 							plan: creditCheck.plan,
 							remaining: creditCheck.remaining,
@@ -167,7 +168,11 @@ export const Route = createFileRoute("/api/task/generate")({
 									return;
 								}
 								emit({ type: "done", taskTree });
-								try { await consumeCredit(user.id); } catch (e) { console.error("Task credit burn failed:", e); }
+								try {
+									await consumeCredit(user.id);
+								} catch (e) {
+									console.error("Task credit burn failed:", e);
+								}
 							} catch (err) {
 								console.error("saveTaskTree failed:", err);
 								emit({ type: "error", error: "Failed to save task tree" });

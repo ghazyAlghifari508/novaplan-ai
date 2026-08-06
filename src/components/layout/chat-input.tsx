@@ -21,7 +21,7 @@ import {
 	saveSetupPrompt,
 } from "@/lib/prompt-handoff";
 import { cn } from "@/lib/utils";
-import { type Plan, PLAN_CREDITS } from "@/types/database";
+import { PLAN_CREDITS, type Plan } from "@/types/database";
 
 const MIN_PROMPT_LENGTH = 20;
 
@@ -302,7 +302,14 @@ export function ChatInput({ className }: ChatInputProps) {
 							>
 								<ModelIcon model={selectedModel} />
 								{selectedModelMeta.label}
-								<span className={cn("text-[9px]", selectedModelMeta.reasoning ? "text-indigo" : "text-emerald-500")}>
+								<span
+									className={cn(
+										"text-[9px]",
+										selectedModelMeta.reasoning
+											? "text-indigo"
+											: "text-emerald-500",
+									)}
+								>
 									{selectedModelMeta.reasoning ? "thinking" : "fast"}
 								</span>
 								<ChevronDown
@@ -369,7 +376,14 @@ export function ChatInput({ className }: ChatInputProps) {
 																/>
 																<span className="flex-1 text-left">
 																	{model.label}
-																	<span style={{color: model.reasoning ? "var(--color-indigo)" : "#10b981"}} className="text-[9px] ml-1.5">
+																	<span
+																		style={{
+																			color: model.reasoning
+																				? "var(--color-indigo)"
+																				: "#10b981",
+																		}}
+																		className="text-[9px] ml-1.5"
+																	>
 																		{model.reasoning ? "thinking" : "fast"}
 																	</span>
 																</span>

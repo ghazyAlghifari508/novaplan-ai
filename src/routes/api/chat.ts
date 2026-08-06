@@ -397,8 +397,13 @@ export const Route = createFileRoute("/api/chat")({
 									if (mode === "generate") {
 										const burned = await consumeCredit(user.id);
 										if (!burned) {
-											emit({ type: "error", error: "Kredit habis. Silakan beli kredit." });
-											try { controller.close(); } catch {}
+											emit({
+												type: "error",
+												error: "Kredit habis. Silakan beli kredit.",
+											});
+											try {
+												controller.close();
+											} catch {}
 											return;
 										}
 									}
