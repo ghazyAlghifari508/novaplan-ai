@@ -220,7 +220,7 @@ export function ChatInput({ className }: ChatInputProps) {
 							{!planStatus
 								? "3 PRD Gratis"
 								: planStatus.plan === "hengker"
-									? "Akses Unlimited ♾️"
+									? "Akses Unlimited"
 									: planStatus.plan === "pro"
 										? `Sisa ${planStatus.remaining} PRD Pro`
 										: `Sisa ${planStatus.remaining} PRD Gratis`}

@@ -264,7 +264,7 @@ export function TaskDetail({
 					open
 				>
 					<summary className="cursor-pointer select-none">
-						🤔 AI sedang berpikir...
+						AI sedang berpikir...
 					</summary>
 					<pre className="mt-1 whitespace-pre-wrap text-xs text-fog/40 max-h-40 overflow-y-auto custom-scrollbar">
 						{thinkingText}

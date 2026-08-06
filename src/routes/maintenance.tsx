@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { Wrench } from 'lucide-react'
 
 export const Route = createFileRoute('/maintenance')({ component: MaintenancePage })
 
@@ -18,7 +19,7 @@ function MaintenancePage() {
         textAlign: 'center',
       }}
     >
-      <div style={{ fontSize: '64px', marginBottom: '16px' }}>🔧</div>
+      <div style={{ marginBottom: '16px' }}><Wrench size={64} color="#a0a0a0" /></div>
       <h1 style={{ fontSize: '28px', fontWeight: 600, margin: '0 0 8px', color: '#ffffff' }}>
         NovaPlan Sedang Dalam Perbaikan
       </h1>

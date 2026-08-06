@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useMemo, useRef, useEffect, useState } from "react";
+import { memo, useMemo, useRef, useEffect } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
@@ -32,20 +32,6 @@ export const AcViewer = memo(function AcViewer({
   className,
 }: AcViewerProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [ellipsis, setEllipsis] = useState("...");
-
-  // Cycle ellipsis while waiting for first streamed chunk: ... -> .. -> . -> .. -> ...
-  useEffect(() => {
-    if (!(isStreaming && !streamingContent)) return;
-    const frames = ["...", "..", ".", "..", "..."];
-    let i = 0;
-    const id = setInterval(() => {
-      i = (i + 1) % frames.length;
-      setEllipsis(frames[i]);
-    }, 400);
-    return () => clearInterval(id);
-  }, [isStreaming, streamingContent]);
-
   // Auto-scroll while streaming
   useEffect(() => {
     if (isStreaming && scrollRef.current) {
@@ -82,15 +68,15 @@ export const AcViewer = memo(function AcViewer({
 
   const displayContent = isStreaming && streamingContent ? streamingContent : cleanContent;
 
-  // Show typing indicator while streaming but no content yet
+  // Show loading indicator while streaming but no content yet
   if (isStreaming && !streamingContent) {
     return (
       <div ref={scrollRef} className={cn("h-full overflow-y-auto", className)}>
-        <article className="prd-content mx-auto max-w-3xl px-8 pb-16 pt-8 text-mist">
-          <p className="text-fog">
-            AI sedang menyusun Acceptance Criteria<span className="inline-block w-6">{ellipsis}</span>
-          </p>
-        </article>
+        <div className="flex flex-1 flex-col items-center justify-center p-6 h-full">
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-indigo border-t-transparent" />
+          <p className="mt-4 text-sm font-[510] text-snow">Sedang membuat AC...</p>
+          <p className="mt-1 text-xs text-fog">Model AI sedang menganalisis PRD Anda</p>
+        </div>
       </div>
     );
   }

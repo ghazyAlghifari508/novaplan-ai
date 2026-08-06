@@ -51,7 +51,7 @@ export function LimitModal({ isOpen, onClose, errorMessage }: LimitModalProps) {
 							onClick={onClose}
 							className="btn-primary w-full rounded-md px-4 py-3 text-center font-inter text-sm font-[510] transition-all hover:brightness-105"
 						>
-							🚀 Beli Kredit
+							Beli Kredit
 						</Link>
 						<button
 							onClick={onClose}

@@ -313,7 +313,7 @@ export function AcDetail({
 						{isGenerating && thinkingText && !streamingContent && (
 							<details className="text-xs text-fog/60 mb-2 px-4" open>
 								<summary className="cursor-pointer select-none">
-									🤔 AI sedang berpikir...
+									AI sedang berpikir...
 								</summary>
 								<pre className="mt-1 whitespace-pre-wrap text-xs text-fog/40 max-h-40 overflow-y-auto custom-scrollbar">
 									{thinkingText}
