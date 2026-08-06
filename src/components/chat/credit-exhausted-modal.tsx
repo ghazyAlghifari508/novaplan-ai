@@ -85,26 +85,24 @@ export function CreditExhaustedModal({
 				onClick={(e) => e.stopPropagation()}
 			>
 				{/* Header */}
-				<div className="flex items-center justify-between p-6 pb-0">
-					<div className="flex flex-1 items-center gap-3">
-						<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-crimson/10 text-crimson">
-							<AlertCircle size={20} strokeWidth={2} />
-						</div>
-						<div className="min-w-0">
-							<h3 className="font-inter text-xl font-[510] text-snow">
-								Kredit Habis
-							</h3>
-							<p className="mt-0.5 font-inter text-sm text-fog">
-								{errorMessage}
-							</p>
-						</div>
-					</div>
+				<div className="relative p-6 pb-0 text-center">
 					<button
 						onClick={onClose}
-						className="ml-3 shrink-0 text-fog transition-colors hover:text-snow"
+						className="absolute right-6 top-6 text-fog transition-colors hover:text-snow"
 					>
 						<X size={20} />
 					</button>
+					<div className="inline-flex items-center justify-center gap-2">
+						<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-crimson/10 text-crimson">
+							<AlertCircle size={20} strokeWidth={2} />
+						</div>
+						<h3 className="font-inter text-xl font-[510] text-snow">
+							Kredit Habis
+						</h3>
+					</div>
+					<p className="mt-2 font-inter text-sm text-fog">
+						{errorMessage}
+					</p>
 				</div>
 
 				{/* Embedded pricing cards */}
