@@ -49,6 +49,7 @@ interface ChatState {
   activeProjectId: string | null;
   streamingPRDContent: string;
   completedSections: string[];
+  creditsExhausted: { stage: "prd" | "ac" | "task"; message: string } | null;
   addMessage: (message: ChatMessage) => void;
   setStreaming: (streaming: boolean) => void;
   setGeneratingPRD: (generating: boolean) => void;
@@ -61,6 +62,7 @@ interface ChatState {
   updateLastMessage: (content: string) => void;
   setMessages: (messages: ChatMessage[]) => void;
   setCompletedSections: (sections: string[]) => void;
+  setCreditsExhausted: (v: ChatState["creditsExhausted"]) => void;
   resetChat: () => void;
 }
 
@@ -75,6 +77,7 @@ const chatInitialState = {
   activeProjectId: null as string | null,
   streamingPRDContent: "",
   completedSections: [] as string[],
+  creditsExhausted: null as ChatState["creditsExhausted"],
 };
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -87,6 +90,7 @@ export const useChatStore = create<ChatState>((set) => ({
   setTaskGenerated: (isTaskGenerated) => set({ isTaskGenerated }),
   setGenerationStep: (generationStep) => set({ generationStep }),
   setCompletedSections: (completedSections) => set({ completedSections }),
+  setCreditsExhausted: (creditsExhausted) => set({ creditsExhausted }),
   setSelectedMode: (selectedMode) => set({ selectedMode }),
   setActiveProject: (activeProjectId) => set({ activeProjectId }),
   setStreamingPRDContent: (streamingPRDContent) => set({ streamingPRDContent }),
