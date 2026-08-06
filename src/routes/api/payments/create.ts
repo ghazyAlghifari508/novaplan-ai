@@ -4,6 +4,7 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { payments } from "@/db/schema";
+import { isValidHistoryUrl } from "@/lib/flow-progress";
 import { novaPlanPlans } from "@/lib/pricing-data";
 import { requireUser } from "@/lib/session";
 
@@ -18,7 +19,11 @@ export const Route = createFileRoute("/api/payments/create")({
 		handlers: {
 			POST: async ({ request }: { request: Request }) => {
 				const user = await requireUser(getRequestHeaders());
-				const { planId } = await request.json();
+				const { planId, returnUrl, projectId } = (await request.json()) as {
+					planId: string;
+					returnUrl?: string;
+					projectId?: string;
+				};
 
 				const plan = novaPlanPlans.find((p) => p.id === planId);
 				if (!plan)
@@ -70,7 +75,13 @@ export const Route = createFileRoute("/api/payments/create")({
 					custom_field2: String(plan.credits),
 					custom_field3: user.id,
 					callbacks: {
-						finish: `${safeOrigin}/pricing?payment=success&order_id=${orderId}`,
+						finish: (() => {
+							const finishPath =
+								returnUrl && projectId && isValidHistoryUrl(returnUrl, projectId)
+									? returnUrl
+									: "/pricing";
+							return `${safeOrigin}${finishPath}${finishPath.includes("?") ? "&" : "?"}payment=success&order_id=${orderId}`;
+						})(),
 					},
 				};
 
