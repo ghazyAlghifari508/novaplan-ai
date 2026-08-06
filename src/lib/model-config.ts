@@ -30,6 +30,8 @@ export interface ModelDefinition {
 	colorClass: string;
 	/** Quality rating from 1 (poor) to 5 (excellent) */
 	quality: 1 | 2 | 3 | 4 | 5;
+	/** Speed rating from 1 (slowest) to 5 (fastest), based on measured response times */
+	speed: 1 | 2 | 3 | 4 | 5;
 	/** Whether model uses reasoning/thinking before output */
 	reasoning: boolean;
 }
@@ -64,6 +66,7 @@ export const ALL_MODELS: ModelDefinition[] = [
 		brand: "bigpickle",
 		colorClass: "text-[#7CB342]",
 		quality: 4,
+		speed: 4,
 		reasoning: true,
 	},
 	{
@@ -73,6 +76,7 @@ export const ALL_MODELS: ModelDefinition[] = [
 		brand: "poolside",
 		colorClass: "text-[#A78BFA]",
 		quality: 4,
+		speed: 3,
 		reasoning: true,
 	},
 
@@ -84,6 +88,7 @@ export const ALL_MODELS: ModelDefinition[] = [
 		brand: "nvidia",
 		colorClass: "text-[#76B900]",
 		quality: 5,
+		speed: 3,
 		reasoning: true,
 	},
 	{
@@ -93,6 +98,7 @@ export const ALL_MODELS: ModelDefinition[] = [
 		brand: "xiaomi",
 		colorClass: "text-[#FF6900]",
 		quality: 4,
+		speed: 3,
 		reasoning: true,
 	},
 
@@ -104,6 +110,7 @@ export const ALL_MODELS: ModelDefinition[] = [
 		brand: "deepseek",
 		colorClass: "text-[#4D93E6]",
 		quality: 5,
+		speed: 4,
 		reasoning: true,
 	},
 ];

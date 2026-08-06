@@ -24,20 +24,21 @@ interface ModelDropdownProps {
   position?: "top" | "bottom";
 }
 
-function QualityBars({ quality }: { quality: number }) {
-  const color = quality <= 2 ? "bg-red-500" : quality === 3 ? "bg-amber-500" : "bg-emerald-500";
-  
+function SpeedBars({ speed }: { speed: number }) {
+  const color = speed <= 2 ? "bg-red-500" : speed === 3 ? "bg-amber-500" : "bg-emerald-500";
+  const label = speed <= 2 ? "Lambat" : speed === 3 ? "Sedang" : "Cepat";
+
   return (
-    <div className="flex items-end gap-[2px] h-[12px] opacity-80" title={`Model Quality: ${quality}/5`}>
+    <div className="flex items-end gap-[2px] h-[12px] opacity-80" title={`Kecepatan: ${label} (${speed}/5)`}>
       {[1, 2, 3, 4, 5].map((level) => (
-        <div 
+        <div
           key={level}
           className={cn(
             "w-[3px] rounded-[1px] transition-colors duration-300",
-            level <= quality ? color : "bg-graphite",
-            level === 1 ? "h-[4px]" : 
-            level === 2 ? "h-[6px]" : 
-            level === 3 ? "h-[8px]" : 
+            level <= speed ? color : "bg-graphite",
+            level === 1 ? "h-[4px]" :
+            level === 2 ? "h-[6px]" :
+            level === 3 ? "h-[8px]" :
             level === 4 ? "h-[10px]" : "h-[12px]"
           )}
         />
@@ -142,7 +143,7 @@ export function ModelDropdown({
                           </span>
                         </div>
                         <div className="flex items-center gap-3 shrink-0 ml-2">
-                          <QualityBars quality={model.quality} />
+                          <SpeedBars speed={model.speed} />
                           {isLocked ? (
                             <AlertCircle size={12} className="text-red-500 shrink-0" />
                           ) : isSelected ? (
