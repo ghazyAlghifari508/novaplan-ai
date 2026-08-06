@@ -81,7 +81,7 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
 						className={cn(
 							"flex flex-col transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1",
 							isFeatured &&
-								"shadow-[inset_0_0_0_1px_rgba(94,106,210,0.8),var(--shadow-linear-xl)] md:scale-[1.02]",
+								"border border-indigo/40 shadow-[inset_0_0_0_1px_rgba(94,106,210,0.8),var(--shadow-linear-xl)] md:scale-[1.02]",
 						)}
 					>
 						<CardHeader className="p-6 pb-4 relative">
