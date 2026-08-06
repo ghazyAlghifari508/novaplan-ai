@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 import { useChatStore, useUIStore } from "@/store";
 import type { Plan } from "@/types/database";
 import { ChatBubble } from "./chat-bubble";
-import { LimitModal } from "./limit-modal";
+import { CreditExhaustedModal } from "./credit-exhausted-modal";
 import { ModelDropdown } from "./model-dropdown";
 import { ResumeErrorModal } from "./resume-error-modal";
 import { TypingIndicator } from "./typing-indicator";
@@ -170,8 +170,6 @@ export function ChatPanel({
 	const [conversationId, setConversationId] = useState(initialConversationId);
 	const [streamingContent, setStreamingContent] = useState("");
 	const [thinkingText, setThinkingText] = useState("");
-	const [showLimitModal, setShowLimitModal] = useState(false);
-	const [limitErrorMsg, setLimitErrorMsg] = useState("");
 	const [showResumeModal, setShowResumeModal] = useState(false);
 	const [resumeErrorMsg, setResumeErrorMsg] = useState("");
 	const [partialContentStore, setPartialContentStore] = useState("");
@@ -200,10 +198,12 @@ export function ChatPanel({
 		messages,
 		isStreaming,
 		isGeneratingPRD,
+		creditsExhausted,
 		addMessage,
 		setStreaming,
 		setGeneratingPRD,
 		setStreamingPRDContent,
+		setCreditsExhausted,
 	} = useChatStore();
 
 	// When generation starts, default first section to loading so the progress
@@ -309,11 +309,9 @@ export function ChatPanel({
 					isSubmittingRef.current = false;
 
 					if (response.status === 403 && err.code === "NO_CREDITS") {
-						setLimitErrorMsg(err.error || "Kredit habis");
-						setShowLimitModal(true);
+						setCreditsExhausted({ stage: "prd", message: err.error || "Kredit habis" });
 					} else if (response.status === 429) {
-						setLimitErrorMsg(err.error || "Terlalu banyak request. Coba lagi nanti.");
-						setShowLimitModal(true);
+						setCreditsExhausted({ stage: "prd", message: err.error || "Terlalu banyak request. Coba lagi nanti." });
 					} else if (response.status === 403) {
 						showToast(err.error || "Akses ditolak", "error");
 					} else {
@@ -1044,11 +1042,14 @@ export function ChatPanel({
 				</div>
 			</div>
 
-			{/* Limit Modal */}
-			<LimitModal
-				isOpen={showLimitModal}
-				onClose={() => setShowLimitModal(false)}
-				errorMessage={limitErrorMsg}
+			{/* Credit Exhausted Modal */}
+			<CreditExhaustedModal
+				isOpen={!!creditsExhausted}
+				onClose={() => setCreditsExhausted(null)}
+				errorMessage={creditsExhausted?.message || ""}
+				projectId={projectId || ""}
+				stage={creditsExhausted?.stage || "prd"}
+				currentPlan={initialUserPlan}
 			/>
 
 			{/* Resume PRD Modal */}
