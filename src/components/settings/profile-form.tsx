@@ -9,7 +9,7 @@ import { updateProfile, uploadAvatar } from "@/app/actions/settings";
 export const ProfileForm = memo(function ProfileForm({
   profile,
 }: {
-  profile: { full_name: string | null; avatar_url: string | null; email: string; plan?: string };
+  profile: { full_name: string | null; avatar_url: string | null; email: string };
 }) {
   const [uploading, setUploading] = useState(false);
 
@@ -57,18 +57,7 @@ export const ProfileForm = memo(function ProfileForm({
         </div>
 
         <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="font-inter font-[510] text-lg font-bold">{profile.full_name || "User"}</h2>
-            <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
-              profile.plan === 'hengker' 
-                ? 'bg-steel text-snow ring-graphite'
-                : profile.plan === 'pro'
-                ? 'bg-steel text-snow ring-graphite'
-                : 'bg-gray-50 text-gray-600 ring-gray-500/10 dark:bg-gray-400/10 dark:text-gray-400 dark:ring-gray-400/20'
-            }`}>
-              {profile.plan?.toUpperCase() || 'FREE'}
-            </span>
-          </div>
+          <h2 className="font-inter font-[510] text-lg font-bold">{profile.full_name || "User"}</h2>
           <p className="mt-1 text-sm text-(--text-secondary)">{profile.email}</p>
         </div>
       </div>

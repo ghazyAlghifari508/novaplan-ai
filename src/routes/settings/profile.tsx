@@ -2,7 +2,7 @@ import { createFileRoute, redirect } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
-import { quotas, subscriptions, users } from '@/db/schema'
+import { quotas, users } from '@/db/schema'
 import { requireUserServer } from '@/lib/session'
 import { ProfileForm } from '@/components/settings/profile-form'
 
@@ -10,9 +10,7 @@ import { ProfileForm } from '@/components/settings/profile-form'
 const loadProfile = createServerFn({ method: 'GET' }).handler(async () => {
   const user = await requireUserServer()
   const [profile] = await db.select().from(users).where(eq(users.id, user.id)).limit(1)
-  const [sub] = await db.select({ plan: subscriptions.plan, status: subscriptions.status }).from(subscriptions).where(eq(subscriptions.userId, user.id)).limit(1)
-  const plan = sub?.status === 'active' ? sub.plan : 'free'
-  return { profile, email: user.email, plan }
+  return { profile, email: user.email }
 })
 
 export const Route = createFileRoute('/settings/profile')({
@@ -28,7 +26,7 @@ export const Route = createFileRoute('/settings/profile')({
 })
 
 function ProfilePage() {
-  const { profile, email, plan } = Route.useLoaderData()
+  const { profile, email } = Route.useLoaderData()
   return (
     <div
       className="rounded-xl border border-[var(--border-subtle)] p-6"
@@ -42,7 +40,6 @@ function ProfilePage() {
           full_name: profile?.fullName ?? null,
           avatar_url: profile?.image ?? null,
           email,
-          plan,
         }}
       />
     </div>
