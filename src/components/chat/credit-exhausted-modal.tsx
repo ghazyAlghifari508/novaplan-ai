@@ -81,38 +81,37 @@ export function CreditExhaustedModal({
 			onClick={onClose}
 		>
 			<div
-				className="relative w-full max-w-4xl overflow-y-auto max-h-[90vh] rounded-xl bg-obsidian shadow-[var(--shadow-overlay)] animate-in zoom-in-95 duration-200 my-8"
+				className="relative w-full max-w-3xl overflow-y-auto max-h-[75vh] rounded-xl bg-obsidian shadow-[var(--shadow-overlay)] animate-in zoom-in-95 duration-200 my-4"
 				onClick={(e) => e.stopPropagation()}
 			>
 				{/* Header */}
-				<div className="relative p-6 pb-0 text-center">
+				<div className="relative p-4 pb-0 text-center">
 					<button
 						onClick={onClose}
-						className="absolute right-6 top-6 text-fog transition-colors hover:text-snow"
+						className="absolute right-4 top-4 text-fog transition-colors hover:text-snow"
 					>
 						<X size={20} />
 					</button>
-					<div className="inline-flex items-center justify-center gap-2">
-						<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-crimson/10 text-crimson">
-							<AlertCircle size={20} strokeWidth={2} />
-						</div>
-						<h3 className="font-inter text-xl font-[510] text-snow">
-							Kredit Habis
-						</h3>
+					<div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-crimson/10 text-crimson">
+						<AlertCircle size={20} strokeWidth={2} />
 					</div>
+					<h3 className="font-inter text-xl font-[510] text-snow">
+						Kredit Habis
+					</h3>
 					<p className="mt-2 font-inter text-sm text-fog">
 						{errorMessage}
 					</p>
 				</div>
 
 				{/* Embedded pricing cards */}
-				<div className="px-2 pb-4">
+				<div className="px-2 pb-3">
 					<PricingComponent
 						plans={novaPlanPlans as [PriceTier, PriceTier, PriceTier]}
 						onPlanSelect={handlePlanSelect}
 						currentPlan={plan}
 						showComparison={false}
-						className="!py-4 md:!py-4"
+						compact
+						className="!py-3 md:!py-3"
 					/>
 				</div>
 			</div>
