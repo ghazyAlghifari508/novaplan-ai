@@ -250,7 +250,7 @@ export const Route = createFileRoute("/api/chat")({
 								const result = await ensureConversation(
 									user.id,
 									projectIdToUse,
-									deriveProjectName(message),
+									await deriveProjectName(message),
 									preferences || null,
 								);
 								conversationIdToUse = result.conversationId;
@@ -293,7 +293,7 @@ export const Route = createFileRoute("/api/chat")({
 									conversationIdToUse,
 									displayMessage || message,
 									assistantReply,
-									plan,
+									modelsToTry[0],
 								);
 							}
 

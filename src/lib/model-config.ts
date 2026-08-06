@@ -17,9 +17,6 @@ export interface ModelDefinition {
 	 */
 	brand:
 		| "meta"
-		| "anthropic"
-		| "google"
-		| "openai"
 		| "kimi"
 		| "deepseek"
 		| "nvidia"

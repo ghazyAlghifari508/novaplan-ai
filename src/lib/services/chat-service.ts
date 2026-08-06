@@ -88,11 +88,11 @@ export async function saveMessages(
   conversationId: string,
   userMessage: string,
   assistantReply: string,
-  plan: string,
+  modelId?: string,
 ): Promise<void> {
   await db.insert(messages).values([
     { id: crypto.randomUUID(), conversationId, role: "user", content: userMessage, metadata: {} },
-    { id: crypto.randomUUID(), conversationId, role: "assistant", content: assistantReply, metadata: { model: plan === "hengker" ? "gemini-pro" : "gemini-flash" } },
+    { id: crypto.randomUUID(), conversationId, role: "assistant", content: assistantReply, metadata: modelId ? { model: modelId } : {} },
   ]);
 }
 
