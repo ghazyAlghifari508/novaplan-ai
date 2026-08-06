@@ -146,6 +146,23 @@
 	color-scheme: dark;
 }
 
+/* Kill the white glow artifacts from styles.css in dark mode */
+.dark body::before,
+:root[data-theme="dark"] body::before {
+	opacity: 0;
+}
+.dark body::after,
+:root[data-theme="dark"] body::after {
+	opacity: 0;
+}
+.dark body,
+:root[data-theme="dark"] body {
+	background:
+		radial-gradient(1100px 620px at -8% -10%, rgba(96, 215, 207, 0.06), transparent 58%),
+		radial-gradient(1050px 620px at 112% -12%, rgba(110, 200, 154, 0.04), transparent 62%),
+		#08090a;
+}
+
 /* Base Styles */
 html,
 body {
