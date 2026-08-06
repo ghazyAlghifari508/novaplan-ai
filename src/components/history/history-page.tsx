@@ -4,9 +4,16 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Trash2, ArrowRight } from "lucide-react";
 import { DeleteProjectModal } from "@/components/prd/delete-project-modal";
-import { useUIStore } from "@/store";
+import { useChatStore, useUIStore } from "@/store";
 import { resolveHistoryUrl } from "@/lib/flow-progress";
+import { saveSuppressAutoGen } from "@/lib/prompt-handoff";
 import type { HistoryItem } from "@/routes/history";
+
+function isHaltedByCredits(item: HistoryItem): boolean {
+  if (item.step === "ac" && item.acStatus === "pending") return true;
+  if (item.step === "task" && item.taskStatus === "pending") return true;
+  return false;
+}
 
 const STEP_BADGE: Record<string, { label: string; className: string }> = {
   question: { label: "Pertanyaan", className: "bg-indigo/15 text-indigo" },
@@ -81,10 +88,38 @@ export function HistoryPage({ items }: { items: HistoryItem[] }) {
           {localItems.map((item) => {
             const badge = STEP_BADGE[item.step ?? "prd"] ?? STEP_BADGE.prd;
             const href = resolveHistoryUrl(item);
+            const halted = isHaltedByCredits(item);
+
+            const handleClick = async (e: React.MouseEvent) => {
+              if (!halted) return;
+              e.preventDefault();
+              saveSuppressAutoGen(item.id);
+
+              try {
+                const res = await fetch("/api/user/plan", { cache: "no-store" });
+                if (res.ok) {
+                  const data = await res.json();
+                  const remaining = data.remaining;
+                  if (remaining === 0 || (remaining !== "unlimited" && Number(remaining) <= 0)) {
+                    const stage = item.step === "task" ? "task" : "ac";
+                    useChatStore.getState().setCreditsExhausted({
+                      stage,
+                      message: "Kredit kamu sudah habis. Beli kredit untuk melanjutkan.",
+                    });
+                  }
+                }
+              } catch {
+                // proceed anyway; landing page will handle
+              }
+
+              window.location.href = href;
+            };
+
             return (
               <li key={item.id}>
                 <a
                   href={href}
+                  onClick={handleClick}
                   className="group flex items-center gap-4 rounded-xl border border-graphite bg-charcoal/60 p-4 transition-colors hover:border-fog/40 hover:bg-charcoal"
                 >
                   <div className="min-w-0 flex-1">
@@ -97,6 +132,11 @@ export function HistoryPage({ items }: { items: HistoryItem[] }) {
                       >
                         {badge.label}
                       </span>
+                      {halted && (
+                        <span className="rounded-full px-2 py-0.5 font-inter text-[11px] font-[510] bg-crimson/15 text-crimson">
+                          Terhenti
+                        </span>
+                      )}
                     </div>
                     {item.preview && (
                       <p className="mt-1 line-clamp-2 font-inter text-xs text-fog">

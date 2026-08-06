@@ -13,6 +13,8 @@ export interface HistoryItem {
   lastUrl: string | null;
   updatedAt: Date;
   preview: string | null;
+  acStatus: string | null;
+  taskStatus: string | null;
 }
 
 // ponytail: requireUserServer is a server fn → its auth/db imports get pruned
@@ -27,6 +29,8 @@ const loadHistory = createServerFn({ method: "GET" }).handler(async () => {
       step: projects.step,
       lastUrl: projects.lastUrl,
       updatedAt: projects.updatedAt,
+      acStatus: projects.acStatus,
+      taskStatus: projects.taskStatus,
     })
     .from(projects)
     .where(eq(projects.userId, user.id))
@@ -71,6 +75,8 @@ const loadHistory = createServerFn({ method: "GET" }).handler(async () => {
       lastUrl: p.lastUrl,
       updatedAt: p.updatedAt ?? new Date(0),
       preview,
+      acStatus: p.acStatus,
+      taskStatus: p.taskStatus,
     };
   });
 
