@@ -85,12 +85,12 @@ export function CreditExhaustedModal({
 				onClick={(e) => e.stopPropagation()}
 			>
 				{/* Header */}
-				<div className="flex items-start justify-between p-6 pb-0">
-					<div className="flex items-center gap-3">
-						<div className="flex h-10 w-10 items-center justify-center rounded-full bg-crimson/10 text-crimson">
+				<div className="flex items-center justify-between p-6 pb-0">
+					<div className="flex flex-1 items-center gap-3">
+						<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-crimson/10 text-crimson">
 							<AlertCircle size={20} strokeWidth={2} />
 						</div>
-						<div>
+						<div className="min-w-0">
 							<h3 className="font-inter text-xl font-[510] text-snow">
 								Kredit Habis
 							</h3>
@@ -101,7 +101,7 @@ export function CreditExhaustedModal({
 					</div>
 					<button
 						onClick={onClose}
-						className="text-fog transition-colors hover:text-snow"
+						className="ml-3 shrink-0 text-fog transition-colors hover:text-snow"
 					>
 						<X size={20} />
 					</button>
