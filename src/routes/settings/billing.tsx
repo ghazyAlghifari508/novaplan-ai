@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
-import { and, desc, eq } from 'drizzle-orm'
+import { and, desc, eq, lt } from 'drizzle-orm'
 import { db } from '@/db'
 import { payments, subscriptions } from '@/db/schema'
 import { requireUserServer } from '@/lib/session'
@@ -13,6 +13,15 @@ import { useUIStore } from '@/store'
 // ponytail: server-only db logic - loader runs on client too, must not import db there.
 const loadBilling = createServerFn({ method: 'GET' }).handler(async () => {
   const user = await requireUserServer()
+
+  // Auto-expire stale pending payments (>30 min old). User may have clicked
+  // pricing, got redirected to Midtrans, then hit back without completing.
+  // No webhook fires in that case, so pending stays forever unless we clean up.
+  const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000)
+  await db.update(payments)
+    .set({ status: "failed" })
+    .where(and(eq(payments.userId, user.id), eq(payments.status, "pending"), lt(payments.createdAt, thirtyMinAgo)))
+
   const [subRows, paymentRows] = await Promise.all([
     db.select().from(subscriptions).where(eq(subscriptions.userId, user.id)).orderBy(desc(subscriptions.createdAt)).limit(1),
     db.select().from(payments).where(eq(payments.userId, user.id)).orderBy(desc(payments.createdAt)).limit(10),

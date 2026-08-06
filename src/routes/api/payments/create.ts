@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { createFileRoute } from "@tanstack/react-router";
 import { getRequestHeaders } from "@tanstack/react-start/server";
-import { eq } from "drizzle-orm";
+import { and, eq, lt } from "drizzle-orm";
 import { db } from "@/db";
 import { payments } from "@/db/schema";
 import { isValidHistoryUrl } from "@/lib/flow-progress";
@@ -40,6 +40,14 @@ export const Route = createFileRoute("/api/payments/create")({
 
 				// ponytail: no plan-hierarchy guard - credits are additive, so buying the
 				// same or a lower tier again is a legitimate top-up.
+
+				// Clean up stale pending payments for this user (>30 min) before
+				// creating a new one. Prevents stacking abandoned checkouts.
+				const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000);
+				await db.update(payments)
+					.set({ status: "failed" })
+					.where(and(eq(payments.userId, user.id), eq(payments.status, "pending"), lt(payments.createdAt, thirtyMinAgo)));
+
 				const orderId = `ORDER-${Date.now()}-${randomBytes(4).toString("hex")}`;
 				await db.insert(payments).values({
 					id: crypto.randomUUID(),
