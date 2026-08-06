@@ -112,6 +112,7 @@ export function CreditExhaustedModal({
 						onPlanSelect={handlePlanSelect}
 						currentPlan={plan}
 						showComparison={false}
+						className="!py-4 md:!py-4"
 					/>
 				</div>
 			</div>
