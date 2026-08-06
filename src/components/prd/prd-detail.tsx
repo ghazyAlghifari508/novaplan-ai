@@ -4,20 +4,14 @@ import { useState, useEffect, useTransition, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { PrdViewer } from "./prd-viewer";
 import { ChatPanel } from "@/components/chat";
-import { ModelDropdown } from "@/components/chat/model-dropdown";
 import { useChatStore, useUIStore } from "@/store";
 import { usePanelResize } from "@/hooks/use-panel-resize";
 import { cn } from "@/lib/utils";
 import type { PrdVersion, Plan } from "@/types/database";
 import Link from "next/link";
 import {
-  Home,
   X,
-  RefreshCw,
-  AlertCircle,
 } from "lucide-react";
-import { DEFAULT_MODEL_ID } from "@/lib/model-config";
-import { savePendingPrdPrompt } from "@/lib/prompt-handoff";
 
 // ─────────────────────────────────────────────
 // Types
@@ -65,15 +59,6 @@ export function PrdDetail({
   const [versions, setVersions] = useState(allVersions);
   const isChatOpen = useUIStore((s) => s.isChatPanelOpen);
   const [isStepLoading, setIsStepLoading] = useState(false);
-  // Error/retry state for failed or partial generation
-  const [errorRetryModel, setErrorRetryModel] = useState(DEFAULT_MODEL_ID);
-  // ponytail: on first paint for a fresh project, isGeneratingPRD hasn't been
-  // set yet (ChatPanel's auto-submit effect sets it, but effects run after
-  // paint) - without this flag the error branch below flashes before the
-  // stream even starts. Resolves false once child effects have run.
-  const [isCheckingGeneration, setIsCheckingGeneration] = useState(
-    () => !!projectId && !latestVersion,
-  );
 
   // ── Hooks ──
   const { rightWidth, onStartDragRight, isDraggingRight } = usePanelResize();
@@ -111,12 +96,6 @@ export function PrdDetail({
   useEffect(() => {
     if (latestVersion) setCurrentContent(latestVersion.content);
   }, [latestVersion]);
-
-  // Runs after ChatPanel's child auto-submit effect (children mount before
-  // parents), so by here isGeneratingPRD is already true if a stream started.
-  useEffect(() => {
-    setIsCheckingGeneration(false);
-  }, []);
 
   // Clear streaming state when mounted with saved PRD, and when navigating
   // between projects so stale Zustand globals from a prior streaming session
@@ -179,23 +158,6 @@ export function PrdDetail({
 
   const toggleChat = useUIStore((s) => s.toggleChatPanel);
 
-  /**
-   * Retry generating PRD from error state.
-   * Creates a fresh project via the normal flow so ChatPanel auto-submit works.
-   */
-  const handleRetryGenerate = useCallback(async () => {
-    sessionStorage.setItem("novaplan:selected-model", errorRetryModel);
-    setGeneratingPRD(false);
-    setStreamingPRDContent("");
-
-    // Save as pending prompt so ChatPanel's auto-submit effect picks it up directly
-    savePendingPrdPrompt(projectName || "Project Baru", "auto", projectName);
-
-    startTransition(() => {
-      router.push(`/prd/${projectId}`);
-    });
-  }, [projectName, projectId, errorRetryModel, setGeneratingPRD, setStreamingPRDContent, router]);
-
   const handleStepAc = async () => {
     if (!projectId || isStepLoading) return;
     setIsStepLoading(true);
@@ -256,51 +218,8 @@ export function PrdDetail({
           )}
           style={{ background: "var(--bg-page)" }}
         >
-        {projectId && !isCheckingGeneration && !isGeneratingPRD && !streamingPRDContent && !latestVersion && !creditsExhausted ? (
-          /* Error/Retry state - project exists but has no PRD version */
-          <div className="flex-1 flex items-center justify-center p-4 sm:p-6">
-            <div className="text-center max-w-lg">
-              <div className="mb-6 flex justify-center text-crimson">
-                <AlertCircle size={48} strokeWidth={1.5} />
-              </div>
-              <h2 className="mb-3 font-inter text-2xl font-light">PRD Gagal Dibuat</h2>
-              <p className="mb-6 font-inter leading-relaxed text-fog">
-                Gangguan pada model AI atau proses generasi terputus. Silakan pilih model dan coba lagi.
-              </p>
-
-              <div className="mx-auto mb-6 flex max-w-xs flex-col gap-3 rounded-lg border border-indigo/20 bg-indigo/5 p-4">
-                <label className="font-inter text-sm font-[510] text-mist text-left">
-                  Pilih Model AI
-                </label>
-                <div className="flex w-full items-center rounded-md bg-charcoal p-2 shadow-[var(--shadow-inset)]">
-                  <ModelDropdown
-                    selectedModel={errorRetryModel}
-                    onSelect={setErrorRetryModel}
-                    userPlan={plan}
-                    position="bottom"
-                  />
-                </div>
-                <button
-                  onClick={handleRetryGenerate}
-                  className="btn-primary flex items-center justify-center gap-2 rounded-md px-4 py-3 text-sm font-[510]"
-                >
-                  <RefreshCw size={14} />
-                  Generate Ulang PRD
-                </button>
-              </div>
-
-              <button
-                onClick={() => router.push("/")}
-                className="inline-flex items-center gap-2 rounded-md bg-charcoal px-6 py-3 text-sm font-[510] text-fog shadow-[var(--shadow-inset)] transition-colors hover:bg-white/5 hover:text-snow"
-              >
-                <Home size={16} />
-                Kembali ke Beranda
-              </button>
-            </div>
-          </div>
-        ) : (
-          /* Default: PRD content (streaming or saved) */
-          <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Default: PRD content (streaming or saved) */}
+        <div className="flex flex-1 flex-col overflow-hidden">
             {isGeneratingPRD && !streamingPRDContent && !latestVersion ? (
               <div className="flex-1 flex flex-col items-center justify-center p-6">
                 <div className="h-10 w-10 animate-spin rounded-full border-2 border-indigo border-t-transparent" />
@@ -325,7 +244,6 @@ export function PrdDetail({
             />
             )}
           </div>
-        )}
       </div>
 
       {/* ═══════════ Right Panel: Desktop Chat ═══════════ */}

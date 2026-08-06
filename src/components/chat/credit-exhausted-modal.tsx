@@ -81,7 +81,7 @@ export function CreditExhaustedModal({
 			onClick={onClose}
 		>
 			<div
-				className="relative w-full max-w-4xl overflow-hidden rounded-xl bg-obsidian shadow-[var(--shadow-overlay)] animate-in zoom-in-95 duration-200 my-8"
+				className="relative w-full max-w-4xl overflow-y-auto max-h-[90vh] rounded-xl bg-obsidian shadow-[var(--shadow-overlay)] animate-in zoom-in-95 duration-200 my-8"
 				onClick={(e) => e.stopPropagation()}
 			>
 				{/* Header */}
