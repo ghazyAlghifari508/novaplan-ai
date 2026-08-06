@@ -113,6 +113,7 @@ export function CreditExhaustedModal({
 						plans={novaPlanPlans as [PriceTier, PriceTier, PriceTier]}
 						onPlanSelect={handlePlanSelect}
 						currentPlan={plan}
+						showComparison={false}
 					/>
 				</div>
 			</div>

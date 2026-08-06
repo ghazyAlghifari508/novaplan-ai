@@ -52,12 +52,14 @@ interface PricingComponentProps extends React.HTMLAttributes<HTMLDivElement> {
 	plans: [PriceTier, PriceTier, PriceTier];
 	onPlanSelect: (planId: string) => void;
 	currentPlan?: string;
+	showComparison?: boolean;
 }
 
 export const PricingComponent: React.FC<PricingComponentProps> = ({
 	plans,
 	onPlanSelect,
 	currentPlan = "free",
+	showComparison = true,
 	className,
 	...props
 }) => {
@@ -272,12 +274,14 @@ export const PricingComponent: React.FC<PricingComponentProps> = ({
 
 			<section aria-labelledby="pricing-plans">{PricingCards}</section>
 
-			<section aria-label="Feature Comparison Table" className="mt-16">
-				<h3 className="mb-6 hidden text-center font-inter text-[48px] font-light leading-tight text-snow max-md:text-[36px] md:block">
-					Perbandingan Fitur
-				</h3>
-				{ComparisonTable}
-			</section>
+			{showComparison && (
+				<section aria-label="Feature Comparison Table" className="mt-16">
+					<h3 className="mb-6 hidden text-center font-inter text-[48px] font-light leading-tight text-snow max-md:text-[36px] md:block">
+						Perbandingan Fitur
+					</h3>
+					{ComparisonTable}
+				</section>
+			)}
 		</div>
 	);
 };
