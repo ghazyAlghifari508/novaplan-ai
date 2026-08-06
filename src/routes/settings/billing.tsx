@@ -1,11 +1,14 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
-import { desc, eq } from 'drizzle-orm'
+import { and, desc, eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { payments, subscriptions } from '@/db/schema'
 import { requireUserServer } from '@/lib/session'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import Link from 'next/link'
+import { useState } from 'react'
+import { Trash2 } from 'lucide-react'
+import { useUIStore } from '@/store'
 
 // ponytail: server-only db logic - loader runs on client too, must not import db there.
 const loadBilling = createServerFn({ method: 'GET' }).handler(async () => {
@@ -20,6 +23,14 @@ const loadBilling = createServerFn({ method: 'GET' }).handler(async () => {
   return { subscription, payments: paymentsList }
 })
 
+const deletePayment = createServerFn({ method: 'POST' })
+  .validator((paymentId: string) => paymentId)
+  .handler(async ({ data: paymentId }) => {
+    const user = await requireUserServer()
+    await db.delete(payments).where(and(eq(payments.id, paymentId), eq(payments.userId, user.id)))
+    return { success: true }
+  })
+
 export const Route = createFileRoute('/settings/billing')({
   loader: async () => {
     try {
@@ -33,10 +44,26 @@ export const Route = createFileRoute('/settings/billing')({
 })
 
 function BillingPage() {
-  const { subscription, payments } = Route.useLoaderData()
+  const { subscription, payments: initialPayments } = Route.useLoaderData()
+  const [paymentsList, setPaymentsList] = useState(initialPayments)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const showToast = useUIStore((s) => s.showToast)
   const credits = (subscription as Record<string, unknown>)?.credits as number ?? 0
   const creditsUsed = (subscription as Record<string, unknown>)?.creditsUsed as number ?? 0
   const remaining = Math.max(0, credits - creditsUsed)
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deletePayment({ data: id })
+      setPaymentsList((prev) => prev.filter((p) => p.id !== id))
+      showToast('Riwayat pembayaran berhasil dihapus', 'success')
+    } catch {
+      showToast('Gagal menghapus riwayat pembayaran', 'error')
+    } finally {
+      setDeleteId(null)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="grid gap-6 lg:grid-cols-2 h-full">
@@ -80,11 +107,11 @@ function BillingPage() {
 
         <div className="rounded-xl border border-(--border-subtle) bg-(--bg-card) p-6">
           <h2 className="mb-6 font-inter font-[510] text-xl font-bold">Riwayat Pembayaran</h2>
-          {payments.length === 0 ? (
+          {paymentsList.length === 0 ? (
             <p className="text-sm text-(--text-secondary)">Belum ada pembayaran</p>
           ) : (
             <div className="space-y-3">
-              {payments.map((p) => (
+              {paymentsList.map((p) => (
                 <div
                   key={p.id}
                   className="flex items-center justify-between rounded-lg border border-(--border-subtle) p-4 text-sm"
@@ -95,23 +122,61 @@ function BillingPage() {
                       {formatDate(p.createdAt ?? '')}
                     </div>
                   </div>
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-medium ${
-                      p.status === 'success'
-                        ? 'bg-green-100 text-green-800'
-                        : p.status === 'pending'
-                          ? 'bg-steel text-snow'
-                          : 'bg-red-100 text-red-800'
-                    }`}
-                  >
-                    {p.status}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-medium ${
+                        p.status === 'success'
+                          ? 'bg-green-100 text-green-800'
+                          : p.status === 'pending'
+                            ? 'bg-steel text-snow'
+                            : 'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {p.status}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setDeleteId(p.id)}
+                      className="rounded p-1.5 text-fog hover:bg-red-500/10 hover:text-red-400 transition-colors"
+                      aria-label="Hapus riwayat"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </div>
       </div>
+
+      {/* Delete confirmation dialog */}
+      {deleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="rounded-xl border border-(--border-subtle) bg-(--bg-card) p-6 max-w-sm w-full mx-4">
+            <h3 className="font-inter font-[510] text-lg mb-2">Hapus Riwayat?</h3>
+            <p className="text-sm text-(--text-secondary) mb-6">
+              Riwayat pembayaran ini akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteId(null)}
+                className="rounded-lg px-4 py-2 text-sm font-medium hover:bg-(--bg-surface)"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDelete(deleteId)}
+                className="rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600"
+              >
+                Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
