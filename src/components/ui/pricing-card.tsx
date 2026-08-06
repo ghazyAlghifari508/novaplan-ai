@@ -132,30 +132,16 @@ export const PricingComponent: React.FC<PricingComponentProps> = ({
 						</CardContent>
 						<CardFooter className="p-6 pt-0">
 							{(() => {
-								const planHierarchy = { free: 0, pro: 1, hengker: 2 };
-								const currentLevel =
-									planHierarchy[currentPlan as keyof typeof planHierarchy] ?? 0;
-								const cardLevel =
-									planHierarchy[plan.id as keyof typeof planHierarchy] ?? 0;
-
 								const isCurrentPlan = currentPlan === plan.id;
 								const isFreeCard = plan.id === "free";
 
+								// ponytail: credit model — all paid tiers always purchasable.
+								// Free card disabled only if already on free (nothing to buy).
 								let buttonLabel = plan.buttonLabel;
-								let isDisabled = false;
+								const isDisabled = isFreeCard && isCurrentPlan;
 
-								if (isFreeCard && currentLevel > 0) {
-									buttonLabel =
-										"Plan Aktif: " +
-										currentPlan.charAt(0).toUpperCase() +
-										currentPlan.slice(1);
-									isDisabled = true;
-								} else if (isCurrentPlan && !isFreeCard) {
-									// Non-free: allow re-purchase (top-up), not blocked.
+								if (isCurrentPlan && !isFreeCard) {
 									buttonLabel = `Beli Lagi ${plan.name}`;
-								} else if (isCurrentPlan) {
-									buttonLabel = "Plan Aktif";
-									isDisabled = true;
 								}
 
 								return (
