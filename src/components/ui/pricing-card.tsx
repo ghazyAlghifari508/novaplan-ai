@@ -265,7 +265,7 @@ const PricingComponent: React.FC<PricingComponentProps> = ({
 					Pilih Paket yang Sesuai
 				</h2>
 				<p className="mx-auto mt-3 max-w-2xl font-inter text-[17px] leading-relaxed text-fog">
-					1 kredit = 1 proyek penuh (PRD + AC + Task + Kanban). Kredit tidak
+					1 kredit = 1 tahap (PRD, AC, atau Task). Kredit tidak
 					pernah hangus.
 				</p>
 			</header>
