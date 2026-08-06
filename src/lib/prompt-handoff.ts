@@ -261,3 +261,59 @@ export function getOnboardingState(): OnboardingState | null {
 export function clearOnboardingState() {
 	getStorage()?.removeItem(ONBOARDING_STATE_KEY);
 }
+
+/* ---------- Resume intent (credit-exhaustion → payment → auto-resume) ---------- */
+const RESUME_INTENT_KEY = "novaplan:resume-intent";
+const RESUME_INTENT_MAX_AGE_MS = 15 * 60 * 1000;
+
+interface ResumeIntentPayload {
+	projectId: string;
+	stage: "prd" | "ac" | "task";
+	createdAt: number;
+}
+
+export function saveResumeIntent(projectId: string, stage: "prd" | "ac" | "task") {
+	const payload: ResumeIntentPayload = { projectId, stage, createdAt: Date.now() };
+	getStorage()?.setItem(RESUME_INTENT_KEY, JSON.stringify(payload));
+}
+
+/**
+ * Consume-pattern: reads and removes. Returns the stage if the stored intent
+ * matches `projectId` and hasn't expired, otherwise null (and clears stale data).
+ */
+export function consumeResumeIntent(projectId: string): "prd" | "ac" | "task" | null {
+	const storage = getStorage();
+	const raw = storage?.getItem(RESUME_INTENT_KEY);
+	if (!raw) return null;
+	storage?.removeItem(RESUME_INTENT_KEY);
+	try {
+		const parsed = JSON.parse(raw) as Partial<ResumeIntentPayload>;
+		if (!parsed.projectId || !parsed.stage || !parsed.createdAt) return null;
+		if (parsed.projectId !== projectId) return null;
+		if (Date.now() - parsed.createdAt > RESUME_INTENT_MAX_AGE_MS) return null;
+		return parsed.stage;
+	} catch {
+		return null;
+	}
+}
+
+/* ---------- Suppress auto-generate on history resume landing ---------- */
+const SUPPRESS_AUTOGEN_KEY = "novaplan:suppress-autogen";
+
+export function saveSuppressAutoGen(projectId: string) {
+	getStorage()?.setItem(SUPPRESS_AUTOGEN_KEY, projectId);
+}
+
+/**
+ * One-shot check: returns true if `projectId` matches the stored suppress marker,
+ * then clears it. Returns false otherwise.
+ */
+export function consumeSuppressAutoGen(projectId: string): boolean {
+	const storage = getStorage();
+	const stored = storage?.getItem(SUPPRESS_AUTOGEN_KEY);
+	if (stored === projectId) {
+		storage?.removeItem(SUPPRESS_AUTOGEN_KEY);
+		return true;
+	}
+	return false;
+}
