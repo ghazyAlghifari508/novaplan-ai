@@ -308,9 +308,14 @@ export function ChatPanel({
 					setGeneratingPRD(false);
 					isSubmittingRef.current = false;
 
-					if (response.status === 403 || response.status === 429) {
-						setLimitErrorMsg(err.error || "Limit tercapai");
+					if (response.status === 403 && err.code === "NO_CREDITS") {
+						setLimitErrorMsg(err.error || "Kredit habis");
 						setShowLimitModal(true);
+					} else if (response.status === 429) {
+						setLimitErrorMsg(err.error || "Terlalu banyak request. Coba lagi nanti.");
+						setShowLimitModal(true);
+					} else if (response.status === 403) {
+						showToast(err.error || "Akses ditolak", "error");
 					} else {
 						showToast(err.error || "Terjadi kesalahan", "error");
 					}

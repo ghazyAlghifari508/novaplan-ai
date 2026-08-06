@@ -3,7 +3,7 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
-import { hasFullWorkflow } from "@/lib/credits";
+import { checkCredits, consumeCredit, hasFullWorkflow } from "@/lib/credits";
 import { depthDirective } from "@/lib/prompt-depth";
 import { TASK_GENERATION_PROMPT } from "@/lib/prompts-task";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -52,14 +52,26 @@ export const Route = createFileRoute("/api/task/generate")({
 					? (rawPlan as Plan)
 					: "free";
 
-				// Plan gate, not a credit gate: the credit was already burned at PRD
-				// generate. Free is PRD-only, so Task needs an upgrade instead.
+				// Plan gate: free tier is PRD-only. Credit gate follows below.
 				if (!hasFullWorkflow(plan)) {
 					return Response.json(
 						{
 							error: "Generate Task hanya tersedia di paket Pro dan Hengker.",
 							code: "UPGRADE_REQUIRED",
 							plan,
+						},
+						{ status: 403 },
+					);
+				}
+
+				const creditCheck = await checkCredits(user.id);
+				if (!creditCheck.allowed) {
+					return Response.json(
+						{
+							error: "Kredit kamu sudah habis. Beli kredit untuk generate Task.",
+							code: "NO_CREDITS",
+							plan: creditCheck.plan,
+							remaining: creditCheck.remaining,
 						},
 						{ status: 403 },
 					);
@@ -155,6 +167,7 @@ export const Route = createFileRoute("/api/task/generate")({
 									return;
 								}
 								emit({ type: "done", taskTree });
+								try { await consumeCredit(user.id); } catch (e) { console.error("Task credit burn failed:", e); }
 							} catch (err) {
 								console.error("saveTaskTree failed:", err);
 								emit({ type: "error", error: "Failed to save task tree" });

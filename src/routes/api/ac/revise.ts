@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getRequestHeaders } from "@tanstack/react-start/server";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { messages, subscriptions } from "@/db/schema";
+import { messages, projects, subscriptions } from "@/db/schema";
 import { isTruncatedGeneration } from "@/lib/flow-progress";
 import { AC_REVISION_PROMPT } from "@/lib/prompts-ac";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -50,6 +50,17 @@ export const Route = createFileRoute("/api/ac/revise")({
 					return Response.json(
 						{ error: "Too many requests", retryAfter: 60 },
 						{ status: 429 },
+					);
+
+				const [project] = await db
+					.select({ id: projects.id })
+					.from(projects)
+					.where(and(eq(projects.id, projectId), eq(projects.userId, user.id)))
+					.limit(1);
+				if (!project)
+					return Response.json(
+						{ error: "Project not found or unauthorized" },
+						{ status: 403 },
 					);
 
 				// ponytail: no revision gate - revisi is unlimited on every tier.

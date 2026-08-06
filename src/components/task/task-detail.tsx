@@ -100,11 +100,12 @@ export function TaskDetail({
 
 			if (!response.ok) {
 				const error = await response.json();
-				if (response.status === 403 && error.code === "UPGRADE_REQUIRED") {
-					showToast(
-						"Generate Task hanya tersedia di paket Pro dan Hengker.",
-						"error",
-					);
+				if (response.status === 403) {
+					if (error.code === "UPGRADE_REQUIRED") {
+						showToast("Generate Task hanya tersedia di paket Pro dan Hengker.", "error");
+					} else {
+						showToast(error.error || "Kredit habis.", "error");
+					}
 					router.push("/pricing");
 					return;
 				}

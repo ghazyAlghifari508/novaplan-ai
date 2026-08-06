@@ -85,11 +85,11 @@ export interface Payment {
 	updatedAt: string;
 }
 
-/** Credits granted per tier. 1 credit = 1 full project lifecycle. Never expires. */
+/** Credits granted per tier. 1 credit = 1 stage (PRD, AC, or Task). Never expires. */
 export const PLAN_CREDITS: Record<Plan, number> = {
 	free: 2,
-	pro: 10,
-	hengker: 35,
+	pro: 30,
+	hengker: 105,
 };
 
 /** One-time price in IDR. No billing cycle. */

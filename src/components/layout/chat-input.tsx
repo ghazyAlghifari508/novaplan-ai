@@ -21,7 +21,7 @@ import {
 	saveSetupPrompt,
 } from "@/lib/prompt-handoff";
 import { cn } from "@/lib/utils";
-import type { Plan } from "@/types/database";
+import { type Plan, PLAN_CREDITS } from "@/types/database";
 
 const MIN_PROMPT_LENGTH = 20;
 
@@ -218,12 +218,12 @@ export function ChatInput({ className }: ChatInputProps) {
 					<div className="flex items-center gap-3">
 						<span className="font-inter text-[12px] font-[510] text-mist">
 							{!planStatus
-								? "3 PRD Gratis"
+								? `${PLAN_CREDITS.free} Kredit Gratis`
 								: planStatus.plan === "hengker"
 									? "Akses Unlimited"
 									: planStatus.plan === "pro"
-										? `Sisa ${planStatus.remaining} PRD Pro`
-										: `Sisa ${planStatus.remaining} PRD Gratis`}
+										? `Sisa ${planStatus.remaining} Kredit`
+										: `Sisa ${planStatus.remaining} Kredit`}
 						</span>
 						{(!planStatus || planStatus.plan !== "hengker") && (
 							<Link

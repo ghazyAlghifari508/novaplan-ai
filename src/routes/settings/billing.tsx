@@ -57,25 +57,25 @@ function BillingPage() {
             </Link>
           </div>
 
-          {credits > 0 && (
-            <div className="mt-6 rounded-lg bg-(--bg-surface) p-4">
-              <div className="mb-2 flex justify-between text-sm">
-                <span className="text-(--text-secondary)">Kredit digunakan</span>
-                <span className="font-medium">
-                  {creditsUsed} / {credits}
-                </span>
-              </div>
-              <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-(--bg-card)">
-                <div
-                  className="h-full rounded-full bg-indigo transition-all"
-                  style={{ width: `${credits > 0 ? ((credits - creditsUsed) / credits) * 100 : 0}%` }}
-                />
-              </div>
-              <p className="mt-2 text-xs text-(--text-secondary)">
-                Sisa {remaining} kredit. Kredit tidak pernah hangus.
-              </p>
+          <div className="mt-6 rounded-lg bg-(--bg-surface) p-4">
+            <div className="mb-2 flex justify-between text-sm">
+              <span className="text-(--text-secondary)">Kredit digunakan</span>
+              <span className="font-medium">
+                {creditsUsed} / {credits}
+              </span>
             </div>
-          )}
+            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-(--bg-card)">
+              <div
+                className="h-full rounded-full bg-indigo transition-all"
+                style={{ width: `${credits > 0 ? ((credits - creditsUsed) / credits) * 100 : 0}%` }}
+              />
+            </div>
+            <p className="mt-2 text-xs text-(--text-secondary)">
+              {remaining > 0
+                ? `Sisa ${remaining} kredit. Kredit tidak pernah hangus.`
+                : "Kredit habis. Beli kredit untuk melanjutkan."}
+            </p>
+          </div>
         </div>
 
         <div className="rounded-xl border border-(--border-subtle) bg-(--bg-card) p-6">

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getRequestHeaders } from "@tanstack/react-start/server";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
 import { checkCredits, consumeCredit } from "@/lib/credits";
@@ -123,7 +123,7 @@ export const Route = createFileRoute("/api/chat")({
 					const [projCheck] = await db
 						.select({ id: projects.id })
 						.from(projects)
-						.where(eq(projects.id, projectIdToUse))
+						.where(and(eq(projects.id, projectIdToUse), eq(projects.userId, user.id)))
 						.limit(1);
 					if (!projCheck)
 						return Response.json(
@@ -394,7 +394,14 @@ export const Route = createFileRoute("/api/chat")({
 
 								try {
 									// One credit per project, at generate only. Revisi is free.
-									if (mode === "generate") await consumeCredit(user.id);
+									if (mode === "generate") {
+										const burned = await consumeCredit(user.id);
+										if (!burned) {
+											emit({ type: "error", error: "Kredit habis. Silakan beli kredit." });
+											try { controller.close(); } catch {}
+											return;
+										}
+									}
 								} catch (err) {
 									console.error(
 										"Failed to consume credit for user",

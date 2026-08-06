@@ -3,7 +3,7 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
-import { hasFullWorkflow } from "@/lib/credits";
+import { checkCredits, consumeCredit, hasFullWorkflow } from "@/lib/credits";
 import { isTruncatedGeneration } from "@/lib/flow-progress";
 import { depthDirective } from "@/lib/prompt-depth";
 import { AC_GENERATION_PROMPT } from "@/lib/prompts-ac";
@@ -41,14 +41,26 @@ export const Route = createFileRoute("/api/ac/generate")({
 					.limit(1);
 				const plan = (sub?.plan || "free") as Plan;
 
-				// Plan gate, not a credit gate: the credit was already burned at PRD
-				// generate. Free is PRD-only, so AC needs an upgrade instead.
+				// Plan gate: free tier is PRD-only. Credit gate follows below.
 				if (!hasFullWorkflow(plan)) {
 					return Response.json(
 						{
 							error: "Generate AC hanya tersedia di paket Pro dan Hengker.",
 							code: "UPGRADE_REQUIRED",
 							plan,
+						},
+						{ status: 403 },
+					);
+				}
+
+				const creditCheck = await checkCredits(user.id);
+				if (!creditCheck.allowed) {
+					return Response.json(
+						{
+							error: "Kredit kamu sudah habis. Beli kredit untuk generate AC.",
+							code: "NO_CREDITS",
+							plan: creditCheck.plan,
+							remaining: creditCheck.remaining,
 						},
 						{ status: 403 },
 					);
@@ -132,6 +144,7 @@ export const Route = createFileRoute("/api/ac/generate")({
 									"generate",
 								);
 								emit({ type: "done", acVersionId, version });
+								try { await consumeCredit(user.id); } catch (e) { console.error("AC credit burn failed:", e); }
 							} catch (err) {
 								console.error("saveAcVersion failed:", err);
 								emit({

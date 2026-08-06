@@ -47,7 +47,7 @@ export const novaPlanPlans: [PriceTier, PriceTier, PriceTier] = [
 	{
 		id: "free",
 		name: "Free",
-		description: "Coba NovaPlan dengan 2 kredit sekali pakai.",
+		description: "Coba NovaPlan dengan 2 kredit PRD sekali pakai.",
 		price: 0,
 		credits: 2,
 		isPopular: false,
@@ -57,9 +57,9 @@ export const novaPlanPlans: [PriceTier, PriceTier, PriceTier] = [
 	{
 		id: "pro",
 		name: "Pro",
-		description: "10 kredit, full workflow dari PRD sampai Kanban.",
+		description: "30 kredit, full workflow dari PRD sampai Kanban.",
 		price: 49000,
-		credits: 10,
+		credits: 30,
 		isPopular: true,
 		buttonLabel: "Beli Pro",
 		features: buildFeatures([
@@ -76,9 +76,9 @@ export const novaPlanPlans: [PriceTier, PriceTier, PriceTier] = [
 	{
 		id: "hengker",
 		name: "Hengker",
-		description: "35 kredit, model premium, dan antrean prioritas.",
+		description: "105 kredit, model premium, dan antrean prioritas.",
 		price: 149000,
-		credits: 35,
+		credits: 105,
 		isPopular: false,
 		buttonLabel: "Beli Hengker",
 		features: buildFeatures(FEATURE_ROWS.map((row) => row.key)),
