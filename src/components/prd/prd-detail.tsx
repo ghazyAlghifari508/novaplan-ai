@@ -79,7 +79,7 @@ export function PrdDetail({
   const { rightWidth, onStartDragRight, isDraggingRight } = usePanelResize();
   const router = useRouter();
   const [, startTransition] = useTransition();
-  const { isGeneratingPRD, streamingPRDContent, setGeneratingPRD, setStreamingPRDContent, setMessages } =
+  const { isGeneratingPRD, streamingPRDContent, setGeneratingPRD, setStreamingPRDContent, setMessages, creditsExhausted } =
     useChatStore();
   const showToast = useUIStore((s) => s.showToast);
 
@@ -256,7 +256,7 @@ export function PrdDetail({
           )}
           style={{ background: "var(--bg-page)" }}
         >
-        {projectId && !isCheckingGeneration && !isGeneratingPRD && !streamingPRDContent && !latestVersion ? (
+        {projectId && !isCheckingGeneration && !isGeneratingPRD && !streamingPRDContent && !latestVersion && !creditsExhausted ? (
           /* Error/Retry state - project exists but has no PRD version */
           <div className="flex-1 flex items-center justify-center p-4 sm:p-6">
             <div className="text-center max-w-lg">

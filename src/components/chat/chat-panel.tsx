@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
 	startTransition,
 	useCallback,
@@ -9,11 +9,14 @@ import {
 	useState,
 } from "react";
 import { ALL_MODELS, DEFAULT_MODEL_ID } from "@/lib/model-config";
+import { syncPaymentStatus } from "@/app/actions/payment";
 import {
 	clearPrdDraft,
 	consumePendingPrdPrompt,
+	consumeResumeIntent,
 	getPrdDraft,
 	savePrdDraft,
+	savePendingPrdPrompt,
 } from "@/lib/prompt-handoff";
 import { cn } from "@/lib/utils";
 import { useChatStore, useUIStore } from "@/store";
@@ -194,6 +197,7 @@ export function ChatPanel({
 	// ── Store ──
 	const showToast = useUIStore((s) => s.showToast);
 	const router = useRouter();
+	const searchParams = useSearchParams();
 	const {
 		messages,
 		isStreaming,
@@ -309,6 +313,10 @@ export function ChatPanel({
 					isSubmittingRef.current = false;
 
 					if (response.status === 403 && err.code === "NO_CREDITS") {
+						// Save prompt for auto-resume after payment (only for generate mode)
+						if (body.mode === "generate") {
+							savePendingPrdPrompt(body.message as string, "auto", originalMessage);
+						}
 						setCreditsExhausted({ stage: "prd", message: err.error || "Kredit habis" });
 					} else if (response.status === 429) {
 						setCreditsExhausted({ stage: "prd", message: err.error || "Terlalu banyak request. Coba lagi nanti." });
@@ -837,6 +845,32 @@ export function ChatPanel({
 		messages.length,
 		setGeneratingPRD,
 	]);
+
+	// Auto-resume PRD generation after payment return
+	useEffect(() => {
+		const orderId = searchParams.get("order_id");
+		const payment = searchParams.get("payment");
+		if (!orderId || payment !== "success" || !projectId) return;
+		(async () => {
+			try {
+				const res = await syncPaymentStatus({ data: orderId });
+				if (!res.success) return;
+				const resumedStage = consumeResumeIntent(projectId);
+				if (resumedStage === "prd") {
+					// Trigger generate mode with the original prompt
+					setGeneratingPRD(true);
+					const pending = consumePendingPrdPrompt();
+					if (pending) {
+						void handleSendWithMessage(pending.prompt, "generate", pending.displayMessage || pending.prompt);
+					}
+				}
+				// Strip query params from URL
+				router.replace(window.location.pathname);
+			} catch (e) {
+				console.error("Auto-resume payment sync failed:", e);
+			}
+		})();
+	}, [searchParams]);
 
 	// ── Render ──
 
