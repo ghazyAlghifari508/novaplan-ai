@@ -32,21 +32,6 @@ export async function updateProfile(formData: FormData) {
   });
 }
 
-const _updateEmail = createServerFn({ method: "POST" })
-  .validator((d: { email: string }) => d)
-  .handler(async ({ data }) => {
-    // Better Auth owns the email - changeEmail sends verification when enabled.
-    const { auth } = await import("@/lib/auth");
-    await auth.api.changeEmail({
-      body: { newEmail: data.email },
-      headers: getRequestHeaders(),
-    });
-  });
-
-export async function updateEmail(formData: FormData) {
-  await _updateEmail({ data: { email: (formData.get("email") as string) ?? "" } });
-}
-
 const _deleteAccount = createServerFn({ method: "POST" })
   .validator((confirm: string) => {
     if (confirm !== "HAPUS") throw new Error("Konfirmasi penghapusan tidak valid.");

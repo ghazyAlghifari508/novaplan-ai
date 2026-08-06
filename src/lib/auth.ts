@@ -54,12 +54,6 @@ export const auth = betterAuth({
 		},
 	},
 	user: {
-		changeEmail: {
-			enabled: true,
-			// ponytail: OAuth-only app has no email sending infra; skip verification.
-			// Users manage their primary email through Google/GitHub anyway.
-			updateEmailWithoutVerification: true,
-		},
 		additionalFields: {
 			fullName: { type: "string", required: false, input: true },
 			company: { type: "string", required: false, input: true },

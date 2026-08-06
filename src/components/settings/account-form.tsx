@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, memo } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { updateEmail, deleteAccount } from "@/app/actions/settings";
+import { deleteAccount } from "@/app/actions/settings";
 
 export const AccountForm = memo(function AccountForm({ email }: { email: string }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -11,19 +10,13 @@ export const AccountForm = memo(function AccountForm({ email }: { email: string 
 
   return (
     <div className="space-y-10">
-      <form action={updateEmail} className="space-y-5">
-        <h3 className="font-inter font-[510] text-base font-bold">Ganti Email</h3>
-        <div>
-          <label className="mb-1 block text-sm font-medium">Email Baru</label>
-          <Input
-            name="email"
-            type="email"
-            defaultValue={email}
-            placeholder="email@baru.com"
-          />
-        </div>
-        <Button type="submit">Update Email</Button>
-      </form>
+      <div className="space-y-2">
+        <h3 className="font-inter font-[510] text-base font-bold">Email</h3>
+        <p className="font-inter text-sm text-fog">{email}</p>
+        <p className="font-inter text-xs text-slate">
+          Email dikelola melalui akun Google kamu. Hubungi support untuk mengubah email.
+        </p>
+      </div>
 
       <hr className="border-(--border-subtle)" />
 
