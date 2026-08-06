@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
-import { and, desc, eq, lt } from 'drizzle-orm'
+import { and, desc, eq, ne } from 'drizzle-orm'
 import { db } from '@/db'
 import { payments, subscriptions } from '@/db/schema'
 import { requireUserServer } from '@/lib/session'
@@ -14,17 +14,11 @@ import { useUIStore } from '@/store'
 const loadBilling = createServerFn({ method: 'GET' }).handler(async () => {
   const user = await requireUserServer()
 
-  // Auto-expire stale pending payments (>30 min old). User may have clicked
-  // pricing, got redirected to Midtrans, then hit back without completing.
-  // No webhook fires in that case, so pending stays forever unless we clean up.
-  const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000)
-  await db.update(payments)
-    .set({ status: "failed" })
-    .where(and(eq(payments.userId, user.id), eq(payments.status, "pending"), lt(payments.createdAt, thirtyMinAgo)))
-
   const [subRows, paymentRows] = await Promise.all([
     db.select().from(subscriptions).where(eq(subscriptions.userId, user.id)).orderBy(desc(subscriptions.createdAt)).limit(1),
-    db.select().from(payments).where(eq(payments.userId, user.id)).orderBy(desc(payments.createdAt)).limit(10),
+    // ponytail: exclude pending - internal Midtrans state, user doesn't need to see
+    // abandoned checkouts (accidental pricing page clicks, browser back, etc.)
+    db.select().from(payments).where(and(eq(payments.userId, user.id), ne(payments.status, "pending"))).orderBy(desc(payments.createdAt)).limit(10),
   ])
   // ponytail: server fn boundary rejects Date + unknown - coerce to plain JSON.
   const subscription = subRows[0] ? { ...subRows[0], createdAt: subRows[0].createdAt?.toISOString() ?? null, updatedAt: subRows[0].updatedAt?.toISOString() ?? null } : undefined
@@ -136,12 +130,10 @@ function BillingPage() {
                       className={`rounded-full px-3 py-1 text-xs font-medium ${
                         p.status === 'success'
                           ? 'bg-green-100 text-green-800'
-                          : p.status === 'pending'
-                            ? 'bg-steel text-snow'
-                            : 'bg-red-100 text-red-800'
+                          : 'bg-red-100 text-red-800'
                       }`}
                     >
-                      {p.status}
+                      {p.status === 'success' ? 'Berhasil' : 'Gagal'}
                     </span>
                     <button
                       type="button"
