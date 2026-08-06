@@ -3,14 +3,12 @@
 import { Cloud, Database, Layers, Palette, Rocket } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { CreditExhaustedModal } from "@/components/chat/credit-exhausted-modal";
 import {
 	getAskPlatform,
 	getAskState,
 	getSetupPrompt,
 	saveAskState,
 	savePendingPrdPrompt,
-	saveResumeIntent,
 } from "@/lib/prompt-handoff";
 import {
 	FRONTEND_WEB_OPTIONS,
@@ -59,7 +57,6 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 	const [techAnswers, setTechAnswers] = useState<TechAnswers>({});
 	const [skippedTech, setSkippedTech] = useState<Set<string>>(new Set());
 	const [platform, setPlatform] = useState<"web" | "mobile">("web");
-	const [creditsExhaustedMsg, setCreditsExhaustedMsg] = useState<string | null>(null);
 
 	const toggleSkipTech = (field: string) => {
 		setSkippedTech((prev) => {
@@ -185,7 +182,7 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 	// so non-technical users can let the AI pick the whole stack.
 	const allTechAnswered = true;
 
-	const submit = async (tech: TechAnswers) => {
+	const submit = (tech: TechAnswers) => {
 		const nonTechLines = questions.map((q) => {
 			const a = nonTechAnswers[q.id];
 			if (!a || a.skipped || !a.value)
@@ -208,24 +205,6 @@ Backend: ${tech.backend || "Biarkan AI yang memilih"}
 Fullstack Framework: ${tech.fullstackFramework || "Tidak dipakai / Biarkan AI yang memilih"}
 Database: ${tech.database || "Biarkan AI yang memilih"}
 Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
-
-		// Pre-check credits before navigating — avoids redirecting to empty PRD page
-		try {
-			const planRes = await fetch("/api/user/plan");
-			if (planRes.ok) {
-				const planData = await planRes.json();
-				const remaining = planData.remaining;
-				if (remaining === 0 || remaining === "0") {
-					// Block navigation, show modal
-					setCreditsExhaustedMsg(
-						planData.error || "Kredit kamu sudah habis. Beli kredit untuk membuat proyek baru."
-					);
-					return;
-				}
-			}
-		} catch {
-			// If plan check fails, allow navigation — server will block with 403 anyway
-		}
 
 		savePendingPrdPrompt(compiledPrompt, "auto", projectName);
 		router.push(`/prd/${projectId}`);
@@ -260,7 +239,6 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 	}
 
 	return (
-		<>
 		<div className="hide-scrollbar mx-auto flex-1 w-full overflow-y-auto bg-onyx min-h-0">
 			<div className="mx-auto max-w-3xl lg:max-w-4xl px-4 sm:px-6 py-6 sm:py-12">
 			<div className="mb-8 flex items-center justify-between">
@@ -420,15 +398,5 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 			)}
 		</div>
 		</div>
-
-		{/* Credit Exhausted Modal — blocks /prd navigation */}
-		<CreditExhaustedModal
-			isOpen={!!creditsExhaustedMsg}
-			onClose={() => setCreditsExhaustedMsg(null)}
-			errorMessage={creditsExhaustedMsg || ""}
-			projectId={projectId}
-			stage="prd"
-		/>
-		</>
 	);
 }

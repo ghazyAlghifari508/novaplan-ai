@@ -4,6 +4,7 @@ import { Check, ChevronDown, Lock, Monitor, Smartphone } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { CreditExhaustedModal } from "@/components/chat/credit-exhausted-modal";
 import { ModelIcon } from "@/components/ui/model-icon";
 import { authClient } from "@/lib/auth-client";
 import {
@@ -76,6 +77,7 @@ export function ChatInput({ className }: ChatInputProps) {
 
 	const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
 	const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL_ID);
+	const [creditsExhaustedMsg, setCreditsExhaustedMsg] = useState<string | null>(null);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 
 	const router = useRouter();
@@ -181,6 +183,24 @@ export function ChatInput({ className }: ChatInputProps) {
 			return;
 		}
 
+		// Pre-check credits before creating project — blocks at home page,
+		// not after redirect to empty PRD/question page.
+		try {
+			const planRes = await fetch("/api/user/plan");
+			if (planRes.ok) {
+				const planData = await planRes.json();
+				const remaining = planData.remaining;
+				if (remaining === 0 || remaining === "0") {
+					setCreditsExhaustedMsg(
+						planData.error || "Kredit kamu sudah habis. Beli kredit untuk membuat proyek baru."
+					);
+					return;
+				}
+			}
+		} catch {
+			// If plan check fails, allow flow — server will block with 403 anyway
+		}
+
 		try {
 			const res = await fetch("/api/projects", {
 				method: "POST",
@@ -205,6 +225,7 @@ export function ChatInput({ className }: ChatInputProps) {
 	const selectedModelMeta = findModel(selectedModel);
 
 	return (
+		<>
 		<div
 			className={cn(
 				"mx-auto flex w-full max-w-[728px] flex-col rounded-xl bg-charcoal p-1.5 shadow-[var(--shadow-surface)] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
@@ -220,7 +241,7 @@ export function ChatInput({ className }: ChatInputProps) {
 							{!planStatus
 								? `${PLAN_CREDITS.free} Kredit Gratis`
 								: planStatus.plan === "hengker"
-									? "Akses Unlimited"
+									? `Sisa ${planStatus.remaining} Kredit`
 									: planStatus.plan === "pro"
 										? `Sisa ${planStatus.remaining} Kredit`
 										: `Sisa ${planStatus.remaining} Kredit`}
@@ -467,5 +488,14 @@ export function ChatInput({ className }: ChatInputProps) {
 				)}
 			</div>
 		</div>
+
+		<CreditExhaustedModal
+			isOpen={!!creditsExhaustedMsg}
+			onClose={() => setCreditsExhaustedMsg(null)}
+			errorMessage={creditsExhaustedMsg || ""}
+			projectId=""
+			stage="prd"
+		/>
+		</>
 	);
 }
