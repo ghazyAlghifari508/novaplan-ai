@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { createHash, randomBytes } from "node:crypto";
-import { and, eq, like } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { apiKeys } from "@/db/schema";
 import { requireUser } from "@/lib/session";
@@ -14,16 +14,9 @@ export const Route = createFileRoute("/api/settings/api-keys/auto")({
       POST: async () => {
         const user = await requireUser(getRequestHeaders());
 
-        // Delete existing auto-generated key (raw key not retrievable, must recreate)
-        const existing = await db
-          .select({ id: apiKeys.id })
-          .from(apiKeys)
-          .where(and(eq(apiKeys.userId, user.id), like(apiKeys.name, "auto-cli-%")))
-          .limit(1);
-
-        if (existing.length > 0) {
-          await db.delete(apiKeys).where(eq(apiKeys.id, existing[0].id));
-        }
+        // Don't delete existing auto-keys — raw keys aren't stored so we can't
+        // return an old one; keeping previous keys avoids 401 for in-flight agents.
+        // ponytail: auto-keys accumulate per click; cleanup by expiry if this grows.
 
         const rawKey = `novaplan_${randomBytes(32).toString("hex")}`;
         const keyHash = createHash("sha256").update(rawKey).digest("hex");
