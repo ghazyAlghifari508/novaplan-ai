@@ -106,17 +106,29 @@ export function useKanbanPolling({
     }
   }, [projectId, intervalMs]);
 
-  // Handle Visibility change
+  // Handle Visibility change — pause on hide, restart polling loop on visible
   const handleVisibilityChange = useCallback(() => {
     if (document.hidden) {
-      // Pause polling
       if (timerIdRef.current) {
         clearTimeout(timerIdRef.current);
         timerIdRef.current = null;
       }
     } else {
-      // Resume polling immediately
+      // Clear any stale timer before restarting to prevent duplicate loops
+      if (timerIdRef.current) {
+        clearTimeout(timerIdRef.current);
+        timerIdRef.current = null;
+      }
       fetchData();
+      const scheduleNextPoll = () => {
+        timerIdRef.current = setTimeout(async () => {
+          if (!document.hidden) {
+            await fetchData();
+          }
+          scheduleNextPoll();
+        }, currentIntervalRef.current);
+      };
+      scheduleNextPoll();
     }
   }, [fetchData]);
 
