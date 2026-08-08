@@ -36,6 +36,7 @@ export const KanbanColumn = forwardRef<KanbanColumnHandle, KanbanColumnProps>(
     }
 
     const featuresList = Object.keys(featureGroups);
+    const hasInProgress = cards.some((c) => c.status === "in_progress");
 
     return (
       <div
@@ -44,7 +45,12 @@ export const KanbanColumn = forwardRef<KanbanColumnHandle, KanbanColumnProps>(
       >
         {/* Column Header */}
         <div className="flex items-center justify-between border-b border-graphite/40 px-4 py-3.5 bg-obsidian/60 rounded-t-xl">
-          <h3 className="font-inter text-sm font-semibold text-snow">{title}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="font-inter text-sm font-semibold text-snow">{title}</h3>
+            {hasInProgress && (
+              <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-indigo border-t-transparent" />
+            )}
+          </div>
           <span className="rounded-full bg-steel/15 px-2 py-0.5 text-xs font-bold text-mist">
             {count}
           </span>
