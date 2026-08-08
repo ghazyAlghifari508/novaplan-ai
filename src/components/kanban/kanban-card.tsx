@@ -58,7 +58,7 @@ export function KanbanCard({ card, colorIndex, highlighted = false }: KanbanCard
         tabIndex={0}
         onClick={() => setIsOpen(true)}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setIsOpen(true); } }}
-        className={`group relative flex cursor-pointer flex-col rounded-lg border border-graphite bg-obsidian p-3 shadow-sm transition-all duration-200 hover:border-steel hover:shadow-md ${highlighted ? "ring-2 ring-amber animate-flash" : ""}`}
+        className={`group relative flex cursor-pointer flex-col rounded-lg border border-(--border-medium) bg-obsidian p-3 shadow-sm transition-all duration-200 hover:border-steel hover:shadow-md ${highlighted ? "ring-2 ring-amber animate-flash" : ""}`}
       >
         <div className="flex items-start justify-between gap-2">
           <span className="font-inter text-sm font-[510] text-snow line-clamp-2">
