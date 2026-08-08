@@ -613,8 +613,7 @@ export function ChatPanel({
 				setGeneratingPRD(false);
 				if (
 					chatMode !== "generate" &&
-					chatMode !== "resume" &&
-					chatMode !== "revise"
+					chatMode !== "resume"
 				) {
 					setStreamingPRDContent("");
 				}

@@ -228,7 +228,7 @@ export function PrdDetail({
               </div>
             ) : (
               <PrdViewer
-                content={isGeneratingPRD || streamingPRDContent ? streamingPRDContent : currentContent}
+                content={streamingPRDContent ? streamingPRDContent : currentContent}
               projectName={projectName || ""}
               plan={plan}
               versions={versions?.map((v) => ({
