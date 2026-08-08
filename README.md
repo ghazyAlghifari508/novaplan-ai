@@ -152,7 +152,7 @@ Sensitive payment configuration lives in the server environment and is never exp
 
 - Node.js 20 or newer
 - pnpm (any recent version)
-- Docker (for local Postgres) or any reachable Postgres instance
+- PostgreSQL 17 or newer (installed natively or any reachable Postgres instance)
 - A running 9router (or any OpenAI-compatible server) on `http://localhost:20128`
 - A modern browser (Chrome, Edge, Firefox, or Safari)
 
@@ -225,14 +225,11 @@ Novaplan does not call a hosted model API directly. It talks to a local [9router
 
 ### Start the database
 
-```bash
-docker run -d \
-  --name novaplan-db \
-  -e POSTGRES_USER=novaplan \
-  -e POSTGRES_PASSWORD=novaplan_local \
-  -e POSTGRES_DB=novaplan \
-  -p 5432:5432 \
-  postgres:16
+Install PostgreSQL 17 natively. Create the user and database:
+
+```sql
+CREATE USER novaplan WITH PASSWORD 'novaplan_local';
+CREATE DATABASE novaplan OWNER novaplan;
 ```
 
 ### Push the schema and run

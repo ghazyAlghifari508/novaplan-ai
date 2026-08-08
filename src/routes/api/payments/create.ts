@@ -41,12 +41,12 @@ export const Route = createFileRoute("/api/payments/create")({
 				// ponytail: no plan-hierarchy guard - credits are additive, so buying the
 				// same or a lower tier again is a legitimate top-up.
 
-				// Clean up stale pending payments for this user (>30 min) before
+				// Clean up stale pending payments for this user (>5 min) before
 				// creating a new one. Prevents stacking abandoned checkouts.
-				const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000);
+				const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000);
 				await db.update(payments)
 					.set({ status: "failed" })
-					.where(and(eq(payments.userId, user.id), eq(payments.status, "pending"), lt(payments.createdAt, thirtyMinAgo)));
+					.where(and(eq(payments.userId, user.id), eq(payments.status, "pending"), lt(payments.createdAt, fiveMinAgo)));
 
 				const orderId = `ORDER-${Date.now()}-${randomBytes(4).toString("hex")}`;
 				await db.insert(payments).values({
