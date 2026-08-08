@@ -288,7 +288,7 @@ export function AcDetail({
 				<aside
 					style={{ width: `${leftWidth}px`, background: "var(--bg-page)" }}
 					className={cn(
-						"relative hidden h-full shrink-0 overflow-y-auto border-r border-(--color-graphite) bg-onyx p-4 md:block",
+						"relative hidden h-full shrink-0 overflow-y-auto overflow-x-hidden border-r border-(--color-graphite) bg-onyx p-4 md:block",
 						!isDraggingLeft && "transition-[width] duration-300",
 					)}
 				>

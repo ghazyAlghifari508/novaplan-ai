@@ -69,7 +69,7 @@ export function TableOfContents({ content, className, maxLevel = 4 }: TableOfCon
               key={i}
               href={`#${item.id}`}
               className={cn(
-                "block rounded px-2 py-1 text-sm transition-colors hover:bg-black/5 dark:hover:bg-white/5",
+                "block rounded px-2 py-1 text-sm transition-colors hover:bg-black/5 dark:hover:bg-white/5 break-words",
                 item.level === 2 && "font-medium text-(--text-primary)",
                 item.level === 3 && "ml-3 text-(--text-secondary) hover:text-(--text-primary) dark:hover:text-[#F0F0F0]",
                 item.level === 4 && "ml-6 text-xs text-(--text-secondary)/70 hover:text-(--text-primary) dark:hover:text-[#F0F0F0]",
