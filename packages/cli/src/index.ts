@@ -16,6 +16,8 @@
 import { Command } from "commander";
 import { loginCommand } from "./commands/login.js";
 import { projectGetCommand } from "./commands/project.js";
+import { prdCommand } from "./commands/prd.js";
+import { acCommand } from "./commands/ac.js";
 import { taskListCommand, taskUpdateCommand, taskNextCommand } from "./commands/task.js";
 import { subtaskUpdateCommand } from "./commands/subtask.js";
 import { kanbanCommand } from "./commands/kanban.js";
@@ -42,6 +44,20 @@ projectCmd
   .argument("<id>", "Project UUID")
   .description("Get project data as JSON")
   .action(projectGetCommand);
+
+// novaplan prd
+program
+  .command("prd")
+  .argument("<projectId>", "Project UUID")
+  .description("Fetch and print PRD content")
+  .action(prdCommand);
+
+// novaplan ac
+program
+  .command("ac")
+  .argument("<projectId>", "Project UUID")
+  .description("Fetch and print Acceptance Criteria content")
+  .action(acCommand);
 
 // novaplan task
 const taskCmd = program.command("task").description("Task commands");
