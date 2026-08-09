@@ -100,35 +100,35 @@ novaplan subtask update <taskId> --index <subtaskIndex> --status in_progress
 ### 1. JANGAN tambah fitur di luar AC
 - HANYA implementasikan fitur yang EKSPLISIT ada di Acceptance Criteria.
 - JANGAN menambahkan halaman, role, endpoint, atau fitur baru yang tidak disebut di AC.
-- Contoh pelanggaran: menambah halaman landing page, halaman profil user, atau fitur notifikasi push jika TIDAK ada di AC.
+- Jika ingin menambah sesuatu yang tidak ada di AC, abaikan — itu bukan scope kamu.
 
 ### 2. WAJIB selesaikan SEMUA task
-- JANGAN berhenti di tengah jalan. Semua task dan subtask WAJIB diselesaikan.
-- Jika task gagal, JANGAN skip — perbaiki error dan coba lagi.
+- Semua task dan subtask WAJIB diselesaikan. JANGAN berhenti di tengah jalan.
+- Jika task gagal, perbaiki error dan retry. JANGAN skip ke task berikutnya.
 - Proyek dianggap SELESAI hanya jika SEMUA task berstatus completed.
-- Jika benar-benar tidak bisa diselesaikan (misal: dependency eksternal tidak tersedia), tandai failed DAN jelaskan alasannya di output.
+- Jika dependency eksternal benar-benar tidak tersedia: tandai failed + jelaskan alasannya.
 
 ### 3. Ikuti detail subtask
-- Setiap subtask punya field "details" — ini adalah instruksi teknis spesifik. IKUTI persis.
-- JANGAN mengganti teknologi, pola, atau approach yang sudah ditentukan di details.
-- Contoh: jika details bilang "gunakan Xendit", JANGAN ganti ke Midtrans atau payment gateway lain.
+- Setiap subtask punya field "details" — ini instruksi teknis spesifik. IKUTI persis.
+- JANGAN mengganti teknologi, library, atau approach yang sudah ditentukan di details.
+- Jika details bilang gunakan teknologi X, gunakan X — JANGAN substitusi dengan teknologi Y.
 
 ### 4. Improvisasi HANYA dalam konteks task
-- Kamu BOLEH improvisasi untuk kualitas implementasi (error handling, loading state, responsive, aksesibilitas).
-- Tapi improvisasi harus SELALU dalam batas task yang sedang dikerjakan.
-- JANGAN improvisasi dengan menambah fitur baru. Improvisasi = lebih baik, bukan lebih banyak.
-- Contoh boleh: tambah loading skeleton saat fetch data, tambah error boundary, optimasi query.
-- Contoh TIDAK boleh: tambah halaman admin baru, tambah fitur chat, tambah role baru.
+- Improvisasi BOLEH untuk kualitas: error handling, loading state, responsive, aksesibilitas.
+- Improvisasi TIDAK BOLEH menambah scope: fitur, halaman, endpoint, atau role baru.
+- Prinsip: lebih baik, bukan lebih banyak.
 
-### 5. Struktur folder mengikuti PRD
-- PRD punya section "Struktur Folder" — IKUTI struktur yang ditentukan.
-- JANGAN buat struktur folder sendiri yang berbeda dari PRD.
-- Jika PRD bilang ada folder \\xendit.ts, buat file di situ, bukan di tempat lain.
-
-### 6. Tech stack mengikuti PRD
-- PRD punya section "Tech Stack" — GUNAKAN teknologi yang ditentukan.
+### 5. Ikuti arsitektur dari PRD
+- PRD punya section "Struktur Folder" dan "Tech Stack" — IKUTI keduanya.
+- JANGAN buat struktur folder atau arsitektur sendiri yang berbeda dari PRD.
 - JANGAN ganti framework, ORM, database, atau library utama yang sudah ditentukan.
-- Kamu BOLEH menambah library kecil untuk utility (misal: date-fns, clsx) tapi JANGAN ganti stack utama.
+- Kamu BOLEH menambah library kecil untuk utility (format angka, classnames, dll) tapi JANGAN ganti stack utama.
+
+### 6. JANGAN hardcode nilai dari dokumen
+- Nilai konfigurasi (API key, URL, nama layanan, threshold, batasan) harus dari environment variables atau config file, BUKAN hardcoded di source code.
+- JANGAN copy-paste string dari PRD/AC langsung ke dalam kode — gunakan variabel, constant, atau config.
+- Contoh: jika PRD bilang "gunakan layanan X", buat wrapper/helper yang configurable, bukan inline call langsung ke API X di setiap file.
+- Prinsip: jika suatu hari layanan atau nilai berubah, cukup ubah 1 tempat (config/env), bukan 20 file.
 
 ## Instruksi Implementasi
 
