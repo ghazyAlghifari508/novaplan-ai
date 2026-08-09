@@ -88,20 +88,52 @@ Before implementing ANY change related to features, bugs, errors, design, or UX:
 
 ---
 
-## Rule 4: Use Relevant Skills
+## Rule 4: Use Relevant Skills & Agents
 
-When implementing changes, ALWAYS check for and use relevant skills:
+When implementing changes, ALWAYS check for and use relevant skills/agents:
 
-| Task Type | Use Skills Like |
+### NovaPlan Tech Stack Reference
+
+| Layer | Technology |
 |---|---|
-| New feature | brainstorming, planning, code-architect |
-| Bug fix | systematic-debugging, code-explorer |
-| UI/UX change | frontend-design, a11y-architect |
-| Code review | code-reviewer, typescript-reviewer |
-| Performance | performance-optimizer |
-| Security | security-reviewer |
-| Database | database-reviewer |
-| Build errors | build-error-resolver |
+| Framework | TanStack Start + TanStack Router (file-based routing) |
+| UI | React 19, Radix UI, shadcn/ui, Tailwind CSS 4, Framer Motion |
+| State | Zustand, TanStack Query |
+| Auth | Better Auth (Google + GitHub OAuth) |
+| DB | PostgreSQL 17 (local), Drizzle ORM |
+| AI | Vercel AI SDK (`ai` package), @ai-sdk/openai |
+| Validation | Zod v4 |
+| Lint/Format | Biome |
+| Testing | Vitest (unit), Playwright (e2e) |
+| Build | Vite 8, TypeScript 6 |
+| Package Manager | pnpm |
+
+### Skills & Agents Map — Match to Task
+
+| Task Type | Skills / Agents | Notes |
+|---|---|---|
+| **New feature** | `superpowers:brainstorming` → `ecc:planner` → `ecc:code-architect` | Always brainstorm first, then plan, then implement |
+| **React/TSX change** | `ecc:react-reviewer` agent | MUST USE for any .tsx/.jsx change |
+| **TypeScript change** | `ecc:typescript-reviewer` agent | MUST USE for any .ts change |
+| **Build error** | `ecc:build-error-resolver`, `ecc:react-build-resolver` | React-specific resolver for TSX compile/hydration errors |
+| **Bug fix** | `superpowers:systematic-debugging` → `ecc:code-explorer` | Systematic debugging skill first, then explore |
+| **UI/UX change** | `ecc:a11y-architect`, `ecc:frontend-design-direction`, `ui-design-system` skill, `ecc:react-patterns` | A11y check mandatory for UI changes |
+| **Database change** | `ecc:database-reviewer`, `ecc:postgres-patterns`, `ecc:database-migrations` | For Drizzle schema, queries, migrations |
+| **Security** | `ecc:security-reviewer`, `ecc:security-scan` skill, `better-auth-security-best-practices` skill | MUST USE after auth/API endpoint changes |
+| **Performance** | `ecc:performance-optimizer` | Bundle size, render perf, algorithmic |
+| **Code review** | `ecc:code-reviewer` skill / agent | After every code change |
+| **Testing** | `superpowers:test-driven-development`, `ecc:tdd-guide` skill | Vitest for unit, Playwright for e2e |
+| **E2E testing** | `ecc:e2e-runner` agent | Playwright-based |
+| **Docs update** | `ecc:doc-updater`, `ecc:update-codemaps`, `ecc:update-docs` | After feature changes |
+| **TanStack/Router** | `context7-mcp` skill → `mcp__context7__resolve-library-id` + `mcp__context7__query-docs` | Fetch current TanStack docs, never guess API |
+| **Tailwind CSS** | `context7-mcp` skill | Fetch Tailwind v4 docs (class syntax changed from v3) |
+| **Drizzle ORM** | `context7-mcp` skill | Fetch current Drizzle docs |
+| **Better Auth** | `context7-mcp` skill + `better-auth-security-best-practices` skill | Fetch docs + security patterns |
+| **Vercel AI SDK** | `claude-api` skill + `context7-mcp` skill | For AI SDK usage, model config |
+| **Radix UI / shadcn** | `shadcn-component-discovery` skill | Component patterns and variants |
+| **Cleanup/refactor** | `ecc:refactor-cleaner`, `ecc:code-simplifier` | Dead code removal, simplification |
+| **Silent failures** | `ecc:silent-failure-hunter` | Swallowed errors, bad fallbacks |
+| **App run/verify** | `run` skill | Launch dev server to verify changes |
 
 ### How to Use Skills
 
@@ -109,6 +141,7 @@ When implementing changes, ALWAYS check for and use relevant skills:
 2. If yes, invoke it FIRST — before any code changes
 3. Follow the skill's workflow exactly
 4. If no skill exists, follow the manual audit process (Rule 3)
+5. For library/framework questions: ALWAYS use `context7-mcp` to fetch current docs — never answer from training data
 
 ---
 
