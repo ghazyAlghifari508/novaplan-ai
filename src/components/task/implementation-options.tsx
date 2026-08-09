@@ -124,12 +124,6 @@ novaplan subtask update <taskId> --index <subtaskIndex> --status in_progress
 - JANGAN ganti framework, ORM, database, atau library utama yang sudah ditentukan.
 - Kamu BOLEH menambah library kecil untuk utility (format angka, classnames, dll) tapi JANGAN ganti stack utama.
 
-### 6. JANGAN hardcode nilai dari dokumen
-- Nilai konfigurasi (API key, URL, nama layanan, threshold, batasan) harus dari environment variables atau config file, BUKAN hardcoded di source code.
-- JANGAN copy-paste string dari PRD/AC langsung ke dalam kode — gunakan variabel, constant, atau config.
-- Contoh: jika PRD bilang "gunakan layanan X", buat wrapper/helper yang configurable, bukan inline call langsung ke API X di setiap file.
-- Prinsip: jika suatu hari layanan atau nilai berubah, cukup ubah 1 tempat (config/env), bukan 20 file.
-
 ## Instruksi Implementasi
 
 ### Alur per FASE (setiap feature group = 1 fase):
