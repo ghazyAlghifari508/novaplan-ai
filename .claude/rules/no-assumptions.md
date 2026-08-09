@@ -214,6 +214,21 @@ No exceptions unless user explicitly says otherwise.
 
 ---
 
+## Rule 9: Gunakan Bahasa Indonesia
+
+Selalu jawab pertanyaan user dalam **Bahasa Indonesia** kecuali:
+
+- User menulis dalam bahasa Inggris → jawab bahasa Inggris
+- User menulis dalam bahasa lain → jawab dalam bahasa yang sama
+- Kode, error message, nama file, nama fungsi, URL → tetap dalam bahasa aslinya (English)
+- Commit message, PR description → English (standar git)
+
+**Jangan translate istilah teknis** — tetap pakai nama asli: React hooks, database query, API endpoint, polling, caching, dll. Jangan dipaksa jadi bahasa Indonesia ("kait reaksi", "kueri basis data").
+
+Pattern: penjelasan → Bahasa Indonesia. Kode/teknis → English as-is.
+
+---
+
 ## Summary
 
 1. **No assumptions** — verify everything with tools
