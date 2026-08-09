@@ -143,8 +143,7 @@ export const Route = createFileRoute("/api/chat")({
 					plan,
 					preferences?.model as string | undefined,
 				);
-				// ponytail: depth keyed off the primary model, not the plan.
-				systemPrompt += `\n${depthDirective("prd", modelsToTry[0])}`;
+				systemPrompt += `\n${depthDirective("prd")}`;
 
 				let fullMessages: Array<{
 					role: "system" | "user" | "assistant";

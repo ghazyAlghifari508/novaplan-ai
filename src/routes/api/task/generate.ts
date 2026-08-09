@@ -106,8 +106,7 @@ export const Route = createFileRoute("/api/task/generate")({
 					.where(eq(projects.id, projectId));
 
 				const modelsToTry = selectModels(plan, model);
-				// ponytail: depth keyed off the primary model, not the plan.
-				const systemPrompt = `${TASK_GENERATION_PROMPT}\n${depthDirective("task", modelsToTry[0])}\n\n--- ACCEPTANCE CRITERIA ---\n${acMarkdown}`;
+				const systemPrompt = `${TASK_GENERATION_PROMPT}\n${depthDirective("task")}\n\n--- ACCEPTANCE CRITERIA ---\n${acMarkdown}`;
 				const messages: Array<{
 					role: "system" | "user" | "assistant";
 					content: string;

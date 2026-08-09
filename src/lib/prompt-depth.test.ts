@@ -1,60 +1,32 @@
 import { describe, expect, it } from "vitest";
-import { depthDirective, getDepthTier } from "./prompt-depth";
-
-describe("getDepthTier", () => {
-	it("resolves tier from model id, not user plan", () => {
-		expect(getDepthTier("oc/laguna-s-2.1-free")).toBe("free");
-		expect(getDepthTier("oc/big-pickle")).toBe("free");
-		expect(getDepthTier("oc/nemotron-3-ultra-free")).toBe("pro");
-		expect(getDepthTier("oc/mimo-v2.5-free")).toBe("pro");
-		expect(getDepthTier("oc/deepseek-v4-flash-free")).toBe("hengker");
-	});
-
-	it("falls back to free tier for unknown model id", () => {
-		expect(getDepthTier("oc/does-not-exist")).toBe("free");
-	});
-});
+import { depthDirective } from "./prompt-depth";
 
 describe("depthDirective", () => {
 	const kinds = ["prd", "ac", "task"] as const;
-	const models = [
-		"oc/laguna-s-2.1-free",
-		"oc/nemotron-3-ultra-free",
-		"oc/deepseek-v4-flash-free",
-	];
 
-	it("returns a non-empty directive for every kind and tier", () => {
+	it("returns a non-empty directive for every kind", () => {
 		for (const kind of kinds) {
-			for (const model of models) {
-				expect(depthDirective(kind, model).length).toBeGreaterThan(0);
-			}
+			expect(depthDirective(kind).length).toBeGreaterThan(0);
 		}
 	});
 
-	it("produces a different directive per tier for the same kind", () => {
+	it("always returns the maximal (exhaustive) depth, not a reduced tier", () => {
 		for (const kind of kinds) {
-			const perTier = models.map((m) => depthDirective(kind, m));
-			expect(new Set(perTier).size).toBe(3);
+			expect(depthDirective(kind)).toMatch(/MAKSIMAL|EXHAUSTIVE/i);
+			// Reduced-tier markers must never appear now that all tiers share one directive.
+			expect(depthDirective(kind)).not.toMatch(/RINGKAS|STANDAR/i);
 		}
 	});
 
-	it("keeps section structure identical across tiers (depth-only differentiation)", () => {
+	it("keeps section structure identical (depth-only, no section removal)", () => {
 		const banned =
 			/hapus section|skip section|hilangkan section|tambah section baru/i;
 		for (const kind of kinds) {
-			for (const model of models) {
-				const d = depthDirective(kind, model);
-				expect(d).not.toMatch(banned);
-				// task output is JSON (no sections), so it asserts structural invariance differently
-				expect(d).toMatch(
-					/SEMUA section|seluruh section|section tetap|struktur JSON tetap sama/i,
-				);
-			}
+			const d = depthDirective(kind);
+			expect(d).not.toMatch(banned);
+			expect(d).toMatch(
+				/SEMUA section|seluruh section|section tetap|struktur JSON tetap sama/i,
+			);
 		}
-	});
-
-	it("scales task depth upward from free to hengker", () => {
-		expect(depthDirective("task", models[0])).toMatch(/RINGKAS/i);
-		expect(depthDirective("task", models[2])).toMatch(/MAKSIMAL|EXHAUSTIVE/i);
 	});
 });

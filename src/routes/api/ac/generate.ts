@@ -95,7 +95,7 @@ export const Route = createFileRoute("/api/ac/generate")({
 
 				const modelsToTry = selectModels(plan, model);
 				// ponytail: depth keyed off the primary model, not the plan.
-				const systemPrompt = `${AC_GENERATION_PROMPT}\n${depthDirective("ac", modelsToTry[0])}\n\n--- PRD CONTENT ---\n${prdContent}`;
+				const systemPrompt = `${AC_GENERATION_PROMPT}\n${depthDirective("ac")}\n\n--- PRD CONTENT ---\n${prdContent}`;
 				const messages: Array<{
 					role: "system" | "user" | "assistant";
 					content: string;
