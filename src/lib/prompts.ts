@@ -141,8 +141,9 @@ Pengguna meminta perubahan spesifik pada PRD yang sudah ada. Konten PRD saat ini
 ## ATURAN MUTLAK REVISI (PENGHIANATAN ATURAN INI ADALAH KEGAGALAN FATAL):
 1. **LARANGAN HALUSINASI**: JANGAN PERNAH menambahkan fitur, layanan, integrasi, atau komponen yang TIDAK DIMINTA SECARA EKSPLISIT.
 2. **JANGAN MENULIS ULANG SELURUH DOKUMEN**: Ini adalah hal PALING PENTING. JANGAN menghasilkan seluruh dokumen PRD. Kamu HANYA boleh memberikan output untuk section yang berubah.
-3. **BERIKAN BALASAN CHAT (WAJIB)**: SEBELUM kamu memberikan blok revisi, kamu WAJIB memberikan kalimat balasan natural layaknya asisten (contoh: "Baik, pergantian tech stack ke Laravel sudah saya terapkan ke PRD.").
-4. **FORMAT PATCHING WAJIB**: SETELAH kalimat balasanmu, untuk setiap section yang kamu revisi, kamu WAJIB membungkus konten revisinya dengan penanda khusus berikut persis seperti contoh:
+3. **SCAN SELURUH DOKUMEN, BUKAN CUMA SECTION YANG PALING JELAS (WAJIB)**: Sebelum menulis revisi, baca ULANG seluruh CURRENT PRD CONTENT dari section 1 sampai 8. Cari SETIAP section yang menyebut entitas/nilai yang diubah user (nama layanan, teknologi, angka, istilah) — bukan cuma section yang paling relevan secara topik. Entitas yang sama SERING muncul berulang di section berbeda (contoh: nama layanan pihak ketiga bisa muncul di "Requirements > Integrasi Pihak Ketiga", "Core Features", "Architecture & Tech Stack", DAN "Database Schema" sekaligus). Kamu WAJIB mengeluarkan SATU blok \`:::UPDATE_SECTION\` untuk SETIAP section yang menyebut entitas tersebut, tidak hanya satu section. Meninggalkan section lain dengan nilai lama adalah KEGAGALAN — dokumen jadi tidak konsisten dan merusak generate AC/Task berikutnya yang membaca PRD ini secara utuh.
+4. **BERIKAN BALASAN CHAT (WAJIB)**: SEBELUM kamu memberikan blok revisi, kamu WAJIB memberikan kalimat balasan natural layaknya asisten (contoh: "Baik, pergantian tech stack ke Laravel sudah saya terapkan ke PRD.").
+5. **FORMAT PATCHING WAJIB**: SETELAH kalimat balasanmu, untuk setiap section yang kamu revisi, kamu WAJIB membungkus konten revisinya dengan penanda khusus berikut persis seperti contoh:
 
 :::UPDATE_SECTION[Nama Section Asli]:::
 <!-- SECTION: Nama Section Asli -->
@@ -161,5 +162,5 @@ Baik, pergantian tech stack dari Next.js ke Laravel telah diterapkan pada bagian
 <!-- /SECTION -->
 :::END_UPDATE:::
 
-5. **PENGGUNAAN NAMA SECTION YANG TEPAT**: Pastikan nama section yang ditulis di dalam bracket \`[Nama Section Asli]\` SAMA PERSIS dengan penanda aslinya (Pilih salah satu: Overview, Goals & Success Metrics, Requirements, Core Features, User Flow, Architecture & Tech Stack, Database Schema, Design & Technical Constraints).
-6. **KONTEN LENGKAP DALAM BLOCK**: Meskipun kamu tidak menulis ulang seluruh PRD, di dalam block \`:::UPDATE_SECTION...\` kamu WAJIB menuliskan isi section tersebut secara UTUH dari awal sampai akhir section tersebut (termasuk semua sub-headingnya), jangan ada yang terpotong.`;
+6. **PENGGUNAAN NAMA SECTION YANG TEPAT**: Pastikan nama section yang ditulis di dalam bracket \`[Nama Section Asli]\` SAMA PERSIS dengan penanda aslinya (Pilih salah satu: Overview, Goals & Success Metrics, Requirements, Core Features, User Flow, Architecture & Tech Stack, Database Schema, Design & Technical Constraints).
+7. **KONTEN LENGKAP DALAM BLOCK**: Meskipun kamu tidak menulis ulang seluruh PRD, di dalam block \`:::UPDATE_SECTION...\` kamu WAJIB menuliskan isi section tersebut secara UTUH dari awal sampai akhir section tersebut (termasuk semua sub-headingnya), jangan ada yang terpotong.`;
