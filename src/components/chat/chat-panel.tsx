@@ -220,11 +220,19 @@ export function ChatPanel({
 		}
 	}, [isGeneratingPRD, currentSection]);
 
-	// On mount, if we already have a complete PRD (e.g. after refresh), fill
-	// completedSections from the content so the progress card shows all green
-	// checkmarks instead of disappearing entirely.
+	// ponytail: populate completedSections from the PRD content whenever
+	// currentPrdContent changes (e.g. after router.refresh() lands with a
+	// freshly-saved PRD). The previous version used deps:[] (mount-only) and
+	// skipped when completedSections was already set — but currentPrdContent
+	// is "" at mount time during the ask flow (PRD not yet generated), so
+	// the effect never ran. After generation + router.refresh(), the prop
+	// updates but the mount-only effect never re-fired, leaving the progress
+	// card invisible. Now runs on every currentPrdContent change; guards
+	// against clearing during active generation so the streaming section
+	// tracker isn't overwritten.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional - only re-run when content or generation state changes
 	useEffect(() => {
-		if (!currentPrdContent || completedSections.length > 0) return;
+		if (!currentPrdContent || isGeneratingPRD) return;
 		const found: string[] = [];
 		const regex = /<!-- SECTION: (.+?) -->/g;
 		let m;
@@ -237,7 +245,7 @@ export function ChatPanel({
 		if (found.length > 0) {
 			setCompletedSections(found);
 		}
-	}, []);
+	}, [currentPrdContent]);
 
 	// ── Derived ──
 	const isEffectivelyDisabled = inputDisabled && messages.length === 0;
@@ -356,10 +364,12 @@ export function ChatPanel({
 			};
 
 			const scheduleFlush = () => {
-				if (flushCancelRef.current) {
-					flushCancelRef.current();
-					flushCancelRef.current = null;
-				}
+				// ponytail: throttle, not debounce — a frame already queued must fire.
+				// Canceling and rescheduling on every delta (as before) meant a local
+				// AI backend emitting deltas faster than 1 frame apart could push the
+				// flush back indefinitely, so content only rendered once the stream
+				// went quiet — killing the typing/streaming animation entirely.
+				if (flushCancelRef.current) return;
 				if (typeof requestAnimationFrame !== "undefined") {
 					const rafId = requestAnimationFrame(() => {
 						flushCancelRef.current = null;

@@ -81,14 +81,14 @@ export const AcViewer = memo(function AcViewer({
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo border-t-transparent shrink-0" />
             <span className="text-sm font-[510] text-snow">AI sedang menyusun Acceptance Criteria...</span>
           </div>
-          <div className="space-y-3 opacity-40">
-            <div className="h-4 w-2/3 rounded bg-charcoal animate-pulse" />
-            <div className="h-3 w-full rounded bg-charcoal animate-pulse" />
-            <div className="h-3 w-5/6 rounded bg-charcoal animate-pulse" />
-            <div className="h-3 w-1/2 rounded bg-charcoal animate-pulse" />
-            <div className="mt-6 h-4 w-1/2 rounded bg-charcoal animate-pulse" />
-            <div className="h-3 w-full rounded bg-charcoal animate-pulse" />
-            <div className="h-3 w-4/5 rounded bg-charcoal animate-pulse" />
+          <div className="space-y-3">
+            <div className="h-4 w-2/3 rounded bg-steel/60 animate-pulse" />
+            <div className="h-3 w-full rounded bg-steel/60 animate-pulse" />
+            <div className="h-3 w-5/6 rounded bg-steel/60 animate-pulse" />
+            <div className="h-3 w-1/2 rounded bg-steel/60 animate-pulse" />
+            <div className="mt-6 h-4 w-1/2 rounded bg-steel/60 animate-pulse" />
+            <div className="h-3 w-full rounded bg-steel/60 animate-pulse" />
+            <div className="h-3 w-4/5 rounded bg-steel/60 animate-pulse" />
           </div>
           <span className="inline-block w-0.5 h-4 bg-indigo animate-pulse mt-4" />
         </article>

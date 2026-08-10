@@ -295,7 +295,7 @@ export function AcDetail({
 					{isStreaming && !streamingContent ? (
 						<div className="space-y-2.5">
 							{[1, 2, 3, 4, 5, 6].map((i) => (
-								<div key={i} className="h-3.5 rounded bg-steel/15 animate-pulse" style={{ width: `${55 + (i % 3) * 15}%` }} />
+								<div key={i} className="h-3.5 rounded bg-steel/60 animate-pulse" style={{ width: `${55 + (i % 3) * 15}%` }} />
 							))}
 						</div>
 					) : (
