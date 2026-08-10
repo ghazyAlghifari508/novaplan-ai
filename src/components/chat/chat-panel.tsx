@@ -272,8 +272,10 @@ export function ChatPanel({
 		abortControllerRef.current?.abort();
 		abortControllerRef.current = null;
 		setStreaming(false);
+		setGeneratingPRD(false);
+		setStreamingPRDContent("");
 		isSubmittingRef.current = false;
-	}, [setStreaming]);
+	}, [setStreaming, setGeneratingPRD, setStreamingPRDContent]);
 
 	/**
 	 * Stream an API call to /api/chat and handle SSE events.
