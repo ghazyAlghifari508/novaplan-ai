@@ -35,56 +35,63 @@ export function creditsForPlan(plan: Plan): number {
 export async function applyPaymentSuccess(orderId: string) {
 	const { db } = await import("@/db");
 	const { payments, subscriptions } = await import("@/db/schema");
-	const [payment] = await db
-		.select()
-		.from(payments)
-		.where(eq(payments.orderId, orderId))
-		.limit(1);
-	if (!payment) return null;
-	if (payment.status === "success") return { plan: payment.plan as Plan };
 
-	const plan = planFromAmount(payment.amount ?? 0);
-	const credits = creditsForPlan(plan);
-	const now = new Date();
+	return db.transaction(async (tx) => {
+		// Row lock: a second concurrent call for the same orderId BLOCKS here
+		// until the first transaction commits, then re-reads status === success
+		// and returns early instead of granting a second time.
+		const [payment] = await tx
+			.select()
+			.from(payments)
+			.where(eq(payments.orderId, orderId))
+			.for("update")
+			.limit(1);
+		if (!payment) return null;
+		if (payment.status === "success") return { plan: payment.plan as Plan };
 
-	const [existingSub] = await db
-		.select({ id: subscriptions.id, plan: subscriptions.plan })
-		.from(subscriptions)
-		.where(eq(subscriptions.userId, payment.userId))
-		.orderBy(desc(subscriptions.createdAt))
-		.limit(1);
+		const plan = planFromAmount(payment.amount ?? 0);
+		const credits = creditsForPlan(plan);
+		const now = new Date();
 
-	if (existingSub) {
-		const current = (existingSub.plan ?? "free") as Plan;
-		const nextPlan =
-			PLAN_RANK[plan] >= (PLAN_RANK[current] ?? 0) ? plan : current;
-		await db
-			.update(subscriptions)
-			.set({
-				plan: nextPlan,
+		const [existingSub] = await tx
+			.select({ id: subscriptions.id, plan: subscriptions.plan })
+			.from(subscriptions)
+			.where(eq(subscriptions.userId, payment.userId))
+			.orderBy(desc(subscriptions.createdAt))
+			.limit(1);
+
+		if (existingSub) {
+			const current = (existingSub.plan ?? "free") as Plan;
+			const nextPlan =
+				PLAN_RANK[plan] >= (PLAN_RANK[current] ?? 0) ? plan : current;
+			await tx
+				.update(subscriptions)
+				.set({
+					plan: nextPlan,
+					status: "active",
+					midtransOrderId: orderId,
+					// Additive: a Pro user buying Pro again gets 10 more, not a reset to 10.
+					credits: sql`${subscriptions.credits} + ${credits}`,
+					updatedAt: now,
+				})
+				.where(eq(subscriptions.id, existingSub.id));
+		} else {
+			await tx.insert(subscriptions).values({
+				id: crypto.randomUUID(),
+				userId: payment.userId,
+				plan,
 				status: "active",
 				midtransOrderId: orderId,
-				// Additive: a Pro user buying Pro again gets 10 more, not a reset to 10.
-				credits: sql`${subscriptions.credits} + ${credits}`,
-				updatedAt: now,
-			})
-			.where(eq(subscriptions.id, existingSub.id));
-	} else {
-		await db.insert(subscriptions).values({
-			id: crypto.randomUUID(),
-			userId: payment.userId,
-			plan,
-			status: "active",
-			midtransOrderId: orderId,
-			credits,
-			creditsUsed: 0,
-		});
-	}
+				credits,
+				creditsUsed: 0,
+			});
+		}
 
-	// Mark success LAST so a retry re-runs the grant if it died mid-way.
-	await db
-		.update(payments)
-		.set({ status: "success", updatedAt: now })
-		.where(eq(payments.orderId, orderId));
-	return { plan };
+		// Mark success LAST so a retry re-runs the grant if it died mid-way.
+		await tx
+			.update(payments)
+			.set({ status: "success", updatedAt: now })
+			.where(eq(payments.orderId, orderId));
+		return { plan };
+	});
 }
