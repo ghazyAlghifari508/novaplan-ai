@@ -603,6 +603,10 @@ export function ChatPanel({
 							"info",
 						);
 					}
+					// Server closed without a terminal event — release the loading state so the
+					// user isn't stuck on a perpetual spinner until the refresh lands.
+					setGeneratingPRD(false);
+					setStreamingPRDContent("");
 				}
 
 				if (
