@@ -22,6 +22,7 @@ import {
 	saveSetupPrompt,
 } from "@/lib/prompt-handoff";
 import { cn } from "@/lib/utils";
+import { useTypingPlaceholder } from "@/hooks/use-typing-placeholder";
 import { PLAN_CREDITS, type Plan } from "@/types/database";
 
 const MIN_PROMPT_LENGTH = 20;
@@ -223,6 +224,7 @@ export function ChatInput({ className }: ChatInputProps) {
 
 	const userPlan: Plan = planStatus?.plan ?? "free";
 	const selectedModelMeta = findModel(selectedModel);
+	const typingPlaceholder = useTypingPlaceholder(isMobileMode);
 
 	return (
 		<>
@@ -302,11 +304,9 @@ export function ChatInput({ className }: ChatInputProps) {
 								handleSend();
 							}
 						}}
-						placeholder={
-							isMobileMode
-								? "Jelaskan aplikasi mobile yang ingin kamu buat..."
-								: "Jelaskan produk yang ingin kamu buat..."
-						}
+						placeholder={typingPlaceholder || (isMobileMode
+							? "Jelaskan aplikasi mobile yang ingin kamu buat..."
+							: "Jelaskan produk yang ingin kamu buat...")}
 						className="w-full resize-none border-none bg-transparent px-3 pb-2 pt-3 font-inter text-[15px] text-snow outline-none placeholder:text-slate"
 						style={{ caretColor: "var(--text-primary)" }}
 						rows={3}
