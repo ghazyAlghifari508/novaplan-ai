@@ -4,12 +4,9 @@ import type { Plan } from "@/types/database";
 interface AuthState {
   user: { id: string; email: string } | null;
   plan: Plan;
-  prdUsed: number;
-  prdLimit: number;
   isLoading: boolean;
   setUser: (user: { id: string; email: string } | null) => void;
   setPlan: (plan: Plan) => void;
-  setQuota: (prdUsed: number, prdLimit: number) => void;
   setLoading: (loading: boolean) => void;
   reset: () => void;
 }
@@ -17,8 +14,6 @@ interface AuthState {
 const initialState = {
   user: null,
   plan: "free" as Plan,
-  prdUsed: 0,
-  prdLimit: 3,
   isLoading: true,
 };
 
@@ -26,7 +21,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   ...initialState,
   setUser: (user) => set({ user }),
   setPlan: (plan) => set({ plan }),
-  setQuota: (prdUsed, prdLimit) => set({ prdUsed, prdLimit }),
   setLoading: (isLoading) => set({ isLoading }),
   reset: () => set(initialState),
 }));

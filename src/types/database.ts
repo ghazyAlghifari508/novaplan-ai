@@ -1,3 +1,5 @@
+import type { FlowStep } from "@/lib/flow-step";
+
 export type Plan = "free" | "pro" | "hengker";
 
 export type ProjectStatus = "draft" | "completed" | "archived";
@@ -15,19 +17,6 @@ export interface User {
 	updated_at: string;
 }
 
-export interface Subscription {
-	id: string;
-	userId: string;
-	plan: Plan;
-	status: string;
-	midtransOrderId: string | null;
-	credits: number;
-	creditsUsed: number;
-	createdAt: string;
-	updatedAt: string;
-}
-
-export type FlowStep = "prd" | "ac" | "task";
 export type StepStatus = "pending" | "generating" | "completed" | "failed";
 export type TaskStatus = "pending" | "in_progress" | "completed" | "failed";
 
@@ -55,13 +44,6 @@ export interface PrdVersion {
 	content: string;
 	storage_path: string | null;
 	change_summary: string | null;
-	created_at: string;
-}
-
-export interface Conversation {
-	id: string;
-	project_id: string;
-	user_id: string;
 	created_at: string;
 }
 
@@ -156,59 +138,6 @@ export interface AcVersion {
 	version: number;
 	content: string;
 	change_summary: string | null;
-	created_at: string;
-}
-
-export interface Feature {
-	id: string;
-	project_id: string;
-	user_id: string;
-	name: string;
-	description: string | null;
-	order: number;
-	created_at: string;
-}
-
-export interface Task {
-	id: string;
-	project_id: string;
-	user_id: string;
-	feature_id: string | null;
-	name: string;
-	description: string | null;
-	order: number;
-	status: TaskStatus;
-	dependencies: string[];
-	started_at: string | null;
-	completed_at: string | null;
-	created_at: string;
-}
-
-export interface Subtask {
-	id: string;
-	project_id: string;
-	user_id: string;
-	task_id: string;
-	name: string;
-	description: string | null;
-	order: number;
-	status: TaskStatus;
-	started_at: string | null;
-	completed_at: string | null;
-	created_at: string;
-}
-
-export type NodeType = "feature" | "task" | "subtask";
-
-export interface NodePosition {
-	id: string;
-	project_id: string;
-	user_id: string;
-	node_type: NodeType;
-	node_id: string;
-	pos_x: number;
-	pos_y: number;
-	zoom_level: number;
 	created_at: string;
 }
 
