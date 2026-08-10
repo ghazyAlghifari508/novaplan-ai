@@ -239,7 +239,7 @@ export const Route = createFileRoute("/api/chat")({
 							const { generator, firstChunk } = await tryStreamWithFallback(
 								modelsToTry,
 								fullMessages,
-								undefined,
+								request.signal,
 								undefined,
 								enqueueThinking,
 							);
