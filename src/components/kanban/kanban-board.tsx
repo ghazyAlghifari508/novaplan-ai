@@ -242,16 +242,9 @@ export function KanbanBoard({ projectId, projectName }: KanbanBoardProps) {
           <div className="flex flex-1 flex-col items-center justify-center text-center">
             <KanbanSquare size={64} className="text-fog/40 mb-4" />
             <h2 className="text-lg font-[510] text-snow">Belum ada task</h2>
-            <p className="text-xs text-fog max-w-sm mt-1.5 mb-6 leading-relaxed">
-              Generate Acceptance Criteria terlebih dahulu, lalu generate task dari halaman AC.
+            <p className="text-xs text-fog max-w-sm mt-1.5 leading-relaxed">
+              Task akan muncul di sini setelah proses generate selesai.
             </p>
-            <Link
-              href={`/ac/${projectId}`}
-              className="btn-primary inline-flex items-center gap-2 rounded-md px-5 py-2.5 font-[510]"
-            >
-              <Sparkles size={16} />
-              Ke Halaman AC
-            </Link>
           </div>
         ) : (
           <div className="flex h-full w-full gap-4 py-6 px-4">
