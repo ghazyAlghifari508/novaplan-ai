@@ -32,6 +32,7 @@ export function useTypingPlaceholder(isMobile: boolean) {
     let timer: ReturnType<typeof setTimeout>;
 
     const tick = () => {
+      if (document.hidden) return; // don't advance/schedule while tab is hidden
       const current = prompts[indexRef.current % prompts.length];
 
       if (phaseRef.current === "typing") {
@@ -59,8 +60,19 @@ export function useTypingPlaceholder(isMobile: boolean) {
       }
     };
 
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        clearTimeout(timer);
+        timer = setTimeout(tick, 60);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     timer = setTimeout(tick, 500);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [isMobile, prompts]);
 
   return display;
