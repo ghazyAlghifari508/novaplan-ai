@@ -219,16 +219,19 @@ export function PrdDetail({
           style={{ background: "var(--bg-page)" }}
         >
         {/* Default: PRD content (streaming or saved) */}
-        <div className="flex flex-1 flex-col overflow-hidden">
-            {isGeneratingPRD && !streamingPRDContent && !latestVersion ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-6">
+        <div className="flex flex-1 flex-col overflow-hidden relative">
+            {/* Mobile-only spinner — keeps the full-page blocker for small screens
+                where the chat progress card isn't visible. Desktop users see the
+                empty PrdViewer + the section progress card in the chat panel. */}
+            {isGeneratingPRD && !streamingPRDContent && !latestVersion && (
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 md:hidden bg-onyx">
                 <div className="h-10 w-10 animate-spin rounded-full border-2 border-indigo border-t-transparent" />
                 <p className="mt-4 text-sm font-[510] text-snow">Sedang membuat PRD...</p>
                 <p className="mt-1 text-xs text-fog">Model AI sedang menganalisis jawaban Anda</p>
               </div>
-            ) : (
-              <PrdViewer
-                content={streamingPRDContent ? streamingPRDContent : currentContent}
+            )}
+            <PrdViewer
+              content={streamingPRDContent ? streamingPRDContent : currentContent}
               projectName={projectName || ""}
               plan={plan}
               versions={versions?.map((v) => ({
@@ -242,7 +245,6 @@ export function PrdDetail({
               onSelectVersion={handleVersionSelect}
               className="flex-1 overflow-hidden"
             />
-            )}
           </div>
       </div>
 
