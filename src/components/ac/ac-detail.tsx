@@ -292,10 +292,18 @@ export function AcDetail({
 						!isDraggingLeft && "transition-[width] duration-300",
 					)}
 				>
-					<TableOfContents
-						content={isStreaming ? streamingContent : acContent || ""}
-						maxLevel={2}
-					/>
+					{isStreaming && !streamingContent ? (
+						<div className="space-y-2.5">
+							{[1, 2, 3, 4, 5, 6].map((i) => (
+								<div key={i} className="h-3.5 rounded bg-steel/15 animate-pulse" style={{ width: `${55 + (i % 3) * 15}%` }} />
+							))}
+						</div>
+					) : (
+						<TableOfContents
+							content={isStreaming ? streamingContent : acContent || ""}
+							maxLevel={2}
+						/>
+					)}
 					<div
 						className="absolute right-[-4px] top-0 z-10 h-full w-2 cursor-col-resize transition-colors hover:bg-indigo/20"
 						onMouseDown={onStartDragLeft}
