@@ -98,7 +98,7 @@ export const Route = createFileRoute("/api/ask/options")({
 						modelsToTry,
 						messages,
 						request.signal,
-						8000,
+						4000,
 					);
 					let fullResponse = firstChunk;
 					for await (const chunk of generator) fullResponse += chunk;
