@@ -72,7 +72,7 @@ export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
           setSvg(DOMPurify.sanitize(`
             <div class="flex flex-col w-full max-w-full rounded-lg border border-dashed border-fog/30 bg-charcoal/30">
               <div class="text-xs p-3 text-fog flex items-center justify-center border-b border-fog/20">
-                <span>Menyusun diagram... (Jika tidak tampil, AI melakukan kesalahan syntax)</span>
+                <span>Memproses diagram...</span>
               </div>
               <pre class="p-4 text-[11px] overflow-x-auto text-slate font-berkeley-mono whitespace-pre leading-relaxed">${escaped}</pre>
             </div>

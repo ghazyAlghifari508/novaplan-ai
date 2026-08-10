@@ -86,6 +86,10 @@ export const PrdViewer = memo(function PrdViewer({
         }
       }
     }
+    // Strip ===DONE=== marker that AI outputs as completion signal.
+    // Stop sequence should catch it, but sometimes it leaks into saved content.
+    cleaned = cleaned.replace(/={3,}DONE={3,}/gi, "").trim();
+
     return cleaned.trim();
   }, [content]);
 
