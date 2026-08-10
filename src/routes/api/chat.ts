@@ -411,9 +411,14 @@ export const Route = createFileRoute("/api/chat")({
 									if (mode === "generate") {
 										const burned = await consumeCredit(user.id);
 										if (!burned) {
+											console.warn(
+												"savePrdVersion succeeded but consumeCredit returned false for user",
+												user.id,
+											);
 											emit({
 												type: "error",
-												error: "Kredit habis. Silakan beli kredit.",
+												error:
+													"PRD tersimpan, namun kredit gagal dipotong. Saldo kreditmu mungkin tidak akurat — hubungi dukungan jika ini terjadi berulang.",
 											});
 											try {
 												controller.close();
@@ -427,6 +432,11 @@ export const Route = createFileRoute("/api/chat")({
 										user.id,
 										err,
 									);
+									emit({
+										type: "error",
+										error:
+											"PRD tersimpan, namun terjadi kesalahan saat memotong kredit. Hubungi dukungan jika saldo kreditmu tidak akurat.",
+									});
 								}
 							}
 
