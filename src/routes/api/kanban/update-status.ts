@@ -11,12 +11,11 @@ export const Route = createFileRoute("/api/kanban/update-status")({
     handlers: {
       POST: async ({ request }: { request: Request }) => {
         const authHeader = request.headers.get("Authorization");
-        let apiKey = authHeader?.startsWith("Bearer ") ? authHeader.substring(7).trim() : "";
+        const apiKey = authHeader?.startsWith("Bearer ") ? authHeader.substring(7).trim() : "";
+        if (!apiKey) return Response.json({ error: "API Key required" }, { status: 401 });
 
         const body = await request.json().catch(() => null);
         if (!body) return Response.json({ error: "Invalid JSON body" }, { status: 400 });
-        if (!apiKey && body.apiKey) apiKey = body.apiKey;
-        if (!apiKey) return Response.json({ error: "API Key required" }, { status: 401 });
 
         const hashedKey = createHash("sha256").update(apiKey).digest("hex");
         const [keyRecord] = await db.select({ id: apiKeys.id, userId: apiKeys.userId, scopes: apiKeys.scopes, expiresAt: apiKeys.expiresAt }).from(apiKeys).where(eq(apiKeys.key, hashedKey)).limit(1);
