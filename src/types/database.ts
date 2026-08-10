@@ -106,8 +106,8 @@ export interface NotificationPreferences {
 	prdCompleted: boolean;
 	paymentUpdates: boolean;
 	productUpdates: boolean;
-	createdAt: string | null;
-	updatedAt: string | null;
+	createdAt: Date | null;
+	updatedAt: Date | null;
 }
 
 export const FEATURES: Record<
