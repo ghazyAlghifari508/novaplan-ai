@@ -6,12 +6,12 @@ describe("PLAN_CREDITS", () => {
     expect(PLAN_CREDITS.free).toBe(2);
   });
 
-  it("pro gets 10 credits", () => {
-    expect(PLAN_CREDITS.pro).toBe(10);
+  it("pro gets 30 credits", () => {
+    expect(PLAN_CREDITS.pro).toBe(30);
   });
 
-  it("hengker gets 35 credits", () => {
-    expect(PLAN_CREDITS.hengker).toBe(35);
+  it("hengker gets 105 credits", () => {
+    expect(PLAN_CREDITS.hengker).toBe(105);
   });
 });
 

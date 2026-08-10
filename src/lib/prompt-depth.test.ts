@@ -10,23 +10,15 @@ describe("depthDirective", () => {
 		}
 	});
 
-	it("always returns the maximal (exhaustive) depth, not a reduced tier", () => {
+	it("returns the adaptive-depth directive for each doc kind", () => {
 		for (const kind of kinds) {
-			expect(depthDirective(kind)).toMatch(/MAKSIMAL|EXHAUSTIVE/i);
-			// Reduced-tier markers must never appear now that all tiers share one directive.
-			expect(depthDirective(kind)).not.toMatch(/RINGKAS|STANDAR/i);
+			expect(depthDirective(kind)).toContain("MODE KEDALAMAN: ADAPTIF");
 		}
 	});
 
-	it("keeps section structure identical (depth-only, no section removal)", () => {
-		const banned =
-			/hapus section|skip section|hilangkan section|tambah section baru/i;
-		for (const kind of kinds) {
-			const d = depthDirective(kind);
-			expect(d).not.toMatch(banned);
-			expect(d).toMatch(
-				/SEMUA section|seluruh section|section tetap|struktur JSON tetap sama/i,
-			);
-		}
+	it("scales depth to complexity instead of forcing one fixed maximal tier", () => {
+		const prd = depthDirective("prd");
+		expect(prd).toMatch(/kompleksitas/i);
+		expect(prd).not.toMatch(/MAKSIMAL|EXHAUSTIVE/);
 	});
 });
