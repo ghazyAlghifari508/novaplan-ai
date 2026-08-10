@@ -4,7 +4,6 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
 import { checkCredits, consumeCredit, hasFullWorkflow } from "@/lib/credits";
-import { depthDirective } from "@/lib/prompt-depth";
 import { TASK_GENERATION_PROMPT } from "@/lib/prompts-task";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getLatestAcMarkdown } from "@/lib/services/ac-service";
@@ -106,7 +105,7 @@ export const Route = createFileRoute("/api/task/generate")({
 					.where(eq(projects.id, projectId));
 
 				const modelsToTry = selectModels(plan, model);
-				const systemPrompt = `${TASK_GENERATION_PROMPT}\n${depthDirective("task")}\n\n--- ACCEPTANCE CRITERIA ---\n${acMarkdown}`;
+				const systemPrompt = `${TASK_GENERATION_PROMPT}\n\n--- ACCEPTANCE CRITERIA ---\n${acMarkdown}`;
 				const messages: Array<{
 					role: "system" | "user" | "assistant";
 					content: string;
