@@ -171,37 +171,43 @@ export function getAskState(projectId: string): AskState | null {
 }
 
 /* ---------- PRD chat follow-up draft (survives refresh) ---------- */
-const PRD_DRAFT_KEY = "novaplan:prd-draft";
+const PRD_DRAFT_MAP_KEY = "novaplan:prd-drafts";
+
+function readPrdDraftMap(): Record<string, string> {
+	const storage = getStorage();
+	const raw = storage?.getItem(PRD_DRAFT_MAP_KEY);
+	if (!raw) return {};
+	try {
+		const parsed = JSON.parse(raw);
+		return parsed && typeof parsed === "object" ? parsed : {};
+	} catch {
+		return {};
+	}
+}
 
 /** Persist the PRD chat input draft, keyed per project so drafts don't leak
  *  between projects. Tab-scoped (sessionStorage): a draft is session work. */
 export function savePrdDraft(projectId: string, draft: string) {
 	const storage = getStorage();
 	if (!storage) return;
+	const all = readPrdDraftMap();
 	if (!draft) {
-		storage.removeItem(PRD_DRAFT_KEY);
-		return;
+		delete all[projectId];
+	} else {
+		all[projectId] = draft;
 	}
-	storage.setItem(PRD_DRAFT_KEY, JSON.stringify({ projectId, draft }));
+	storage.setItem(PRD_DRAFT_MAP_KEY, JSON.stringify(all));
 }
 
-/** Read-only restore. Returns "" if missing or for a different project. */
+/** Read-only restore. Returns "" if missing for this project. */
 export function getPrdDraft(projectId: string): string {
-	const storage = getStorage();
-	const raw = storage?.getItem(PRD_DRAFT_KEY);
-	if (!raw) return "";
-	try {
-		const parsed = JSON.parse(raw) as { projectId: string; draft: string };
-		if (!parsed || parsed.projectId !== projectId) return "";
-		return parsed.draft ?? "";
-	} catch {
-		storage?.removeItem(PRD_DRAFT_KEY);
-		return "";
-	}
+	return readPrdDraftMap()[projectId] ?? "";
 }
 
 export function clearPrdDraft() {
-	getStorage()?.removeItem(PRD_DRAFT_KEY);
+	// ponytail: no projectId available at some call sites — kept as a full
+	// clear for backward compatibility with existing callers.
+	getStorage()?.removeItem(PRD_DRAFT_MAP_KEY);
 }
 
 /* ---------- Home seed-prompt draft (survives refresh before send) ---------- */
