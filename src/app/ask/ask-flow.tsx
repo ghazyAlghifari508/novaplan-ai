@@ -212,26 +212,11 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 
 	if (isLoadingQuestions) {
 		return (
-			<div className="hide-scrollbar mx-auto flex-1 w-full overflow-y-auto bg-onyx min-h-0">
-				<div className="mx-auto max-w-3xl lg:max-w-4xl px-4 sm:px-6 py-6 sm:py-12">
-					<div className="mb-8">
-						<div className="h-3 w-24 rounded bg-steel/20 animate-pulse mb-3" />
-						<div className="h-7 w-48 rounded bg-steel/20 animate-pulse" />
-					</div>
-					<div className="space-y-4 pb-8">
-						{[1, 2, 3, 4, 5].map((i) => (
-							<div key={i} className="rounded-xl border border-graphite bg-charcoal/60 p-5">
-								<div className="h-4 w-3/4 rounded bg-steel/20 animate-pulse mb-4" />
-								<div className="flex gap-2 flex-wrap">
-									<div className="h-8 w-20 rounded bg-steel/15 animate-pulse" />
-									<div className="h-8 w-24 rounded bg-steel/15 animate-pulse" />
-									<div className="h-8 w-16 rounded bg-steel/15 animate-pulse" />
-									<div className="h-8 w-20 rounded bg-steel/15 animate-pulse" />
-								</div>
-							</div>
-						))}
-					</div>
-				</div>
+			<div className="flex h-full flex-col items-center justify-center gap-3 bg-onyx">
+				<div className="h-10 w-10 animate-spin rounded-full border-2 border-indigo border-t-transparent" />
+				<p className="font-inter text-sm text-fog">
+					Menyusun pertanyaan...
+				</p>
 			</div>
 		);
 	}
