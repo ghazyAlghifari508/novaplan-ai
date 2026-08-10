@@ -8,7 +8,7 @@ ATURAN KETAT (WAJIB DIIKUTI):
 1. HANYA generate tasks untuk fitur yang EKSPLISIT disebutkan di Acceptance Criteria.
 2. JANGAN menambahkan fitur baru yang tidak ada di AC (hallucination = kegagalan).
 3. Setiap task harus ACTIONABLE: verb + object (contoh: "Implement login API endpoint").
-4. Setiap subtask harus ATOMIC: single responsibility, estimasi < 2 jam.
+4. Setiap subtask harus ATOMIC: single responsibility.
 5. Gunakan format JSON persis seperti ini:
 
 {
@@ -33,27 +33,12 @@ ATURAN KETAT (WAJIB DIIKUTI):
 }
 
 6. Satu feature block per AC feature. Urutan sama dengan AC.
-7. Minimum 2 tasks per fitur. Jumlah subtask per task TIDAK TETAP: sesuaikan kompleksitas, JANGAN dipaksa sama rata:
-   - Task kompleks (banyak langkah/edge case, contoh: "Implement checkout flow", "Build auth system dengan OAuth + session + role-based access") → 4-7 subtask. WAJIB pecah jadi subtask terpisah, JANGAN ditumpuk jadi detail satu subtask.
-   - Task menengah (contoh: "Implement CRUD API dengan validasi") → 3-4 subtask.
-   - Task sederhana (contoh: "Add logout button") → 1-2 subtask cukup, JANGAN dipaksa jadi 3-7.
-   - Minimum 1 subtask per task, tidak ada maksimum, ikuti kebutuhan nyata task tersebut.
-   - BATASAN subtask vs detail: subtask = deliverable atomik terpisah (tiap subtask bisa di-PR / dikerjakan independen). detail = langkah internal DALAM SATU deliverable. JANGAN gabungkan deliverable berbeda ke dalam satu subtask hanya untuk menambah array details. Kalau ada 2 hal yang bisa di-PR terpisah, itu 2 subtask, bukan 1 subtask dengan 2 details.
-8. Task harus mencakup: setup, implementation, testing, integration.
-9. Subtask harus granular: database schema, API endpoint, UI component, validation, error handling.
-10. Setiap subtask WAJIB punya field "details": array berisi langkah-langkah super granular (siap dieksekusi langsung, < 30 menit per langkah). Jumlah item TIDAK TETAP: sesuaikan dengan kompleksitas subtask, JANGAN dipaksa sama rata:
-    - Subtask kompleks (contoh: "Configure Google OAuth SDK") → detail bisa 4+: ["Daftarkan OAuth client di Google Cloud Console", "Simpan client ID/secret ke env vars", "Install & konfigurasi library OAuth dengan scopes yang dibutuhkan", "Setup redirect/callback URL untuk dev dan prod"].
-    - Subtask sederhana (contoh: "Build reset password confirm endpoint") → detail cukup 1: ["Validasi token, hash password baru, invalidate token setelah dipakai"].
-    - Minimum 1 item per subtask, tidak ada maksimum, ikuti kebutuhan nyata subtask tersebut.
-
-CONTOH task kompleks dengan 5 subtask (JANGAN kurangi ini dengan menumpuk ke details):
-Task: "Implement checkout flow"
-- Subtask 1: Build cart state management (add/remove/quantity)
-- Subtask 2: Implement checkout form UI + validation
-- Subtask 3: Create payment intent API endpoint
-- Subtask 4: Integrate payment gateway webhook handler
-- Subtask 5: Build order confirmation page + email receipt
-(Tiap subtask di atas punya details[] sendiri untuk langkah internalnya.)
+7. JUMLAH TASK, SUBTASK, DAN DETAIL BERSIFAT ADAPTIF — sesuaikan dengan KOMPLEKSITAS FITUR:
+   - Fitur simpel (CRUD dasar, tombol, halaman statis) → sedikit task, subtask secukupnya.
+   - Fitur menengah (multi-step, beberapa integrasi) → task dan subtask proporsional.
+   - Fitur kompleks (payment, auth, real-time) → banyak task dan subtask, detail mendalam.
+   - BATASAN subtask vs detail: subtask = deliverable atomik terpisah (tiap subtask bisa di-PR / dikerjakan independen). detail = langkah internal DALAM SATU deliverable. Kalau ada 2 hal yang bisa di-PR terpisah, itu 2 subtask, bukan 1 subtask dengan 2 details.
+8. Setiap subtask WAJIB punya field "details": array berisi langkah granular (minimum 1 item). Jumlah menyesuaikan kompleksitas subtask.
 
 Konteks AC akan diberikan setelah prompt ini. Generate task tree SEKARANG.`;
 
@@ -66,6 +51,6 @@ ATURAN:
 4. JANGAN hapus task yang ada kecuali user eksplisit minta.
 5. JANGAN tambah task baru kecuali user eksplisit minta.
 6. Task baru harus tetap ACTIONABLE (verb + object).
-7. Subtask baru harus tetap ATOMIC (single responsibility) dan tetap punya field "details" (array langkah granular, jumlah menyesuaikan kompleksitas, minimum 1 item).
+7. Subtask baru harus tetap ATOMIC (single responsibility) dan tetap punya field "details" (array langkah granular, minimum 1 item).
 
 Task tree saat ini akan diberikan setelah prompt ini. Terapkan revisi SEKARANG.`;

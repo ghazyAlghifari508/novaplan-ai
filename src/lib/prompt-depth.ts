@@ -1,48 +1,36 @@
 /**
  * Output depth for generated documents (PRD/AC/Task).
  *
- * Every plan tier gets the same maximal-depth directive. Differentiation
- * between free/pro/hengker output quality now comes purely from which model
- * each tier is allowed to use (see model-config.ts), not from instructing
- * weaker prompts for lower tiers.
+ * Adaptif: kedalaman output menyesuaikan kompleksitas deskripsi user.
+ * Aplikasi simpel → output ringkas tapi lengkap.
+ * Aplikasi kompleks → output mendalam dan detail.
+ * Tidak ada angka hardcode — AI menentukan kedalaman berdasarkan input.
  */
 export type DocKind = "prd" | "ac" | "task";
 
 const PRD = `
-## MODE KEDALAMAN: MAKSIMAL (EXHAUSTIVE)
-SEMUA section 1-8 WAJIB tetap ada dengan nama yang sama, diisi selengkap dan sedalam mungkin:
-- Latar Belakang: 2-3 paragraf termasuk kondisi pasar dan biaya dari masalah saat ini. Deskripsi Produk: 2-3 paragraf termasuk pembeda kompetitif.
-- Target Pengguna: tabel 5-7 role lengkap dengan kebutuhan dan hak akses tiap role.
-- Nilai Proposisi: 5-6 poin, tiap poin terhubung ke pain point konkret.
-- Business Goals: 7 poin dengan target dan tenggat. KPI: tabel 8 metrik dengan baseline dan target.
-- Functional Requirements: 6+ domain, tiap domain paragraf pengantar + 5 bullet mencakup alur normal, validasi, DAN edge case/error handling.
-- Non-Functional Requirements: 8 poin bernomor (performa, skalabilitas, keamanan, ketersediaan, observability, backup, kompatibilitas, aksesibilitas) dengan angka pasti. Integrasi: tabel 5+ layanan berikut fallback jika layanan mati.
-- Core Features: jabarkan SETIAP fitur tanpa terkecuali, tiap fitur 2 paragraf + bullet sub-fitur + aturan bisnis + kondisi gagal.
-- User Flow: 1 flow utama (mermaid sequenceDiagram) + 3-4 flow tambahan termasuk minimal 1 flow error/recovery.
-- Architecture: diagram mermaid detail termasuk layer caching/queue/storage bila relevan. Tech Stack: tabel per layer + alasan + alternatif yang ditolak. Struktur folder: tree penuh sampai level file kunci.
-- Database Schema: skema penuh semua tabel termasuk tabel pivot/audit, index, constraint, enum + ERD lengkap beratribut.
-- Design & Technical Constraints: masing-masing tabel 8 baris dengan nilai spesifik (token TTL, ukuran payload, rate limit, breakpoint, skala tipografi).
-JANGAN menahan detail. Dokumen harus langsung bisa dieksekusi engineering tanpa pertanyaan susulan.`;
+## MODE KEDALAMAN: ADAPTIF
+Sesuaikan kedalaman dan panjang setiap section dengan KOMPLEKSITAS deskripsi produk dari user:
+- Produk simpel (1-2 fitur utama, scope kecil) → tulis padat dan ringkas, tidak perlu memaksakan banyak section panjang.
+- Produk menengah (3-5 fitur, beberapa integrasi) → tulis dengan kedalaman moderat, lengkap tapi tidak berlebihan.
+- Produk kompleks (6+ fitur, banyak integrasi, multi-role) → tulis mendalam dan detail.
+SEMUA section 1-8 WAJIB tetap ada dengan nama yang sama, tapi isinya proporsional terhadap kompleksitas produk. JANGAN memaksakan konten untuk produk simpel menjadi sangat panjang. JANGAN mengurangi detail untuk produk kompleks.`;
 
 const AC = `
-## MODE KEDALAMAN: MAKSIMAL (EXHAUSTIVE)
-Struktur dokumen tetap sama - SEMUA section tetap ada, diisi sedalam mungkin:
-- Glossary: 14+ baris mencakup seluruh istilah domain, status enum, role, satuan, dan singkatan PRD.
-- Cakup SETIAP fitur di PRD tanpa terkecuali.
-- Tiap fitur: 8-10 AC-N.M mencakup happy path, validasi batas min/max/enum/format, authorization per role, edge case (duplicate, soft-delete, concurrency, history preserved), error message eksplisit beserta kode status, dan perilaku saat dependency gagal.
-- Tabel Field schema wajib lengkap: Field | Tipe Data | Wajib | Keterangan/Contoh, termasuk constraint dan nilai default.
-- Scenario Given/When/Then: minimal 1 per fitur bisnis, plus minimal 1 skenario kegagalan/rollback.
-- Master Calculation Reference wajib jika ada formula, tulis penuh dengan contoh angka.
-- NFR diperluas: performa, keamanan, observability, backup/restore, aksesibilitas, kompatibilitas browser.
-Target 400+ baris. Dokumen harus siap audit tanpa pertanyaan susulan.`;
+## MODE KEDALAMAN: ADAPTIF
+Sesuaikan kedalaman dan jumlah AC dengan KOMPLEKSITAS PRD:
+- PRD simpel → AC ringkas, fokus happy path dan validasi dasar.
+- PRD menengah → AC lengkap dengan edge case dan authorization.
+- PRD kompleks → AC mendalam dengan scenario, formula, dan error handling detail.
+Struktur dokumen tetap sama, tapi jumlah AC per fitur proporsional terhadap kompleksitas fitur tersebut. JANGAN memaksakan banyak AC untuk fitur yang simpel. JANGAN mengurangi AC untuk fitur yang kompleks.`;
 
 const TASK = `
-## MODE KEDALAMAN: MAKSIMAL (EXHAUSTIVE)
-Struktur JSON tetap sama persis dan SEMUA fitur dari AC tetap dibuat, dipecah sedalam mungkin:
-- 4-6 task per fitur: setup/migration, implementation, validasi & error handling, testing (unit + integration), integration/wiring, dan observability bila relevan.
-- 3-7 subtask per task, tiap subtask deliverable atomik yang bisa di-PR terpisah.
-- 4-6 item details per subtask: nama file/tabel/endpoint konkret, nama fungsi, kondisi edge case, dan kriteria selesai.
-JANGAN menahan detail. Engineer harus bisa langsung mengeksekusi tiap detail tanpa bertanya.`;
+## MODE KEDALAMAN: ADAPTIF
+Sesuaikan jumlah task, subtask, dan detail dengan KOMPLEKSITAS fitur dari AC:
+- Fitur simpel → sedikit task dan subtask, detail secukupnya.
+- Fitur menengah → task dan subtask proporsional, detail lengkap.
+- Fitur kompleks → banyak task dan subtask, detail mendalam.
+Struktur JSON tetap sama, tapi jumlah item di setiap level proporsional. JANGAN memaksakan banyak task untuk fitur simpel. JANGAN mengurangi task untuk fitur kompleks. Setiap subtask WAJIB punya field "details" (array langkah granular, minimum 1 item).`;
 
 const TABLES: Record<DocKind, string> = { prd: PRD, ac: AC, task: TASK };
 
