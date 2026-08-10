@@ -68,15 +68,30 @@ export const AcViewer = memo(function AcViewer({
 
   const displayContent = isStreaming && streamingContent ? streamingContent : cleanContent;
 
-  // Show loading indicator while streaming but no content yet
+  // Show typing placeholder while streaming but no content yet —
+  // the AI server may take 30-60s before the first token arrives.
+  // An empty article with a blinking cursor feels faster than a
+  // full-page spinner because the "document is ready" framing
+  // reassures the user that work is happening.
   if (isStreaming && !streamingContent) {
     return (
       <div ref={scrollRef} className={cn("h-full overflow-y-auto", className)}>
-        <div className="flex flex-1 flex-col items-center justify-center p-6 h-full">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-indigo border-t-transparent" />
-          <p className="mt-4 text-sm font-[510] text-snow">Sedang membuat AC...</p>
-          <p className="mt-1 text-xs text-fog">Model AI sedang menganalisis PRD Anda</p>
-        </div>
+        <article className="prd-content mx-auto max-w-3xl px-8 pb-16 pt-8 text-mist">
+          <div className="flex items-center gap-2 mb-6">
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo border-t-transparent shrink-0" />
+            <span className="text-sm font-[510] text-snow">AI sedang menyusun Acceptance Criteria...</span>
+          </div>
+          <div className="space-y-3 opacity-40">
+            <div className="h-4 w-2/3 rounded bg-charcoal animate-pulse" />
+            <div className="h-3 w-full rounded bg-charcoal animate-pulse" />
+            <div className="h-3 w-5/6 rounded bg-charcoal animate-pulse" />
+            <div className="h-3 w-1/2 rounded bg-charcoal animate-pulse" />
+            <div className="mt-6 h-4 w-1/2 rounded bg-charcoal animate-pulse" />
+            <div className="h-3 w-full rounded bg-charcoal animate-pulse" />
+            <div className="h-3 w-4/5 rounded bg-charcoal animate-pulse" />
+          </div>
+          <span className="inline-block w-0.5 h-4 bg-indigo animate-pulse mt-4" />
+        </article>
       </div>
     );
   }
