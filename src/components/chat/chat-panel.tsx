@@ -658,11 +658,14 @@ export function ChatPanel({
 				pendingContentRef.current = "";
 				setStreaming(false);
 				setStreamingContent("");
-				setGeneratingPRD(false);
+				// ponytail: generate/resume modes must NOT clear isGeneratingPRD here —
+				// the done handler owns cleanup + router.refresh(). Clearing here hides
+				// the section progress card (spinner + checkmarks) before refresh lands.
 				if (
 					chatMode !== "generate" &&
 					chatMode !== "resume"
 				) {
+					setGeneratingPRD(false);
 					setStreamingPRDContent("");
 				}
 				isSubmittingRef.current = false;

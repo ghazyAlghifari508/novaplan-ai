@@ -157,7 +157,7 @@ export function Navbar() {
               {step === "prd" && projectId && (
                 <>
                   <button
-                    onClick={() => { useChatStore.getState().setGeneratingPRD(false); useUIStore.getState().toggleChatPanel(); }}
+                    onClick={() => useUIStore.getState().toggleChatPanel()}
                     className="hidden md:flex items-center gap-1.5 rounded-md bg-charcoal px-3 py-1.5 text-xs font-[510] text-fog shadow-[var(--shadow-inset)] transition-colors hover:bg-white/5 hover:text-snow"
                     aria-label="Buka/tutup chat"
                   >
