@@ -396,11 +396,14 @@ export const Route = createFileRoute("/api/chat")({
 									}
 								}
 
+								const { FEATURES } = await import("@/types/database");
+								const allowShare = FEATURES[plan].shareLink !== false;
 								await savePrdVersion(
 									conversationIdToUse,
 									finalPrdToSave,
 									message,
 									mode === "resume" ? "generate" : mode,
+									allowShare,
 								);
 
 								try {

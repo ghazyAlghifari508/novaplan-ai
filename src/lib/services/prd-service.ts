@@ -120,6 +120,7 @@ export async function savePrdVersion(
   fullResponse: string,
   userMessage: string,
   mode: "generate" | "revise",
+  allowShareLink = true,
 ): Promise<void> {
   const [conv] = await db
     .select({ projectId: conversations.projectId })
@@ -132,7 +133,7 @@ export async function savePrdVersion(
   }
   const projectId = conv.projectId;
 
-  if (mode === "generate") {
+  if (mode === "generate" && allowShareLink) {
     await db
       .update(projects)
       .set({ shareToken: generateShareToken() })

@@ -12,8 +12,19 @@ const loadSharedPrd = createServerFn({ method: 'GET' })
   .validator((token: string) => token)
   .handler(async ({ data: token }) => {
     // ponytail: schema has no `is_shared` flag - shareToken presence implies shared.
-    const [project] = await db.select({ id: projects.id, name: projects.name }).from(projects).where(eq(projects.shareToken, token)).limit(1)
+    const [project] = await db.select({ id: projects.id, name: projects.name, userId: projects.userId }).from(projects).where(eq(projects.shareToken, token)).limit(1)
     if (!project) throw new Error('NOT_FOUND')
+
+    const { subscriptions } = await import('@/db/schema')
+    const { FEATURES } = await import('@/types/database')
+    const [sub] = await db
+      .select({ plan: subscriptions.plan })
+      .from(subscriptions)
+      .where(eq(subscriptions.userId, project.userId))
+      .orderBy(desc(subscriptions.createdAt))
+      .limit(1)
+    const plan = (sub?.plan || 'free') as 'free' | 'pro' | 'hengker'
+    if (FEATURES[plan].shareLink === false) throw new Error('NOT_FOUND')
 
     const [latest] = await db.select({ content: prdVersions.content }).from(prdVersions).where(eq(prdVersions.projectId, project.id)).orderBy(desc(prdVersions.version)).limit(1)
     if (!latest) throw new Error('NOT_FOUND')
