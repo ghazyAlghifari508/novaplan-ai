@@ -20,6 +20,7 @@ import {
 	type PriceTier,
 } from "@/lib/pricing-data";
 import { cn } from "@/lib/utils";
+import { useUserPlan } from "@/hooks/use-user-plan";
 import { useUIStore } from "@/store";
 
 // --- Utility Components ---
@@ -278,25 +279,13 @@ export const PricingComponent: React.FC<PricingComponentProps> = ({
 // --- Wrapper with state ---
 
 export default function PricingWrapper() {
-	const [currentPlan, setCurrentPlan] = React.useState<string>("free");
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const showToast = useUIStore((state) => state.showToast);
-
-	React.useEffect(() => {
-		const fetchPlan = async () => {
-			try {
-				const res = await fetch("/api/user/plan");
-				if (res.ok) {
-					const data = await res.json();
-					setCurrentPlan(data.plan || "free");
-				}
-			} catch {
-				// Not logged in or error - default to free
-			}
-		};
-		fetchPlan();
-	}, []);
+	// ponytail: shared TanStack Query hook — deduped across all components.
+	// Previously raw fetch("/api/user/plan") in useEffect.
+	const { data: planData, refetch: refetchPlan } = useUserPlan();
+	const currentPlan = planData?.plan ?? "free";
 
 	// Sync payment status when redirected back from Midtrans
 	React.useEffect(() => {
@@ -314,7 +303,7 @@ export default function PricingWrapper() {
 				try {
 					const res = await syncPaymentStatus({ data: orderId });
 					if (res.success && res.plan) {
-						setCurrentPlan(res.plan);
+						refetchPlan();
 						showToast(
 							`Berhasil beli kredit untuk paket ${res.plan.charAt(0).toUpperCase() + res.plan.slice(1)}!`,
 							"success",

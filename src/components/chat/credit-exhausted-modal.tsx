@@ -5,6 +5,7 @@ import * as React from "react";
 import { PricingComponent } from "@/components/ui/pricing-card";
 import { novaPlanPlans, type PriceTier } from "@/lib/pricing-data";
 import { saveResumeIntent } from "@/lib/prompt-handoff";
+import { useUserPlan } from "@/hooks/use-user-plan";
 import { useUIStore } from "@/store";
 
 interface CreditExhaustedModalProps {
@@ -24,24 +25,11 @@ export function CreditExhaustedModal({
 	stage,
 	currentPlan = "free",
 }: CreditExhaustedModalProps) {
-	const [plan, setPlan] = React.useState(currentPlan);
+	// ponytail: shared TanStack Query hook — deduped across all components.
+	// Previously raw fetch("/api/user/plan") in useEffect.
+	const { data: planData } = useUserPlan();
+	const plan = planData?.plan ?? currentPlan;
 	const showToast = useUIStore((s) => s.showToast);
-
-	React.useEffect(() => {
-		if (!isOpen) return;
-		const fetchPlan = async () => {
-			try {
-				const res = await fetch("/api/user/plan");
-				if (res.ok) {
-					const data = await res.json();
-					setPlan(data.plan || "free");
-				}
-			} catch {
-				// keep currentPlan
-			}
-		};
-		fetchPlan();
-	}, [isOpen]);
 
 	const handlePlanSelect = async (planId: string) => {
 		if (planId === "free") return;

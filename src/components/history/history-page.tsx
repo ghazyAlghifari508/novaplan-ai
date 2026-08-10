@@ -7,6 +7,7 @@ import { DeleteProjectModal } from "@/components/prd/delete-project-modal";
 import { useChatStore, useUIStore } from "@/store";
 import { resolveHistoryUrl } from "@/lib/flow-progress";
 import { saveSuppressAutoGen } from "@/lib/prompt-handoff";
+import { useUserPlan } from "@/hooks/use-user-plan";
 import type { HistoryItem } from "@/routes/history";
 
 function isHaltedByCredits(item: HistoryItem): boolean {
@@ -23,6 +24,8 @@ const STEP_BADGE: Record<string, { label: string; className: string }> = {
 };
 
 export function HistoryPage({ items }: { items: HistoryItem[] }) {
+  // ponytail: shared TanStack Query hook — deduped across all components.
+  const { refetch: refetchPlan } = useUserPlan();
   const router = useRouter();
   const showToast = useUIStore((s) => s.showToast);
   const [localItems, setLocalItems] = useState<HistoryItem[]>(items);
@@ -96,17 +99,16 @@ export function HistoryPage({ items }: { items: HistoryItem[] }) {
               saveSuppressAutoGen(item.id);
 
               try {
-                const res = await fetch("/api/user/plan", { cache: "no-store" });
-                if (res.ok) {
-                  const data = await res.json();
-                  const remaining = data.remaining;
-                  if (remaining === 0 || (remaining !== "unlimited" && Number(remaining) <= 0)) {
-                    const stage = item.step === "task" ? "task" : "ac";
-                    useChatStore.getState().setCreditsExhausted({
-                      stage,
-                      message: "Kredit kamu sudah habis. Beli kredit untuk melanjutkan.",
-                    });
-                  }
+                // ponytail: use refetchPlan() from shared TanStack Query hook
+                // instead of raw fetch("/api/user/plan"). Deduped across components.
+                const freshPlan = await refetchPlan();
+                const remaining = freshPlan.data?.remaining;
+                if (remaining === 0 || (remaining !== "unlimited" && Number(remaining ?? 0) <= 0)) {
+                  const stage = item.step === "task" ? "task" : "ac";
+                  useChatStore.getState().setCreditsExhausted({
+                    stage,
+                    message: "Kredit kamu sudah habis. Beli kredit untuk melanjutkan.",
+                  });
                 }
               } catch {
                 // proceed anyway; landing page will handle

@@ -23,6 +23,7 @@ import {
 } from "@/lib/prompt-handoff";
 import { cn } from "@/lib/utils";
 import { useTypingPlaceholder } from "@/hooks/use-typing-placeholder";
+import { useUserPlan } from "@/hooks/use-user-plan";
 import { PLAN_CREDITS, type Plan } from "@/types/database";
 
 const MIN_PROMPT_LENGTH = 20;
@@ -69,10 +70,6 @@ function QualityBars({ quality }: { quality: number }) {
 export function ChatInput({ className }: ChatInputProps) {
 	const [message, setMessage] = useState(() => getHomeDraft());
 	const [focused, setFocused] = useState(false);
-	const [planStatus, setPlanStatus] = useState<{
-		plan: Plan;
-		remaining: number | "unlimited";
-	} | null>(null);
 	const [isMobileMode, setIsMobileMode] = useState(false);
 	const [promptError, setPromptError] = useState("");
 
@@ -81,8 +78,10 @@ export function ChatInput({ className }: ChatInputProps) {
 	const [creditsExhaustedMsg, setCreditsExhaustedMsg] = useState<string | null>(null);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 
-	// ponytail: reactive shared session via nanostore — deduped with Navbar
-	// which uses the same authClient singleton. No manual getSession() round-trip.
+	// ponytail: shared TanStack Query hook — deduped across all components
+	// that read /api/user/plan. 60s staleTime. Replaces manual fetch() calls.
+	const { data: planData, refetch: refetchPlan } = useUserPlan();
+	// ponytail: reactive shared session via nanostore — deduped with Navbar.
 	const { data: session } = authClient.useSession();
 
 	const router = useRouter();
@@ -93,39 +92,7 @@ export function ChatInput({ className }: ChatInputProps) {
 		if (storedModel && ALL_MODELS.some((m) => m.id === storedModel)) {
 			setSelectedModel(storedModel);
 		}
-
-		const fetchStatus = async () => {
-			try {
-				const res = await fetch("/api/user/plan", { cache: "no-store" });
-				if (!res.ok) {
-					// ponytail: use reactive session (shared with Navbar) instead of
-					// a manual getSession() round-trip to distinguish "not logged in"
-					// from "DB query failed".
-					if (session?.user?.id) {
-						setPlanStatus({ plan: "free", remaining: 0 });
-					}
-					return;
-				}
-
-				const data = await res.json();
-				if (data.authenticated) {
-					const plan = data.plan as Plan;
-					setPlanStatus({
-						plan,
-						remaining:
-							data.remaining === "unlimited"
-								? "unlimited"
-								: Number(data.remaining ?? 0),
-					});
-				}
-			} catch {
-				if (session?.user?.id) {
-					setPlanStatus({ plan: "free", remaining: 0 });
-				}
-			}
-		};
-		fetchStatus();
-	}, [session?.user?.id]);
+	}, []);
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -185,16 +152,10 @@ export function ChatInput({ className }: ChatInputProps) {
 		// Pre-check credits before creating project — blocks at home page,
 		// not after redirect to empty PRD/question page.
 		try {
-			const planRes = await fetch("/api/user/plan");
-			if (planRes.ok) {
-				const planData = await planRes.json();
-				const remaining = planData.remaining;
-				if (remaining === 0 || remaining === "0") {
-					setCreditsExhaustedMsg(
-						planData.error || "Kredit kamu sudah habis. Beli kredit untuk membuat proyek baru."
-					);
-					return;
-				}
+			const freshPlan = await refetchPlan();
+			if (freshPlan.data?.remaining === 0) {
+				setCreditsExhaustedMsg("Kredit kamu sudah habis. Beli kredit untuk membuat proyek baru.");
+				return;
 			}
 		} catch {
 			// If plan check fails, allow flow — server will block with 403 anyway
@@ -220,7 +181,7 @@ export function ChatInput({ className }: ChatInputProps) {
 		}
 	};
 
-	const userPlan: Plan = planStatus?.plan ?? "free";
+	const userPlan: Plan = (planData?.plan ?? "free") as Plan;
 	const selectedModelMeta = findModel(selectedModel);
 	const typingPlaceholder = useTypingPlaceholder(isMobileMode);
 
@@ -238,15 +199,11 @@ export function ChatInput({ className }: ChatInputProps) {
 				<div className="flex items-center justify-between px-2">
 					<div className="flex items-center gap-3">
 						<span className="font-inter text-[12px] font-[510] text-mist">
-							{!planStatus
+							{!planData?.authenticated
 								? `${PLAN_CREDITS.free} Kredit Gratis`
-								: planStatus.plan === "hengker"
-									? `Sisa ${planStatus.remaining} Kredit`
-									: planStatus.plan === "pro"
-										? `Sisa ${planStatus.remaining} Kredit`
-										: `Sisa ${planStatus.remaining} Kredit`}
+								: `Sisa ${planData.remaining} Kredit`}
 						</span>
-						{(!planStatus || planStatus.plan !== "hengker") && (
+						{(!planData?.authenticated || planData.plan !== "hengker") && (
 							<Link
 								href="/pricing"
 								className="cursor-pointer rounded-[2px] px-2 py-0.5 font-inter text-[10px] font-[510] uppercase text-fog shadow-[var(--shadow-inset)] transition-colors duration-300 hover:bg-steel/70"
