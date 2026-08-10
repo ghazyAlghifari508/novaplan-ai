@@ -18,7 +18,9 @@ const loadAc = createServerFn({ method: 'GET' })
     const user = await requireUserServer()
     const { plan } = await getUserPlanAndQuota()
     const [project, prdContent, acVersions] = await Promise.all([
-      db.select().from(projects).where(and(eq(projects.id, id), eq(projects.userId, user.id))).limit(1),
+      // ponytail: select only needed cols — name only used downstream. Avoids
+      // pulling description/shareToken/lastUrl jsonb on every AC page load.
+      db.select({ id: projects.id, name: projects.name }).from(projects).where(and(eq(projects.id, id), eq(projects.userId, user.id))).limit(1),
       getLatestPrdContent(id),
       getAcVersions(id),
     ])

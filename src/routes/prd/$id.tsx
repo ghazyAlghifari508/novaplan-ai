@@ -18,7 +18,8 @@ const loadPrd = createServerFn({ method: 'GET' })
     const { plan, quota } = await getUserPlanAndQuota()
 
     const [projectRows, versionRows, convRows] = await Promise.all([
-      db.select().from(projects).where(and(eq(projects.id, id), eq(projects.userId, user.id))).limit(1),
+      // ponytail: select only name — only field used downstream (line 42).
+      db.select({ id: projects.id, name: projects.name }).from(projects).where(and(eq(projects.id, id), eq(projects.userId, user.id))).limit(1),
       db.select().from(prdVersions).where(eq(prdVersions.projectId, id)).orderBy(desc(prdVersions.version)),
       db.select({ id: conversations.id }).from(conversations).where(eq(conversations.projectId, id)).orderBy(desc(conversations.createdAt)).limit(1),
     ])

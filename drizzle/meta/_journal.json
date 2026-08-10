@@ -43,6 +43,13 @@
       "when": 1786058400000,
       "tag": "0005_credit_based_pricing",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1786328741927,
+      "tag": "0006_melodic_ikaris",
+      "breakpoints": true
     }
   ]
 }

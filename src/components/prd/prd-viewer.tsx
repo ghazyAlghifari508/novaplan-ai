@@ -1,11 +1,16 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo, memo } from "react";
+import { useState, useRef, useEffect, useMemo, memo, lazy, Suspense } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import { TableOfContents } from "./table-of-contents";
-import { Mermaid } from "./mermaid";
+
+// ponytail: lazy-load Mermaid so the ~2-3MB mermaid library (layout engines,
+// flowchart/sequence/class parsers) stays out of the main PRD chunk. Only
+// fetched when a PRD actually contains a mermaid code fence. autoCodeSplitting
+// handles route-level split; this handles component-level split within a route.
+const Mermaid = lazy(() => import("./mermaid").then((m) => ({ default: m.Mermaid })));
 import { VersionHistory } from "./version-history";
 import { usePanelResize } from "@/hooks/use-panel-resize";
 import { cn } from "@/lib/utils";
@@ -163,7 +168,11 @@ export const PrdViewer = memo(function PrdViewer({
               code: ({ inline, className, children, ...props }: any) => {
                 const match = /language-(\w+)/.exec(className || "");
                 if (!inline && match && match[1] === "mermaid") {
-                  return <Mermaid chart={String(children).replace(/\n$/, "")} />;
+                  return (
+                    <Suspense fallback={<div className="animate-pulse bg-black/5 dark:bg-white/5 h-32 rounded-lg my-6" />}>
+                      <Mermaid chart={String(children).replace(/\n$/, "")} />
+                    </Suspense>
+                  );
                 }
                 return (
                   <code className={className} {...props}>

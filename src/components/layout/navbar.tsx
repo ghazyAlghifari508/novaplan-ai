@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { User, Settings, CreditCard, LogOut, ArrowRight, MessageSquare, Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -11,13 +11,15 @@ import { authClient } from "@/lib/auth-client";
 import { Logo } from "@/components/ui/logo";
 
 export function Navbar() {
-  const [user, setUser] = useState<{ id: string; email: string } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: session, isPending: isLoading } = authClient.useSession();
+  const user = session?.user?.id && session.user.email
+    ? { id: session.user.id, email: session.user.email }
+    : null;
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isStepLoading, setIsStepLoading] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isGeneratingPRD = useChatStore((s) => s.isGeneratingPRD);
-  const streamingPRDContent = useChatStore((s) => s.streamingPRDContent);
+  const hasStreamingPRDContent = useChatStore((s) => !!s.streamingPRDContent);
   const isGeneratingAC = useChatStore((s) => s.isGeneratingAC);
   const router = useRouter();
   const pathname = usePathname();
@@ -78,7 +80,6 @@ export function Navbar() {
   const handleLogout = async () => {
     try {
       await authClient.signOut();
-      setUser(null);
       router.push("/login");
       router.refresh();
     } catch (err) {
@@ -86,38 +87,6 @@ export function Navbar() {
       showToast("Gagal logout. Coba lagi.", "error");
     }
   };
-
-  useEffect(() => {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
-
-    // ponytail: one retry on transient failure (network blip / backend ECONNRESET)
-    // before declaring the user logged out - a single fetch failure isn't proof
-    // the session is invalid. Add exponential backoff if blips cluster in prod.
-    const checkUser = async (isRetry = false): Promise<void> => {
-      try {
-        const { data: session } = await authClient.getSession();
-        if (session?.user?.id && session.user.email) {
-          setUser({ id: session.user.id, email: session.user.email });
-        } else {
-          if (!isRetry) return checkUser(true);
-          setUser(null);
-        }
-      } catch (err) {
-        if (err instanceof DOMException && err.name === "AbortError") return;
-        if (!isRetry) return checkUser(true);
-        console.error("[navbar] checkUser failed", err);
-        setUser(null);
-      }
-    };
-
-    checkUser().finally(() => setIsLoading(false));
-
-    return () => {
-      clearTimeout(timeout);
-      controller.abort();
-    };
-  }, []);
 
   return (
     <nav
@@ -197,7 +166,7 @@ export function Navbar() {
                   </button>
                   <button
                     onClick={handleStepAc}
-                    disabled={isStepLoading || isGeneratingPRD || !!streamingPRDContent}
+                    disabled={isStepLoading || isGeneratingPRD || hasStreamingPRDContent}
                     className="btn-primary flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-[510] transition-all hover:brightness-105 active:scale-[0.98] disabled:opacity-40 disabled:bg-graphite/40 disabled:text-fog/50"
                   >
                     {isStepLoading ? "Memuat..." : <><span>Generate AC</span><ArrowRight size={12} /></>}</button>
@@ -206,10 +175,10 @@ export function Navbar() {
               {step === "ac" && projectId && (
                 <button
                   onClick={handleStepTask}
-                  disabled={isStepLoading || isGeneratingAC || isGeneratingPRD || !!streamingPRDContent}
+                  disabled={isStepLoading || isGeneratingAC || isGeneratingPRD || hasStreamingPRDContent}
                   className="btn-primary flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-[510] transition-all hover:brightness-105 active:scale-[0.98] disabled:opacity-40 disabled:bg-graphite/40 disabled:text-fog/50"
                 >
-                  {isStepLoading || isGeneratingAC || isGeneratingPRD || !!streamingPRDContent ? "Memuat..." : <><span>Generate Task</span><ArrowRight size={12} /></>}</button>
+                  {isStepLoading || isGeneratingAC || isGeneratingPRD || hasStreamingPRDContent ? "Memuat..." : <><span>Generate Task</span><ArrowRight size={12} /></>}</button>
               )}
             </>
           ) : null}

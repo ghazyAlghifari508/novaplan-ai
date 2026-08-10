@@ -19,7 +19,15 @@ const config = defineConfig({
       'next/image': shim('./src/lib/next-compat/image.tsx'),
     },
   },
-  plugins: [devtools(), tailwindcss(), tanstackStart(), viteReact()],
+  plugins: [
+    devtools(),
+    tailwindcss(),
+    // ponytail: TS type for tanstackStart's router option is narrower than the
+    // runtime schema (zod parse accepts autoCodeSplitting). Cast bypasses TS;
+    // verified against start-plugin-core vite/schema.d.ts which includes the field.
+    tanstackStart({ router: { autoCodeSplitting: true } } as never),
+    viteReact(),
+  ],
 })
 
 export default config

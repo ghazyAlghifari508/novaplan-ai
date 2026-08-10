@@ -193,6 +193,8 @@ export function ChatPanel({
 	const autoSubmitAttemptedRef = useRef(false);
 	const abortControllerRef = useRef<AbortController | null>(null);
 	const streamingContentRef = useRef(""); // ref to avoid React state timing issues
+	const pendingContentRef = useRef(""); // ponytail: throttled flush buffer
+	const flushCancelRef = useRef<(() => void) | null>(null); // ponytail: rAF/timeout cancel handle
 
 	// ── Store ──
 	const showToast = useUIStore((s) => s.showToast);
@@ -297,6 +299,87 @@ export function ChatPanel({
 			let gotDoneEvent = false;
 			let gotErrorEvent = false;
 			let sawAnyDelta = false;
+
+			// ponytail: batch per-token state commits to one per animation frame.
+			// Without this, a 64k-token stream triggers hundreds of re-renders per
+			// second of ChatPanel + Navbar + PrdViewer + Mermaid (full markdown
+			// re-parse per token). rAF coalesces to ~60fps — same perceived latency,
+			// fraction of the render work.
+			const flushContent = () => {
+				const displayContent = pendingContentRef.current;
+				if (!displayContent) return;
+
+				// Section detection (batched — once per frame, not per token)
+				if (
+					chatMode === "generate" ||
+					chatMode === "revise" ||
+					chatMode === "resume"
+				) {
+					const sectionRegex = /<!-- SECTION: (.+?) -->/g;
+					let sectionMatch;
+					const foundSections: string[] = [];
+					while (
+						(sectionMatch = sectionRegex.exec(displayContent)) !== null
+					) {
+						foundSections.push(sectionMatch[1].trim());
+					}
+					if (foundSections.length > 0) {
+						const lastSection = foundSections[foundSections.length - 1];
+						const prev = foundSections.slice(0, -1);
+						const currentCompleted =
+							useChatStore.getState().completedSections;
+						const merged = [...currentCompleted];
+						prev.forEach((s) => {
+							if (!merged.includes(s)) merged.push(s);
+						});
+						setCompletedSections(merged);
+						setCurrentSection(lastSection);
+					}
+				}
+
+				// Commit content to store (batched)
+				if (acMode && onStreamContent) {
+					onStreamContent(displayContent);
+				} else if (chatMode === "generate" || chatMode === "resume") {
+					setStreamingPRDContent(displayContent);
+				} else if (chatMode === "revise") {
+					const patched = livePatchPrd(currentPrdContent, displayContent);
+					setStreamingPRDContent(patched);
+					const cleaned = cleanChatBubble(displayContent);
+					streamingContentRef.current = cleaned;
+					setStreamingContent(cleaned);
+				} else {
+					setStreamingContent(displayContent);
+				}
+			};
+
+			const scheduleFlush = () => {
+				if (flushCancelRef.current) {
+					flushCancelRef.current();
+					flushCancelRef.current = null;
+				}
+				if (typeof requestAnimationFrame !== "undefined") {
+					const rafId = requestAnimationFrame(() => {
+						flushCancelRef.current = null;
+						flushContent();
+					});
+					flushCancelRef.current = () => cancelAnimationFrame(rafId);
+				} else {
+					const timeoutId = setTimeout(() => {
+						flushCancelRef.current = null;
+						flushContent();
+					}, 16);
+					flushCancelRef.current = () => clearTimeout(timeoutId);
+				}
+			};
+
+			const cancelFlush = () => {
+				if (flushCancelRef.current) {
+					flushCancelRef.current();
+					flushCancelRef.current = null;
+				}
+			};
+
 			try {
 				const endpoint = acMode ? "/api/ac/revise" : "/api/chat";
 				const response = await fetch(endpoint, {
@@ -358,64 +441,20 @@ export function ChatPanel({
 								sawAnyDelta = true;
 								fullContent += parsed.content;
 
-								// Detect completed sections from streaming content (for PRD generate/revise modes)
-								if (
-									chatMode === "generate" ||
-									chatMode === "revise" ||
-									chatMode === "resume"
-								) {
-									const sectionRegex = /<!-- SECTION: (.+?) -->/g;
-									let sectionMatch;
-									const foundSections: string[] = [];
-									while (
-										(sectionMatch = sectionRegex.exec(fullContent)) !== null
-									) {
-										foundSections.push(sectionMatch[1].trim());
-									}
-									// Completed sections = all but the last one found (which may still be in progress)
-									// ponytail: use functional updater so every invocation merges against
-									// latest state, not the stale closure - otherwise earlier checkmarks
-									// get overwritten when a new section arrives mid-stream.
-									if (foundSections.length > 0) {
-										const lastSection = foundSections[foundSections.length - 1];
-										const prev = foundSections.slice(0, -1);
-										// ponytail: Zustand setter takes a value, not a functional updater -
-										// read current state via getState() and merge manually.
-										const currentCompleted =
-											useChatStore.getState().completedSections;
-										const merged = [...currentCompleted];
-										prev.forEach((s) => {
-											if (!merged.includes(s)) merged.push(s);
-										});
-										setCompletedSections(merged);
-										setCurrentSection(lastSection);
-									}
-								}
-								const displayContent = existingPartialContent
+								// ponytail: batch state commits via rAF throttle (scheduleFlush).
+								// Per-token setStreamingPRDContent caused full markdown re-parse
+								// + Navbar re-render hundreds of times per second. Now coalesced
+								// to ~60fps — same perceived latency, fraction of render work.
+								pendingContentRef.current = existingPartialContent
 									? existingPartialContent + fullContent
 									: fullContent;
-								if (acMode && onStreamContent) {
-									// AC mode: stream to parent component
-									onStreamContent(displayContent);
-								} else if (chatMode === "generate" || chatMode === "resume") {
-									setStreamingPRDContent(displayContent);
-								} else if (chatMode === "revise") {
-									// Live-patch current PRD with streaming revision content so viewer
-									// shows full PRD 1-8 with the revised section streaming in real-time.
-									const patched = livePatchPrd(
-										currentPrdContent,
-										displayContent,
-									);
-									setStreamingPRDContent(patched);
-									// Also show natural-language preamble in chat bubble
-									const cleaned = cleanChatBubble(displayContent);
-									streamingContentRef.current = cleaned;
-									setStreamingContent(cleaned);
-								} else {
-									// For chat mode, stream into chat bubble instead of PRD Viewer
-									setStreamingContent(displayContent);
-								}
+								scheduleFlush();
 							} else if (parsed.type === "done") {
+								// ponytail: flush any pending batched content synchronously before
+								// done-handler reads/overrides state — ensures last tokens render.
+								cancelFlush();
+								flushContent();
+								pendingContentRef.current = "";
 								gotDoneEvent = true;
 								if (parsed.conversationId) {
 									setConversationId(parsed.conversationId);
@@ -501,6 +540,8 @@ export function ChatPanel({
 									}
 								}
 							} else if (parsed.type === "error") {
+								cancelFlush();
+								pendingContentRef.current = "";
 								gotErrorEvent = true;
 								const errorMsg =
 									parsed.error ||
@@ -543,6 +584,11 @@ export function ChatPanel({
 				}
 
 				// ── Post-stream: add final message ──
+				// ponytail: flush any pending batched content synchronously so the
+				// last tokens render before post-stream navigation/message logic.
+				cancelFlush();
+				flushContent();
+				pendingContentRef.current = "";
 				// ponytail: if the server side closed the stream without a `done` event
 				// (proxy timeout / partial save) the PRD was almost always persisted;
 				// refresh so the panel reflects what the server actually has instead of
@@ -608,6 +654,8 @@ export function ChatPanel({
 					showToast("Terjadi kesalahan koneksi.", "error");
 				}
 			} finally {
+				cancelFlush();
+				pendingContentRef.current = "";
 				setStreaming(false);
 				setStreamingContent("");
 				setGeneratingPRD(false);

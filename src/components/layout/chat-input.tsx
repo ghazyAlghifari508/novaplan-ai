@@ -81,6 +81,10 @@ export function ChatInput({ className }: ChatInputProps) {
 	const [creditsExhaustedMsg, setCreditsExhaustedMsg] = useState<string | null>(null);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 
+	// ponytail: reactive shared session via nanostore — deduped with Navbar
+	// which uses the same authClient singleton. No manual getSession() round-trip.
+	const { data: session } = authClient.useSession();
+
 	const router = useRouter();
 
 	useEffect(() => {
@@ -94,11 +98,10 @@ export function ChatInput({ className }: ChatInputProps) {
 			try {
 				const res = await fetch("/api/user/plan", { cache: "no-store" });
 				if (!res.ok) {
-					// Fallback: check auth directly to distinguish "not logged in"
-					// from "DB query failed" - prevents showing "3 PRD Gratis" for
-					// authenticated users whose subscription query errored.
-					const { data: authData } = await authClient.getSession();
-					if (authData?.user?.id) {
+					// ponytail: use reactive session (shared with Navbar) instead of
+					// a manual getSession() round-trip to distinguish "not logged in"
+					// from "DB query failed".
+					if (session?.user?.id) {
 						setPlanStatus({ plan: "free", remaining: 0 });
 					}
 					return;
@@ -116,14 +119,13 @@ export function ChatInput({ className }: ChatInputProps) {
 					});
 				}
 			} catch {
-				const { data: authData } = await authClient.getSession();
-				if (authData?.user?.id) {
+				if (session?.user?.id) {
 					setPlanStatus({ plan: "free", remaining: 0 });
 				}
 			}
 		};
 		fetchStatus();
-	}, []);
+	}, [session?.user?.id]);
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -169,13 +171,9 @@ export function ChatInput({ className }: ChatInputProps) {
 		sessionStorage.setItem("novaplan:original-message", originalMessage);
 		sessionStorage.setItem("novaplan:selected-model", selectedModel);
 
-		let isAuthenticated = false;
-		try {
-			const { data: authData } = await authClient.getSession();
-			isAuthenticated = !!authData?.user?.id;
-		} catch {
-			isAuthenticated = false;
-		}
+		// ponytail: use reactive session (shared nanostore with Navbar) instead
+		// of a manual getSession() round-trip per send attempt.
+		const isAuthenticated = !!session?.user?.id;
 
 		if (!isAuthenticated) {
 			// ponytail: back to home, not /ask, the project doesn't exist yet at this

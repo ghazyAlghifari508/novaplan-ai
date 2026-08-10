@@ -57,7 +57,9 @@ import { Route as ApiSettingsApiKeysIndexRouteImport } from './routes/api/settin
 import { Route as ApiSettingsApiKeysIdRouteImport } from './routes/api/settings/api-keys/$id'
 import { Route as ApiSettingsApiKeysAutoRouteImport } from './routes/api/settings/api-keys/auto'
 import { Route as ApiV1ProjectsIdRouteImport } from './routes/api/v1/projects/$id'
+import { Route as ApiV1ProjectsIdAcRouteImport } from './routes/api/v1/projects/$id/ac'
 import { Route as ApiV1ProjectsIdKanbanRouteImport } from './routes/api/v1/projects/$id/kanban'
+import { Route as ApiV1ProjectsIdPrdRouteImport } from './routes/api/v1/projects/$id/prd'
 import { Route as ApiV1ProjectsIdTasksRouteImport } from './routes/api/v1/projects/$id/tasks'
 import { Route as ApiV1SubtasksIdStatusRouteImport } from './routes/api/v1/subtasks/$id/status'
 import { Route as ApiV1TasksIdStatusRouteImport } from './routes/api/v1/tasks/$id/status'
@@ -302,9 +304,19 @@ const ApiV1ProjectsIdRoute = ApiV1ProjectsIdRouteImport.update({
   path: '/api/v1/projects/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiV1ProjectsIdAcRoute = ApiV1ProjectsIdAcRouteImport.update({
+  id: '/ac',
+  path: '/ac',
+  getParentRoute: () => ApiV1ProjectsIdRoute,
+} as any)
 const ApiV1ProjectsIdKanbanRoute = ApiV1ProjectsIdKanbanRouteImport.update({
   id: '/kanban',
   path: '/kanban',
+  getParentRoute: () => ApiV1ProjectsIdRoute,
+} as any)
+const ApiV1ProjectsIdPrdRoute = ApiV1ProjectsIdPrdRouteImport.update({
+  id: '/prd',
+  path: '/prd',
   getParentRoute: () => ApiV1ProjectsIdRoute,
 } as any)
 const ApiV1ProjectsIdTasksRoute = ApiV1ProjectsIdTasksRouteImport.update({
@@ -372,7 +384,9 @@ export interface FileRoutesByFullPath {
   '/api/settings/api-keys/auto': typeof ApiSettingsApiKeysAutoRoute
   '/api/v1/projects/$id': typeof ApiV1ProjectsIdRouteWithChildren
   '/api/settings/api-keys/': typeof ApiSettingsApiKeysIndexRoute
+  '/api/v1/projects/$id/ac': typeof ApiV1ProjectsIdAcRoute
   '/api/v1/projects/$id/kanban': typeof ApiV1ProjectsIdKanbanRoute
+  '/api/v1/projects/$id/prd': typeof ApiV1ProjectsIdPrdRoute
   '/api/v1/projects/$id/tasks': typeof ApiV1ProjectsIdTasksRoute
   '/api/v1/subtasks/$id/status': typeof ApiV1SubtasksIdStatusRoute
   '/api/v1/tasks/$id/status': typeof ApiV1TasksIdStatusRoute
@@ -425,7 +439,9 @@ export interface FileRoutesByTo {
   '/api/settings/api-keys/auto': typeof ApiSettingsApiKeysAutoRoute
   '/api/v1/projects/$id': typeof ApiV1ProjectsIdRouteWithChildren
   '/api/settings/api-keys': typeof ApiSettingsApiKeysIndexRoute
+  '/api/v1/projects/$id/ac': typeof ApiV1ProjectsIdAcRoute
   '/api/v1/projects/$id/kanban': typeof ApiV1ProjectsIdKanbanRoute
+  '/api/v1/projects/$id/prd': typeof ApiV1ProjectsIdPrdRoute
   '/api/v1/projects/$id/tasks': typeof ApiV1ProjectsIdTasksRoute
   '/api/v1/subtasks/$id/status': typeof ApiV1SubtasksIdStatusRoute
   '/api/v1/tasks/$id/status': typeof ApiV1TasksIdStatusRoute
@@ -480,7 +496,9 @@ export interface FileRoutesById {
   '/api/settings/api-keys/auto': typeof ApiSettingsApiKeysAutoRoute
   '/api/v1/projects/$id': typeof ApiV1ProjectsIdRouteWithChildren
   '/api/settings/api-keys/': typeof ApiSettingsApiKeysIndexRoute
+  '/api/v1/projects/$id/ac': typeof ApiV1ProjectsIdAcRoute
   '/api/v1/projects/$id/kanban': typeof ApiV1ProjectsIdKanbanRoute
+  '/api/v1/projects/$id/prd': typeof ApiV1ProjectsIdPrdRoute
   '/api/v1/projects/$id/tasks': typeof ApiV1ProjectsIdTasksRoute
   '/api/v1/subtasks/$id/status': typeof ApiV1SubtasksIdStatusRoute
   '/api/v1/tasks/$id/status': typeof ApiV1TasksIdStatusRoute
@@ -536,7 +554,9 @@ export interface FileRouteTypes {
     | '/api/settings/api-keys/auto'
     | '/api/v1/projects/$id'
     | '/api/settings/api-keys/'
+    | '/api/v1/projects/$id/ac'
     | '/api/v1/projects/$id/kanban'
+    | '/api/v1/projects/$id/prd'
     | '/api/v1/projects/$id/tasks'
     | '/api/v1/subtasks/$id/status'
     | '/api/v1/tasks/$id/status'
@@ -589,7 +609,9 @@ export interface FileRouteTypes {
     | '/api/settings/api-keys/auto'
     | '/api/v1/projects/$id'
     | '/api/settings/api-keys'
+    | '/api/v1/projects/$id/ac'
     | '/api/v1/projects/$id/kanban'
+    | '/api/v1/projects/$id/prd'
     | '/api/v1/projects/$id/tasks'
     | '/api/v1/subtasks/$id/status'
     | '/api/v1/tasks/$id/status'
@@ -643,7 +665,9 @@ export interface FileRouteTypes {
     | '/api/settings/api-keys/auto'
     | '/api/v1/projects/$id'
     | '/api/settings/api-keys/'
+    | '/api/v1/projects/$id/ac'
     | '/api/v1/projects/$id/kanban'
+    | '/api/v1/projects/$id/prd'
     | '/api/v1/projects/$id/tasks'
     | '/api/v1/subtasks/$id/status'
     | '/api/v1/tasks/$id/status'
@@ -1031,11 +1055,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1ProjectsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/projects/$id/ac': {
+      id: '/api/v1/projects/$id/ac'
+      path: '/ac'
+      fullPath: '/api/v1/projects/$id/ac'
+      preLoaderRoute: typeof ApiV1ProjectsIdAcRouteImport
+      parentRoute: typeof ApiV1ProjectsIdRoute
+    }
     '/api/v1/projects/$id/kanban': {
       id: '/api/v1/projects/$id/kanban'
       path: '/kanban'
       fullPath: '/api/v1/projects/$id/kanban'
       preLoaderRoute: typeof ApiV1ProjectsIdKanbanRouteImport
+      parentRoute: typeof ApiV1ProjectsIdRoute
+    }
+    '/api/v1/projects/$id/prd': {
+      id: '/api/v1/projects/$id/prd'
+      path: '/prd'
+      fullPath: '/api/v1/projects/$id/prd'
+      preLoaderRoute: typeof ApiV1ProjectsIdPrdRouteImport
       parentRoute: typeof ApiV1ProjectsIdRoute
     }
     '/api/v1/projects/$id/tasks': {
@@ -1101,12 +1139,16 @@ const ApiProjectsIdRouteWithChildren = ApiProjectsIdRoute._addFileChildren(
 )
 
 interface ApiV1ProjectsIdRouteChildren {
+  ApiV1ProjectsIdAcRoute: typeof ApiV1ProjectsIdAcRoute
   ApiV1ProjectsIdKanbanRoute: typeof ApiV1ProjectsIdKanbanRoute
+  ApiV1ProjectsIdPrdRoute: typeof ApiV1ProjectsIdPrdRoute
   ApiV1ProjectsIdTasksRoute: typeof ApiV1ProjectsIdTasksRoute
 }
 
 const ApiV1ProjectsIdRouteChildren: ApiV1ProjectsIdRouteChildren = {
+  ApiV1ProjectsIdAcRoute: ApiV1ProjectsIdAcRoute,
   ApiV1ProjectsIdKanbanRoute: ApiV1ProjectsIdKanbanRoute,
+  ApiV1ProjectsIdPrdRoute: ApiV1ProjectsIdPrdRoute,
   ApiV1ProjectsIdTasksRoute: ApiV1ProjectsIdTasksRoute,
 }
 

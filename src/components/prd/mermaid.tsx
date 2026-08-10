@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useDeferredValue } from "react";
 import mermaid from "mermaid";
 import DOMPurify from "dompurify";
 import { useTheme } from "next-themes";
@@ -9,12 +9,32 @@ interface MermaidProps {
   chart: string;
 }
 
+// ponytail: initialize mermaid at module scope, not per-render.
+// Previously initialize() ran inside the render effect on every chart-delta
+// re-render (dozens of times per diagram while streaming) — redundant global
+// config churn on top of parse/render cost. Re-calling initialize() to switch
+// theme is idempotent and cheaper than the per-render parse/render it preceded.
+function ensureMermaidInit(theme: "dark" | "default") {
+  mermaid.initialize({
+    startOnLoad: false,
+    theme,
+    securityLevel: "loose",
+    logLevel: 4, // ERROR only - 0 = TRACE floods console
+  });
+}
+
 export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [svg, setSvg] = useState<string>("");
   const [hasError, setHasError] = useState(false);
   const renderIdRef = useRef(0);
   const { resolvedTheme } = useTheme();
+
+  // ponytail: defer chart parsing during streaming. useDeferredValue lets
+  // React batch rapid chart prop changes (per-token during PRD streaming) and
+  // only trigger a parse/render once the browser is idle — avoids dozens of
+  // invalid mid-stream mermaid.parse() calls that caused render lag.
+  const deferredChart = useDeferredValue(chart);
 
   useEffect(() => {
     let cancelled = false;
@@ -25,20 +45,16 @@ export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
         setHasError(false);
         setSvg("");
 
-        mermaid.initialize({
-          startOnLoad: false,
-          theme: resolvedTheme === "dark" ? "dark" : "default",
-          securityLevel: "loose",
-          logLevel: 4, // ERROR only - 0 = TRACE floods console
-        });
+        const theme = resolvedTheme === "dark" ? "dark" : "default";
+        ensureMermaidInit(theme);
 
-        if (!chart || !chart.trim()) {
+        if (!deferredChart || !deferredChart.trim()) {
           setHasError(true);
           return;
         }
 
         // ponytail: sanitize common AI mermaid syntax errors before parsing
-        let sanitizedChart = chart
+        let sanitizedChart = deferredChart
           // Fix unquoted special chars in graph labels: A[Text (note)] → A["Text (note)"]
           .replace(/([A-Za-z0-9_]+)\[([^\]"]*[(){}[\]][^\]"]*)\]/g, '$1["$2"]')
           // Remove duplicate arrows: A -->--> B → A --> B
@@ -63,7 +79,7 @@ export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
           // Chart not parseable (streaming / invalid). Show raw text.
           if (cancelled) return;
           setHasError(true);
-          const escaped = chart
+          const escaped = deferredChart
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
@@ -103,7 +119,7 @@ export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
         // Clean up SVG stubs mermaid may have injected
         document.querySelectorAll('svg[id^="dmermaid-"], svg[id^="mermaid-"], div[id^="dmermaid-"]').forEach((el) => el.remove());
 
-        const escaped = chart
+        const escaped = deferredChart
           .replace(/&/g, "&amp;")
           .replace(/</g, "&lt;")
           .replace(/>/g, "&gt;")
@@ -125,7 +141,7 @@ export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
     return () => {
       cancelled = true;
     };
-  }, [chart, resolvedTheme]);
+  }, [deferredChart, resolvedTheme]);
 
   if (!svg && !hasError) {
     return (

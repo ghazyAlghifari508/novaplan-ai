@@ -1,5 +1,6 @@
 import {
 	boolean,
+	index,
 	integer,
 	jsonb,
 	pgTable,
@@ -40,7 +41,9 @@ export const sessions = pgTable("sessions", {
 	userId: text("user_id")
 		.notNull()
 		.references(() => users.id, { onDelete: "cascade" }),
-});
+}, (t) => [
+	index("sessions_user_id_idx").on(t.userId),
+]);
 
 export const accounts = pgTable("accounts", {
 	id: text("id").primaryKey(),
@@ -58,7 +61,9 @@ export const accounts = pgTable("accounts", {
 	password: text("password"),
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 	updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+}, (t) => [
+	index("accounts_user_id_idx").on(t.userId),
+]);
 
 export const verifications = pgTable("verifications", {
 	id: text("id").primaryKey(),
@@ -83,7 +88,11 @@ export const subscriptions = pgTable("subscriptions", {
 	creditsUsed: integer("credits_used").notNull().default(0),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (t) => [
+	// Hot path: credits.ts getCreditBalance/consumeCredit query
+	// WHERE user_id = ? ORDER BY created_at DESC LIMIT 1
+	index("subscriptions_user_id_created_at_idx").on(t.userId, t.createdAt),
+]);
 
 // Quotas
 export const quotas = pgTable("quotas", {
@@ -97,7 +106,9 @@ export const quotas = pgTable("quotas", {
 	revisionLimit: integer("revision_limit").default(-1),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (t) => [
+	index("quotas_user_id_idx").on(t.userId),
+]);
 
 // Projects
 export const projects = pgTable("projects", {
@@ -116,7 +127,9 @@ export const projects = pgTable("projects", {
 	lastUrl: text("last_url"),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (t) => [
+	index("projects_user_id_idx").on(t.userId),
+]);
 
 // Prd Versions
 export const prdVersions = pgTable("prd_versions", {
@@ -128,7 +141,11 @@ export const prdVersions = pgTable("prd_versions", {
 	content: text("content").notNull(),
 	changeSummary: text("change_summary"),
 	createdAt: timestamp("created_at").defaultNow(),
-});
+}, (t) => [
+	// Hot path: prd-service getLatestPrdContent, prd/$id loader
+	// WHERE project_id = ? ORDER BY version DESC
+	index("prd_versions_project_id_version_idx").on(t.projectId, t.version),
+]);
 
 // Ac Versions
 export const acVersions = pgTable("ac_versions", {
@@ -140,7 +157,11 @@ export const acVersions = pgTable("ac_versions", {
 	content: text("content").notNull(),
 	changeSummary: text("change_summary"),
 	createdAt: timestamp("created_at").defaultNow(),
-});
+}, (t) => [
+	// Hot path: ac-service, kanban loader
+	// WHERE project_id = ? ORDER BY version DESC
+	index("ac_versions_project_id_version_idx").on(t.projectId, t.version),
+]);
 
 // Conversations
 export const conversations = pgTable("conversations", {
@@ -152,7 +173,12 @@ export const conversations = pgTable("conversations", {
 	title: text("title"),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (t) => [
+	index("conversations_user_id_idx").on(t.userId),
+	// Hot path: prd/$id loader
+	// WHERE project_id = ? ORDER BY created_at DESC LIMIT 1
+	index("conversations_project_id_created_at_idx").on(t.projectId, t.createdAt),
+]);
 
 // Messages
 export const messages = pgTable("messages", {
@@ -164,7 +190,11 @@ export const messages = pgTable("messages", {
 	content: text("content").notNull(),
 	metadata: jsonb("metadata"),
 	createdAt: timestamp("created_at").defaultNow(),
-});
+}, (t) => [
+	// Hot path: chat-service getConversationHistory, prd/$id loader
+	// WHERE conversation_id = ? ORDER BY created_at ASC
+	index("messages_conversation_id_created_at_idx").on(t.conversationId, t.createdAt),
+]);
 
 // Tasks
 export const tasks = pgTable("tasks", {
@@ -186,7 +216,11 @@ export const tasks = pgTable("tasks", {
 	completedAt: timestamp("completed_at"),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (t) => [
+	// Hot path: kanban, task-service, v1 API
+	// WHERE project_id = ? ORDER BY order ASC
+	index("tasks_project_id_order_idx").on(t.projectId, t.order),
+]);
 
 // Api Keys
 export const apiKeys = pgTable("api_keys", {
@@ -201,7 +235,9 @@ export const apiKeys = pgTable("api_keys", {
 	lastUsedAt: timestamp("last_used_at"),
 	createdAt: timestamp("created_at").defaultNow(),
 	expiresAt: timestamp("expires_at"),
-});
+}, (t) => [
+	index("api_keys_user_id_idx").on(t.userId),
+]);
 
 // Feedback
 export const feedback = pgTable("feedback", {
@@ -210,7 +246,9 @@ export const feedback = pgTable("feedback", {
 	message: text("message").notNull(),
 	type: text("type").default("general"),
 	createdAt: timestamp("created_at").defaultNow(),
-});
+}, (t) => [
+	index("feedback_user_id_idx").on(t.userId),
+]);
 
 // Error Reports
 export const errorReports = pgTable("error_reports", {
@@ -219,7 +257,9 @@ export const errorReports = pgTable("error_reports", {
 	errorMessage: text("error_message").notNull(),
 	context: text("context"),
 	createdAt: timestamp("created_at").defaultNow(),
-});
+}, (t) => [
+	index("error_reports_user_id_idx").on(t.userId),
+]);
 
 // Rate Limits (kustom selain Better Auth)
 export const rateLimits = pgTable("rate_limits", {
@@ -228,7 +268,9 @@ export const rateLimits = pgTable("rate_limits", {
 	action: text("action").notNull(),
 	windowStart: timestamp("window_start").notNull(),
 	count: integer("count").default(1),
-});
+}, (t) => [
+	index("rate_limits_user_id_action_idx").on(t.userId, t.action),
+]);
 
 // Notification Preferences
 export const notificationPreferences = pgTable("notification_preferences", {
@@ -258,4 +300,6 @@ export const payments = pgTable("payments", {
 	midtransResponse: jsonb("midtrans_response"),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (t) => [
+	index("payments_user_id_idx").on(t.userId),
+]);

@@ -17,7 +17,9 @@ const loadTask = createServerFn({ method: 'GET' })
   .handler(async ({ data: id }) => {
     const user = await requireUserServer()
     const [project, acContent, taskTree] = await Promise.all([
-      db.select().from(projects).where(and(eq(projects.id, id), eq(projects.userId, user.id))).limit(1),
+      // ponytail: select only needed cols — name + taskStatus used downstream.
+      // Avoids pulling description/shareToken/lastUrl jsonb on every Task page load.
+      db.select({ id: projects.id, name: projects.name, taskStatus: projects.taskStatus }).from(projects).where(and(eq(projects.id, id), eq(projects.userId, user.id))).limit(1),
       getLatestAcContent(id).catch(() => null),
       getTaskTree(id).catch(() => null),
     ])
