@@ -13,6 +13,19 @@ export const Route = createFileRoute("/api/projects/$id")({
         const { id: projectId } = params;
         if (!projectId) return Response.json({ error: "Project ID is required" }, { status: 400 });
 
+        // Ownership check MUST run before any child-row deletes. Deleting
+        // children first (old code) let an authenticated user wipe another
+        // user's data by sending their projectId - the owner check only
+        // fired on the parent delete, by which point the damage was done.
+        const [ownProject] = await db
+          .select({ id: projects.id })
+          .from(projects)
+          .where(and(eq(projects.id, projectId), eq(projects.userId, user.id)))
+          .limit(1);
+        if (!ownProject) {
+          return Response.json({ error: "Project not found" }, { status: 404 });
+        }
+
         // ponytail: delete children before parent. FKs lack ON DELETE CASCADE
         // (schema.ts), so skipping any leaves orphaned rows. Order matters:
         // messages→conversations first (messages FK conversations), then the
@@ -26,15 +39,8 @@ export const Route = createFileRoute("/api/projects/$id")({
         await db.delete(prdVersions).where(eq(prdVersions.projectId, projectId));
         await db.delete(acVersions).where(eq(acVersions.projectId, projectId));
         await db.delete(tasks).where(eq(tasks.projectId, projectId));
-
-        const deleted = await db.delete(projects).where(and(eq(projects.id, projectId), eq(projects.userId, user.id))).returning({ id: projects.id });
-        if (deleted.length) return Response.json({ success: true });
-        // ponytail: DELETE is idempotent - if the row is already gone (e.g. stale
-        // History card re-clicking delete), return 200 success rather than 404.
-        // Only 403 if the project exists but belongs to another user.
-        const [existing] = await db.select({ id: projects.id }).from(projects).where(eq(projects.id, projectId)).limit(1);
-        if (!existing) return Response.json({ success: true });
-        return Response.json({ error: "You do not own this project" }, { status: 403 });
+        await db.delete(projects).where(eq(projects.id, projectId));
+        return Response.json({ success: true });
       },
     },
   },

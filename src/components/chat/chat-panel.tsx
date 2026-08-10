@@ -672,7 +672,6 @@ export function ChatPanel({
 			currentSection,
 			onProjectCreated,
 			onPrdRevised,
-			onStreamContent,
 			projectId,
 			setCompletedSections,
 			setGeneratingPRD,
