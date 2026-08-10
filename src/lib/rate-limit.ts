@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { rateLimits } from "@/db/schema";
 import { RATE_LIMITS, RATE_LIMIT_WINDOW_MS } from "@/lib/constants";
 
-export type RateLimitAction = "ai_generate" | "ai_revise" | "api_call";
+export type RateLimitAction = "ai_generate" | "api_call";
 
 export async function checkRateLimit(
   userId: string,

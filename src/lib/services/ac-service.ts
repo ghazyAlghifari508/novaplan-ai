@@ -8,15 +8,14 @@ import { acVersions, projects } from "@/db/schema";
 import { advanceStep } from "@/lib/flow-progress";
 
 /**
- * Save AC version (generate or revise). Advances projects.step to 'ac' on
- * generate - but only forward: re-generating AC after Task is done must not
- * rewind step to 'ac' (that sent History back to the AC page).
+ * Save AC version. Advances projects.step to 'ac' — but only forward:
+ * re-generating AC after Task is done must not rewind step to 'ac'
+ * (that sent History back to the AC page).
  */
 export async function saveAcVersion(
   projectId: string,
   fullResponse: string,
   userMessage: string,
-  mode: "generate" | "revise",
 ): Promise<{ acVersionId: string; version: number }> {
   const [latest] = await db
     .select({ version: acVersions.version })
@@ -33,7 +32,7 @@ export async function saveAcVersion(
       projectId,
       version: nextVersion,
       content: fullResponse,
-      changeSummary: userMessage || (mode === "generate" ? "Initial AC generation" : "AC revision"),
+      changeSummary: userMessage || "Initial AC generation",
     })
     .returning({ id: acVersions.id })
     .catch(async (err: unknown): Promise<{ id: string }[]> => {
@@ -55,7 +54,7 @@ export async function saveAcVersion(
           projectId,
           version: nextVersion,
           content: fullResponse,
-          changeSummary: userMessage || (mode === "generate" ? "Initial AC generation" : "AC revision"),
+          changeSummary: userMessage || "Initial AC generation",
         })
         .returning({ id: acVersions.id });
     });
@@ -67,15 +66,13 @@ export async function saveAcVersion(
     acStatus: "completed",
     updatedAt: new Date(),
   };
-  if (mode === "generate") {
-    const [proj] = await db
-      .select({ step: projects.step })
-      .from(projects)
-      .where(eq(projects.id, projectId))
-      .limit(1);
-    const next = advanceStep(proj?.step, "ac");
-    if (next) updateData.step = next;
-  }
+  const [proj] = await db
+    .select({ step: projects.step })
+    .from(projects)
+    .where(eq(projects.id, projectId))
+    .limit(1);
+  const next = advanceStep(proj?.step, "ac");
+  if (next) updateData.step = next;
   await db.update(projects).set(updateData).where(eq(projects.id, projectId));
 
   return { acVersionId: insertedRow.id, version: nextVersion };

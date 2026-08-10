@@ -149,7 +149,6 @@ export const Route = createFileRoute("/api/ac/generate")({
 									projectId,
 									fullResponse,
 									"Initial AC generation",
-									"generate",
 								);
 								emit({ type: "done", acVersionId, version });
 								try {

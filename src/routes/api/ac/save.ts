@@ -42,7 +42,6 @@ export const Route = createFileRoute('/api/ac/save')({
             projectId,
             content,
             'Retry Simpan (recovery)',
-            'generate',
           )
           return Response.json({ acVersionId, version })
         } catch (err) {
