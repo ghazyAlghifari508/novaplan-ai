@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getRequestHeaders } from "@tanstack/react-start/server";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
 import { checkCredits, consumeCredit, hasFullWorkflow } from "@/lib/credits";
@@ -100,10 +100,17 @@ export const Route = createFileRoute("/api/task/generate")({
 						{ status: 404 },
 					);
 
-				await db
+				const claimed = await db
 					.update(projects)
 					.set({ taskStatus: "generating" })
-					.where(eq(projects.id, projectId));
+					.where(and(eq(projects.id, projectId), ne(projects.taskStatus, "generating")))
+					.returning({ id: projects.id });
+				if (!claimed.length) {
+					return Response.json(
+						{ error: "Task sedang digenerate. Tunggu hingga selesai." },
+						{ status: 409 },
+					);
+				}
 
 				const modelsToTry = selectModels(plan, model);
 				const systemPrompt = `${TASK_GENERATION_PROMPT}\n\n--- ACCEPTANCE CRITERIA ---\n${acMarkdown}`;
