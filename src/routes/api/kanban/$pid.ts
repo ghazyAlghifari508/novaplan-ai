@@ -17,7 +17,7 @@ interface TaskCard {
   dependencies: string[];
   startedAt: string | null;
   completedAt: string | null;
-  subtasks: Array<{ id: string; name: string; status: string }>;
+  subtasks: Array<{ name: string; status: string }>;
 }
 
 export const Route = createFileRoute("/api/kanban/$pid")({
@@ -50,7 +50,7 @@ export const Route = createFileRoute("/api/kanban/$pid")({
             dependencies: Array.isArray(t.dependencies) ? (t.dependencies as string[]) : [],
             startedAt: t.startedAt ? (t.startedAt as Date).toISOString() : null,
             completedAt: t.completedAt ? (t.completedAt as Date).toISOString() : null,
-            subtasks: sub.map((s) => ({ id: "", name: s.name as string, status: (s.status as string) ?? "pending" })),
+            subtasks: sub.map((s) => ({ name: s.name as string, status: (s.status as string) ?? "pending" })),
           };
           (columns[card.status] ?? columns.pending).push(card);
         }

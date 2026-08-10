@@ -168,7 +168,7 @@ export function KanbanCard({ card, colorIndex, highlighted = false }: KanbanCard
                 </div>
                 <ul className="space-y-2 bg-onyx/60 p-3 rounded-lg border border-graphite/50 max-h-56 overflow-y-auto custom-scrollbar">
                   {card.subtasks.map((sub, idx) => (
-                    <li key={sub.id || idx} className="flex items-start gap-2.5 text-xs p-1.5 rounded hover:bg-white/5 transition-colors">
+                    <li key={idx} className="flex items-start gap-2.5 text-xs p-1.5 rounded hover:bg-white/5 transition-colors">
                       <div className="mt-0.5 shrink-0">
                         {sub.status === "completed" ? (
                           <CheckSquare size={15} className="text-emerald" />
