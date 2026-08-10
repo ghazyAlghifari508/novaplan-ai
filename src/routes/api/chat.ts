@@ -344,6 +344,7 @@ export const Route = createFileRoute("/api/chat")({
 												"g",
 											);
 											if (sectionRegex.test(mergedPrd)) {
+												sectionRegex.lastIndex = 0;
 												mergedPrd = mergedPrd.replace(
 													sectionRegex,
 													`${openingTag}\n${newSectionContent}\n<!-- /SECTION -->`,
@@ -363,8 +364,11 @@ export const Route = createFileRoute("/api/chat")({
 												"Design & Technical Constraints",
 											];
 											const sectionIdx = ALL_SECTION_NAMES.indexOf(sectionName);
+											// Unknown/mismatched section name (e.g. numbered "1. Overview") — skip
+											// this update rather than falling through to a wildcard EOF match that
+											// would destroy the rest of the document.
+											if (sectionIdx === -1) continue;
 											const nextSection =
-												sectionIdx >= 0 &&
 												sectionIdx < ALL_SECTION_NAMES.length - 1
 													? ALL_SECTION_NAMES[sectionIdx + 1]
 													: null;
@@ -376,6 +380,7 @@ export const Route = createFileRoute("/api/chat")({
 												"g",
 											);
 											if (sectionRegex.test(mergedPrd)) {
+												sectionRegex.lastIndex = 0;
 												const endMarker = nextSection
 													? `\n\n<!-- SECTION: ${nextSection} -->`
 													: "";
