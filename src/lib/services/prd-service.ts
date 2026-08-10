@@ -157,6 +157,26 @@ export async function savePrdVersion(
     content: fullResponse,
     changeSummary:
       mode === "generate" ? "Initial PRD generation" : `${userMessage.substring(0, 50)}...`,
+  }).catch(async (err: unknown) => {
+    // unique (project_id, version) violation — another writer took this number.
+    // re-read the new max and retry once.
+    const msg = err instanceof Error ? err.message : String(err);
+    if (!msg.includes("23505")) throw err;
+    const [latest] = await db
+      .select({ version: prdVersions.version })
+      .from(prdVersions)
+      .where(eq(prdVersions.projectId, projectId))
+      .orderBy(desc(prdVersions.version))
+      .limit(1);
+    nextVersion = (latest?.version ?? nextVersion) + 1;
+    await db.insert(prdVersions).values({
+      id: crypto.randomUUID(),
+      projectId,
+      version: nextVersion,
+      content: fullResponse,
+      changeSummary:
+        mode === "generate" ? "Initial PRD generation" : `${userMessage.substring(0, 50)}...`,
+    });
   });
 
   await db.update(projects).set({ status: "completed", updatedAt: new Date() }).where(eq(projects.id, projectId));

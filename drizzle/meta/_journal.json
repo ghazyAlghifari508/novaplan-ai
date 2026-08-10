@@ -50,6 +50,13 @@
       "when": 1786328741927,
       "tag": "0006_melodic_ikaris",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1786402819058,
+      "tag": "0007_conscious_epoch",
+      "breakpoints": true
     }
   ]
 }

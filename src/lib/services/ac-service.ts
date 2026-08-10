@@ -24,9 +24,9 @@ export async function saveAcVersion(
     .where(eq(acVersions.projectId, projectId))
     .orderBy(desc(acVersions.version))
     .limit(1);
-  const nextVersion = latest ? latest.version + 1 : 1;
+  let nextVersion = latest ? latest.version + 1 : 1;
 
-  const [inserted] = await db
+  let inserted = await db
     .insert(acVersions)
     .values({
       id: crypto.randomUUID(),
@@ -35,9 +35,33 @@ export async function saveAcVersion(
       content: fullResponse,
       changeSummary: userMessage || (mode === "generate" ? "Initial AC generation" : "AC revision"),
     })
-    .returning({ id: acVersions.id });
+    .returning({ id: acVersions.id })
+    .catch(async (err: unknown): Promise<{ id: string }[]> => {
+      // unique (project_id, version) violation — another writer took this number.
+      // re-read the new max and retry once.
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!msg.includes("23505")) throw err;
+      const [r] = await db
+        .select({ version: acVersions.version })
+        .from(acVersions)
+        .where(eq(acVersions.projectId, projectId))
+        .orderBy(desc(acVersions.version))
+        .limit(1);
+      nextVersion = (r?.version ?? nextVersion) + 1;
+      return db
+        .insert(acVersions)
+        .values({
+          id: crypto.randomUUID(),
+          projectId,
+          version: nextVersion,
+          content: fullResponse,
+          changeSummary: userMessage || (mode === "generate" ? "Initial AC generation" : "AC revision"),
+        })
+        .returning({ id: acVersions.id });
+    });
 
-  if (!inserted) throw new Error("Failed to insert AC version");
+  if (!inserted || !inserted.length) throw new Error("Failed to insert AC version");
+  const insertedRow = inserted[0];
 
   const updateData: { acStatus: string; updatedAt: Date; step?: string } = {
     acStatus: "completed",
@@ -54,7 +78,7 @@ export async function saveAcVersion(
   }
   await db.update(projects).set(updateData).where(eq(projects.id, projectId));
 
-  return { acVersionId: inserted.id, version: nextVersion };
+  return { acVersionId: insertedRow.id, version: nextVersion };
 }
 
 export async function getLatestAcContent(projectId: string): Promise<string | null> {

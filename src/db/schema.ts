@@ -6,6 +6,7 @@ import {
 	pgTable,
 	text,
 	timestamp,
+	uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 // === TABLES ===
@@ -144,7 +145,8 @@ export const prdVersions = pgTable("prd_versions", {
 }, (t) => [
 	// Hot path: prd-service getLatestPrdContent, prd/$id loader
 	// WHERE project_id = ? ORDER BY version DESC
-	index("prd_versions_project_id_version_idx").on(t.projectId, t.version),
+	// unique: two concurrent revisions cannot both insert the same version
+	uniqueIndex("prd_versions_project_id_version_idx").on(t.projectId, t.version),
 ]);
 
 // Ac Versions
@@ -160,7 +162,8 @@ export const acVersions = pgTable("ac_versions", {
 }, (t) => [
 	// Hot path: ac-service, kanban loader
 	// WHERE project_id = ? ORDER BY version DESC
-	index("ac_versions_project_id_version_idx").on(t.projectId, t.version),
+	// unique: two concurrent revisions cannot both insert the same version
+	uniqueIndex("ac_versions_project_id_version_idx").on(t.projectId, t.version),
 ]);
 
 // Conversations
