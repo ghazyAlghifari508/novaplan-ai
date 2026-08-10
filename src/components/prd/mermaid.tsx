@@ -106,11 +106,14 @@ export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
           throw new Error("Empty SVG rendered");
         }
 
-        // ponytail: Mermaid uses <foreignObject> for HTML labels. DOMPurify
-        // strips the HTML content inside foreignObject (body, span, div) with
-        // default config - skip DOMPurify since mermaid's securityLevel: "loose"
-        // already prevents XSS. The SVG only contains diagram markup.
-        setSvg(renderSvg);
+        // ponytail: mermaid "loose" emits raw <foreignObject> HTML labels. The SVG is
+        // diagram markup, but sanitize it anyway — labels may carry markup derived
+        // from AI/user input and dangerouslySetInnerHTML trusts us completely.
+        setSvg(
+          DOMPurify.sanitize(renderSvg, {
+            USE_PROFILES: { svg: true, svgFilters: true },
+          }),
+        );
         setHasError(false);
       } catch {
         if (cancelled) return;
