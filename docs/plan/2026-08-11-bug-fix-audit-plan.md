@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Fix all verified bugs found in the NovaPlan deep-audit — 2 CRITICAL, 6 HIGH, 8 MEDIUM, 6 LOW — plus 4 failing unit tests, with minimal diffs and no feature expansion.
+**Goal:** Fix all verified bugs found in the NovaPlan deep-audit — 1 CRITICAL, 6 HIGH, 7 MEDIUM, 6 LOW — plus 4 failing unit tests, with minimal diffs and no feature expansion. (Note: 1 original CRITICAL [AC revision no-op] resolved by removing the feature entirely — `src/routes/api/ac/revise.ts` deleted.)*
 
 **Architecture:** NovaPlan is full-stack TanStack Start (file-based routes under `src/routes/`, SSR). Server-side handlers enforce auth/ownership; client components stream SSE and update Zustand stores. The core flow is ask → PRD → AC → task → kanban with credit-based billing (free/pro/hengker, one-time IDR purchase via Midtrans). This plan fixes bugs in that flow without redesigning it.
 
@@ -24,26 +24,25 @@
 | # | Severity | Bug | Fix location |
 |---|----------|-----|--------------|
 | 1 | CRITICAL | IDOR DELETE project — child rows deleted without ownership check | `src/routes/api/projects/$id.ts` |
-| 2 | CRITICAL | AC revision merge is a silent no-op (`### Feature:` regex never matches) | `src/routes/api/ac/revise.ts` |
-| 3 | HIGH | Rate limit `checkRateLimit` never paired with `recordRequest` in 4 routes | `src/routes/api/ac/generate.ts`, `ac/revise.ts`, `ask/options.ts`, `task/generate.ts` |
-| 4 | HIGH | Double-credit on concurrent webhook — `applyPaymentSuccess` non-atomic | `src/lib/services/payment-service.ts` |
-| 5 | HIGH | PRD generation missing AbortSignal — server streams on after client disconnect | `src/routes/api/chat.ts:239` |
-| 6 | HIGH | PRD/AC version race — read-then-increment without transaction or unique index | `src/lib/services/prd-service.ts`, `src/lib/services/ac-service.ts`, schema |
-| 7 | HIGH | `saveTaskTree` + project DELETE not in a transaction — partial state on failure | `src/lib/services/task-service.ts`, `src/routes/api/projects/$id.ts` |
-| 8 | HIGH | PRD generate without truncation guard — partial PRD persisted + credit burned | `src/routes/api/chat.ts` |
-| 9 | MEDIUM | Concurrent AC/task generation → double credit + version collision | `src/routes/api/ac/generate.ts`, `src/routes/api/task/generate.ts` |
-| 10 | MEDIUM | PRD revise fallback regex can destroy document tail when section name mismatches | `src/routes/api/chat.ts` (revise merge) |
-| 11 | MEDIUM | `isGeneratingPRD` stuck true when stream ends without done/error | `src/components/chat/chat-panel.tsx:659` |
-| 12 | MEDIUM | Mermaid `securityLevel: "loose"` + `dangerouslySetInnerHTML` XSS surface | `src/components/prd/mermaid.tsx` |
-| 13 | MEDIUM | Share link is feature-gated only client-side; server grants token to all plans | `src/lib/services/prd-service.ts`, `src/routes/prd/share/$token.tsx` |
-| 14 | MEDIUM | Credit burned after save, error on consumeCredit is swallowed — misleading error | `src/routes/api/chat.ts:394` |
-| 15 | MEDIUM | 4 unit tests fail (stale expectations) | `src/lib/prompt-depth.test.ts`, `src/types/database.test.ts` |
-| 16 | LOW | Dead types + dead store quota fields | `src/types/database.ts`, `src/store/index.ts` |
-| 17 | LOW | Kanban subtask `id: ""` always empty | `src/routes/api/kanban/$pid.ts` |
-| 18 | LOW | PRD draft overwritten across projects (single sessionStorage key) | `src/lib/prompt-handoff.ts` |
-| 19 | LOW | `useParams` next-compat shim broken | `src/lib/next-compat/navigation.tsx` |
-| 20 | LOW | Typing placeholder runs high-frequency timers indefinitely | `src/hooks/use-typing-placeholder.ts` |
-| 21 | LOW | API key accepted from request body (log-exposure surface) | `src/routes/api/kanban/update-status.ts` |
+| 2 | HIGH | Rate limit `checkRateLimit` never paired with `recordRequest` in 4 routes | `src/routes/api/ac/generate.ts`, `ask/options.ts`, `task/generate.ts` |
+| 3 | HIGH | Double-credit on concurrent webhook — `applyPaymentSuccess` non-atomic | `src/lib/services/payment-service.ts` |
+| 4 | HIGH | PRD generation missing AbortSignal — server streams on after client disconnect | `src/routes/api/chat.ts:239` |
+| 5 | HIGH | PRD/AC version race — read-then-increment without transaction or unique index | `src/lib/services/prd-service.ts`, `src/lib/services/ac-service.ts`, schema |
+| 6 | HIGH | `saveTaskTree` + project DELETE not in a transaction — partial state on failure | `src/lib/services/task-service.ts`, `src/routes/api/projects/$id.ts` |
+| 7 | HIGH | PRD generate without truncation guard — partial PRD persisted + credit burned | `src/routes/api/chat.ts` |
+| 8 | MEDIUM | Concurrent AC/task generation → double credit + version collision | `src/routes/api/ac/generate.ts`, `src/routes/api/task/generate.ts` |
+| 9 | MEDIUM | PRD revise fallback regex can destroy document tail when section name mismatches | `src/routes/api/chat.ts` (revise merge) |
+| 10 | MEDIUM | `isGeneratingPRD` stuck true when stream ends without done/error | `src/components/chat/chat-panel.tsx:659` |
+| 11 | MEDIUM | Mermaid `securityLevel: "loose"` + `dangerouslySetInnerHTML` XSS surface | `src/components/prd/mermaid.tsx` |
+| 12 | MEDIUM | Share link is feature-gated only client-side; server grants token to all plans | `src/lib/services/prd-service.ts`, `src/routes/prd/share/$token.tsx` |
+| 13 | MEDIUM | Credit burned after save, error on consumeCredit is swallowed — misleading error | `src/routes/api/chat.ts:394` |
+| 14 | MEDIUM | 4 unit tests fail (stale expectations) | `src/lib/prompt-depth.test.ts`, `src/types/database.test.ts` |
+| 15 | LOW | Dead types + dead store quota fields | `src/types/database.ts`, `src/store/index.ts` |
+| 16 | LOW | Kanban subtask `id: ""` always empty | `src/routes/api/kanban/$pid.ts` |
+| 17 | LOW | PRD draft overwritten across projects (single sessionStorage key) | `src/lib/prompt-handoff.ts` |
+| 18 | LOW | `useParams` next-compat shim broken | `src/lib/next-compat/navigation.tsx` |
+| 19 | LOW | Typing placeholder runs high-frequency timers indefinitely | `src/hooks/use-typing-placeholder.ts` |
+| 20 | LOW | API key accepted from request body (log-exposure surface) | `src/routes/api/kanban/update-status.ts` |
 
 ---
 
@@ -109,230 +108,7 @@ git commit -m "fix(security): check project ownership before deleting children (
 
 ---
 
-### Task 2: Fix AC revision merge — match the real AC heading format
-
-**Files:**
-- Modify: `src/routes/api/ac/revise.ts`
-- Create: `src/lib/services/ac-revise-merge.ts`
-- Test: `src/lib/services/ac-revise-merge.test.ts`
-
-**Interfaces:**
-- Consumes: `AC_REVISION_PROMPT` from `@/lib/prompts-ac`, `saveAcVersion` from `@/lib/services/ac-service`
-- Produces: `mergeAcRevision(current: string, revisionOutput: string): { merged: string; count: number }` — merged AC markdown where the model's `:::UPDATE_SECTION[<Name>]:::` content replaces the matching `## <Name>` feature section.
-
-**Root cause:** the server merges revisions by matching `### Feature: <name>` headings (`revise.ts:139`), but the generation prompt (`prompts-ac.ts:21`) produces `## [Nama Fitur per urutan PRD]` (h2 with the raw feature name) and per-AC `### AC-N.M` subheadings. The regex never matches, so every AC revision silently saves the unchanged document as a new version.
-
-- [ ] **Step 1: Write the failing unit test**
-
-Create: `src/lib/services/ac-revise-merge.test.ts`
-
-```typescript
-import { describe, expect, it } from "vitest";
-import { mergeAcRevision } from "@/lib/services/ac-revise-merge";
-
-describe("mergeAcRevision", () => {
-  const current = `# Acceptance Criteria - Demo
-
-## Authentication
-
-### AC-1.1 Login
-
-User must log in with email.
-
-## Billing
-
-### AC-2.1 Invoice
-
-Invoice is generated.
-`;
-
-  it("replaces the named feature section content", () => {
-    const revised = `Baik, revisi fitur Auth diterapkan.
-
-:::UPDATE_SECTION[Authentication]:::
-## Authentication
-
-### AC-1.1 Login
-
-OTP required for login.
-
-:::END_UPDATE:::
-`;
-
-    const { merged, count } = mergeAcRevision(current, revised);
-    expect(count).toBe(1);
-    expect(merged).toContain("## Authentication");
-    expect(merged).toContain("OTP required for login.");
-    expect(merged).not.toContain("User must log in with email.");
-    expect(merged).toContain("## Billing");
-  });
-
-  it("returns the untouched document when no marker is present", () => {
-    const revised = "No markers here, just prose.";
-    const { merged, count } = mergeAcRevision(current, revised);
-    expect(count).toBe(0);
-    expect(merged).toBe(current);
-  });
-
-  it("appends an unknown section instead of silently dropping the revision", () => {
-    const revised = `:::UPDATE_SECTION[Notifications]:::\n## Notifications\n\nNew feature.\n:::END_UPDATE:::`;
-    const { merged, count } = mergeAcRevision(current, revised);
-    expect(count).toBe(1);
-    expect(merged).toContain("## Notifications");
-    expect(merged).toContain("New feature.");
-    expect(merged).toContain("## Authentication");
-    expect(merged).toContain("## Billing");
-  });
-});
-```
-
-- [ ] **Step 2: Run test to verify it fails**
-
-Run: `npx vitest run src/lib/services/ac-revise-merge.test.ts`
-Expected: FAIL — cannot find module `@/lib/services/ac-revise-merge`.
-
-- [ ] **Step 3: Create the pure merge module**
-
-Create: `src/lib/services/ac-revise-merge.ts`
-
-A pure function (no DB) so it is testable and reusable. Strategy: split the current AC into sections at `## ` headings, and replace the section matching the update marker; if no marker matches an existing section, append the model's content as a new section (never silently discard — matching the existing "revision must not be lost" intent).
-
-```typescript
-/**
- * Merge AC revision markers back into the current AC markdown.
- *
- * The AC document's top-level feature sections are `## <Feature Name>` (h2),
- * NOT `### Feature:` — the old merge regex matched a heading the prompts never
- * produce, silently saving the unchanged document as a new version.
- * Pure function so the parse/merge logic is unit-testable.
- */
-export function mergeAcRevision(
-  current: string,
-  revisionOutput: string,
-): { merged: string; count: number } {
-  const updates: Array<{ name: string; content: string }> = [];
-  const markerRe =
-    /:::UPDATE_SECTION\[(.+?)\]:::\s*([\s\S]*?)(?=\n:::UPDATE_SECTION\[|$)/g;
-  let m: RegExpExecArray | null;
-  while ((m = markerRe.exec(revisionOutput)) !== null) {
-    const name = m[1].trim();
-    const content = m[2].replace(/:::END_UPDATE:::\s*$/, "").trim();
-    if (name && content) updates.push({ name, content });
-  }
-  if (updates.length === 0) return { merged: current, count: 0 };
-
-  // Locate `## <Name>` section ranges in the current doc.
-  const headingRe = /^##\s+(.+?)\s*$/gm;
-  const starts: Array<{ start: number; header: string }> = [];
-  let hm: RegExpExecArray | null;
-  while ((hm = headingRe.exec(current)) !== null) {
-    starts.push({ start: hm.index, header: hm[1].trim() });
-  }
-  const ranges = starts.map((s, i) => ({
-    header: s.header,
-    start: s.start,
-    end: i < starts.length - 1 ? starts[i + 1].start : current.length,
-  }));
-
-  let merged = current;
-  let count = 0;
-
-  for (const upd of updates) {
-    const target = ranges.find(
-      (r) =>
-        r.header.toLowerCase() === upd.name.toLowerCase() ||
-        r.header.replace(/^\d+[.)\s]+/, "").toLowerCase() ===
-          upd.name.toLowerCase(),
-    );
-    if (!target) {
-      merged = `${merged.replace(/\s*$/, "\n\n")}## ${upd.name}\n\n${upd.content}\n`;
-      count++;
-      continue;
-    }
-    // Re-find the target range against the CURRENT `merged` string in case an
-    // earlier update in this loop already shifted offsets — offsets computed
-    // against `current`, so only apply the first N matches against the
-    // original text, then recompute for subsequent edits on unmodified tails.
-    const before = current.slice(0, target.start);
-    const after = current.slice(target.end);
-    const replaced = `${before}## ${target.header}\n\n${upd.content}\n\n${after}`;
-    // Apply this single-section replacement against `merged` by locating the
-    // same original header text (safe because headers are unique in the doc).
-    const headerNeedle = `## ${target.header}`;
-    const idx = merged.indexOf(headerNeedle);
-    if (idx === -1) {
-      // Section already replaced by an earlier update in this loop and its
-      // header text changed — skip rather than corrupt the document.
-      continue;
-    }
-    const nextHeaderMatch = /\n##\s+/.exec(merged.slice(idx + headerNeedle.length));
-    const sectionEnd =
-      nextHeaderMatch && nextHeaderMatch.index !== undefined
-        ? idx + headerNeedle.length + nextHeaderMatch.index + 1
-        : merged.length;
-    merged = `${merged.slice(0, idx)}## ${target.header}\n\n${upd.content}\n\n${merged.slice(sectionEnd)}`;
-    count++;
-    void replaced; // computed for clarity/debugging parity with the offset-based approach above
-  }
-
-  return { merged, count };
-}
-```
-
-- [ ] **Step 4: Run test to verify it passes**
-
-Run: `npx vitest run src/lib/services/ac-revise-merge.test.ts`
-Expected: 3 passed.
-
-- [ ] **Step 5: Wire the new module into the revise route**
-
-In `src/routes/api/ac/revise.ts`, replace the inline `while` / regex block inside `safeDone` (currently building `patchedMarkdown` via the `### Feature:` regex) with:
-
-```typescript
-eventDone = true;
-try {
-  const { merged: patchedMarkdown, count } = mergeAcRevision(
-    latestAcMarkdown,
-    fullResponse,
-  );
-  // If no marker matched at all and the model emitted a full-document
-  // response instead of :::UPDATE_SECTION blocks, save its output directly
-  // rather than silently keeping the old content.
-  const finalContent =
-    count === 0 && fullResponse.trim().startsWith("#")
-      ? fullResponse
-      : patchedMarkdown;
-
-  const { acVersionId, version } = await saveAcVersion(
-    projectId,
-    finalContent,
-    message,
-    "revise",
-  );
-```
-
-Add the import at the top of `revise.ts`: `import { mergeAcRevision } from "@/lib/services/ac-revise-merge";`
-
-Leave the rest of `safeDone` (the `messages` insert + `emit({ type: "done", ... })`) unchanged.
-
-- [ ] **Step 6: Verify types + full test suite**
-
-Run: `npx tsc --noEmit`
-Expected: 0 errors.
-
-Run: `npx vitest run`
-Expected: no new failures introduced (the pre-existing 4 stale-test failures are fixed separately in Task 15).
-
-- [ ] **Step 7: Commit**
-
-```bash
-git add src/lib/services/ac-revise-merge.ts src/lib/services/ac-revise-merge.test.ts src/routes/api/ac/revise.ts
-git commit -m "fix(ac): repair revision merge to match the real ## heading format"
-```
-
----
-
-### Task 3: Pair `recordRequest` with every `checkRateLimit` call
+### Task 2: Pair `recordRequest` with every `checkRateLimit` call
 
 **Files:**
 - Modify: `src/routes/api/ac/generate.ts`, `src/routes/api/ac/revise.ts`, `src/routes/api/ask/options.ts`, `src/routes/api/task/generate.ts`
@@ -380,7 +156,7 @@ git commit -m "fix(rate-limit): recordRequest in ac/revise/ask/task routes — l
 
 ---
 
-### Task 4: Make credit granting atomic — prevent double credit on concurrent webhook
+### Task 3: Make credit granting atomic — prevent double credit on concurrent webhook
 
 **Files:**
 - Modify: `src/lib/services/payment-service.ts`
@@ -519,7 +295,7 @@ git commit -m "fix(payments): atomic credit grant under concurrent webhooks (row
 
 ---
 
-### Task 5: Wire PRD generation abort — pass `request.signal` to the stream
+### Task 4: Wire PRD generation abort — pass `request.signal` to the stream
 
 **Files:**
 - Modify: `src/routes/api/chat.ts`
@@ -564,7 +340,7 @@ git commit -m "fix(streaming): pass AbortSignal to PRD generation — stop serve
 
 ---
 
-### Task 6: Unique constraint + retry-on-conflict for PRD/AC version writes
+### Task 5: Unique constraint + retry-on-conflict for PRD/AC version writes
 
 **Files:**
 - Modify: `src/db/schema.ts`, `src/lib/services/prd-service.ts`, `src/lib/services/ac-service.ts`
@@ -686,7 +462,7 @@ git commit -m "fix(db): unique (project_id, version) + retry-on-conflict version
 
 ---
 
-### Task 7: Wrap `saveTaskTree` and project DELETE in transactions
+### Task 6: Wrap `saveTaskTree` and project DELETE in transactions
 
 **Files:**
 - Modify: `src/lib/services/task-service.ts`, `src/routes/api/projects/$id.ts`
@@ -789,7 +565,7 @@ git commit -m "fix(db): transactional task-tree replace and project delete"
 
 ---
 
-### Task 8: Add truncation guard to PRD generation
+### Task 7: Add truncation guard to PRD generation
 
 **Files:**
 - Modify: `src/routes/api/chat.ts`
@@ -802,7 +578,7 @@ git commit -m "fix(db): transactional task-tree replace and project delete"
 
 - [ ] **Step 1: Capture the outcome**
 
-In `src/routes/api/chat.ts` (same call site touched in Task 5), destructure `outcome` too:
+In `src/routes/api/chat.ts` (same call site touched in Task 4), destructure `outcome` too:
 
 ```typescript
 const { generator, firstChunk, outcome } = await tryStreamWithFallback(
@@ -863,7 +639,7 @@ git commit -m "fix(prd): reject truncated generation — don't persist partial P
 
 ---
 
-### Task 9: Dedup concurrent AC/Task generation per project
+### Task 8: Dedup concurrent AC/Task generation per project
 
 **Files:**
 - Modify: `src/routes/api/ac/generate.ts`, `src/routes/api/task/generate.ts`
@@ -933,7 +709,7 @@ git commit -m "fix(gen): reject concurrent generate per project — prevent doub
 
 ---
 
-### Task 10: Make PRD revise fallback regex safe against section-name mismatch
+### Task 9: Make PRD revise fallback regex safe against section-name mismatch
 
 **Files:**
 - Modify: `src/routes/api/chat.ts`
@@ -1007,7 +783,7 @@ git commit -m "fix(prd-revise): never match to EOF on unknown section name"
 
 ---
 
-### Task 11: Clear `isGeneratingPRD` when a stream ends without done/error
+### Task 10: Clear `isGeneratingPRD` when a stream ends without done/error
 
 **Files:**
 - Modify: `src/components/chat/chat-panel.tsx`
@@ -1084,7 +860,7 @@ git commit -m "fix(chat): clear isGeneratingPRD when stream ends without done/er
 
 ---
 
-### Task 12: Harden Mermaid — sanitize rendered SVG before DOM injection
+### Task 11: Harden Mermaid — sanitize rendered SVG before DOM injection
 
 **Files:**
 - Modify: `src/components/prd/mermaid.tsx`
@@ -1136,7 +912,7 @@ git commit -m "fix(security): sanitize mermaid SVG before dangerouslySetInnerHTM
 
 ---
 
-### Task 13: Enforce share-link plan gate server-side
+### Task 12: Enforce share-link plan gate server-side
 
 **Files:**
 - Modify: `src/lib/services/prd-service.ts`, `src/routes/api/chat.ts`, `src/routes/prd/share/$token.tsx`
@@ -1242,7 +1018,7 @@ git commit -m "fix(share): gate share-token minting + read route by current plan
 
 ---
 
-### Task 14: Surface credit-burn failure honestly instead of a misleading error
+### Task 13: Surface credit-burn failure honestly instead of a misleading error
 
 **Files:**
 - Modify: `src/routes/api/chat.ts`
@@ -1310,7 +1086,7 @@ git commit -m "fix(credit): surface burn failure honestly instead of misleading 
 
 ---
 
-### Task 15: Fix the 4 stale failing unit tests
+### Task 14: Fix the 4 stale failing unit tests
 
 **Files:**
 - Modify: `src/lib/prompt-depth.test.ts`, `src/types/database.test.ts`
@@ -1374,7 +1150,7 @@ git commit -m "test: align stale expectations with current pricing + adaptive-de
 
 ---
 
-### Task 16: Remove dead types and dead store quota fields
+### Task 15: Remove dead types and dead store quota fields
 
 **Files:**
 - Modify: `src/types/database.ts`, `src/store/index.ts`
@@ -1408,7 +1184,7 @@ Run: `npx tsc --noEmit`
 Expected: 0 errors.
 
 Run: `npx vitest run`
-Expected: 0 failures (same count as after Task 15).
+Expected: 0 failures (same count as after Task 14).
 
 - [ ] **Step 5: Commit**
 
@@ -1419,7 +1195,7 @@ git commit -m "chore: remove dead types and unused store quota fields"
 
 ---
 
-### Task 17: Remove the fake empty subtask id from the kanban response
+### Task 16: Remove the fake empty subtask id from the kanban response
 
 **Files:**
 - Modify: `src/routes/api/kanban/$pid.ts`, `src/hooks/use-kanban-polling.ts`
@@ -1464,7 +1240,7 @@ git commit -m "fix(kanban): remove fake subtask id — key by index client-side"
 
 ---
 
-### Task 18: Key the PRD draft per project instead of one shared slot
+### Task 17: Key the PRD draft per project instead of one shared slot
 
 **Files:**
 - Modify: `src/lib/prompt-handoff.ts`
@@ -1537,7 +1313,7 @@ git commit -m "fix(prompt): store PRD drafts per-project instead of one shared s
 
 ---
 
-### Task 19: Fix the `useParams` compat shim
+### Task 18: Fix the `useParams` compat shim
 
 **Files:**
 - Modify: `src/lib/next-compat/navigation.tsx`
@@ -1590,7 +1366,7 @@ git commit -m "fix(shim): useParams returns route params, not a pathname cast"
 
 ---
 
-### Task 20: Pause the home-page typing placeholder when the tab is hidden
+### Task 19: Pause the home-page typing placeholder when the tab is hidden
 
 **Files:**
 - Modify: `src/hooks/use-typing-placeholder.ts`
@@ -1674,7 +1450,7 @@ git commit -m "fix(perf): pause typing placeholder timers when tab hidden"
 
 ---
 
-### Task 21: Require the Authorization header for kanban update-status — drop body fallback
+### Task 20: Require the Authorization header for kanban update-status — drop body fallback
 
 **Files:**
 - Modify: `src/routes/api/kanban/update-status.ts`
@@ -1734,9 +1510,9 @@ git commit -m "fix(security): require Bearer header for kanban API key — drop 
 
 Push after each block completes:
 
-1. **Block 1 — CRITICAL:** Tasks 1-2. `git push`.
-2. **Block 2 — HIGH:** Tasks 3-8. `git push`.
-3. **Block 3 — MEDIUM:** Tasks 9-15. `git push`.
-4. **Block 4 — LOW:** Tasks 16-21. `git push`.
+1. **Block 1 — CRITICAL:** Task 1. `git push`.
+2. **Block 2 — HIGH:** Tasks 2-7. `git push`.
+3. **Block 3 — MEDIUM:** Tasks 8-14. `git push`.
+4. **Block 4 — LOW:** Tasks 15-20. `git push`.
 
 Each task is independently verifiable (`npx tsc --noEmit`, `npx vitest run`) and commits on its own. Do not combine tasks into one commit — every change is scoped to one verified bug so a bad fix can be reverted without losing the others.

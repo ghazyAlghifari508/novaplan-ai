@@ -35,7 +35,6 @@ import { Route as SettingsNotificationsRouteImport } from './routes/settings/not
 import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
 import { Route as TaskIdRouteImport } from './routes/task/$id'
 import { Route as ApiAcGenerateRouteImport } from './routes/api/ac/generate'
-import { Route as ApiAcReviseRouteImport } from './routes/api/ac/revise'
 import { Route as ApiAcSaveRouteImport } from './routes/api/ac/save'
 import { Route as ApiAskOptionsRouteImport } from './routes/api/ask/options'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -192,11 +191,6 @@ const TaskIdRoute = TaskIdRouteImport.update({
 const ApiAcGenerateRoute = ApiAcGenerateRouteImport.update({
   id: '/api/ac/generate',
   path: '/api/ac/generate',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAcReviseRoute = ApiAcReviseRouteImport.update({
-  id: '/api/ac/revise',
-  path: '/api/ac/revise',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAcSaveRoute = ApiAcSaveRouteImport.update({
@@ -362,7 +356,6 @@ export interface FileRoutesByFullPath {
   '/task/$id': typeof TaskIdRoute
   '/settings/': typeof SettingsIndexRoute
   '/api/ac/generate': typeof ApiAcGenerateRoute
-  '/api/ac/revise': typeof ApiAcReviseRoute
   '/api/ac/save': typeof ApiAcSaveRoute
   '/api/ask/options': typeof ApiAskOptionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -417,7 +410,6 @@ export interface FileRoutesByTo {
   '/task/$id': typeof TaskIdRoute
   '/settings': typeof SettingsIndexRoute
   '/api/ac/generate': typeof ApiAcGenerateRoute
-  '/api/ac/revise': typeof ApiAcReviseRoute
   '/api/ac/save': typeof ApiAcSaveRoute
   '/api/ask/options': typeof ApiAskOptionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -474,7 +466,6 @@ export interface FileRoutesById {
   '/task/$id': typeof TaskIdRoute
   '/settings/': typeof SettingsIndexRoute
   '/api/ac/generate': typeof ApiAcGenerateRoute
-  '/api/ac/revise': typeof ApiAcReviseRoute
   '/api/ac/save': typeof ApiAcSaveRoute
   '/api/ask/options': typeof ApiAskOptionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -532,7 +523,6 @@ export interface FileRouteTypes {
     | '/task/$id'
     | '/settings/'
     | '/api/ac/generate'
-    | '/api/ac/revise'
     | '/api/ac/save'
     | '/api/ask/options'
     | '/api/auth/$'
@@ -587,7 +577,6 @@ export interface FileRouteTypes {
     | '/task/$id'
     | '/settings'
     | '/api/ac/generate'
-    | '/api/ac/revise'
     | '/api/ac/save'
     | '/api/ask/options'
     | '/api/auth/$'
@@ -643,7 +632,6 @@ export interface FileRouteTypes {
     | '/task/$id'
     | '/settings/'
     | '/api/ac/generate'
-    | '/api/ac/revise'
     | '/api/ac/save'
     | '/api/ask/options'
     | '/api/auth/$'
@@ -693,7 +681,6 @@ export interface RootRouteChildren {
   PrdIdRoute: typeof PrdIdRoute
   TaskIdRoute: typeof TaskIdRoute
   ApiAcGenerateRoute: typeof ApiAcGenerateRoute
-  ApiAcReviseRoute: typeof ApiAcReviseRoute
   ApiAcSaveRoute: typeof ApiAcSaveRoute
   ApiAskOptionsRoute: typeof ApiAskOptionsRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -899,13 +886,6 @@ declare module '@tanstack/react-router' {
       path: '/api/ac/generate'
       fullPath: '/api/ac/generate'
       preLoaderRoute: typeof ApiAcGenerateRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/ac/revise': {
-      id: '/api/ac/revise'
-      path: '/api/ac/revise'
-      fullPath: '/api/ac/revise'
-      preLoaderRoute: typeof ApiAcReviseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/ac/save': {
@@ -1176,7 +1156,6 @@ const rootRouteChildren: RootRouteChildren = {
   PrdIdRoute: PrdIdRoute,
   TaskIdRoute: TaskIdRoute,
   ApiAcGenerateRoute: ApiAcGenerateRoute,
-  ApiAcReviseRoute: ApiAcReviseRoute,
   ApiAcSaveRoute: ApiAcSaveRoute,
   ApiAskOptionsRoute: ApiAskOptionsRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

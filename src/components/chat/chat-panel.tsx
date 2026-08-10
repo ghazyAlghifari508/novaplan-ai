@@ -164,10 +164,6 @@ interface ChatPanelProps {
 	currentPrdContent?: string;
 	selectedVersionNum?: number; // Version number currently viewed (for revision context)
 	userPlan?: Plan; // Pass from server to avoid client fetch
-	// AC mode props (PRD-04)
-	acMode?: boolean;
-	currentAcContent?: string;
-	onStreamContent?: (content: string) => void;
 }
 
 // ─────────────────────────────────────────────
@@ -185,9 +181,6 @@ export function ChatPanel({
 	currentPrdContent = "",
 	selectedVersionNum,
 	userPlan: initialUserPlan = "free",
-	acMode = false,
-	currentAcContent = "",
-	onStreamContent,
 }: ChatPanelProps) {
 	// ── Local State ──
 	const draftKey = projectId ?? "new";
@@ -361,9 +354,7 @@ export function ChatPanel({
 				}
 
 				// Commit content to store (batched)
-				if (acMode && onStreamContent) {
-					onStreamContent(displayContent);
-				} else if (chatMode === "generate" || chatMode === "resume") {
+				if (chatMode === "generate" || chatMode === "resume") {
 					setStreamingPRDContent(displayContent);
 				} else if (chatMode === "revise") {
 					const patched = livePatchPrd(currentPrdContent, displayContent);
@@ -406,7 +397,7 @@ export function ChatPanel({
 			};
 
 			try {
-				const endpoint = acMode ? "/api/ac/revise" : "/api/chat";
+				const endpoint = "/api/chat";
 				const response = await fetch(endpoint, {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
@@ -676,7 +667,6 @@ export function ChatPanel({
 			}
 		},
 		[
-			acMode,
 			addMessage,
 			currentPrdContent,
 			currentSection,

@@ -44,12 +44,3 @@ Given/When/Then block dengan angka konkret.
 12. HINDARI "Admin dapat mengelola", "input divalidasi" — ganti spesifikasi eksak.
 
 Konteks PRD akan diberikan setelah prompt ini. Generate AC SEKARANG.`;
-
-export const AC_REVISION_PROMPT = `Kamu adalah Staff QA senior merevisi AC mempertahankan gaya docs/contoh-ac.
-ATURAN: 1) Format ## N. + tabel Field | Tipe | Wajib | Keterangan jika ada + ### AC-N.M prose 2-4 kalimat angka + Given/When/Then jika kompleks.
-2) Ubahan pakai marker :::UPDATE_SECTION[<Nomor & Nama Section>]::: isi lengkap section baru tabel schema + formula lengkap jika relevan.
-3) Jangan ulang tidak berubah. Jangan tambah baru kecuali diminta eksplisit. Jangan hapus kecuali diminta.
-4) Kriteria baru angka konkret tipe data spesifik formula penuh jika hitungan - jangan generik.
-5) Validasi/edge tambahan tulis juga di tabel Field + AC + error eksplisit.
-6) Jangan hapus Glossary / Konvensi kecuali diminta (>8 baris dipertahankan).
-`;
