@@ -120,6 +120,35 @@ const ALL_PRD_SECTIONS = [
 	"Design & Technical Constraints",
 ];
 
+// ponytail: detect PRD sections from content. The system prompt asks the AI to
+// emit `<!-- SECTION: X -->` comment markers, but the model often skips them and
+// writes only markdown `## N. Title` headings instead (verified against live
+// output). Relying on markers alone left the progress card permanently empty.
+// Parse BOTH styles so the card works regardless of which (if any) the model
+// emits. Marker style is exact; heading style strips the `N. ` prefix and
+// matches a known section name.
+function extractSections(content: string): string[] {
+	const found: string[] = [];
+	const markerRe = /<!-- SECTION: (.+?) -->/g;
+	let m: RegExpExecArray | null;
+	while ((m = markerRe.exec(content)) !== null) {
+		const name = m[1].trim();
+		if (ALL_PRD_SECTIONS.includes(name) && !found.includes(name))
+			found.push(name);
+	}
+	// If markers fully cover the doc, no need for the heading fallback.
+	if (found.length >= ALL_PRD_SECTIONS.length) return found;
+	const headingRe = /^#{2,3}\s+\d+\.\s+(.+)$/gm;
+	while ((m = headingRe.exec(content)) !== null) {
+		const title = m[1].trim();
+		const name = ALL_PRD_SECTIONS.find(
+			(s) => title === s || title.startsWith(`${s} `),
+		);
+		if (name && !found.includes(name)) found.push(name);
+	}
+	return found;
+}
+
 // ─────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────
@@ -222,26 +251,17 @@ export function ChatPanel({
 
 	// ponytail: populate completedSections from the PRD content whenever
 	// currentPrdContent changes (e.g. after router.refresh() lands with a
-	// freshly-saved PRD). The previous version used deps:[] (mount-only) and
-	// skipped when completedSections was already set — but currentPrdContent
-	// is "" at mount time during the ask flow (PRD not yet generated), so
-	// the effect never ran. After generation + router.refresh(), the prop
-	// updates but the mount-only effect never re-fired, leaving the progress
-	// card invisible. Now runs on every currentPrdContent change; guards
-	// against clearing during active generation so the streaming section
-	// tracker isn't overwritten.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional - only re-run when content or generation state changes
+	// freshly-saved PRD). Runs on every content change, not just mount, so a
+	// PRD that streams in after the component mounted still populates the
+	// card. Uses extractSections so it works even when the AI omits the
+	// `<!-- SECTION: -->` markers and writes only markdown headings.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional - only re-run when content changes
 	useEffect(() => {
+		// isGeneratingPRD guard: during a revise, currentPrdContent is the OLD
+		// saved PRD — repopulating here would stomp the live streaming section
+		// tracker. Only populate when idle (initial load, post-refresh, done).
 		if (!currentPrdContent || isGeneratingPRD) return;
-		const found: string[] = [];
-		const regex = /<!-- SECTION: (.+?) -->/g;
-		let m;
-		while ((m = regex.exec(currentPrdContent)) !== null) {
-			const name = m[1].trim();
-			if (ALL_PRD_SECTIONS.includes(name) && !found.includes(name)) {
-				found.push(name);
-			}
-		}
+		const found = extractSections(currentPrdContent);
 		if (found.length > 0) {
 			setCompletedSections(found);
 		}
@@ -325,14 +345,7 @@ export function ChatPanel({
 					chatMode === "revise" ||
 					chatMode === "resume"
 				) {
-					const sectionRegex = /<!-- SECTION: (.+?) -->/g;
-					let sectionMatch;
-					const foundSections: string[] = [];
-					while (
-						(sectionMatch = sectionRegex.exec(displayContent)) !== null
-					) {
-						foundSections.push(sectionMatch[1].trim());
-					}
+					const foundSections = extractSections(displayContent);
 					if (foundSections.length > 0) {
 						const lastSection = foundSections[foundSections.length - 1];
 						const prev = foundSections.slice(0, -1);
@@ -474,21 +487,10 @@ export function ChatPanel({
 								// Mark ALL sections found in the final content as completed.
 								// Re-parse from the full accumulated content since at done
 								// time every section is fully written - no spinner should remain.
-								const allDone: string[] = [];
-								const sectionRegex = /<!-- SECTION: (.+?) -->/g;
-								let sm;
 								const finalContentHere = existingPartialContent
 									? existingPartialContent + fullContent
 									: fullContent;
-								while ((sm = sectionRegex.exec(finalContentHere)) !== null) {
-									const name = sm[1].trim();
-									if (
-										ALL_PRD_SECTIONS.includes(name) &&
-										!allDone.includes(name)
-									) {
-										allDone.push(name);
-									}
-								}
+								const allDone = extractSections(finalContentHere);
 								if (allDone.length > 0) {
 									setCompletedSections(allDone);
 								}
@@ -517,18 +519,7 @@ export function ChatPanel({
 										(typeof parsed.content === "string" && parsed.content) ||
 										currentPrdContent;
 									if (freshContent) {
-										const allSecs: string[] = [];
-										const sr = /<!-- SECTION: (.+?) -->/g;
-										let sm;
-										while ((sm = sr.exec(freshContent)) !== null) {
-											const n = sm[1].trim();
-											if (
-												ALL_PRD_SECTIONS.includes(n) &&
-												!allSecs.includes(n)
-											) {
-												allSecs.push(n);
-											}
-										}
+										const allSecs = extractSections(freshContent);
 										if (allSecs.length > 0) setCompletedSections(allSecs);
 									}
 									// Server now persists this same preamble as assistantReply
