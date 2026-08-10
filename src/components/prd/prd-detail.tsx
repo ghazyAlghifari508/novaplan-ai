@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition, useCallback } from "react";
+import { useState, useEffect, useMemo, useRef, useTransition, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { PrdViewer } from "./prd-viewer";
 import { ChatPanel } from "@/components/chat";
@@ -67,6 +67,40 @@ export function PrdDetail({
   const { isGeneratingPRD, streamingPRDContent, setGeneratingPRD, setStreamingPRDContent, setMessages, creditsExhausted } =
     useChatStore();
   const showToast = useUIStore((s) => s.showToast);
+
+  // ── Typewriter reveal (generation only) ──
+  // ponytail: 9router reasoning models emit no deltas during their long thinking
+  // phase, then burst the whole document in <2s — PrdViewer renders it
+  // "instantly", so the typing animation never appears. Reveal the received PRD
+  // progressively (~50 chars/25ms) while generating so it looks like the AI is
+  // typing. Cosmetic only: the underlying streamingPRDContent/currentContent
+  // stays whole, so the saved document is never truncated.
+  const [revealChars, setRevealChars] = useState<number | null>(null);
+  const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!isGeneratingPRD) {
+      setRevealChars(null);
+      if (revealTimer.current) clearTimeout(revealTimer.current);
+      return;
+    }
+    setRevealChars(0);
+    const tick = () => {
+      setRevealChars((prev) => (prev === null ? null : prev + 50));
+      revealTimer.current = setTimeout(tick, 25);
+    };
+    revealTimer.current = setTimeout(tick, 25);
+    return () => {
+      if (revealTimer.current) clearTimeout(revealTimer.current);
+    };
+  }, [isGeneratingPRD]);
+
+  const streamingForView = useMemo(() => {
+    if (!streamingPRDContent) return streamingPRDContent;
+    if (revealChars === null || revealChars >= streamingPRDContent.length)
+      return streamingPRDContent;
+    return streamingPRDContent.slice(0, revealChars);
+  }, [streamingPRDContent, revealChars]);
 
   // ── Effects ──
 
@@ -231,7 +265,7 @@ export function PrdDetail({
               </div>
             )}
             <PrdViewer
-              content={streamingPRDContent ? streamingPRDContent : currentContent}
+              content={streamingForView ? streamingForView : currentContent}
               projectName={projectName || ""}
               plan={plan}
               versions={versions?.map((v) => ({
