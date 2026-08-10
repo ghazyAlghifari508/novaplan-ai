@@ -4,6 +4,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
 import { checkCredits, consumeCredit } from "@/lib/credits";
+import { isTruncatedGeneration } from "@/lib/flow-progress";
 import { depthDirective } from "@/lib/prompt-depth";
 import { PRD_REVISION_PROMPT, PRD_SYSTEM_PROMPT } from "@/lib/prompts";
 import { checkRateLimit, recordRequest } from "@/lib/rate-limit";
@@ -236,7 +237,7 @@ export const Route = createFileRoute("/api/chat")({
 						let createdConversationId: string | undefined;
 
 						try {
-							const { generator, firstChunk } = await tryStreamWithFallback(
+							const { generator, firstChunk, outcome } = await tryStreamWithFallback(
 								modelsToTry,
 								fullMessages,
 								request.signal,
@@ -303,6 +304,12 @@ export const Route = createFileRoute("/api/chat")({
 									mode === "resume") &&
 								conversationIdToUse
 							) {
+								if (isTruncatedGeneration(fullResponse, outcome.finishReason)) {
+									safeError(
+										"Generasi PRD terputus di tengah jalan dan tidak disimpan. Coba generate ulang.",
+									);
+									return;
+								}
 								finalPrdToSave =
 									mode === "resume" && partialContent
 										? partialContent + fullResponse
