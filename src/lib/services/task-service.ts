@@ -57,38 +57,40 @@ export async function saveTaskTree(
   taskTree: TaskTree,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    await db.delete(tasks).where(eq(tasks.projectId, projectId));
+    await db.transaction(async (tx) => {
+      await tx.delete(tasks).where(eq(tasks.projectId, projectId));
 
-    let order = 0;
-    for (const feature of taskTree.features) {
-      for (const task of feature.tasks) {
-        const subtaskRows = task.subtasks.map((s) => ({
-          name: s.name,
-          description: s.description,
-          details: s.details ?? [],
-          status: "pending" as const,
-        }));
-        await db.insert(tasks).values({
-          id: crypto.randomUUID(),
-          projectId,
-          title: task.name,
-          description: task.description || null,
-          featureName: feature.name,
-          status: "pending",
-          subtasks: subtaskRows,
-          order: order++,
-        });
+      let order = 0;
+      for (const feature of taskTree.features) {
+        for (const task of feature.tasks) {
+          const subtaskRows = task.subtasks.map((s) => ({
+            name: s.name,
+            description: s.description,
+            details: s.details ?? [],
+            status: "pending" as const,
+          }));
+          await tx.insert(tasks).values({
+            id: crypto.randomUUID(),
+            projectId,
+            title: task.name,
+            description: task.description || null,
+            featureName: feature.name,
+            status: "pending",
+            subtasks: subtaskRows,
+            order: order++,
+          });
+        }
       }
-    }
 
-    const [proj] = await db.select({ step: projects.step }).from(projects).where(eq(projects.id, projectId)).limit(1);
-    const updateData: Record<string, unknown> = {
-      taskStatus: "completed",
-      updatedAt: new Date(),
-    };
-    const next = advanceStep(proj?.step, "task");
-    if (next) updateData.step = next;
-    await db.update(projects).set(updateData).where(eq(projects.id, projectId));
+      const [proj] = await tx.select({ step: projects.step }).from(projects).where(eq(projects.id, projectId)).limit(1);
+      const updateData: Record<string, unknown> = {
+        taskStatus: "completed",
+        updatedAt: new Date(),
+      };
+      const next = advanceStep(proj?.step, "task");
+      if (next) updateData.step = next;
+      await tx.update(projects).set(updateData).where(eq(projects.id, projectId));
+    });
     return { success: true };
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);

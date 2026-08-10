@@ -29,17 +29,20 @@ export const Route = createFileRoute("/api/projects/$id")({
         // ponytail: delete children before parent. FKs lack ON DELETE CASCADE
         // (schema.ts), so skipping any leaves orphaned rows. Order matters:
         // messages→conversations first (messages FK conversations), then the
-        // project-scoped tables, then projects last.
-        const convRows = await db.select({ id: conversations.id }).from(conversations).where(eq(conversations.projectId, projectId));
-        const convIds = convRows.map((c) => c.id);
-        if (convIds.length > 0) {
-          await db.delete(messages).where(inArray(messages.conversationId, convIds));
-        }
-        await db.delete(conversations).where(eq(conversations.projectId, projectId));
-        await db.delete(prdVersions).where(eq(prdVersions.projectId, projectId));
-        await db.delete(acVersions).where(eq(acVersions.projectId, projectId));
-        await db.delete(tasks).where(eq(tasks.projectId, projectId));
-        await db.delete(projects).where(eq(projects.id, projectId));
+        // project-scoped tables, then projects last. All in one transaction so
+        // a mid-sequence failure leaves no partial orphans.
+        await db.transaction(async (tx) => {
+          const convRows = await tx.select({ id: conversations.id }).from(conversations).where(eq(conversations.projectId, projectId));
+          const convIds = convRows.map((c) => c.id);
+          if (convIds.length > 0) {
+            await tx.delete(messages).where(inArray(messages.conversationId, convIds));
+          }
+          await tx.delete(conversations).where(eq(conversations.projectId, projectId));
+          await tx.delete(prdVersions).where(eq(prdVersions.projectId, projectId));
+          await tx.delete(acVersions).where(eq(acVersions.projectId, projectId));
+          await tx.delete(tasks).where(eq(tasks.projectId, projectId));
+          await tx.delete(projects).where(eq(projects.id, projectId));
+        });
         return Response.json({ success: true });
       },
     },
