@@ -5,6 +5,7 @@ import {
   useNavigate,
   useRouter as useTanstackRouter,
   useLocation,
+  useMatches,
 } from "@tanstack/react-router";
 
 type Href = string;
@@ -37,5 +38,7 @@ export function useSearchParams(): URLSearchParams {
 
 // next/navigation also exports these; provide no-op/basic parity.
 export function useParams<T = Record<string, string>>(): T {
-  return useLocation({ select: (l) => l.pathname }) as unknown as T;
+  const matches = useMatches();
+  const leaf = matches[matches.length - 1];
+  return (leaf?.params ?? {}) as T;
 }
