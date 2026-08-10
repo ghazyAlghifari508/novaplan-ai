@@ -27,7 +27,7 @@ export const Route = createFileRoute("/api/kanban/$pid")({
         const user = await requireUser(getRequestHeaders());
         const { pid: projectId } = params;
 
-        const [project] = await db.select({ id: projects.id, name: projects.name, step: projects.step }).from(projects).where(and(eq(projects.id, projectId), eq(projects.userId, user.id))).limit(1);
+        const [project] = await db.select({ id: projects.id, name: projects.name, step: projects.step, taskStatus: projects.taskStatus }).from(projects).where(and(eq(projects.id, projectId), eq(projects.userId, user.id))).limit(1);
         if (!project) return Response.json({ error: "Project not found" }, { status: 404 });
 
         const [taskRows, acRows] = await Promise.all([
@@ -59,7 +59,7 @@ export const Route = createFileRoute("/api/kanban/$pid")({
         const tasksGeneratedAt = taskRows[0]?.createdAt ?? null;
         const acChanged = Boolean(latestAcAt && tasksGeneratedAt && new Date(latestAcAt) > new Date(tasksGeneratedAt));
 
-        return Response.json({ columns, staleness: "live", lastUpdateAt: new Date().toISOString(), acChanged });
+        return Response.json({ columns, staleness: "live", lastUpdateAt: new Date().toISOString(), acChanged, taskStatus: project.taskStatus });
       },
     },
   },

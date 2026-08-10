@@ -28,6 +28,7 @@ export interface KanbanData {
   staleness: "live" | "stale" | "disconnected";
   lastUpdateAt: string;
   acChanged?: boolean;
+  taskStatus?: string;
 }
 
 interface UseKanbanPollingOptions {
