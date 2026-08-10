@@ -187,13 +187,7 @@ export function ImplementationOptions({
     setIsLoading(true);
     try {
       const data = await fetchContent();
-      const text = [
-        data.prd && `# PRD\n\n${data.prd}`,
-        data.ac && `# Acceptance Criteria\n\n${data.ac}`,
-        data.tasks && `# Tasks\n\n${data.tasks}`,
-      ]
-        .filter(Boolean)
-        .join("\n\n---\n\n");
+      const text = data.prd || "";
 
       await navigator.clipboard.writeText(text);
       showToast("PRD berhasil disalin ke clipboard", "success");
