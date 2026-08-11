@@ -48,9 +48,8 @@ function livePatchPrd(baseContent: string, streamContent: string): string {
 	let patched = baseContent;
 	const regex =
 		/:::UPDATE_SECTION\[(.*?)\]:::\s*([\s\S]*?)(?::::END_UPDATE:::|$)/g;
-	let match;
 
-	while ((match = regex.exec(streamContent)) !== null) {
+	for (const match of streamContent.matchAll(regex)) {
 		const sectionName = match[1].trim();
 		const newContent = match[2].trim();
 
@@ -130,8 +129,8 @@ const ALL_PRD_SECTIONS = [
 function extractSections(content: string): string[] {
 	const found: string[] = [];
 	const markerRe = /<!-- SECTION: (.+?) -->/g;
-	let m: RegExpExecArray | null;
-	while ((m = markerRe.exec(content)) !== null) {
+
+	for (const m of content.matchAll(markerRe)) {
 		const name = m[1].trim();
 		if (ALL_PRD_SECTIONS.includes(name) && !found.includes(name))
 			found.push(name);
@@ -139,7 +138,8 @@ function extractSections(content: string): string[] {
 	// If markers fully cover the doc, no need for the heading fallback.
 	if (found.length >= ALL_PRD_SECTIONS.length) return found;
 	const headingRe = /^#{2,3}\s+\d+\.\s+(.+)$/gm;
-	while ((m = headingRe.exec(content)) !== null) {
+
+	for (const m of content.matchAll(headingRe)) {
 		const title = m[1].trim();
 		const name = ALL_PRD_SECTIONS.find(
 			(s) => title === s || title.startsWith(`${s} `),
