@@ -64,9 +64,9 @@ export function TableOfContents({ content, className, maxLevel = 4 }: TableOfCon
 
       {!collapsed && (
         <nav className="space-y-0.5">
-          {tocItems.map((item, i) => (
+          {tocItems.map((item) => (
             <a
-              key={i}
+              key={item.id}
               href={`#${item.id}`}
               className={cn(
                 "block rounded px-2 py-1 text-sm transition-colors hover:bg-black/5 dark:hover:bg-white/5 break-words",

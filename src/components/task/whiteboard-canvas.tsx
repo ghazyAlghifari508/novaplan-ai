@@ -365,11 +365,11 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({
           >
             {/* SVG edges */}
             <svg aria-hidden className="pointer-events-none absolute left-0 top-0" width={canvasWidth} height={canvasHeight} style={{ overflow: "visible" }}>
-              {edges.map((e, i) => {
+              {edges.map((e) => {
                 const midX = (e.x1 + e.x2) / 2;
                 return (
                   <path
-                    key={`edge-${i}`}
+                    key={`edge-${e.x1}-${e.y1}-${e.x2}-${e.y2}`}
                     d={`M ${e.x1} ${e.y1} C ${midX} ${e.y1}, ${midX} ${e.y2}, ${e.x2} ${e.y2}`}
                     fill="none" stroke={e.color} strokeWidth={1.5} strokeOpacity={0.5}
                   />
@@ -576,8 +576,8 @@ function TaskSubtasksModal({ node, onClose }: { node: LayoutNode; onClose: () =>
           </button>
         </div>
         <ul className="space-y-2">
-          {allSubtasks.map((s, i) => (
-            <li key={i} className="rounded-lg border border-graphite/60 bg-charcoal/40 px-3 py-2">
+          {allSubtasks.map((s) => (
+            <li key={s.name} className="rounded-lg border border-graphite/60 bg-charcoal/40 px-3 py-2">
               <p className="font-inter text-sm text-snow">{s.name}</p>
             </li>
           ))}
@@ -606,8 +606,8 @@ function TaskCard({ node, onOpen }: { node: LayoutNode; onOpen: () => void }) {
       {/* Subtask checklist (collapsed preview, max 3) */}
       {visibleSubtasks.length > 0 && (
         <ul className="px-3 py-2 space-y-1">
-          {visibleSubtasks.map((s, i) => (
-            <li key={i} className="flex items-center gap-2 text-xs text-fog">
+          {visibleSubtasks.map((s) => (
+            <li key={s.name} className="flex items-center gap-2 text-xs text-fog">
               <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border border-graphite bg-charcoal">
                 <span className="h-1.5 w-1.5 rounded-sm bg-fog/30" />
               </span>

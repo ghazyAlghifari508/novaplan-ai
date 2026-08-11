@@ -313,7 +313,7 @@ export function TaskDetail({
 						<div className="space-y-3 p-3">
 							{visibleTaskTree.features.map((feature, fi) => (
 								<details
-									key={fi}
+									key={feature.name}
 									className="rounded-lg border border-graphite bg-obsidian"
 								>
 									<summary
@@ -329,15 +329,15 @@ export function TaskDetail({
 											<p className="text-xs text-fog italic">Tidak ada task</p>
 										) : (
 											<ul className="space-y-2">
-												{feature.tasks.map((task, ti) => (
-													<li key={ti}>
+												{feature.tasks.map((task) => (
+													<li key={`${feature.name}-${task.name}`}>
 														<p className="text-sm font-[510] text-snow">
 															{task.name}
 														</p>
 														{task.subtasks && task.subtasks.length > 0 && (
 															<ul className="mt-1 space-y-1 pl-3">
-																{task.subtasks.map((sub, si) => (
-																	<li key={si} className="text-xs text-fog">
+																{task.subtasks.map((sub) => (
+																	<li key={`${task.name}-${sub.name}`} className="text-xs text-fog">
 																		<div className="flex items-center gap-1.5">
 																			<Circle
 																				size={5}
@@ -349,7 +349,8 @@ export function TaskDetail({
 																			<ul className="mt-0.5 space-y-0.5 pl-4">
 																				{sub.details.map((detail, di) => (
 																					<li
-																						key={di}
+																							// biome-ignore lint/suspicious/noArrayIndexKey: detail strings can duplicate; index as tiebreaker
+																							key={`${detail.substring(0, 30)}-${di}`}
 																						className="text-[11px] text-fog/70"
 																					>
 																						– {detail}

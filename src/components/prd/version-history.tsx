@@ -213,9 +213,11 @@ export function VersionDiff({ v1, v2 }: { v1: PrdVersion; v2: PrdVersion }) {
 
   return (
     <div className="space-y-0.5 font-mono text-xs">
+      {/* ponytail: diff parts have no unique id; index as tiebreaker */}
       {diff.map((part, i) => (
         <div
-          key={i}
+          // biome-ignore lint/suspicious/noArrayIndexKey: diff parts have no unique id; index as tiebreaker
+          key={`${part.type}-${part.text.substring(0, 20)}-${i}`}
           className={cn(
             "rounded px-2 py-1",
             part.type === "removed" && "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400",

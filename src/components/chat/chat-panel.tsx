@@ -943,12 +943,12 @@ export function ChatPanel({
 						)}
 						<div className="rounded-lg border border-graphite bg-charcoal/40 px-4 py-3">
 							<div className="space-y-2">
-								{ALL_PRD_SECTIONS.map((section, i) => {
+								{ALL_PRD_SECTIONS.map((section) => {
 									const isCompleted = completedSections.includes(section);
 									const isCurrent = section === currentSection;
 									const isPending = !isCompleted && !isCurrent;
 									return (
-										<div key={i} className="flex items-center gap-2.5">
+										<div key={section} className="flex items-center gap-2.5">
 											{isCompleted ? (
 												<svg
 													width="10"
