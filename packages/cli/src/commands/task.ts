@@ -47,7 +47,7 @@ export async function taskListCommand(
 							? chalk.red
 							: chalk.gray;
 			console.log(
-				`  ${statusColor(t.status.padEnd(12))} ${chalk.white(t.name)} ${chalk.dim(`[${t.featureName}]`)}`,
+				`  ${statusColor(t.status.padEnd(12))} ${chalk.white(t.name)} ${chalk.dim(`[${t.featureName}]`)} ${chalk.dim(`id: ${t.id.slice(0, 8)}...`)}`,
 			);
 			if (t.description) {
 				console.log(

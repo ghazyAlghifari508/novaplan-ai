@@ -56,6 +56,23 @@ export const Route = createFileRoute("/api/v1/tasks/$id/status")({
 				)
 					return Response.json({ error: "Task not found" }, { status: 404 });
 
+				// Enforce workflow: task must be in_progress before completed.
+				// Prevents AI agents from skipping straight to completed.
+				const [current] = await db
+					.select({ status: tasks.status })
+					.from(tasks)
+					.where(eq(tasks.id, taskId))
+					.limit(1);
+				if (status === "completed" && current?.status === "pending") {
+					return Response.json(
+						{
+							error:
+								"Task harus in_progress dulu sebelum completed. Jalankan: novaplan task update <id> --status in_progress",
+						},
+						{ status: 400 },
+					);
+				}
+
 				const updateData: Record<string, unknown> = {
 					status,
 					updatedAt: new Date(),
