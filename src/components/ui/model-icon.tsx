@@ -114,7 +114,6 @@ export function ModelIcon({ model, isLocked, size = 12 }: ModelIconProps) {
 			return <Moon size={size} className={className} />;
 		case "bot":
 			return <Bot size={size} className={className} />;
-		case "sparkles":
 		default:
 			return <Sparkles size={size} className={className} />;
 	}

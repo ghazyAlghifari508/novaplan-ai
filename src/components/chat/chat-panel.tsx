@@ -460,7 +460,6 @@ export function ChatPanel({
 								// generation is in flight.
 							} else if (parsed.type === "thinking") {
 								setThinkingText((prev) => prev + parsed.content);
-								continue;
 							} else if (parsed.type === "delta") {
 								if (thinkingText) setThinkingText("");
 								_sawAnyDelta = true;

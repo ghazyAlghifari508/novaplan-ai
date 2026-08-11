@@ -443,7 +443,6 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({
 			onPointerLeave={endPan}
 			onWheel={handleWheel}
 			onKeyDown={handleKeyDown}
-			tabIndex={0}
 			role="region"
 			aria-label="Kanvas diagram task"
 		>

@@ -26,7 +26,7 @@ export function useTypingPlaceholder(isMobile: boolean) {
 		charRef.current = 0;
 		phaseRef.current = "typing";
 		setDisplay("");
-	}, [isMobile]);
+	}, []);
 
 	useEffect(() => {
 		let timer: ReturnType<typeof setTimeout>;
@@ -73,7 +73,7 @@ export function useTypingPlaceholder(isMobile: boolean) {
 			clearTimeout(timer);
 			document.removeEventListener("visibilitychange", handleVisibilityChange);
 		};
-	}, [isMobile, prompts]);
+	}, [prompts]);
 
 	return display;
 }

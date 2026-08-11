@@ -332,11 +332,10 @@ export const Route = createFileRoute("/api/chat")({
 										finalPrdToSave = currentPrd;
 										const updateRegex =
 											/:::UPDATE_SECTION\[(.*?)\]:::\s*([\s\S]*?)(?:\s*:::END_UPDATE:::|$)/g;
-										let match;
 										let mergedPrd = currentPrd;
 										let isMerged = false;
 
-										while ((match = updateRegex.exec(fullResponse)) !== null) {
+										for (const match of fullResponse.matchAll(updateRegex)) {
 											const sectionName = match[1].trim();
 											const newSectionContent = match[2].trim();
 											const escapedSectionName = sectionName.replace(

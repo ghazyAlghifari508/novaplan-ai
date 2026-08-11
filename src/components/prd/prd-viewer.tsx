@@ -47,7 +47,7 @@ interface PrdViewerProps {
 
 export const PrdViewer = memo(function PrdViewer({
 	content,
-	projectName,
+	projectName: _projectName,
 	className,
 	plan = "free",
 	versions,

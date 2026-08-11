@@ -3,7 +3,8 @@
 import DOMPurify from "dompurify";
 import mermaid from "mermaid";
 import { useTheme } from "next-themes";
-import React, { useDeferredValue, useEffect, useRef, useState } from "react";
+import type React from "react";
+import { useDeferredValue, useEffect, useRef, useState } from "react";
 
 interface MermaidProps {
 	chart: string;
@@ -54,7 +55,7 @@ export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
 				}
 
 				// ponytail: sanitize common AI mermaid syntax errors before parsing
-				let sanitizedChart = deferredChart
+				const sanitizedChart = deferredChart
 					// Fix unquoted special chars in graph labels: A[Text (note)] → A["Text (note)"]
 					.replace(/([A-Za-z0-9_]+)\[([^\]"]*[(){}[\]][^\]"]*)\]/g, '$1["$2"]')
 					// Remove duplicate arrows: A -->--> B → A --> B

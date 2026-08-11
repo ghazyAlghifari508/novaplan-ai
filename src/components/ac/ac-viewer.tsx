@@ -27,7 +27,7 @@ export const AcViewer = memo(function AcViewer({
 	streamingContent,
 	isStreaming = false,
 	hasError = false,
-	projectName,
+	projectName: _projectName,
 	plan = "free",
 	className,
 }: AcViewerProps) {

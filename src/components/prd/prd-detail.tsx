@@ -48,9 +48,9 @@ export function PrdDetail({
 	latestVersion,
 	allVersions = [],
 	conversationId,
-	isChatOpen: initialChatOpen = false,
+	isChatOpen: _initialChatOpen = false,
 	plan = "free",
-	revisionLimit,
+	revisionLimit: _revisionLimit,
 	initialMessages = [],
 }: PrdDetailProps) {
 	// ── State ──
@@ -78,7 +78,7 @@ export function PrdDetail({
 		setGeneratingPRD,
 		setStreamingPRDContent,
 		setMessages,
-		creditsExhausted,
+		creditsExhausted: _creditsExhausted,
 	} = useChatStore();
 	const showToast = useUIStore((s) => s.showToast);
 

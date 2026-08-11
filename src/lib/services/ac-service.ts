@@ -25,7 +25,7 @@ export async function saveAcVersion(
 		.limit(1);
 	let nextVersion = latest ? latest.version + 1 : 1;
 
-	let inserted = await db
+	const inserted = await db
 		.insert(acVersions)
 		.values({
 			id: crypto.randomUUID(),

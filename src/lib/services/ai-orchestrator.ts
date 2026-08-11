@@ -86,7 +86,6 @@ export async function tryStreamWithFallback(
 			lastError = e instanceof Error ? e.message : String(e);
 			abortController.abort();
 			await gen.return().catch(() => {});
-			continue;
 		}
 	}
 

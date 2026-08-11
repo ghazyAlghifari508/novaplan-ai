@@ -100,7 +100,7 @@ export function useKanbanPolling({
 
 			// Exponential backoff up to 60s
 			currentIntervalRef.current = Math.min(
-				intervalMs * Math.pow(2, Math.floor(errorCountRef.current / 2)),
+				intervalMs * 2 ** Math.floor(errorCountRef.current / 2),
 				60000,
 			);
 		} finally {

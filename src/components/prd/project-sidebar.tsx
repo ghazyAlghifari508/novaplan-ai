@@ -71,7 +71,6 @@ export function ProjectSidebarContent({
 							className="flex-1 px-2 py-1.5 flex items-center"
 						>
 							<input
-								autoFocus
 								className="w-full rounded bg-steel px-2 py-1 font-inter text-sm text-snow shadow-[inset_0_0_0_1px_rgba(94,106,210,0.85)] focus:outline-none"
 								value={renameValue}
 								onChange={(e) => onRenameValueChange(e.target.value)}

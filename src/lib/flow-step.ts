@@ -26,7 +26,6 @@ export function stepToRoute(
 			return `/ac/${projectId}`;
 		case "task":
 			return `/task/${projectId}`;
-		case "prd":
 		default:
 			return `/prd/${projectId}`;
 	}

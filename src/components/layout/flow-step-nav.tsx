@@ -27,52 +27,48 @@ export function FlowStepNav() {
 	const isTaskGenerated = useChatStore((s) => s.isTaskGenerated);
 
 	return (
-		<>
-			<ol aria-label="Flow step" className="flex items-center gap-2 md:gap-2">
-				{STEPS.map((step, idx) => {
-					const isCompleted =
-						idx < currentIdx || (step.key === "task" && isTaskGenerated);
-					const isActive = idx === currentIdx && !isCompleted;
+		<ol aria-label="Flow step" className="flex items-center gap-2 md:gap-2">
+			{STEPS.map((step, idx) => {
+				const isCompleted =
+					idx < currentIdx || (step.key === "task" && isTaskGenerated);
+				const isActive = idx === currentIdx && !isCompleted;
 
-					return (
-						<li
-							key={step.key}
-							className="flex items-center gap-1.5"
-							aria-current={isActive ? "step" : undefined}
-						>
-							{idx > 0 && (
-								<span
-									aria-hidden
-									className={cn(
-										"hidden h-px w-4 transition-colors duration-300 md:block",
-										idx <= currentIdx ? "bg-indigo/60" : "bg-graphite",
-									)}
-								/>
+				return (
+					<li
+						key={step.key}
+						className="flex items-center gap-1.5"
+						aria-current={isActive ? "step" : undefined}
+					>
+						{idx > 0 && (
+							<span
+								aria-hidden
+								className={cn(
+									"hidden h-px w-4 transition-colors duration-300 md:block",
+									idx <= currentIdx ? "bg-indigo/60" : "bg-graphite",
+								)}
+							/>
+						)}
+						<span
+							className={cn(
+								"flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-[510] transition-colors duration-300",
+								isCompleted && "bg-emerald text-charcoal",
+								isActive && "bg-indigo text-white",
+								!isCompleted && !isActive && "border border-graphite text-fog",
 							)}
-							<span
-								className={cn(
-									"flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-[510] transition-colors duration-300",
-									isCompleted && "bg-emerald text-charcoal",
-									isActive && "bg-indigo text-white",
-									!isCompleted &&
-										!isActive &&
-										"border border-graphite text-fog",
-								)}
-							>
-								{isCompleted ? <Check size={12} strokeWidth={3} /> : idx + 1}
-							</span>
-							<span
-								className={cn(
-									"hidden font-inter text-sm font-normal transition-colors duration-300 md:block",
-									isActive ? "font-[510] text-snow" : "text-fog",
-								)}
-							>
-								{step.label}
-							</span>
-						</li>
-					);
-				})}
-			</ol>
-		</>
+						>
+							{isCompleted ? <Check size={12} strokeWidth={3} /> : idx + 1}
+						</span>
+						<span
+							className={cn(
+								"hidden font-inter text-sm font-normal transition-colors duration-300 md:block",
+								isActive ? "font-[510] text-snow" : "text-fog",
+							)}
+						>
+							{step.label}
+						</span>
+					</li>
+				);
+			})}
+		</ol>
 	);
 }

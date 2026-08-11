@@ -326,7 +326,7 @@ export default function PricingWrapper() {
 			};
 			sync();
 		}
-	}, [searchParams, showToast, router]);
+	}, [searchParams, showToast, router, refetchPlan]);
 
 	const handlePlanSelect = async (planId: string) => {
 		if (planId === "free") {
