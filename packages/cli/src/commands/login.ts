@@ -3,7 +3,7 @@
  */
 
 import chalk from "chalk";
-import { createInterface } from "readline";
+import { createInterface } from "node:readline";
 import { saveConfig } from "../lib/config.js";
 
 function promptHidden(prompt: string): Promise<string> {

@@ -170,9 +170,9 @@ a {
 	text-decoration: none;
 }
 
-.btn-primary {
-	background-color: var(--btn-bg) !important;
-	color: var(--btn-text) !important;
+.btn-primary.btn-primary {
+	background-color: var(--btn-bg);
+	color: var(--btn-text);
 	box-shadow: var(--shadow-linear-button);
 }
 
@@ -212,7 +212,7 @@ a {
 }
 
 .prd-content > :first-child {
-	margin-top: 0 !important;
+	margin-top: 0;
 }
 
 .prd-content h3 {

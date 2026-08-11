@@ -58,14 +58,14 @@ describe("kanban-utils", () => {
 
       const groups = groupCardsByFeature(cards);
 
-      expect(groups["Auth"]).toHaveLength(2);
-      expect(groups["Dashboard"]).toHaveLength(1);
+      expect(groups.Auth).toHaveLength(2);
+      expect(groups.Dashboard).toHaveLength(1);
     });
 
     it("uses 'Umum' for empty feature name", () => {
       const cards = [mockCard({ id: "1", featureName: "" })];
       const groups = groupCardsByFeature(cards);
-      expect(groups["Umum"]).toHaveLength(1);
+      expect(groups.Umum).toHaveLength(1);
     });
   });
 
