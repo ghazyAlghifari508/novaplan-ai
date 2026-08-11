@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo, memo, lazy, Suspense } from "react";
+import { useState, useRef, useEffect, useMemo, memo, lazy, Suspense, type ComponentProps } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
@@ -166,7 +166,7 @@ export const PrdViewer = memo(function PrdViewer({
                   </h4>
                 );
               },
-              code: ({ inline, className, children, ...props }: any) => {
+              code: ({ inline, className, children, ...props }: ComponentProps<"code"> & { inline?: boolean }) => {
                 const match = /language-(\w+)/.exec(className || "");
                 if (!inline && match && match[1] === "mermaid") {
                   return (

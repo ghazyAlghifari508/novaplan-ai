@@ -82,7 +82,7 @@ export function useKanbanPolling({
       errorCountRef.current = 0;
       currentIntervalRef.current = intervalMs;
       setStaleness("live");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Polling fetch error:", err);
       errorCountRef.current += 1;
 
