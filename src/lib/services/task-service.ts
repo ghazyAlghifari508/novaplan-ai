@@ -121,14 +121,19 @@ export async function getTaskTree(projectId: string): Promise<TaskTree | null> {
     const featureMap = new Map<string, TaskTree["features"][number]>();
     for (const row of rows) {
       const fname = row.featureName || "Umum";
-      if (!featureMap.has(fname)) featureMap.set(fname, { name: fname, tasks: [] });
+      const feature = featureMap.get(fname) ?? (() => {
+        const f = { name: fname, tasks: [] as TaskTree["features"][number]["tasks"] };
+        featureMap.set(fname, f);
+        return f;
+      })();
 
       const subtasks = Array.isArray(row.subtasks)
         ? (row.subtasks as Array<{ name: string; description: string; details?: string[]; status?: string }>)
             .map((s) => ({ name: s.name, description: s.description || "", details: s.details ?? [] }))
         : [];
 
-      featureMap.get(fname)!.tasks.push({
+      // ponytail: feature guaranteed present via lazy-init above; push onto it
+      feature.tasks.push({
         name: row.title,
         description: row.description || "",
         subtasks,

@@ -39,7 +39,8 @@ export const syncPaymentStatus = createServerFn({ method: "POST" })
     }
 
     // Verify with Midtrans before applying.
-    const serverKey = process.env.MIDTRANS_SERVER_KEY_SANDBOX!;
+    const serverKey = process.env.MIDTRANS_SERVER_KEY_SANDBOX;
+    if (!serverKey) throw new Error("Missing MIDTRANS_SERVER_KEY_SANDBOX env var");
     const authString = Buffer.from(`${serverKey}:`).toString("base64");
     const response = await fetch(`${MIDTRANS_API}/${orderId}/status`, {
       headers: { Authorization: `Basic ${authString}`, "Content-Type": "application/json" },

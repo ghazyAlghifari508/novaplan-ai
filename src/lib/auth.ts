@@ -43,8 +43,8 @@ export const auth = betterAuth({
 	},
 	socialProviders: {
 		google: {
-			clientId: process.env.GOOGLE_CLIENT_ID!,
-			clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+			clientId: process.env.GOOGLE_CLIENT_ID || "",
+			clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
 		},
 		// ponytail: placeholder: gh CLI token lacks OAuth-App scope to auto-provision.
 		// Create at github.com/settings/developers, then fill real values in .env.

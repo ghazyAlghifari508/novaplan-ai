@@ -192,9 +192,9 @@ export function KanbanBoard({ projectId, projectName }: KanbanBoardProps) {
       )}
 
       {/* Progress Bar */}
-      {hasTasks && (() => {
-        const total = columns!.pending.length + columns!.in_progress.length + columns!.completed.length + columns!.failed.length;
-        const done = columns!.completed.length + columns!.failed.length;
+      {hasTasks && columns && (() => {
+        const total = columns.pending.length + columns.in_progress.length + columns.completed.length + columns.failed.length;
+        const done = columns.completed.length + columns.failed.length;
         const pct = total > 0 ? Math.round((done / total) * 100) : 0;
         return (
           <div className="shrink-0 px-4 pt-3 pb-1">
