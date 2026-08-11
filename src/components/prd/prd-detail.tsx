@@ -100,7 +100,17 @@ export function PrdDetail({
 		}
 		setRevealChars(0);
 		const tick = () => {
-			setRevealChars((prev) => (prev === null ? null : prev + 50));
+			// Cap to content that has actually arrived. Reasoning models sit
+			// silent for 15-90s before bursting the whole PRD at once — without
+			// this cap the ticker keeps counting up during that silent phase
+			// (2000 chars/sec x tens of seconds = tens of thousands of "revealed"
+			// chars against zero real content), so the moment the burst lands,
+			// revealChars is already past its length and the whole document
+			// snaps in instead of typing out from section 1.
+			const liveLen = useChatStore.getState().streamingPRDContent.length;
+			setRevealChars((prev) =>
+				prev === null ? null : Math.min(prev + 50, liveLen),
+			);
 			revealTimer.current = setTimeout(tick, 25);
 		};
 		revealTimer.current = setTimeout(tick, 25);
