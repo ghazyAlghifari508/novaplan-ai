@@ -47,6 +47,7 @@ export const PrdViewer = memo(function PrdViewer({
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll logic when new content arrives
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional re-scroll on content change
   useEffect(() => {
     if (scrollRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;

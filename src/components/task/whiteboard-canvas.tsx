@@ -295,6 +295,7 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({
     setPan({ x: offsetX, y: offsetY });
   }, [canvasWidth, canvasHeight, setZoom, setPan, minZoom, maxZoom]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: taskTree triggers hasFittedRef reset
   useEffect(() => {
     hasFittedRef.current = false;
   }, [taskTree]);

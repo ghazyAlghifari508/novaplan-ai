@@ -187,7 +187,6 @@ export function ChatPanel({
 	const [input, setInput] = useState(() => getPrdDraft(projectId ?? "new"));
 	// ponytail: keep follow-up draft in sessionStorage so refresh mid-typing
 	// doesn't wipe a half-typed PRD revision question.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional draft snapshot
 	useEffect(() => {
 		const t = setTimeout(() => savePrdDraft(draftKey, input), 300);
 		return () => clearTimeout(t);
@@ -274,6 +273,7 @@ export function ChatPanel({
 	}, []);
 
 	// Auto-scroll on new messages
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional re-scroll trigger on new content
 	useEffect(() => {
 		if (scrollRef.current) {
 			scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -673,15 +673,17 @@ export function ChatPanel({
 		[
 			addMessage,
 			currentPrdContent,
-			currentSection,
 			onProjectCreated,
 			onPrdRevised,
 			projectId,
 			setCompletedSections,
+			setCreditsExhausted,
 			setGeneratingPRD,
 			setStreaming,
 			setStreamingPRDContent,
 			showToast,
+			streamingContent,
+			thinkingText,
 			router,
 		],
 	);
@@ -853,12 +855,12 @@ export function ChatPanel({
 		[
 			addMessage,
 			conversationId,
-			currentPrdContent,
 			projectId,
 			selectedVersionNum,
 			setCompletedSections,
 			setGeneratingPRD,
 			setStreaming,
+			setStreamingPRDContent,
 			streamApiCall,
 		],
 	);
@@ -916,7 +918,7 @@ export function ChatPanel({
 				console.error("Auto-resume payment sync failed:", e);
 			}
 		})();
-	}, [searchParams]);
+	}, [searchParams, handleSendWithMessage, projectId, router, setGeneratingPRD]);
 
 	// ── Render ──
 

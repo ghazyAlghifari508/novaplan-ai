@@ -168,10 +168,10 @@ export function ImplementationOptions({
     }
   }, [projectId]);
 
-  const setAndPersistChoice = (c: ImplementationChoice) => {
+  const setAndPersistChoice = useCallback((c: ImplementationChoice) => {
     setChoice(c);
     if (c) sessionStorage.setItem(`novaplan:impl-choice:${projectId}`, c);
-  };
+  }, [projectId]);
 
   const fetchContent = useCallback(async () => {
     const res = await fetch("/api/export/prd", {
@@ -197,7 +197,7 @@ export function ImplementationOptions({
     } finally {
       setIsLoading(false);
     }
-  }, [fetchContent, showToast]);
+  }, [fetchContent, showToast, setAndPersistChoice]);
 
   const handleDownloadZip = useCallback(async () => {
     setIsLoading(true);
@@ -235,7 +235,7 @@ export function ImplementationOptions({
     } finally {
       setIsLoading(false);
     }
-  }, [projectId, showToast]);
+  }, [projectId, showToast, setAndPersistChoice]);
 
   const handlePromptAi = useCallback(async () => {
     setIsLoading(true);
@@ -273,7 +273,7 @@ export function ImplementationOptions({
     } catch {
       showToast("Gagal menyalin prompt", "error");
     }
-  }, [promptText, showToast]);
+  }, [promptText, showToast, setAndPersistChoice]);
 
   return (
     <>

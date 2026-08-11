@@ -33,6 +33,7 @@ export const AcViewer = memo(function AcViewer({
 }: AcViewerProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   // Auto-scroll while streaming
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional re-scroll on token
   useEffect(() => {
     if (isStreaming && scrollRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;

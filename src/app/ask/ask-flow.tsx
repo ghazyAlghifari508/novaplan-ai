@@ -139,7 +139,6 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 
 	// Persist across refresh/hard-refresh: write state whenever it changes.
 	// Only once questions exist, avoids persisting an empty placeholder.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional full-state snapshot
 	useEffect(() => {
 		if (questions.length === 0 || !promptRef.current) return;
 		saveAskState({
