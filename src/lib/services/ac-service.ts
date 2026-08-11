@@ -96,11 +96,3 @@ export async function getLatestAcMarkdown(
 ): Promise<string | null> {
 	return getLatestAcContent(projectId);
 }
-
-export async function getAcVersions(projectId: string) {
-	return db
-		.select()
-		.from(acVersions)
-		.where(eq(acVersions.projectId, projectId))
-		.orderBy(desc(acVersions.version));
-}

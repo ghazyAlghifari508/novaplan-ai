@@ -6,7 +6,7 @@ import { AcDetail } from "@/components/ac/ac-detail";
 import { db } from "@/db";
 import { projects } from "@/db/schema";
 import { usePathname } from "@/lib/next-compat/navigation";
-import { getAcVersions } from "@/lib/services/ac-service";
+import { getLatestAcContent } from "@/lib/services/ac-service";
 import { getLatestPrdContent } from "@/lib/services/prd-service";
 import { getUserPlanAndQuota, requireUserServer } from "@/lib/session";
 import { useLastRoute } from "@/lib/use-last-route";
@@ -17,7 +17,7 @@ const loadAc = createServerFn({ method: "GET" })
 	.handler(async ({ data: id }) => {
 		const user = await requireUserServer();
 		const { plan } = await getUserPlanAndQuota();
-		const [project, prdContent, acVersions] = await Promise.all([
+		const [project, prdContent, acContent] = await Promise.all([
 			// ponytail: select only needed cols — name only used downstream. Avoids
 			// pulling description/shareToken/lastUrl jsonb on every AC page load.
 			db
@@ -26,14 +26,14 @@ const loadAc = createServerFn({ method: "GET" })
 				.where(and(eq(projects.id, id), eq(projects.userId, user.id)))
 				.limit(1),
 			getLatestPrdContent(id),
-			getAcVersions(id),
+			getLatestAcContent(id),
 		]);
 
 		if (!project[0]) throw new Error("NOT_FOUND");
 		return {
 			projectId: id,
 			projectName: project[0].name,
-			latestAcVersion: acVersions[0],
+			latestAcContent: acContent ?? undefined,
 			latestPrdContent: prdContent ?? undefined,
 			plan,
 		};
@@ -72,7 +72,7 @@ function AcDetailPage() {
 		<AcDetail
 			projectId={d.projectId}
 			projectName={d.projectName}
-			latestAcVersion={d.latestAcVersion as never}
+			latestAcContent={d.latestAcContent}
 			latestPrdContent={d.latestPrdContent}
 			plan={d.plan}
 		/>

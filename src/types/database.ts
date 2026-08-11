@@ -131,16 +131,6 @@ export const FEATURES: Record<
 // VibeCoding platform tables (migration 20260720120000)
 // ============================================================
 
-export interface AcVersion {
-	id: string;
-	project_id: string;
-	user_id: string;
-	version: number;
-	content: string;
-	change_summary: string | null;
-	created_at: string;
-}
-
 export interface ApiKey {
 	id: string;
 	user_id: string;
