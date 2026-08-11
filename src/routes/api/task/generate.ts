@@ -4,6 +4,7 @@ import { and, desc, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
 import { checkCredits, consumeCredit, hasFullWorkflow } from "@/lib/credits";
+import { isTruncatedGeneration } from "@/lib/flow-progress";
 import { TASK_GENERATION_PROMPT } from "@/lib/prompts-task";
 import { checkRateLimit, recordRequest } from "@/lib/rate-limit";
 import { getLatestAcMarkdown } from "@/lib/services/ac-service";
@@ -12,19 +13,10 @@ import {
 	tryStreamWithFallback,
 } from "@/lib/services/ai-orchestrator";
 import { sanitizeErrorForClient } from "@/lib/services/error-sanitizer";
+import { extractJson } from "@/lib/services/json-extract";
 import { parseTaskJson, saveTaskTree } from "@/lib/services/task-service";
 import { requireUser } from "@/lib/session";
 import type { Plan } from "@/types/database";
-
-function extractJson(raw: string): string {
-	const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
-	if (fenced) return fenced[1].trim();
-	const firstBrace = raw.indexOf("{");
-	const lastBrace = raw.lastIndexOf("}");
-	if (firstBrace !== -1 && lastBrace > firstBrace)
-		return raw.slice(firstBrace, lastBrace + 1);
-	return raw.trim();
-}
 
 export const Route = createFileRoute("/api/task/generate")({
 	server: {
@@ -145,8 +137,14 @@ export const Route = createFileRoute("/api/task/generate")({
 							} catch {}
 						};
 
-						const safeDone = async () => {
+						const safeDone = async (finishReason: string | undefined) => {
 							if (eventDone || eventErrored) return;
+							if (isTruncatedGeneration(fullResponse, finishReason)) {
+								safeError(
+									"Generasi Task terputus di tengah jalan dan tidak disimpan. Coba generate ulang.",
+								);
+								return;
+							}
 							eventDone = true;
 							try {
 								const taskTree = parseTaskJson(extractJson(fullResponse));
@@ -218,13 +216,14 @@ export const Route = createFileRoute("/api/task/generate")({
 
 						try {
 							emit({ type: "started", model: modelsToTry[0] });
-							const { generator, firstChunk } = await tryStreamWithFallback(
-								modelsToTry,
-								messages,
-								request.signal,
-								64000,
-								enqueueThinking,
-							);
+							const { generator, firstChunk, outcome } =
+								await tryStreamWithFallback(
+									modelsToTry,
+									messages,
+									request.signal,
+									64000,
+									enqueueThinking,
+								);
 
 							fullResponse += firstChunk;
 							emit({ type: "delta", content: firstChunk });
@@ -234,7 +233,7 @@ export const Route = createFileRoute("/api/task/generate")({
 								emit({ type: "delta", content: chunk });
 							}
 
-							await safeDone();
+							await safeDone(outcome.finishReason);
 						} catch (err: unknown) {
 							console.error("Task generate stream error:", err);
 							safeError(sanitizeErrorForClient(err));

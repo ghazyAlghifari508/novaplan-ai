@@ -3,6 +3,7 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
+import { isTruncatedGeneration } from "@/lib/flow-progress";
 import { ASK_OPTIONS_GENERATION_PROMPT } from "@/lib/prompts-ask";
 import { checkRateLimit, recordRequest } from "@/lib/rate-limit";
 import {
@@ -11,18 +12,9 @@ import {
 } from "@/lib/services/ai-orchestrator";
 import { parseAskOptionsJson } from "@/lib/services/ask-service";
 import { sanitizeErrorForClient } from "@/lib/services/error-sanitizer";
+import { extractJson } from "@/lib/services/json-extract";
 import { requireUser } from "@/lib/session";
 import type { Plan } from "@/types/database";
-
-function extractJson(raw: string): string {
-	const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
-	if (fenced) return fenced[1].trim();
-	const firstBrace = raw.indexOf("{");
-	const lastBrace = raw.lastIndexOf("}");
-	if (firstBrace !== -1 && lastBrace > firstBrace)
-		return raw.slice(firstBrace, lastBrace + 1);
-	return raw.trim();
-}
 
 export const Route = createFileRoute("/api/ask/options")({
 	server: {
@@ -95,14 +87,28 @@ export const Route = createFileRoute("/api/ask/options")({
 				try {
 					// ponytail: non-stream: payload is 5-7 short questions, progressive
 					// reveal buys no UX here. Collect fully, then parse once.
-					const { generator, firstChunk } = await tryStreamWithFallback(
+					// 12000 (not 4000): every model here is reasoning:true (model-config.ts)
+					// and reasoning tokens spend from the same maxOutputTokens budget before
+					// any JSON content is emitted — 4000 left too little headroom and the
+					// JSON got cut off mid-object on verbose reasoning runs.
+					const { generator, firstChunk, outcome } = await tryStreamWithFallback(
 						modelsToTry,
 						messages,
 						request.signal,
-						4000,
+						12000,
 					);
 					let fullResponse = firstChunk;
 					for await (const chunk of generator) fullResponse += chunk;
+
+					if (isTruncatedGeneration(fullResponse, outcome.finishReason)) {
+						return Response.json(
+							{
+								error:
+									"Generasi pertanyaan terputus di tengah jalan. Coba lagi.",
+							},
+							{ status: 500 },
+						);
+					}
 
 					const questions = parseAskOptionsJson(extractJson(fullResponse));
 					if (!questions) {
