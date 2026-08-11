@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { Check } from "lucide-react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 export interface NonTechAnswer {
@@ -31,7 +31,9 @@ export function QuestionCard({
 }: QuestionCardProps) {
 	const [customText, setCustomText] = useState("");
 	const [showCustomInput, setShowCustomInput] = useState(false);
-	const [textInput, setTextInput] = useState(answer?.isCustom ? answer.value : "");
+	const [textInput, setTextInput] = useState(
+		answer?.isCustom ? answer.value : "",
+	);
 
 	const isSkipped = answer?.skipped ?? false;
 
@@ -87,9 +89,7 @@ export function QuestionCard({
 					onClick={toggleSkip}
 					className={cn(
 						"shrink-0 rounded-full px-3 py-1 min-h-[44px] inline-flex items-center justify-center font-inter text-xs transition-colors",
-						isSkipped
-							? "bg-steel text-snow"
-							: "text-fog hover:text-snow",
+						isSkipped ? "bg-steel text-snow" : "text-fog hover:text-snow",
 					)}
 				>
 					{isSkipped ? "Dilewati" : "Lewati"}
@@ -237,7 +237,9 @@ export function QuestionCard({
 					{answer?.isCustom && !showCustomInput && (
 						<p className="mt-3 font-inter text-sm text-fog">
 							Jawabanmu:{" "}
-							<span style={{ color: "var(--text-primary)" }}>{answer.value}</span>
+							<span style={{ color: "var(--text-primary)" }}>
+								{answer.value}
+							</span>
 						</p>
 					)}
 				</>

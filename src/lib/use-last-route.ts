@@ -12,23 +12,28 @@ import { useEffect, useRef } from "react";
  * still lands on a sensible page via the step fallback in History.
  */
 export function useLastRoute(projectId: string): (url: string) => void {
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Clear any pending debounce on unmount so we don't fire after the
-  // component is gone (e.g. rapid navigation).
-  useEffect(() => () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-  }, []);
+	// Clear any pending debounce on unmount so we don't fire after the
+	// component is gone (e.g. rapid navigation).
+	useEffect(
+		() => () => {
+			if (timerRef.current) clearTimeout(timerRef.current);
+		},
+		[],
+	);
 
-  return (url: string) => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      fetch(`/api/projects/${projectId}/last-route`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
-      }).catch(() => { /* best-effort; no UI impact */ });
-      timerRef.current = null;
-    }, 500);
-  };
+	return (url: string) => {
+		if (timerRef.current) clearTimeout(timerRef.current);
+		timerRef.current = setTimeout(() => {
+			fetch(`/api/projects/${projectId}/last-route`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ url }),
+			}).catch(() => {
+				/* best-effort; no UI impact */
+			});
+			timerRef.current = null;
+		}, 500);
+	};
 }

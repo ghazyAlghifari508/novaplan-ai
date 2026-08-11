@@ -21,7 +21,13 @@ export function useUserPlan() {
 		queryFn: async () => {
 			const res = await fetch("/api/user/plan", { cache: "no-store" });
 			if (!res.ok) {
-				return { authenticated: false, plan: "free" as Plan, credits: 0, creditsUsed: 0, remaining: 0 };
+				return {
+					authenticated: false,
+					plan: "free" as Plan,
+					credits: 0,
+					creditsUsed: 0,
+					remaining: 0,
+				};
 			}
 			return (await res.json()) as UserPlan;
 		},

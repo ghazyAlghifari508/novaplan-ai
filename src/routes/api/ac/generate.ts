@@ -92,7 +92,12 @@ export const Route = createFileRoute("/api/ac/generate")({
 				const claimed = await db
 					.update(projects)
 					.set({ acStatus: "generating" })
-					.where(and(eq(projects.id, projectId), ne(projects.acStatus, "generating")))
+					.where(
+						and(
+							eq(projects.id, projectId),
+							ne(projects.acStatus, "generating"),
+						),
+					)
 					.returning({ id: projects.id });
 				if (!claimed.length) {
 					return Response.json(

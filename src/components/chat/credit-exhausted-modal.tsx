@@ -1,11 +1,10 @@
 "use client";
 
 import { AlertCircle, X } from "lucide-react";
-import * as React from "react";
 import { PricingComponent } from "@/components/ui/pricing-card";
+import { useUserPlan } from "@/hooks/use-user-plan";
 import { novaPlanPlans, type PriceTier } from "@/lib/pricing-data";
 import { saveResumeIntent } from "@/lib/prompt-handoff";
-import { useUserPlan } from "@/hooks/use-user-plan";
 import { useUIStore } from "@/store";
 
 interface CreditExhaustedModalProps {
@@ -86,9 +85,7 @@ export function CreditExhaustedModal({
 					<h3 className="font-inter text-xl font-[510] text-snow">
 						Kredit Habis
 					</h3>
-					<p className="mt-2 font-inter text-sm text-fog">
-						{errorMessage}
-					</p>
+					<p className="mt-2 font-inter text-sm text-fog">{errorMessage}</p>
 				</div>
 
 				{/* Embedded pricing cards */}

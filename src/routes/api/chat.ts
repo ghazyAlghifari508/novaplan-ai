@@ -124,7 +124,12 @@ export const Route = createFileRoute("/api/chat")({
 					const [projCheck] = await db
 						.select({ id: projects.id })
 						.from(projects)
-						.where(and(eq(projects.id, projectIdToUse), eq(projects.userId, user.id)))
+						.where(
+							and(
+								eq(projects.id, projectIdToUse),
+								eq(projects.userId, user.id),
+							),
+						)
 						.limit(1);
 					if (!projCheck)
 						return Response.json(
@@ -237,13 +242,14 @@ export const Route = createFileRoute("/api/chat")({
 						let createdConversationId: string | undefined;
 
 						try {
-							const { generator, firstChunk, outcome } = await tryStreamWithFallback(
-								modelsToTry,
-								fullMessages,
-								request.signal,
-								undefined,
-								enqueueThinking,
-							);
+							const { generator, firstChunk, outcome } =
+								await tryStreamWithFallback(
+									modelsToTry,
+									fullMessages,
+									request.signal,
+									undefined,
+									enqueueThinking,
+								);
 							await recordRequest(user.id, "ai_generate");
 
 							if (!conversationIdToUse) {

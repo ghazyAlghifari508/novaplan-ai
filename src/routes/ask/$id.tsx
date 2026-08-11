@@ -1,13 +1,13 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { and, eq } from "drizzle-orm";
+import { useEffect } from "react";
 import { AskFlow } from "@/app/ask/ask-flow";
 import { db } from "@/db";
 import { projects } from "@/db/schema";
-import { requireUserServer } from "@/lib/session";
 import { usePathname } from "@/lib/next-compat/navigation";
+import { requireUserServer } from "@/lib/session";
 import { useLastRoute } from "@/lib/use-last-route";
-import { useEffect } from "react";
 
 // ponytail: requireUserServer is a server fn → its auth/db imports get pruned
 // from the client bundle. Plain `requireUser` would drag pg (→ Buffer) in.

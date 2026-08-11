@@ -44,9 +44,16 @@ export const Route = createFileRoute("/api/payments/create")({
 				// Clean up stale pending payments for this user (>5 min) before
 				// creating a new one. Prevents stacking abandoned checkouts.
 				const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000);
-				await db.update(payments)
+				await db
+					.update(payments)
 					.set({ status: "failed" })
-					.where(and(eq(payments.userId, user.id), eq(payments.status, "pending"), lt(payments.createdAt, fiveMinAgo)));
+					.where(
+						and(
+							eq(payments.userId, user.id),
+							eq(payments.status, "pending"),
+							lt(payments.createdAt, fiveMinAgo),
+						),
+					);
 
 				const orderId = `ORDER-${Date.now()}-${randomBytes(4).toString("hex")}`;
 				await db.insert(payments).values({
@@ -85,7 +92,9 @@ export const Route = createFileRoute("/api/payments/create")({
 					callbacks: {
 						finish: (() => {
 							const finishPath =
-								returnUrl && projectId && isValidHistoryUrl(returnUrl, projectId)
+								returnUrl &&
+								projectId &&
+								isValidHistoryUrl(returnUrl, projectId)
 									? returnUrl
 									: "/pricing";
 							return `${safeOrigin}${finishPath}${finishPath.includes("?") ? "&" : "?"}payment=success&order_id=${orderId}`;

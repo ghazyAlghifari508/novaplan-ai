@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { planFromAmount, creditsForPlan } from "./payment-service";
+import { creditsForPlan, planFromAmount } from "./payment-service";
 
 describe("planFromAmount", () => {
 	it("maps the Pro price to the pro plan", () => {

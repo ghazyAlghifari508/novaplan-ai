@@ -2,65 +2,95 @@
  * AI model selection + streaming orchestration - pure logic, copied from old
  * project. Depends only on ai-client streamChat + model-config.
  */
-import { streamChat, type StreamOutcome } from "@/lib/ai-client";
-import { ALL_MODELS, getUnlockedModelIds, isModelUnlocked } from "@/lib/model-config";
+import { type StreamOutcome, streamChat } from "@/lib/ai-client";
+import {
+	ALL_MODELS,
+	getUnlockedModelIds,
+	isModelUnlocked,
+} from "@/lib/model-config";
 import type { Plan } from "@/types/database";
 
 export function selectModels(plan: Plan, requestedModel?: string): string[] {
-  const modelsToTry = getUnlockedModelIds(plan);
+	const modelsToTry = getUnlockedModelIds(plan);
 
-  if (requestedModel) {
-    const requestedModelMeta = ALL_MODELS.find((model) => model.id === requestedModel);
-    const isAllowed = requestedModelMeta ? isModelUnlocked(requestedModelMeta.tier, plan) : false;
+	if (requestedModel) {
+		const requestedModelMeta = ALL_MODELS.find(
+			(model) => model.id === requestedModel,
+		);
+		const isAllowed = requestedModelMeta
+			? isModelUnlocked(requestedModelMeta.tier, plan)
+			: false;
 
-    if (isAllowed) {
-      return [requestedModel, ...modelsToTry.filter((m) => m !== requestedModel)];
-    }
-  }
+		if (isAllowed) {
+			return [
+				requestedModel,
+				...modelsToTry.filter((m) => m !== requestedModel),
+			];
+		}
+	}
 
-  return modelsToTry;
+	return modelsToTry;
 }
 
 export async function tryStreamWithFallback(
-  models: string[],
-  messages: Array<{ role: "system" | "user" | "assistant"; content: string }>,
-  externalSignal?: AbortSignal,
-  maxTokens?: number,
-  onThinking?: (text: string) => void,
+	models: string[],
+	messages: Array<{ role: "system" | "user" | "assistant"; content: string }>,
+	externalSignal?: AbortSignal,
+	maxTokens?: number,
+	onThinking?: (text: string) => void,
 ): Promise<{
-  generator: AsyncGenerator<string, void, undefined>;
-  firstChunk: string;
-  abortController: AbortController;
-  /** Filled once `generator` is fully drained. See isTruncatedGeneration. */
-  outcome: StreamOutcome;
+	generator: AsyncGenerator<string, void, undefined>;
+	firstChunk: string;
+	abortController: AbortController;
+	/** Filled once `generator` is fully drained. See isTruncatedGeneration. */
+	outcome: StreamOutcome;
 }> {
-  let lastError = "";
+	let lastError = "";
 
-  for (let i = 0; i < models.length; i++) {
-    const modelToTry = models[i];
-    const abortController = new AbortController();
-    if (externalSignal) {
-      if (externalSignal.aborted) abortController.abort();
-      else externalSignal.addEventListener("abort", () => abortController.abort(), { once: true });
-    }
-    const outcome: StreamOutcome = {};
-    const gen = streamChat(messages, modelToTry, abortController.signal, maxTokens, outcome, onThinking);
+	for (let i = 0; i < models.length; i++) {
+		const modelToTry = models[i];
+		const abortController = new AbortController();
+		if (externalSignal) {
+			if (externalSignal.aborted) abortController.abort();
+			else
+				externalSignal.addEventListener(
+					"abort",
+					() => abortController.abort(),
+					{ once: true },
+				);
+		}
+		const outcome: StreamOutcome = {};
+		const gen = streamChat(
+			messages,
+			modelToTry,
+			abortController.signal,
+			maxTokens,
+			outcome,
+			onThinking,
+		);
 
-    try {
-      const first = await gen.next();
+		try {
+			const first = await gen.next();
 
-      if (first.done || typeof first.value !== "string" || !first.value) {
-        throw new Error("Respons kosong dari chunk model.");
-      }
+			if (first.done || typeof first.value !== "string" || !first.value) {
+				throw new Error("Respons kosong dari chunk model.");
+			}
 
-      return { generator: gen, firstChunk: first.value, abortController, outcome };
-    } catch (e) {
-      lastError = e instanceof Error ? e.message : String(e);
-      abortController.abort();
-      await gen.return().catch(() => {});
-      continue;
-    }
-  }
+			return {
+				generator: gen,
+				firstChunk: first.value,
+				abortController,
+				outcome,
+			};
+		} catch (e) {
+			lastError = e instanceof Error ? e.message : String(e);
+			abortController.abort();
+			await gen.return().catch(() => {});
+			continue;
+		}
+	}
 
-  throw new Error(`Semua model AI sedang tidak tersedia. Coba lagi dalam beberapa menit. (${lastError})`);
+	throw new Error(
+		`Semua model AI sedang tidak tersedia. Coba lagi dalam beberapa menit. (${lastError})`,
+	);
 }

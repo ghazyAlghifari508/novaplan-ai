@@ -4,29 +4,29 @@
 import type { ComponentProps } from "react";
 
 type NextImageProps = {
-  src: string;
-  alt: string;
-  width?: number | string;
-  height?: number | string;
-  fill?: boolean;
-  priority?: boolean;
-  quality?: number;
-  placeholder?: string;
-  loader?: unknown;
+	src: string;
+	alt: string;
+	width?: number | string;
+	height?: number | string;
+	fill?: boolean;
+	priority?: boolean;
+	quality?: number;
+	placeholder?: string;
+	loader?: unknown;
 } & Omit<ComponentProps<"img">, "src" | "alt" | "width" | "height">;
 
 export default function Image({
-  src,
-  alt,
-  width,
-  height,
-  fill: _fill,
-  priority: _priority,
-  quality: _quality,
-  placeholder: _placeholder,
-  loader: _loader,
-  ...rest
+	src,
+	alt,
+	width,
+	height,
+	fill: _fill,
+	priority: _priority,
+	quality: _quality,
+	placeholder: _placeholder,
+	loader: _loader,
+	...rest
 }: NextImageProps) {
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt={alt} width={width} height={height} {...rest} />;
+	// eslint-disable-next-line @next/next/no-img-element
+	return <img src={src} alt={alt} width={width} height={height} {...rest} />;
 }

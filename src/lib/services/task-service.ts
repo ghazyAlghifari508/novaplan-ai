@@ -17,35 +17,43 @@ import { projects, tasks } from "@/db/schema";
 import { advanceStep } from "@/lib/flow-progress";
 
 export interface TaskTree {
-  features: Array<{
-    name: string;
-    tasks: Array<{
-      name: string;
-      description: string;
-      subtasks: Array<{ name: string; description: string; details: string[] }>;
-    }>;
-  }>;
+	features: Array<{
+		name: string;
+		tasks: Array<{
+			name: string;
+			description: string;
+			subtasks: Array<{ name: string; description: string; details: string[] }>;
+		}>;
+	}>;
 }
 
 export function parseTaskJson(jsonString: string): TaskTree | null {
-  try {
-    const parsed = JSON.parse(jsonString);
-    if (!parsed.features || !Array.isArray(parsed.features) || parsed.features.length === 0) return null;
-    for (const feature of parsed.features) {
-      if (!feature.name || !Array.isArray(feature.tasks)) return null;
-      for (const task of feature.tasks) {
-        if (!task.name || !Array.isArray(task.subtasks)) return null;
-        for (const subtask of task.subtasks) {
-          if (!subtask.name) return null;
-          if (subtask.details !== undefined && !Array.isArray(subtask.details)) return null;
-          subtask.details = Array.isArray(subtask.details) ? subtask.details : [];
-        }
-      }
-    }
-    return parsed as TaskTree;
-  } catch {
-    return null;
-  }
+	try {
+		const parsed = JSON.parse(jsonString);
+		if (
+			!parsed.features ||
+			!Array.isArray(parsed.features) ||
+			parsed.features.length === 0
+		)
+			return null;
+		for (const feature of parsed.features) {
+			if (!feature.name || !Array.isArray(feature.tasks)) return null;
+			for (const task of feature.tasks) {
+				if (!task.name || !Array.isArray(task.subtasks)) return null;
+				for (const subtask of task.subtasks) {
+					if (!subtask.name) return null;
+					if (subtask.details !== undefined && !Array.isArray(subtask.details))
+						return null;
+					subtask.details = Array.isArray(subtask.details)
+						? subtask.details
+						: [];
+				}
+			}
+		}
+		return parsed as TaskTree;
+	} catch {
+		return null;
+	}
 }
 
 /**
@@ -53,50 +61,57 @@ export function parseTaskJson(jsonString: string): TaskTree | null {
  * featureName preserves feature grouping. Each subtask gets status: "pending".
  */
 export async function saveTaskTree(
-  projectId: string,
-  taskTree: TaskTree,
+	projectId: string,
+	taskTree: TaskTree,
 ): Promise<{ success: boolean; error?: string }> {
-  try {
-    await db.transaction(async (tx) => {
-      await tx.delete(tasks).where(eq(tasks.projectId, projectId));
+	try {
+		await db.transaction(async (tx) => {
+			await tx.delete(tasks).where(eq(tasks.projectId, projectId));
 
-      let order = 0;
-      for (const feature of taskTree.features) {
-        for (const task of feature.tasks) {
-          const subtaskRows = task.subtasks.map((s) => ({
-            name: s.name,
-            description: s.description,
-            details: s.details ?? [],
-            status: "pending" as const,
-          }));
-          await tx.insert(tasks).values({
-            id: crypto.randomUUID(),
-            projectId,
-            title: task.name,
-            description: task.description || null,
-            featureName: feature.name,
-            status: "pending",
-            subtasks: subtaskRows,
-            order: order++,
-          });
-        }
-      }
+			let order = 0;
+			for (const feature of taskTree.features) {
+				for (const task of feature.tasks) {
+					const subtaskRows = task.subtasks.map((s) => ({
+						name: s.name,
+						description: s.description,
+						details: s.details ?? [],
+						status: "pending" as const,
+					}));
+					await tx.insert(tasks).values({
+						id: crypto.randomUUID(),
+						projectId,
+						title: task.name,
+						description: task.description || null,
+						featureName: feature.name,
+						status: "pending",
+						subtasks: subtaskRows,
+						order: order++,
+					});
+				}
+			}
 
-      const [proj] = await tx.select({ step: projects.step }).from(projects).where(eq(projects.id, projectId)).limit(1);
-      const updateData: Record<string, unknown> = {
-        taskStatus: "completed",
-        updatedAt: new Date(),
-      };
-      const next = advanceStep(proj?.step, "task");
-      if (next) updateData.step = next;
-      await tx.update(projects).set(updateData).where(eq(projects.id, projectId));
-    });
-    return { success: true };
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    console.error("saveTaskTree error:", msg);
-    return { success: false, error: msg };
-  }
+			const [proj] = await tx
+				.select({ step: projects.step })
+				.from(projects)
+				.where(eq(projects.id, projectId))
+				.limit(1);
+			const updateData: Record<string, unknown> = {
+				taskStatus: "completed",
+				updatedAt: new Date(),
+			};
+			const next = advanceStep(proj?.step, "task");
+			if (next) updateData.step = next;
+			await tx
+				.update(projects)
+				.set(updateData)
+				.where(eq(projects.id, projectId));
+		});
+		return { success: true };
+	} catch (error) {
+		const msg = error instanceof Error ? error.message : String(error);
+		console.error("saveTaskTree error:", msg);
+		return { success: false, error: msg };
+	}
 }
 
 /**
@@ -104,45 +119,60 @@ export async function saveTaskTree(
  * Reconstruct features → tasks → subtasks from the flat rows.
  */
 export async function getTaskTree(projectId: string): Promise<TaskTree | null> {
-  try {
-    const rows = await db
-      .select({
-        title: tasks.title,
-        description: tasks.description,
-        featureName: tasks.featureName,
-        subtasks: tasks.subtasks,
-      })
-      .from(tasks)
-      .where(eq(tasks.projectId, projectId))
-      .orderBy(asc(tasks.order));
+	try {
+		const rows = await db
+			.select({
+				title: tasks.title,
+				description: tasks.description,
+				featureName: tasks.featureName,
+				subtasks: tasks.subtasks,
+			})
+			.from(tasks)
+			.where(eq(tasks.projectId, projectId))
+			.orderBy(asc(tasks.order));
 
-    if (rows.length === 0) return null;
+		if (rows.length === 0) return null;
 
-    const featureMap = new Map<string, TaskTree["features"][number]>();
-    for (const row of rows) {
-      const fname = row.featureName || "Umum";
-      const feature = featureMap.get(fname) ?? (() => {
-        const f = { name: fname, tasks: [] as TaskTree["features"][number]["tasks"] };
-        featureMap.set(fname, f);
-        return f;
-      })();
+		const featureMap = new Map<string, TaskTree["features"][number]>();
+		for (const row of rows) {
+			const fname = row.featureName || "Umum";
+			const feature =
+				featureMap.get(fname) ??
+				(() => {
+					const f = {
+						name: fname,
+						tasks: [] as TaskTree["features"][number]["tasks"],
+					};
+					featureMap.set(fname, f);
+					return f;
+				})();
 
-      const subtasks = Array.isArray(row.subtasks)
-        ? (row.subtasks as Array<{ name: string; description: string; details?: string[]; status?: string }>)
-            .map((s) => ({ name: s.name, description: s.description || "", details: s.details ?? [] }))
-        : [];
+			const subtasks = Array.isArray(row.subtasks)
+				? (
+						row.subtasks as Array<{
+							name: string;
+							description: string;
+							details?: string[];
+							status?: string;
+						}>
+					).map((s) => ({
+						name: s.name,
+						description: s.description || "",
+						details: s.details ?? [],
+					}))
+				: [];
 
-      // ponytail: feature guaranteed present via lazy-init above; push onto it
-      feature.tasks.push({
-        name: row.title,
-        description: row.description || "",
-        subtasks,
-      });
-    }
+			// ponytail: feature guaranteed present via lazy-init above; push onto it
+			feature.tasks.push({
+				name: row.title,
+				description: row.description || "",
+				subtasks,
+			});
+		}
 
-    return { features: Array.from(featureMap.values()) };
-  } catch (error) {
-    console.error("getTaskTree error:", error);
-    throw error;
-  }
+		return { features: Array.from(featureMap.values()) };
+	} catch (error) {
+		console.error("getTaskTree error:", error);
+		throw error;
+	}
 }

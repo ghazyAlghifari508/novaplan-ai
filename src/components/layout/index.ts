@@ -1,6 +1,6 @@
-export { Navbar } from "./navbar";
+export { AppLayout } from "./app-layout";
+export type { FlowStep } from "./flow-step-nav";
+export { FlowStepNav, routeToStep } from "./flow-step-nav";
 export { GridBackground } from "./grid-background";
 export { HeroContent } from "./hero";
-export { AppLayout } from "./app-layout";
-export { FlowStepNav, routeToStep } from "./flow-step-nav";
-export type { FlowStep } from "./flow-step-nav";
+export { Navbar } from "./navbar";

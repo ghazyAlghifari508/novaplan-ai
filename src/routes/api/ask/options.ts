@@ -120,7 +120,9 @@ export const Route = createFileRoute("/api/ask/options")({
 					await db
 						.update(projects)
 						.set({ step: "question", updatedAt: new Date() })
-						.where(and(eq(projects.id, projectId), eq(projects.userId, user.id)))
+						.where(
+							and(eq(projects.id, projectId), eq(projects.userId, user.id)),
+						)
 						.catch((e) => console.error("ask step marker failed:", e));
 
 					return Response.json({ questions });

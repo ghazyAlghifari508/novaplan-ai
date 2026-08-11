@@ -6,16 +6,16 @@
  * Task was done rewound step 'task' -> 'ac' and History sent the user back to
  * the AC page. Step is now monotonic: it only ever moves forward.
  */
-import { stepToRoute, type FlowStep } from "@/lib/flow-step";
+import { type FlowStep, stepToRoute } from "@/lib/flow-step";
 
 /** Flow order. Index = progress rank; higher wins. */
 const STEP_ORDER: FlowStep[] = ["question", "prd", "ac", "task"];
 
 export function stepRank(step: string | null | undefined): number {
-  const i = STEP_ORDER.indexOf(step as FlowStep);
-  // ponytail: unknown/null ranks as "prd" (the default landing), matching
-  // stepToRoute's fallback so rank and route never disagree.
-  return i === -1 ? STEP_ORDER.indexOf("prd") : i;
+	const i = STEP_ORDER.indexOf(step as FlowStep);
+	// ponytail: unknown/null ranks as "prd" (the default landing), matching
+	// stepToRoute's fallback so rank and route never disagree.
+	return i === -1 ? STEP_ORDER.indexOf("prd") : i;
 }
 
 /**
@@ -23,10 +23,10 @@ export function stepRank(step: string | null | undefined): number {
  * Returns null when no write is needed - caller skips the step UPDATE.
  */
 export function advanceStep(
-  current: string | null | undefined,
-  next: FlowStep,
+	current: string | null | undefined,
+	next: FlowStep,
 ): FlowStep | null {
-  return stepRank(next) > stepRank(current) ? next : null;
+	return stepRank(next) > stepRank(current) ? next : null;
 }
 
 /**
@@ -36,17 +36,22 @@ export function advanceStep(
  * that outranked the complete one (AC v2 = 1440 chars vs v1 = 19818) and became
  * what the viewer showed.
  */
-const TRUNCATING_REASONS = new Set(["length", "error", "other", "content-filter"]);
+const TRUNCATING_REASONS = new Set([
+	"length",
+	"error",
+	"other",
+	"content-filter",
+]);
 
 export function isTruncatedGeneration(
-  content: string,
-  finishReason: string | undefined,
+	content: string,
+	finishReason: string | undefined,
 ): boolean {
-  if (!content.trim()) return true;
-  // ponytail: deny-list, not allow-list. undefined/"unknown" means the provider
-  // reported nothing - not evidence of truncation, so keep the content the user
-  // paid an AI call for. Only explicit failure reasons discard it.
-  return finishReason !== undefined && TRUNCATING_REASONS.has(finishReason);
+	if (!content.trim()) return true;
+	// ponytail: deny-list, not allow-list. undefined/"unknown" means the provider
+	// reported nothing - not evidence of truncation, so keep the content the user
+	// paid an AI call for. Only explicit failure reasons discard it.
+	return finishReason !== undefined && TRUNCATING_REASONS.has(finishReason);
 }
 
 /**
@@ -57,11 +62,11 @@ export function isTruncatedGeneration(
  * Rejects non-project routes and `javascript:`/malformed URLs outright.
  */
 const HISTORY_URL_RE =
-  /^\/(?:ask|prd|ac|task|kanban)\/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/;
+	/^\/(?:ask|prd|ac|task|kanban)\/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/;
 
 export function isValidHistoryUrl(url: string, projectId: string): boolean {
-  const m = HISTORY_URL_RE.exec(url);
-  return m !== null && m[1] === projectId;
+	const m = HISTORY_URL_RE.exec(url);
+	return m !== null && m[1] === projectId;
 }
 
 /**
@@ -72,12 +77,12 @@ export function isValidHistoryUrl(url: string, projectId: string): boolean {
  * dragging db/pg into the client bundle.
  */
 export function resolveHistoryUrl(item: {
-  id: string;
-  step: string | null | undefined;
-  lastUrl: string | null | undefined;
+	id: string;
+	step: string | null | undefined;
+	lastUrl: string | null | undefined;
 }): string {
-  if (item.lastUrl && isValidHistoryUrl(item.lastUrl, item.id)) {
-    return item.lastUrl;
-  }
-  return stepToRoute(item.step, item.id);
+	if (item.lastUrl && isValidHistoryUrl(item.lastUrl, item.id)) {
+		return item.lastUrl;
+	}
+	return stepToRoute(item.step, item.id);
 }

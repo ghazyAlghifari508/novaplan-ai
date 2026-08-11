@@ -8,10 +8,17 @@ import {
 	Search,
 	X,
 } from "lucide-react";
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useTheme } from "next-themes";
+import {
+	useCallback,
+	useEffect,
+	useId,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
+import { stackIconNeedsDarkInvert, stackIconUrl } from "@/lib/stack-data";
 import { cn } from "@/lib/utils";
-import { stackIconUrl, stackIconNeedsDarkInvert } from "@/lib/stack-data";
 
 interface StackDropdownProps {
 	label: string;
@@ -71,7 +78,7 @@ export function StackDropdown({
 	const isCustomValue = Boolean(value) && !options.includes(value ?? "");
 	const displayValue = value || "";
 
-	const isBlocked = disabled || Boolean(skipped);
+	const _isBlocked = disabled || Boolean(skipped);
 
 	const toggleSkip = () => {
 		onToggleSkip?.();
@@ -165,7 +172,10 @@ export function StackDropdown({
 
 	// Icon for selected value shown in trigger
 	const selectedIconUrl = value && !isCustomValue ? stackIconUrl(value) : null;
-	const selectedIconStyle = selectedIconUrl && isDark && stackIconNeedsDarkInvert(value ?? "") ? { filter: "brightness(0) invert(1)" } as React.CSSProperties : undefined;
+	const selectedIconStyle =
+		selectedIconUrl && isDark && stackIconNeedsDarkInvert(value ?? "")
+			? ({ filter: "brightness(0) invert(1)" } as React.CSSProperties)
+			: undefined;
 
 	return (
 		<div
@@ -224,7 +234,9 @@ export function StackDropdown({
 			</div>
 
 			{/* trigger */}
-			<div className={cn("relative", skipped && "pointer-events-none opacity-60")}>
+			<div
+				className={cn("relative", skipped && "pointer-events-none opacity-60")}
+			>
 				<button
 					ref={triggerRef}
 					type="button"
@@ -250,7 +262,15 @@ export function StackDropdown({
 				>
 					<span className="flex items-center gap-2 truncate">
 						{selectedIconUrl && (
-							<img src={selectedIconUrl} alt="" width={16} height={16} className="shrink-0" style={selectedIconStyle} loading="lazy" />
+							<img
+								src={selectedIconUrl}
+								alt=""
+								width={16}
+								height={16}
+								className="shrink-0"
+								style={selectedIconStyle}
+								loading="lazy"
+							/>
 						)}
 						{skipped
 							? "Dilewati"
@@ -281,13 +301,22 @@ export function StackDropdown({
 						style={{ background: "var(--bg-elevated)" }}
 					>
 						{/* Search */}
-						<div className="sticky top-0 z-10 border-b border-(--border-subtle) px-3 py-2" style={{ background: "var(--bg-elevated)" }}>
-							<div className="flex items-center gap-2 rounded-md border border-(--border-subtle) px-3 py-1.5" style={{ background: "var(--bg-input)" }}>
+						<div
+							className="sticky top-0 z-10 border-b border-(--border-subtle) px-3 py-2"
+							style={{ background: "var(--bg-elevated)" }}
+						>
+							<div
+								className="flex items-center gap-2 rounded-md border border-(--border-subtle) px-3 py-1.5"
+								style={{ background: "var(--bg-input)" }}
+							>
 								<Search size={14} className="shrink-0 text-fog" />
 								<input
 									type="text"
 									value={searchQuery}
-									onChange={(e) => { setSearchQuery(e.target.value); setHighlightIdx(-1); }}
+									onChange={(e) => {
+										setSearchQuery(e.target.value);
+										setHighlightIdx(-1);
+									}}
 									placeholder="Cari..."
 									className="w-full bg-transparent font-inter text-sm outline-none"
 									style={{ color: "var(--text-primary)" }}
@@ -296,7 +325,9 @@ export function StackDropdown({
 						</div>
 
 						{filtered.length === 0 && (
-							<p className="px-4 py-3 font-inter text-sm text-fog italic">Tidak ditemukan</p>
+							<p className="px-4 py-3 font-inter text-sm text-fog italic">
+								Tidak ditemukan
+							</p>
 						)}
 
 						{filtered.map((opt, i) => {
@@ -323,7 +354,15 @@ export function StackDropdown({
 								>
 									<span className="flex items-center gap-2 truncate">
 										{iconUrl && (
-											<img src={iconUrl} alt="" width={16} height={16} className="shrink-0" style={invertIfDark(opt)} loading="lazy" />
+											<img
+												src={iconUrl}
+												alt=""
+												width={16}
+												height={16}
+												className="shrink-0"
+												style={invertIfDark(opt)}
+												loading="lazy"
+											/>
 										)}
 										{opt}
 									</span>

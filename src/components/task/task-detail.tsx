@@ -12,7 +12,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { syncPaymentStatus } from "@/app/actions/payment";
 import { CreditExhaustedModal } from "@/components/chat/credit-exhausted-modal";
-import { consumeResumeIntent, consumeSuppressAutoGen } from "@/lib/prompt-handoff";
+import {
+	consumeResumeIntent,
+	consumeSuppressAutoGen,
+} from "@/lib/prompt-handoff";
 import type { TaskTree } from "@/lib/services/task-service";
 import { cn } from "@/lib/utils";
 import { useChatStore, useUIStore } from "@/store";
@@ -37,7 +40,7 @@ export function TaskDetail({
 	hasAc,
 	taskStatus,
 }: TaskDetailProps) {
-	const router = useRouter();
+	const _router = useRouter();
 	const showToast = useUIStore((s) => s.showToast);
 	const setTaskGenerated = useChatStore((s) => s.setTaskGenerated);
 	const creditsExhausted = useChatStore((s) => s.creditsExhausted);
@@ -110,9 +113,15 @@ export function TaskDetail({
 				const error = await response.json();
 				if (response.status === 403) {
 					if (error.code === "UPGRADE_REQUIRED") {
-						showToast("Generate Task hanya tersedia di paket Pro dan Hengker.", "error");
+						showToast(
+							"Generate Task hanya tersedia di paket Pro dan Hengker.",
+							"error",
+						);
 					} else {
-						setCreditsExhausted({ stage: "task", message: error.error || "Kredit habis." });
+						setCreditsExhausted({
+							stage: "task",
+							message: error.error || "Kredit habis.",
+						});
 					}
 					isGeneratingRef.current = false;
 					setIsGenerating(false);
@@ -194,7 +203,14 @@ export function TaskDetail({
 		isGeneratingRef.current = false;
 		setIsGenerating(false);
 		abortRef.current = null;
-	}, [hasAc, projectId, showToast, setCreditsExhausted, setTaskGenerated, thinkingText]);
+	}, [
+		hasAc,
+		projectId,
+		showToast,
+		setCreditsExhausted,
+		setTaskGenerated,
+		thinkingText,
+	]);
 
 	// Auto-generate on mount if no tasks yet.
 	// Uses ref to access latest handleGenerate, avoiding stale closure issue.
@@ -265,145 +281,151 @@ export function TaskDetail({
 
 	return (
 		<>
-		<div className="flex h-full flex-col bg-onyx text-snow">
-			{/* Topbar */}
-			<div className="flex items-center justify-between border-b border-graphite bg-obsidian px-4 py-3">
-				<h1
-					className={cn(
-						"truncate font-inter text-lg font-[510]",
-						isGenerating && "animate-pulse text-fog",
-					)}
-				>
-					{displayTitle}
-				</h1>
-				<div className="flex items-center gap-3">
-					<Link
-						href={`/kanban/${projectId}`}
-						className="btn-primary px-3 py-1.5 rounded-md text-xs font-[510]"
+			<div className="flex h-full flex-col bg-onyx text-snow">
+				{/* Topbar */}
+				<div className="flex items-center justify-between border-b border-graphite bg-obsidian px-4 py-3">
+					<h1
+						className={cn(
+							"truncate font-inter text-lg font-[510]",
+							isGenerating && "animate-pulse text-fog",
+						)}
 					>
-						Task
-					</Link>
-					<ImplementationOptions
-						projectId={projectId}
-						projectName={projectName}
-						hasContent={hasContent}
-					/>
-				</div>
-			</div>
-
-			{/* Canvas / generate */}
-			{isGenerating && thinkingText && !currentTaskTree && (
-				<details
-					className="text-xs text-fog/60 px-4 py-2 border-b border-graphite/40"
-					open
-				>
-					<summary className="cursor-pointer select-none">
-						AI sedang berpikir...
-					</summary>
-					<pre className="mt-1 whitespace-pre-wrap text-xs text-fog/40 max-h-40 overflow-y-auto custom-scrollbar">
-						{thinkingText}
-					</pre>
-				</details>
-			)}
-			<div className="relative flex-1 overflow-hidden">
-				{/* Mobile: stacked accordion <md */}
-				{visibleTaskTree && hasContent && (
-					<div
-						className="h-full overflow-y-auto md:hidden"
-						style={{ overscrollBehavior: "contain" }}
-					>
-						<div className="space-y-3 p-3">
-							{visibleTaskTree.features.map((feature, fi) => (
-								<details
-									key={feature.name}
-									className="rounded-lg border border-graphite bg-obsidian"
-								>
-									<summary
-										className="flex cursor-pointer items-center gap-2 px-3 py-2 font-inter text-sm font-[510]"
-										style={{
-											borderLeft: `3px solid ${["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16", "#f97316", "#14b8a6"][fi % 10]}`,
-										}}
-									>
-										<ChevronDown size={14} /> {feature.name}
-									</summary>
-									<div className="border-t border-graphite px-3 py-2">
-										{!feature.tasks || feature.tasks.length === 0 ? (
-											<p className="text-xs text-fog italic">Tidak ada task</p>
-										) : (
-											<ul className="space-y-2">
-												{feature.tasks.map((task) => (
-													<li key={`${feature.name}-${task.name}`}>
-														<p className="text-sm font-[510] text-snow">
-															{task.name}
-														</p>
-														{task.subtasks && task.subtasks.length > 0 && (
-															<ul className="mt-1 space-y-1 pl-3">
-																{task.subtasks.map((sub) => (
-																	<li key={`${task.name}-${sub.name}`} className="text-xs text-fog">
-																		<div className="flex items-center gap-1.5">
-																			<Circle
-																				size={5}
-																				className="shrink-0 fill-fog/40"
-																			/>{" "}
-																			{sub.name}
-																		</div>
-																		{sub.details && sub.details.length > 0 && (
-																			<ul className="mt-0.5 space-y-0.5 pl-4">
-																				{sub.details.map((detail, di) => (
-																					<li
-																							// biome-ignore lint/suspicious/noArrayIndexKey: detail strings can duplicate; index as tiebreaker
-																							key={`${detail.substring(0, 30)}-${di}`}
-																						className="text-[11px] text-fog/70"
-																					>
-																						– {detail}
-																					</li>
-																				))}
-																			</ul>
-																		)}
-																	</li>
-																))}
-															</ul>
-														)}
-													</li>
-												))}
-											</ul>
-										)}
-									</div>
-								</details>
-							))}
-						</div>
-					</div>
-				)}
-
-				{/* Desktop: interactive canvas >md */}
-				<div className={cn("h-full", hasContent && "hidden md:block")}>
-					{hasError && !isGenerating && !hasContent ? (
-						<div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-							<AlertTriangle size={40} className="text-crimson" />
-							<p className="text-fog">Gagal generate task tree.</p>
-							<button
-								onClick={() => handleGenerate()}
-								className="btn-primary rounded-md px-4 py-2 text-sm"
-							>
-								Coba Lagi
-							</button>
-						</div>
-					) : (
-						<WhiteboardCanvas
+						{displayTitle}
+					</h1>
+					<div className="flex items-center gap-3">
+						<Link
+							href={`/kanban/${projectId}`}
+							className="btn-primary px-3 py-1.5 rounded-md text-xs font-[510]"
+						>
+							Task
+						</Link>
+						<ImplementationOptions
+							projectId={projectId}
 							projectName={projectName}
-							taskTree={visibleTaskTree}
+							hasContent={hasContent}
 						/>
+					</div>
+				</div>
+
+				{/* Canvas / generate */}
+				{isGenerating && thinkingText && !currentTaskTree && (
+					<details
+						className="text-xs text-fog/60 px-4 py-2 border-b border-graphite/40"
+						open
+					>
+						<summary className="cursor-pointer select-none">
+							AI sedang berpikir...
+						</summary>
+						<pre className="mt-1 whitespace-pre-wrap text-xs text-fog/40 max-h-40 overflow-y-auto custom-scrollbar">
+							{thinkingText}
+						</pre>
+					</details>
+				)}
+				<div className="relative flex-1 overflow-hidden">
+					{/* Mobile: stacked accordion <md */}
+					{visibleTaskTree && hasContent && (
+						<div
+							className="h-full overflow-y-auto md:hidden"
+							style={{ overscrollBehavior: "contain" }}
+						>
+							<div className="space-y-3 p-3">
+								{visibleTaskTree.features.map((feature, fi) => (
+									<details
+										key={feature.name}
+										className="rounded-lg border border-graphite bg-obsidian"
+									>
+										<summary
+											className="flex cursor-pointer items-center gap-2 px-3 py-2 font-inter text-sm font-[510]"
+											style={{
+												borderLeft: `3px solid ${["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16", "#f97316", "#14b8a6"][fi % 10]}`,
+											}}
+										>
+											<ChevronDown size={14} /> {feature.name}
+										</summary>
+										<div className="border-t border-graphite px-3 py-2">
+											{!feature.tasks || feature.tasks.length === 0 ? (
+												<p className="text-xs text-fog italic">
+													Tidak ada task
+												</p>
+											) : (
+												<ul className="space-y-2">
+													{feature.tasks.map((task) => (
+														<li key={`${feature.name}-${task.name}`}>
+															<p className="text-sm font-[510] text-snow">
+																{task.name}
+															</p>
+															{task.subtasks && task.subtasks.length > 0 && (
+																<ul className="mt-1 space-y-1 pl-3">
+																	{task.subtasks.map((sub) => (
+																		<li
+																			key={`${task.name}-${sub.name}`}
+																			className="text-xs text-fog"
+																		>
+																			<div className="flex items-center gap-1.5">
+																				<Circle
+																					size={5}
+																					className="shrink-0 fill-fog/40"
+																				/>{" "}
+																				{sub.name}
+																			</div>
+																			{sub.details &&
+																				sub.details.length > 0 && (
+																					<ul className="mt-0.5 space-y-0.5 pl-4">
+																						{sub.details.map((detail, di) => (
+																							<li
+																								// biome-ignore lint/suspicious/noArrayIndexKey: detail strings can duplicate; index as tiebreaker
+																								key={`${detail.substring(0, 30)}-${di}`}
+																								className="text-[11px] text-fog/70"
+																							>
+																								– {detail}
+																							</li>
+																						))}
+																					</ul>
+																				)}
+																		</li>
+																	))}
+																</ul>
+															)}
+														</li>
+													))}
+												</ul>
+											)}
+										</div>
+									</details>
+								))}
+							</div>
+						</div>
 					)}
+
+					{/* Desktop: interactive canvas >md */}
+					<div className={cn("h-full", hasContent && "hidden md:block")}>
+						{hasError && !isGenerating && !hasContent ? (
+							<div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+								<AlertTriangle size={40} className="text-crimson" />
+								<p className="text-fog">Gagal generate task tree.</p>
+								<button
+									onClick={() => handleGenerate()}
+									className="btn-primary rounded-md px-4 py-2 text-sm"
+								>
+									Coba Lagi
+								</button>
+							</div>
+						) : (
+							<WhiteboardCanvas
+								projectName={projectName}
+								taskTree={visibleTaskTree}
+							/>
+						)}
+					</div>
 				</div>
 			</div>
-		</div>
-		<CreditExhaustedModal
-			isOpen={creditsExhausted?.stage === "task"}
-			onClose={() => setCreditsExhausted(null)}
-			errorMessage={creditsExhausted?.message || ""}
-			projectId={projectId}
-			stage="task"
-		/>
+			<CreditExhaustedModal
+				isOpen={creditsExhausted?.stage === "task"}
+				onClose={() => setCreditsExhausted(null)}
+				errorMessage={creditsExhausted?.message || ""}
+				projectId={projectId}
+				stage="task"
+			/>
 		</>
 	);
 }

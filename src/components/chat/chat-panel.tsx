@@ -8,15 +8,15 @@ import {
 	useRef,
 	useState,
 } from "react";
-import { ALL_MODELS, DEFAULT_MODEL_ID } from "@/lib/model-config";
 import { syncPaymentStatus } from "@/app/actions/payment";
+import { ALL_MODELS, DEFAULT_MODEL_ID } from "@/lib/model-config";
 import {
 	clearPrdDraft,
 	consumePendingPrdPrompt,
 	consumeResumeIntent,
 	getPrdDraft,
-	savePrdDraft,
 	savePendingPrdPrompt,
+	savePrdDraft,
 } from "@/lib/prompt-handoff";
 import { cn } from "@/lib/utils";
 import { useChatStore, useUIStore } from "@/store";
@@ -199,7 +199,7 @@ export function ChatPanel({
 	const [partialContentStore, setPartialContentStore] = useState("");
 	const [originalMessageStore, setOriginalMessageStore] = useState("");
 	const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL_ID);
-	const [userPlan, setUserPlan] = useState<Plan>(initialUserPlan);
+	const [userPlan, _setUserPlan] = useState<Plan>(initialUserPlan);
 	const [isRevising, setIsRevising] = useState(false);
 	// Section generation progress tracking - persisted in Zustand so it
 	// survives router.refresh() after generation completes.
@@ -321,7 +321,7 @@ export function ChatPanel({
 			// frozen.
 			let gotDoneEvent = false;
 			let gotErrorEvent = false;
-			let sawAnyDelta = false;
+			let _sawAnyDelta = false;
 
 			// ponytail: batch per-token state commits to one per animation frame.
 			// Without this, a 64k-token stream triggers hundreds of re-renders per
@@ -342,8 +342,7 @@ export function ChatPanel({
 					if (foundSections.length > 0) {
 						const lastSection = foundSections[foundSections.length - 1];
 						const prev = foundSections.slice(0, -1);
-						const currentCompleted =
-							useChatStore.getState().completedSections;
+						const currentCompleted = useChatStore.getState().completedSections;
 						const merged = [...currentCompleted];
 						prev.forEach((s) => {
 							if (!merged.includes(s)) merged.push(s);
@@ -414,11 +413,21 @@ export function ChatPanel({
 					if (response.status === 403 && err.code === "NO_CREDITS") {
 						// Save prompt for auto-resume after payment (only for generate mode)
 						if (body.mode === "generate") {
-							savePendingPrdPrompt(body.message as string, "auto", originalMessage);
+							savePendingPrdPrompt(
+								body.message as string,
+								"auto",
+								originalMessage,
+							);
 						}
-						setCreditsExhausted({ stage: "prd", message: err.error || "Kredit habis" });
+						setCreditsExhausted({
+							stage: "prd",
+							message: err.error || "Kredit habis",
+						});
 					} else if (response.status === 429) {
-						setCreditsExhausted({ stage: "prd", message: err.error || "Terlalu banyak request. Coba lagi nanti." });
+						setCreditsExhausted({
+							stage: "prd",
+							message: err.error || "Terlalu banyak request. Coba lagi nanti.",
+						});
 					} else if (response.status === 403) {
 						showToast(err.error || "Akses ditolak", "error");
 					} else {
@@ -454,7 +463,7 @@ export function ChatPanel({
 								continue;
 							} else if (parsed.type === "delta") {
 								if (thinkingText) setThinkingText("");
-								sawAnyDelta = true;
+								_sawAnyDelta = true;
 								fullContent += parsed.content;
 
 								// ponytail: batch state commits via rAF throttle (scheduleFlush).
@@ -659,10 +668,7 @@ export function ChatPanel({
 				// ponytail: generate/resume modes must NOT clear isGeneratingPRD here —
 				// the done handler owns cleanup + router.refresh(). Clearing here hides
 				// the section progress card (spinner + checkmarks) before refresh lands.
-				if (
-					chatMode !== "generate" &&
-					chatMode !== "resume"
-				) {
+				if (chatMode !== "generate" && chatMode !== "resume") {
 					setGeneratingPRD(false);
 					setStreamingPRDContent("");
 				}
@@ -909,7 +915,11 @@ export function ChatPanel({
 					setGeneratingPRD(true);
 					const pending = consumePendingPrdPrompt();
 					if (pending) {
-						void handleSendWithMessage(pending.prompt, "generate", pending.displayMessage || pending.prompt);
+						void handleSendWithMessage(
+							pending.prompt,
+							"generate",
+							pending.displayMessage || pending.prompt,
+						);
 					}
 				}
 				// Strip query params from URL
@@ -918,7 +928,13 @@ export function ChatPanel({
 				console.error("Auto-resume payment sync failed:", e);
 			}
 		})();
-	}, [searchParams, handleSendWithMessage, projectId, router, setGeneratingPRD]);
+	}, [
+		searchParams,
+		handleSendWithMessage,
+		projectId,
+		router,
+		setGeneratingPRD,
+	]);
 
 	// ── Render ──
 
@@ -948,7 +964,7 @@ export function ChatPanel({
 								{ALL_PRD_SECTIONS.map((section) => {
 									const isCompleted = completedSections.includes(section);
 									const isCurrent = section === currentSection;
-									const isPending = !isCompleted && !isCurrent;
+									const _isPending = !isCompleted && !isCurrent;
 									return (
 										<div key={section} className="flex items-center gap-2.5">
 											{isCompleted ? (
@@ -1027,14 +1043,20 @@ export function ChatPanel({
 				))}
 				{isStreaming && thinkingText && !streamingContent && (
 					<details className="text-xs text-fog/60 mb-2 px-4" open>
-						<summary className="cursor-pointer select-none">🤔 AI sedang berpikir...</summary>
-						<pre className="mt-1 whitespace-pre-wrap text-xs text-fog/40 max-h-40 overflow-y-auto custom-scrollbar">{thinkingText}</pre>
+						<summary className="cursor-pointer select-none">
+							🤔 AI sedang berpikir...
+						</summary>
+						<pre className="mt-1 whitespace-pre-wrap text-xs text-fog/40 max-h-40 overflow-y-auto custom-scrollbar">
+							{thinkingText}
+						</pre>
 					</details>
 				)}
 				{isStreaming && streamingContent && (
 					<ChatBubble role="assistant" content={streamingContent} isStreaming />
 				)}
-				{isRevising && !streamingContent && !thinkingText && <TypingIndicator />}
+				{isRevising && !streamingContent && !thinkingText && (
+					<TypingIndicator />
+				)}
 			</div>
 
 			{/* Input Area */}

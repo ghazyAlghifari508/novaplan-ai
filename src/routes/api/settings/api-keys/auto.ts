@@ -1,42 +1,49 @@
+import { createHash, randomBytes } from "node:crypto";
 import { createFileRoute } from "@tanstack/react-router";
 import { getRequestHeaders } from "@tanstack/react-start/server";
-import { createHash, randomBytes } from "node:crypto";
-import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { apiKeys } from "@/db/schema";
 import { requireUser } from "@/lib/session";
 
-const ALL_SCOPES = ["read:project", "write:task:status", "write:subtask:status"];
+const ALL_SCOPES = [
+	"read:project",
+	"write:task:status",
+	"write:subtask:status",
+];
 
 export const Route = createFileRoute("/api/settings/api-keys/auto")({
-  server: {
-    handlers: {
-      POST: async () => {
-        const user = await requireUser(getRequestHeaders());
+	server: {
+		handlers: {
+			POST: async () => {
+				const user = await requireUser(getRequestHeaders());
 
-        // Don't delete existing auto-keys — raw keys aren't stored so we can't
-        // return an old one; keeping previous keys avoids 401 for in-flight agents.
-        // ponytail: auto-keys accumulate per click; cleanup by expiry if this grows.
+				// Don't delete existing auto-keys — raw keys aren't stored so we can't
+				// return an old one; keeping previous keys avoids 401 for in-flight agents.
+				// ponytail: auto-keys accumulate per click; cleanup by expiry if this grows.
 
-        const rawKey = `novaplan_${randomBytes(32).toString("hex")}`;
-        const keyHash = createHash("sha256").update(rawKey).digest("hex");
-        const keyPrefix = rawKey.slice(0, 10);
+				const rawKey = `novaplan_${randomBytes(32).toString("hex")}`;
+				const keyHash = createHash("sha256").update(rawKey).digest("hex");
+				const keyPrefix = rawKey.slice(0, 10);
 
-        const [inserted] = await db
-          .insert(apiKeys)
-          .values({
-            id: crypto.randomUUID(),
-            userId: user.id,
-            name: `auto-cli-${Date.now()}`,
-            key: keyHash,
-            keyPrefix,
-            scopes: ALL_SCOPES,
-          })
-          .returning({ id: apiKeys.id });
+				const [inserted] = await db
+					.insert(apiKeys)
+					.values({
+						id: crypto.randomUUID(),
+						userId: user.id,
+						name: `auto-cli-${Date.now()}`,
+						key: keyHash,
+						keyPrefix,
+						scopes: ALL_SCOPES,
+					})
+					.returning({ id: apiKeys.id });
 
-        if (!inserted) return Response.json({ error: "Gagal membuat API key" }, { status: 500 });
-        return Response.json({ rawKey });
-      },
-    },
-  },
+				if (!inserted)
+					return Response.json(
+						{ error: "Gagal membuat API key" },
+						{ status: 500 },
+					);
+				return Response.json({ rawKey });
+			},
+		},
+	},
 });

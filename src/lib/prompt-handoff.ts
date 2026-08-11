@@ -134,7 +134,12 @@ export interface AskState {
 	prompt: string;
 	platform: "web" | "mobile";
 	session: 1 | 2;
-	questions: { id: string; question: string; type: "select" | "text" | "multiselect"; options?: string[] }[];
+	questions: {
+		id: string;
+		question: string;
+		type: "select" | "text" | "multiselect";
+		options?: string[];
+	}[];
 	nonTechAnswers: Record<
 		string,
 		{ value: string; isCustom: boolean; skipped: boolean; values?: string[] }
@@ -278,8 +283,15 @@ interface ResumeIntentPayload {
 	createdAt: number;
 }
 
-export function saveResumeIntent(projectId: string, stage: "prd" | "ac" | "task") {
-	const payload: ResumeIntentPayload = { projectId, stage, createdAt: Date.now() };
+export function saveResumeIntent(
+	projectId: string,
+	stage: "prd" | "ac" | "task",
+) {
+	const payload: ResumeIntentPayload = {
+		projectId,
+		stage,
+		createdAt: Date.now(),
+	};
 	getStorage()?.setItem(RESUME_INTENT_KEY, JSON.stringify(payload));
 }
 
@@ -287,7 +299,9 @@ export function saveResumeIntent(projectId: string, stage: "prd" | "ac" | "task"
  * Consume-pattern: reads and removes. Returns the stage if the stored intent
  * matches `projectId` and hasn't expired, otherwise null (and clears stale data).
  */
-export function consumeResumeIntent(projectId: string): "prd" | "ac" | "task" | null {
+export function consumeResumeIntent(
+	projectId: string,
+): "prd" | "ac" | "task" | null {
 	const storage = getStorage();
 	const raw = storage?.getItem(RESUME_INTENT_KEY);
 	if (!raw) return null;

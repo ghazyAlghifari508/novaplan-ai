@@ -103,7 +103,12 @@ export const Route = createFileRoute("/api/task/generate")({
 				const claimed = await db
 					.update(projects)
 					.set({ taskStatus: "generating" })
-					.where(and(eq(projects.id, projectId), ne(projects.taskStatus, "generating")))
+					.where(
+						and(
+							eq(projects.id, projectId),
+							ne(projects.taskStatus, "generating"),
+						),
+					)
 					.returning({ id: projects.id });
 				if (!claimed.length) {
 					return Response.json(

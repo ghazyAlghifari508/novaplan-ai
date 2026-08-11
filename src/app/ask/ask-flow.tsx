@@ -11,14 +11,14 @@ import {
 	savePendingPrdPrompt,
 } from "@/lib/prompt-handoff";
 import {
-	FRONTEND_WEB_OPTIONS,
-	FRONTEND_MOBILE_OPTIONS,
 	BACKEND_OPTIONS,
+	DATABASE_OPTIONS,
+	DEPLOYMENT_MOBILE_OPTIONS,
+	DEPLOYMENT_OPTIONS,
+	FRONTEND_MOBILE_OPTIONS,
+	FRONTEND_WEB_OPTIONS,
 	FULLSTACK_FRAMEWORK_OPTIONS,
 	FULLSTACK_MOBILE_OPTIONS,
-	DATABASE_OPTIONS,
-	DEPLOYMENT_OPTIONS,
-	DEPLOYMENT_MOBILE_OPTIONS,
 } from "@/lib/stack-data";
 import { type NonTechAnswer, QuestionCard } from "./question-card";
 import { StackDropdown } from "./stack-dropdown";
@@ -151,11 +151,21 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 			skippedTech: [...skippedTech],
 			techAnswers,
 		});
-	}, [questions, nonTechAnswers, techAnswers, skippedTech, session, platform, projectId]);
+	}, [
+		questions,
+		nonTechAnswers,
+		techAnswers,
+		skippedTech,
+		session,
+		platform,
+		projectId,
+	]);
 
 	const fullstackDisabled = Boolean(
-		techAnswers.frontend || techAnswers.backend ||
-		skippedTech.has("frontend") || skippedTech.has("backend"),
+		techAnswers.frontend ||
+			techAnswers.backend ||
+			skippedTech.has("frontend") ||
+			skippedTech.has("backend"),
 	);
 	const feBeDisabled = Boolean(
 		techAnswers.fullstackFramework || skippedTech.has("fullstackFramework"),
@@ -163,7 +173,9 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 	const frontendOptions =
 		platform === "mobile" ? FRONTEND_MOBILE_OPTIONS : FRONTEND_WEB_OPTIONS;
 	const fullstackOptions =
-		platform === "mobile" ? FULLSTACK_MOBILE_OPTIONS : FULLSTACK_FRAMEWORK_OPTIONS;
+		platform === "mobile"
+			? FULLSTACK_MOBILE_OPTIONS
+			: FULLSTACK_FRAMEWORK_OPTIONS;
 	const deploymentOptions =
 		platform === "mobile" ? DEPLOYMENT_MOBILE_OPTIONS : DEPLOYMENT_OPTIONS;
 
@@ -213,9 +225,7 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 		return (
 			<div className="flex h-full flex-col items-center justify-center gap-3 bg-onyx">
 				<div className="h-10 w-10 animate-spin rounded-full border-2 border-indigo border-t-transparent" />
-				<p className="font-inter text-sm text-fog">
-					Menyusun pertanyaan...
-				</p>
+				<p className="font-inter text-sm text-fog">Menyusun pertanyaan...</p>
 			</div>
 		);
 	}
@@ -240,162 +250,172 @@ Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
 	return (
 		<div className="hide-scrollbar mx-auto flex-1 w-full overflow-y-auto bg-onyx min-h-0">
 			<div className="mx-auto max-w-3xl lg:max-w-4xl px-4 sm:px-6 py-6 sm:py-12">
-			<div className="mb-8 flex items-center justify-between">
-				<div>
-					<p className="font-inter text-xs uppercase tracking-wide text-fog">
-						Sesi {session} dari 2
-					</p>
-					<h1
-						className="font-inter text-2xl font-[510]"
-						style={{ color: "var(--text-primary)" }}
-					>
-						{session === 1 ? "Ceritakan lebih lanjut" : "Preferensi Teknis"}
-					</h1>
+				<div className="mb-8 flex items-center justify-between">
+					<div>
+						<p className="font-inter text-xs uppercase tracking-wide text-fog">
+							Sesi {session} dari 2
+						</p>
+						<h1
+							className="font-inter text-2xl font-[510]"
+							style={{ color: "var(--text-primary)" }}
+						>
+							{session === 1 ? "Ceritakan lebih lanjut" : "Preferensi Teknis"}
+						</h1>
+					</div>
+					{session === 1 && (
+						<span className="font-inter text-sm text-fog">
+							{answeredCount}/{questions.length}
+						</span>
+					)}
 				</div>
-				{session === 1 && (
-					<span className="font-inter text-sm text-fog">
-						{answeredCount}/{questions.length}
-					</span>
+
+				{session === 1 ? (
+					<div className="space-y-4 pb-8">
+						<p className="font-inter text-xs text-fog italic">
+							Pilih &ldquo;Lewati&rdquo; jika tidak yakin, AI akan menentukan
+							yang terbaik berdasarkan kebutuhan aplikasi Anda.
+						</p>
+						{questions.map((q) => (
+							<QuestionCard
+								key={q.id}
+								question={q.question}
+								type={q.type}
+								options={q.options}
+								answer={nonTechAnswers[q.id]}
+								onAnswer={(answer) =>
+									setNonTechAnswers((prev) => ({ ...prev, [q.id]: answer }))
+								}
+							/>
+						))}
+						<div className="flex justify-end pt-2">
+							<button
+								type="button"
+								disabled={!allNonTechAnswered}
+								onClick={() => setSession(2)}
+								className="btn-primary rounded-md px-6 py-2.5 min-h-[44px] inline-flex items-center justify-center font-inter text-sm font-[510] disabled:opacity-40 disabled:cursor-not-allowed"
+							>
+								Lanjut
+							</button>
+						</div>
+					</div>
+				) : (
+					<div className="space-y-6 pb-8">
+						<p className="font-inter text-xs text-fog italic">
+							Pilih &ldquo;Lewati&rdquo; jika tidak yakin, AI akan memilih stack
+							yang paling sesuai untuk aplikasi Anda.
+						</p>
+						<div className="grid gap-4 sm:grid-cols-2">
+							<StackDropdown
+								label="Frontend"
+								subtitle="UI & tampilan user"
+								icon={Palette}
+								accent="#5e6ad2"
+								placeholder="Pilih frontend..."
+								options={frontendOptions}
+								value={techAnswers.frontend}
+								disabled={feBeDisabled}
+								skipped={skippedTech.has("frontend")}
+								allowSkip
+								onChange={(v) =>
+									setTechAnswers((prev) => ({ ...prev, frontend: v }))
+								}
+								onToggleSkip={() => toggleSkipTech("frontend")}
+							/>
+							<StackDropdown
+								label="Backend"
+								subtitle="Logic & API server"
+								icon={Cloud}
+								accent="#2dd4a7"
+								placeholder="Pilih backend..."
+								options={BACKEND_OPTIONS}
+								value={techAnswers.backend}
+								disabled={feBeDisabled}
+								skipped={skippedTech.has("backend")}
+								allowSkip
+								onChange={(v) =>
+									setTechAnswers((prev) => ({ ...prev, backend: v }))
+								}
+								onToggleSkip={() => toggleSkipTech("backend")}
+							/>
+							<StackDropdown
+								label={
+									platform === "mobile"
+										? "Mobile + Backend"
+										: "Fullstack Framework"
+								}
+								subtitle={
+									platform === "mobile"
+										? "Mobile FE + backend jadi satu"
+										: "Frontend + backend jadi satu"
+								}
+								icon={Layers}
+								accent="#e879a6"
+								placeholder="Pilih framework..."
+								options={fullstackOptions}
+								value={techAnswers.fullstackFramework}
+								disabled={fullstackDisabled}
+								skipped={skippedTech.has("fullstackFramework")}
+								allowSkip
+								onChange={(v) =>
+									setTechAnswers((prev) => ({ ...prev, fullstackFramework: v }))
+								}
+								onToggleSkip={() => toggleSkipTech("fullstackFramework")}
+							/>
+							<StackDropdown
+								label="Database"
+								subtitle="Penyimpanan data"
+								icon={Database}
+								accent="#f5b544"
+								placeholder="Pilih database..."
+								options={DATABASE_OPTIONS}
+								value={techAnswers.database}
+								disabled={false}
+								skipped={skippedTech.has("database")}
+								allowSkip
+								onChange={(v) =>
+									setTechAnswers((prev) => ({ ...prev, database: v }))
+								}
+								onToggleSkip={() => toggleSkipTech("database")}
+							/>
+							<StackDropdown
+								label="Deployment"
+								subtitle="Hosting & infra"
+								icon={Rocket}
+								accent="#a78bfa"
+								placeholder="Pilih platform..."
+								options={deploymentOptions}
+								value={techAnswers.deployment}
+								disabled={false}
+								skipped={skippedTech.has("deployment")}
+								allowSkip
+								dropUp
+								onChange={(v) =>
+									setTechAnswers((prev) => ({ ...prev, deployment: v }))
+								}
+								onToggleSkip={() => toggleSkipTech("deployment")}
+							/>
+						</div>
+
+						<div className="flex flex-wrap items-center justify-between gap-3 border-t border-(--border-subtle) pt-6">
+							<button
+								type="button"
+								onClick={() => setSession(1)}
+								className="font-inter text-sm text-fog hover:text-snow"
+							>
+								Kembali
+							</button>
+							<button
+								type="button"
+								disabled={!allTechAnswered}
+								onClick={() => submit(techAnswers)}
+								className="btn-primary rounded-md px-6 py-2.5 font-inter text-sm font-[510] disabled:opacity-40 disabled:cursor-not-allowed"
+							>
+								Generate PRD
+							</button>
+						</div>
+					</div>
 				)}
 			</div>
-
-			{session === 1 ? (
-				<div className="space-y-4 pb-8">
-					<p className="font-inter text-xs text-fog italic">
-						Pilih &ldquo;Lewati&rdquo; jika tidak yakin, AI akan menentukan yang terbaik berdasarkan kebutuhan aplikasi Anda.
-					</p>
-					{questions.map((q) => (
-						<QuestionCard
-							key={q.id}
-							question={q.question}
-							type={q.type}
-							options={q.options}
-							answer={nonTechAnswers[q.id]}
-							onAnswer={(answer) =>
-								setNonTechAnswers((prev) => ({ ...prev, [q.id]: answer }))
-							}
-						/>
-					))}
-					<div className="flex justify-end pt-2">
-						<button
-							type="button"
-							disabled={!allNonTechAnswered}
-							onClick={() => setSession(2)}
-							className="btn-primary rounded-md px-6 py-2.5 min-h-[44px] inline-flex items-center justify-center font-inter text-sm font-[510] disabled:opacity-40 disabled:cursor-not-allowed"
-						>
-							Lanjut
-						</button>
-					</div>
-				</div>
-			) : (
-				<div className="space-y-6 pb-8">
-					<p className="font-inter text-xs text-fog italic">
-						Pilih &ldquo;Lewati&rdquo; jika tidak yakin, AI akan memilih stack yang paling sesuai untuk aplikasi Anda.
-					</p>
-					<div className="grid gap-4 sm:grid-cols-2">
-						<StackDropdown
-							label="Frontend"
-							subtitle="UI & tampilan user"
-							icon={Palette}
-							accent="#5e6ad2"
-							placeholder="Pilih frontend..."
-							options={frontendOptions}
-							value={techAnswers.frontend}
-							disabled={feBeDisabled}
-							skipped={skippedTech.has("frontend")}
-							allowSkip
-							onChange={(v) =>
-								setTechAnswers((prev) => ({ ...prev, frontend: v }))
-							}
-							onToggleSkip={() => toggleSkipTech("frontend")}
-						/>
-						<StackDropdown
-							label="Backend"
-							subtitle="Logic & API server"
-							icon={Cloud}
-							accent="#2dd4a7"
-							placeholder="Pilih backend..."
-							options={BACKEND_OPTIONS}
-							value={techAnswers.backend}
-							disabled={feBeDisabled}
-							skipped={skippedTech.has("backend")}
-							allowSkip
-							onChange={(v) =>
-								setTechAnswers((prev) => ({ ...prev, backend: v }))
-							}
-							onToggleSkip={() => toggleSkipTech("backend")}
-						/>
-						<StackDropdown
-							label={platform === "mobile" ? "Mobile + Backend" : "Fullstack Framework"}
-							subtitle={platform === "mobile" ? "Mobile FE + backend jadi satu" : "Frontend + backend jadi satu"}
-							icon={Layers}
-							accent="#e879a6"
-							placeholder="Pilih framework..."
-							options={fullstackOptions}
-							value={techAnswers.fullstackFramework}
-							disabled={fullstackDisabled}
-							skipped={skippedTech.has("fullstackFramework")}
-							allowSkip
-							onChange={(v) =>
-								setTechAnswers((prev) => ({ ...prev, fullstackFramework: v }))
-							}
-							onToggleSkip={() => toggleSkipTech("fullstackFramework")}
-						/>
-						<StackDropdown
-							label="Database"
-							subtitle="Penyimpanan data"
-							icon={Database}
-							accent="#f5b544"
-							placeholder="Pilih database..."
-							options={DATABASE_OPTIONS}
-							value={techAnswers.database}
-							disabled={false}
-							skipped={skippedTech.has("database")}
-							allowSkip
-							onChange={(v) =>
-								setTechAnswers((prev) => ({ ...prev, database: v }))
-							}
-							onToggleSkip={() => toggleSkipTech("database")}
-						/>
-						<StackDropdown
-							label="Deployment"
-							subtitle="Hosting & infra"
-							icon={Rocket}
-							accent="#a78bfa"
-							placeholder="Pilih platform..."
-							options={deploymentOptions}
-							value={techAnswers.deployment}
-							disabled={false}
-							skipped={skippedTech.has("deployment")}
-							allowSkip
-							dropUp
-							onChange={(v) =>
-								setTechAnswers((prev) => ({ ...prev, deployment: v }))
-							}
-							onToggleSkip={() => toggleSkipTech("deployment")}
-						/>
-					</div>
-
-					<div className="flex flex-wrap items-center justify-between gap-3 border-t border-(--border-subtle) pt-6">
-						<button
-							type="button"
-							onClick={() => setSession(1)}
-							className="font-inter text-sm text-fog hover:text-snow"
-						>
-							Kembali
-						</button>
-						<button
-							type="button"
-							disabled={!allTechAnswered}
-							onClick={() => submit(techAnswers)}
-							className="btn-primary rounded-md px-6 py-2.5 font-inter text-sm font-[510] disabled:opacity-40 disabled:cursor-not-allowed"
-						>
-							Generate PRD
-						</button>
-					</div>
-				</div>
-			)}
-		</div>
 		</div>
 	);
 }

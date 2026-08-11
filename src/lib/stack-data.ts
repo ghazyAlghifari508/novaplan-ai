@@ -233,8 +233,17 @@ export function stackIconUrl(label: string): string | null {
 
 /** Slugs whose SVGs have black fill (#000000) and need invert on dark bg only. */
 const BLACK_FILL_SLUGS = new Set([
-	"bun", "deno", "fastify", "nextdotjs", "planetscale", "remix", "render", "tanstack", "vercel",
-	"appstore", "testflight",
+	"bun",
+	"deno",
+	"fastify",
+	"nextdotjs",
+	"planetscale",
+	"remix",
+	"render",
+	"tanstack",
+	"vercel",
+	"appstore",
+	"testflight",
 ]);
 
 /** Whether this label's icon needs CSS invert only in dark mode (black-fill SVGs). */

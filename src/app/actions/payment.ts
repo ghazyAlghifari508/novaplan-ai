@@ -13,44 +13,54 @@ import type { Plan } from "@/types/database";
 const MIDTRANS_API = "https://api.sandbox.midtrans.com/v2";
 
 export const syncPaymentStatus = createServerFn({ method: "POST" })
-  .validator((orderId: string) => orderId)
-  .handler(async ({ data: orderId }) => {
-    const user = await requireUser(getRequestHeaders());
-    const { db } = await import("@/db");
-    const { payments, subscriptions } = await import("@/db/schema");
-    const { applyPaymentSuccess } = await import("@/lib/services/payment-service");
+	.validator((orderId: string) => orderId)
+	.handler(async ({ data: orderId }) => {
+		const user = await requireUser(getRequestHeaders());
+		const { db } = await import("@/db");
+		const { payments, subscriptions } = await import("@/db/schema");
+		const { applyPaymentSuccess } = await import(
+			"@/lib/services/payment-service"
+		);
 
-    const [payment] = await db
-      .select()
-      .from(payments)
-      .where(eq(payments.orderId, orderId))
-      .limit(1);
-    if (!payment) throw new Error("Payment not found");
-    if (payment.userId !== user.id) throw new Error("Unauthorized");
+		const [payment] = await db
+			.select()
+			.from(payments)
+			.where(eq(payments.orderId, orderId))
+			.limit(1);
+		if (!payment) throw new Error("Payment not found");
+		if (payment.userId !== user.id) throw new Error("Unauthorized");
 
-    if (payment.status === "success") {
-      const [sub] = await db
-        .select({ plan: subscriptions.plan })
-        .from(subscriptions)
-        .where(eq(subscriptions.userId, user.id))
-        .orderBy(desc(subscriptions.createdAt))
-        .limit(1);
-      return { success: true, plan: (sub?.plan ?? "pro") as Plan, message: "Already synced" };
-    }
+		if (payment.status === "success") {
+			const [sub] = await db
+				.select({ plan: subscriptions.plan })
+				.from(subscriptions)
+				.where(eq(subscriptions.userId, user.id))
+				.orderBy(desc(subscriptions.createdAt))
+				.limit(1);
+			return {
+				success: true,
+				plan: (sub?.plan ?? "pro") as Plan,
+				message: "Already synced",
+			};
+		}
 
-    // Verify with Midtrans before applying.
-    const serverKey = process.env.MIDTRANS_SERVER_KEY_SANDBOX;
-    if (!serverKey) throw new Error("Missing MIDTRANS_SERVER_KEY_SANDBOX env var");
-    const authString = Buffer.from(`${serverKey}:`).toString("base64");
-    const response = await fetch(`${MIDTRANS_API}/${orderId}/status`, {
-      headers: { Authorization: `Basic ${authString}`, "Content-Type": "application/json" },
-    });
-    if (!response.ok) throw new Error("Failed to fetch status from Midtrans");
+		// Verify with Midtrans before applying.
+		const serverKey = process.env.MIDTRANS_SERVER_KEY_SANDBOX;
+		if (!serverKey)
+			throw new Error("Missing MIDTRANS_SERVER_KEY_SANDBOX env var");
+		const authString = Buffer.from(`${serverKey}:`).toString("base64");
+		const response = await fetch(`${MIDTRANS_API}/${orderId}/status`, {
+			headers: {
+				Authorization: `Basic ${authString}`,
+				"Content-Type": "application/json",
+			},
+		});
+		if (!response.ok) throw new Error("Failed to fetch status from Midtrans");
 
-    const statusData = await response.json();
-    if (["settlement", "capture"].includes(statusData.transaction_status)) {
-      const result = await applyPaymentSuccess(orderId);
-      return { success: true, updated: true, plan: result?.plan };
-    }
-    return { success: false, status: statusData.transaction_status as string };
-  });
+		const statusData = await response.json();
+		if (["settlement", "capture"].includes(statusData.transaction_status)) {
+			const result = await applyPaymentSuccess(orderId);
+			return { success: true, updated: true, plan: result?.plan };
+		}
+		return { success: false, status: statusData.transaction_status as string };
+	});

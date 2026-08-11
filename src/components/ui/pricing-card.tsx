@@ -13,14 +13,13 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-
+import { useUserPlan } from "@/hooks/use-user-plan";
 import {
 	type Feature,
 	novaPlanPlans,
 	type PriceTier,
 } from "@/lib/pricing-data";
 import { cn } from "@/lib/utils";
-import { useUserPlan } from "@/hooks/use-user-plan";
 import { useUIStore } from "@/store";
 
 // --- Utility Components ---
@@ -253,12 +252,23 @@ export const PricingComponent: React.FC<PricingComponentProps> = ({
 			{...props}
 		>
 			<header className={cn("text-center", compact ? "mb-2" : "mb-10")}>
-				<h2 className={cn("font-inter font-light leading-tight text-snow", compact ? "text-xl" : "text-[40px] max-md:text-[36px] md:text-[48px]")}>
+				<h2
+					className={cn(
+						"font-inter font-light leading-tight text-snow",
+						compact
+							? "text-xl"
+							: "text-[40px] max-md:text-[36px] md:text-[48px]",
+					)}
+				>
 					Pilih Paket yang Sesuai
 				</h2>
-				<p className={cn("mx-auto max-w-2xl font-inter leading-relaxed text-fog", compact ? "mt-1 text-xs" : "mt-3 text-[17px]")}>
-					1 kredit = 1 tahap (PRD, AC, atau Task). Kredit tidak
-					pernah hangus.
+				<p
+					className={cn(
+						"mx-auto max-w-2xl font-inter leading-relaxed text-fog",
+						compact ? "mt-1 text-xs" : "mt-3 text-[17px]",
+					)}
+				>
+					1 kredit = 1 tahap (PRD, AC, atau Task). Kredit tidak pernah hangus.
 				</p>
 			</header>
 

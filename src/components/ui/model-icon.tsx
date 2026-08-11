@@ -1,14 +1,10 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { SiMeta, SiNvidia, SiXiaomi } from "@icons-pack/react-simple-icons";
+import { Bot, Moon, Sparkles } from "lucide-react";
 import type { ModelDefinition } from "@/lib/model-config";
 import { findModel } from "@/lib/model-config";
-import { Sparkles, Bot, Moon } from "lucide-react";
-import {
-	SiMeta,
-	SiNvidia,
-	SiXiaomi,
-} from "@icons-pack/react-simple-icons";
+import { cn } from "@/lib/utils";
 
 interface ModelIconProps {
 	/** Model ID or a ModelDefinition object */

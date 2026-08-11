@@ -14,27 +14,27 @@ import { useEffect, useState } from "react";
 // tracks the app theme directly.
 // Images cropped to content bbox (black 389x121, white 285x81).
 export function Logo({
-  href = "/",
-  className = "",
-  height = 32,
+	href = "/",
+	className = "",
+	height = 32,
 }: {
-  href?: string;
-  className?: string;
-  height?: number;
+	href?: string;
+	className?: string;
+	height?: number;
 }) {
-  const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  const isDark = mounted && resolvedTheme === "dark";
-  const style = { height: `${height}px`, width: "auto" };
+	const { resolvedTheme } = useTheme();
+	const [mounted, setMounted] = useState(false);
+	useEffect(() => setMounted(true), []);
+	const isDark = mounted && resolvedTheme === "dark";
+	const style = { height: `${height}px`, width: "auto" };
 
-  return (
-    <Link href={href} className={`inline-flex items-center ${className}`}>
-      <img
-        src={isDark ? "/logo-novaplan-white.png" : "/logo-novaplan-black.png"}
-        alt="NovaPlan"
-        style={style}
-      />
-    </Link>
-  );
+	return (
+		<Link href={href} className={`inline-flex items-center ${className}`}>
+			<img
+				src={isDark ? "/logo-novaplan-white.png" : "/logo-novaplan-black.png"}
+				alt="NovaPlan"
+				style={style}
+			/>
+		</Link>
+	);
 }
