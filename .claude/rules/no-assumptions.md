@@ -125,6 +125,7 @@ When implementing changes, ALWAYS check for and use relevant skills/agents:
 | **Testing** | `superpowers:test-driven-development`, `ecc:tdd-guide` skill | Vitest for unit, Playwright for e2e |
 | **E2E testing** | `ecc:e2e-runner` agent | Playwright-based |
 | **Docs update** | `ecc:doc-updater`, `ecc:update-codemaps`, `ecc:update-docs` | After feature changes |
+| **Library docs / package search** | `nia` skill (Nozomio Nia) | CLI doc search, package intelligence, deep research. Alternative to context7-mcp — use when need package comparison or web search too |
 | **TanStack/Router** | `context7-mcp` skill → `mcp__context7__resolve-library-id` + `mcp__context7__query-docs` | Fetch current TanStack docs, never guess API |
 | **Tailwind CSS** | `context7-mcp` skill | Fetch Tailwind v4 docs (class syntax changed from v3) |
 | **Drizzle ORM** | `context7-mcp` skill | Fetch current Drizzle docs |
@@ -141,7 +142,7 @@ When implementing changes, ALWAYS check for and use relevant skills/agents:
 2. If yes, invoke it FIRST — before any code changes
 3. Follow the skill's workflow exactly
 4. If no skill exists, follow the manual audit process (Rule 3)
-5. For library/framework questions: ALWAYS use `context7-mcp` to fetch current docs — never answer from training data
+5. For library/framework questions: use `context7-mcp` or `nia` skill to fetch current docs — never answer from training data. Use `nia` when also need package search/comparison or deep research
 
 ---
 

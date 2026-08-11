@@ -11,7 +11,7 @@ export async function subtaskUpdateCommand(
 ) {
 	try {
 		const subtaskIndex = parseInt(options.index, 10);
-		if (isNaN(subtaskIndex) || subtaskIndex < 0) {
+		if (Number.isNaN(subtaskIndex) || subtaskIndex < 0) {
 			console.log(chalk.red("Error: --index harus angka non-negatif."));
 			process.exit(1);
 		}
