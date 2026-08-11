@@ -28,7 +28,7 @@ export const AcViewer = memo(function AcViewer({
 	isStreaming = false,
 	hasError = false,
 	projectName: _projectName,
-	plan = "free",
+	plan: _plan = "free",
 	className,
 }: AcViewerProps) {
 	const scrollRef = useRef<HTMLDivElement>(null);
