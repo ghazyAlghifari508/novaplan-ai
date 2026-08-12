@@ -77,4 +77,51 @@ describe("exportRulesCommand", () => {
 		const [, content] = vi.mocked(writeFileSync).mock.calls[0];
 		expect(content).toContain("Just a plain PRD");
 	});
+
+	it("does not duplicate matched headings in tech stack output", async () => {
+		vi.mocked(apiGet)
+			.mockResolvedValueOnce({ content: PRD, version: 1 })
+			.mockResolvedValueOnce({ content: AC, version: 1 });
+
+		vi.mocked(writeFileSync).mockClear();
+		await exportRulesCommand("proj-1");
+
+		const [, content] = vi.mocked(writeFileSync).mock.calls[0];
+		const md = content as string;
+		// ponytail: each heading appears exactly once — the dedup fix.
+		// Use exact line match so `## Tech Stack & Architecture` (template) doesn't count.
+		expect((md.match(/^## Tech Stack$/gm) || []).length).toBe(1);
+		expect((md.match(/^## Struktur Folder$/gm) || []).length).toBe(1);
+		expect((md.match(/^## Arsitektur$/gm) || []).length).toBe(1);
+	});
+
+	it("writes .cursorrules when --format cursor is passed", async () => {
+		vi.mocked(apiGet)
+			.mockResolvedValueOnce({ content: PRD, version: 1 })
+			.mockResolvedValueOnce({ content: AC, version: 1 });
+
+		vi.mocked(writeFileSync).mockClear();
+		await exportRulesCommand("proj-1", { format: "cursor" });
+
+		const [path, content] = vi.mocked(writeFileSync).mock.calls[0];
+		expect(String(path)).toBe(".cursorrules");
+		const md = content as string;
+		expect(md).toContain("# Project Rules");
+		expect(md).toContain("React 19");
+		expect(md).toContain("User bisa login via Google OAuth");
+	});
+
+	it("defaults to claude format when --format is omitted", async () => {
+		vi.mocked(apiGet)
+			.mockResolvedValueOnce({ content: PRD, version: 1 })
+			.mockResolvedValueOnce({ content: AC, version: 1 });
+
+		vi.mocked(writeFileSync).mockClear();
+		await exportRulesCommand("proj-1", {});
+
+		const [path] = vi.mocked(writeFileSync).mock.calls[0];
+		expect(String(path).replace(/\\/g, "/")).toBe(
+			".claude/rules/project-spec.md",
+		);
+	});
 });

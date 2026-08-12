@@ -25,14 +25,17 @@ function extractTechStack(prd: string): string {
 
 	for (let i = 0; i < lines.length; i++) {
 		const line = lines[i];
+		let matchedHeading = false;
 		for (const h of headings) {
 			if (h.test(line)) {
 				capture = true;
 				depth = 0;
+				matchedHeading = true;
 				found.push(line);
 				break;
 			}
 		}
+		if (matchedHeading) continue;
 		if (!capture) continue;
 		if (/^##+\s/.test(line) && !headings.some((h) => h.test(line))) {
 			if (depth > 0) break;
@@ -54,6 +57,7 @@ export async function exportRulesCommand(
 	projectId: string,
 	_options: { format?: string } = {},
 ) {
+	const format = _options.format ?? "claude";
 	try {
 		const [prdData, acData] = await Promise.all([
 			apiGet<PrdAcResponse>(`/api/v1/projects/${projectId}/prd`),
@@ -82,12 +86,17 @@ export async function exportRulesCommand(
 			``,
 		].join("\n");
 
-		const dir = ".claude/rules";
-		if (!existsSync(dir)) {
-			mkdirSync(dir, { recursive: true });
+		if (format === "cursor") {
+			writeFileSync(".cursorrules", md);
+			console.log("✓ Written .cursorrules");
+		} else {
+			const dir = ".claude/rules";
+			if (!existsSync(dir)) {
+				mkdirSync(dir, { recursive: true });
+			}
+			writeFileSync(join(dir, "project-spec.md"), md);
+			console.log(`✓ Written ${dir}/project-spec.md`);
 		}
-		writeFileSync(join(dir, "project-spec.md"), md);
-		console.log(`✓ Written ${dir}/project-spec.md`);
 	} catch (err) {
 		console.error(
 			`Error: ${err instanceof Error ? err.message : err}`,
