@@ -160,6 +160,11 @@ export const Route = createFileRoute("/api/ac/generate")({
 									await consumeCredit(user.id);
 								} catch (e) {
 									console.error("AC credit burn failed:", e);
+									emit({
+										type: "error",
+										error:
+											"AC tersimpan, namun terjadi kesalahan saat memotong kredit.",
+									});
 								}
 							} catch (err) {
 								console.error("saveAcVersion failed:", err);

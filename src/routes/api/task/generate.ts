@@ -181,6 +181,11 @@ export const Route = createFileRoute("/api/task/generate")({
 									await consumeCredit(user.id);
 								} catch (e) {
 									console.error("Task credit burn failed:", e);
+									emit({
+										type: "error",
+										error:
+											"Task tersimpan, namun terjadi kesalahan saat memotong kredit.",
+									});
 								}
 							} catch (err) {
 								console.error("saveTaskTree failed:", err);
