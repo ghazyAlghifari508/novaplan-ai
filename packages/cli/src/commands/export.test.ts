@@ -111,6 +111,41 @@ describe("exportRulesCommand", () => {
 		expect(md).toContain("User bisa login via Google OAuth");
 	});
 
+	it("preserves ### sub-headings inside matched sections", async () => {
+		const subPRD = `# PRD
+
+## Tech Stack
+Some intro text
+### Build Tools
+- Vite
+- TypeScript
+### Runtime
+- Node.js
+
+## Struktur Folder
+src/routes/
+### Nested
+src/components/
+`;
+		vi.mocked(apiGet)
+			.mockResolvedValueOnce({ content: subPRD, version: 1 })
+			.mockResolvedValueOnce({ content: AC, version: 1 });
+
+		vi.mocked(writeFileSync).mockClear();
+		await exportRulesCommand("proj-1");
+
+		const [, content] = vi.mocked(writeFileSync).mock.calls[0];
+		const md = content as string;
+		// sub-headings captured, not truncated
+		expect(md).toContain("### Build Tools");
+		expect(md).toContain("### Runtime");
+		expect(md).toContain("- Vite");
+		expect(md).toContain("- Node.js");
+		expect(md).toContain("### Nested");
+		// next top-level section boundary still honored
+		expect(md).toContain("## Struktur Folder");
+	});
+
 	it("defaults to claude format when --format is omitted", async () => {
 		vi.mocked(apiGet)
 			.mockResolvedValueOnce({ content: PRD, version: 1 })

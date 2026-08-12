@@ -37,7 +37,7 @@ function extractTechStack(prd: string): string {
 		}
 		if (matchedHeading) continue;
 		if (!capture) continue;
-		if (/^##+\s/.test(line) && !headings.some((h) => h.test(line))) {
+		if (/^##\s/.test(line) && !headings.some((h) => h.test(line))) {
 			if (depth > 0) break;
 		}
 		if (capture && depth === 0 && !headings.some((h) => h.test(line))) {

@@ -59,3 +59,17 @@ Created `packages/cli/src/commands/export.ts`:
 ### Verification
 
 Full suite: 14 files, 97 tests, all passing.
+
+## Fix: sub-heading truncation
+
+**Root cause**: The break condition `/^##+\s/.test(line)` matched `### `, `#### `, etc., not just `## `. Once `depth > 0` (first content line captured), any `###` sub-heading inside a matched section triggered `break`, dropping all subsequent content.
+
+**Fix**: Restricted the break regex to `^##\s` (only top-level `## ` section boundaries), so `###` and `####` sub-headings are treated as in-section content and included in the extracted block.
+
+### Test added
+
+- "preserves ### sub-headings inside matched sections" — asserts `### Build Tools`, `### Runtime`, `- Vite`, `- Node.js`, `### Nested` all present in output, and the next top-level `## Struktur Folder` boundary is still honored.
+
+### Verification
+
+Full suite: 14 files, 98 tests, all passing.
