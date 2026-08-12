@@ -6,6 +6,7 @@ import { randomBytes } from "node:crypto";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { conversations, prdVersions, projects } from "@/db/schema";
+import { advanceStep } from "@/lib/flow-progress";
 
 // ponytail: moved from utils.ts - node:crypto crashes browser bundles via utils.ts.
 export function generateShareToken(): string {
@@ -373,9 +374,21 @@ export async function savePrdVersion(
 			});
 		});
 
+	// Advance step to 'prd' — forward only (mirrors saveAcVersion). A generate
+	// marks the project furthest point reached; History sends the user to /prd.
+	const [proj] = await db
+		.select({ step: projects.step })
+		.from(projects)
+		.where(eq(projects.id, projectId))
+		.limit(1);
+	const nextStep = advanceStep(proj?.step, "prd");
 	await db
 		.update(projects)
-		.set({ status: "completed", updatedAt: new Date() })
+		.set(
+			nextStep
+				? { status: "completed", step: nextStep, updatedAt: new Date() }
+				: { status: "completed", updatedAt: new Date() },
+		)
 		.where(eq(projects.id, projectId));
 }
 

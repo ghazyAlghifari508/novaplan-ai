@@ -128,6 +128,14 @@ export function TaskDetail({
 					setTaskGenerated(false);
 					return;
 				}
+				// ponytail: a 409 means another generation is already in flight
+				// (double-mount / double-click). That request owns the result — this
+				// one must not paint a "Gagal" state the user then has to retry.
+				if (response.status === 409) {
+					isGeneratingRef.current = false;
+					setIsGenerating(false);
+					return;
+				}
 				throw new Error(error.error || "Gagal generate");
 			}
 
@@ -404,6 +412,7 @@ export function TaskDetail({
 								<AlertTriangle size={40} className="text-crimson" />
 								<p className="text-fog">Gagal generate task tree.</p>
 								<button
+									type="button"
 									onClick={() => handleGenerate()}
 									className="btn-primary rounded-md px-4 py-2 text-sm"
 								>
