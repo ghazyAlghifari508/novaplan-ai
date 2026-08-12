@@ -13,6 +13,7 @@ interface TaskResponse {
 	featureName: string;
 	startedAt: string | null;
 	completedAt: string | null;
+	acContext: string | null;
 	subtasks: Array<{
 		name: string;
 		description: string;
@@ -127,6 +128,12 @@ export async function taskNextCommand(projectId: string) {
 							: chalk.gray("○");
 				console.log(`    ${sc} [${i}] ${s.name} ${chalk.dim(`(${s.status})`)}`);
 				if (s.description) console.log(`       ${chalk.dim(s.description)}`);
+			}
+		}
+		if (task.acContext?.trim()) {
+			console.log(`  ${chalk.yellow("Acceptance Criteria (AC):")}`);
+			for (const line of task.acContext.trim().split("\n")) {
+				console.log(`    ${chalk.white(line)}`);
 			}
 		}
 		console.log();
