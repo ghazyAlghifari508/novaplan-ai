@@ -45,8 +45,4 @@ Dashboard content.
 		const result = extractFeatureSection(md, "Dashboard");
 		expect(result?.trim().endsWith("Dashboard content.")).toBe(true);
 	});
-
-	it("never matches the Glossary section as a feature", () => {
-		expect(extractFeatureSection(md, "Glossary / Konvensi")).toBeNull();
-	});
 });

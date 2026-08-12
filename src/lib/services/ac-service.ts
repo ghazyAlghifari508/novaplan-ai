@@ -100,15 +100,13 @@ export async function getLatestAcMarkdown(
 /**
  * Extract one feature's AC block from full AC markdown, matched by its
  * `## <featureName>` heading (case-insensitive). Content runs until the
- * next `## `/`# ` heading or end of string. "Glossary / Konvensi" is never
- * a valid match target — it's a fixed structural section, not a feature.
+ * next `## `/`# ` heading or end of string.
  */
 export function extractFeatureSection(
 	acMarkdown: string,
 	featureName: string,
 ): string | null {
 	const target = featureName.trim().toLowerCase();
-	if (target === "glossary / konvensi") return null;
 
 	const headingRe = /^(#{1,2})\s+(.+)$/gm;
 	let start = -1;
