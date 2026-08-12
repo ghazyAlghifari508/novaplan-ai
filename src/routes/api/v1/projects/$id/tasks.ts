@@ -7,6 +7,10 @@ import {
 	hasScope,
 	verifyProjectOwnership,
 } from "@/lib/api-key-auth";
+import {
+	extractFeatureSection,
+	getLatestAcContent,
+} from "@/lib/services/ac-service";
 
 export const Route = createFileRoute("/api/v1/projects/$id/tasks")({
 	server: {
@@ -38,6 +42,7 @@ export const Route = createFileRoute("/api/v1/projects/$id/tasks")({
 					.from(tasks)
 					.where(eq(tasks.projectId, projectId))
 					.orderBy(asc(tasks.order));
+				const acMarkdown = await getLatestAcContent(projectId);
 				const filtered = statusFilter
 					? rows.filter((t) => (t.status ?? "pending") === statusFilter)
 					: rows;
@@ -49,6 +54,9 @@ export const Route = createFileRoute("/api/v1/projects/$id/tasks")({
 						description: t.description,
 						status: t.status ?? "pending",
 						featureName: t.featureName || "Umum",
+						acContext: acMarkdown
+							? extractFeatureSection(acMarkdown, t.featureName || "Umum")
+							: null,
 						startedAt: t.startedAt ? (t.startedAt as Date).toISOString() : null,
 						completedAt: t.completedAt
 							? (t.completedAt as Date).toISOString()
