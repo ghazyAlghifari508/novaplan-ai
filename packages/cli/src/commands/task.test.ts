@@ -20,7 +20,7 @@ const baseTask = {
 };
 
 function loggedText(logSpy: ReturnType<typeof vi.spyOn>) {
-	return logSpy.mock.calls.map((call) => call.join(" ")).join("\n");
+	return logSpy.mock.calls.map((call) => call.map(String).join(" ")).join("\n");
 }
 
 describe("taskNextCommand", () => {
@@ -37,8 +37,24 @@ describe("taskNextCommand", () => {
 		await taskNextCommand("proj-1");
 
 		const output = loggedText(logSpy);
-		expect(output).toContain("Acceptance Criteria (AC)");
+		expect(output).toContain("Acceptance Criteria:");
 		expect(output).toContain("User must be able to log in.");
+		logSpy.mockRestore();
+	});
+
+	it("prints multi-line acContext as separate indented lines", async () => {
+		vi.mocked(apiGet).mockResolvedValue({
+			tasks: [{ ...baseTask, acContext: "Line 1\nLine 2\nLine 3" }],
+		});
+		const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+		await taskNextCommand("proj-1");
+
+		const output = loggedText(logSpy);
+		expect(output).toContain("Acceptance Criteria:");
+		expect(output).toContain("  Line 1");
+		expect(output).toContain("  Line 2");
+		expect(output).toContain("  Line 3");
 		logSpy.mockRestore();
 	});
 
@@ -50,7 +66,7 @@ describe("taskNextCommand", () => {
 
 		await taskNextCommand("proj-1");
 
-		expect(loggedText(logSpy)).not.toContain("Acceptance Criteria (AC)");
+		expect(loggedText(logSpy)).not.toContain("Acceptance Criteria:");
 		logSpy.mockRestore();
 	});
 
@@ -62,7 +78,7 @@ describe("taskNextCommand", () => {
 
 		await taskNextCommand("proj-1");
 
-		expect(loggedText(logSpy)).not.toContain("Acceptance Criteria (AC)");
+		expect(loggedText(logSpy)).not.toContain("Acceptance Criteria:");
 		logSpy.mockRestore();
 	});
 });

@@ -131,7 +131,7 @@ export async function taskNextCommand(projectId: string) {
 			}
 		}
 		if (task.acContext?.trim()) {
-			console.log(`  ${chalk.yellow("Acceptance Criteria (AC):")}`);
+			console.log(`  ${chalk.yellow("Acceptance Criteria:")}`);
 			for (const line of task.acContext.trim().split("\n")) {
 				console.log(`    ${chalk.white(line)}`);
 			}
