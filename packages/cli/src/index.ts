@@ -15,6 +15,7 @@
 
 import { Command } from "commander";
 import { acCommand } from "./commands/ac.js";
+import { exportRulesCommand } from "./commands/export.js";
 import { kanbanCommand } from "./commands/kanban.js";
 import { loginCommand } from "./commands/login.js";
 import { prdCommand } from "./commands/prd.js";
@@ -110,5 +111,16 @@ program
 	.argument("<projectId>", "Project UUID")
 	.description("Show kanban board in terminal")
 	.action(kanbanCommand);
+
+// novaplan export
+const exportCmd = program
+	.command("export")
+	.description("Export project artifacts");
+exportCmd
+	.command("rules")
+	.argument("<projectId>", "Project UUID")
+	.description("Generate .claude/rules/project-spec.md with PRD stack + AC")
+	.option("--format <format>", "Output format (claude|cursor)")
+	.action(exportRulesCommand);
 
 program.parse(process.argv);
