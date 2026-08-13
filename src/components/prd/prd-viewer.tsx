@@ -27,6 +27,42 @@ import { cn } from "@/lib/utils";
 import type { Plan } from "@/types/database";
 import { VersionHistory } from "./version-history";
 
+// ponytail: extracted to module scope so react-markdown re-parses only once
+// (not on every parent render). Pure functions — no useMemo needed.
+const markdownComponents = {
+	h2: ({ children, ...props }) => {
+		const text = String(children).replace(/<[^>]*>/g, "");
+		const id = text.toLowerCase().replace(/[^\w]+/g, "-");
+		return <h2 id={id} {...props}>{children}</h2>;
+	},
+	h3: ({ children, ...props }) => {
+		const text = String(children).replace(/<[^>]*>/g, "");
+		const id = text.toLowerCase().replace(/[^\w]+/g, "-");
+		return <h3 id={id} {...props}>{children}</h3>;
+	},
+	h4: ({ children, ...props }) => {
+		const text = String(children).replace(/<[^>]*>/g, "");
+		const id = text.toLowerCase().replace(/[^\w]+/g, "-");
+		return <h4 id={id} {...props}>{children}</h4>;
+	},
+	code: ({
+		inline,
+		className,
+		children,
+		...props
+	}: ComponentProps<"code"> & { inline?: boolean }) => {
+		const match = /language-(\w+)/.exec(className || "");
+		if (!inline && match && match[1] === "mermaid") {
+			return (
+				<Suspense fallback={<div className="animate-pulse bg-black/5 dark:bg-white/5 h-32 rounded-lg my-6" />}>
+					<Mermaid chart={String(children).replace(/\n$/, "")} />
+				</Suspense>
+			);
+		}
+		return <code className={className} {...props}>{children}</code>;
+	},
+};
+
 interface PrdVersion {
 	id: string;
 	version: number;
@@ -151,59 +187,7 @@ export const PrdViewer = memo(function PrdViewer({
 						<Markdown
 							remarkPlugins={[remarkGfm]}
 							rehypePlugins={[rehypeHighlight]}
-							components={{
-								h2: ({ children, ...props }) => {
-									const text = String(children).replace(/<[^>]*>/g, "");
-									const id = text.toLowerCase().replace(/[^\w]+/g, "-");
-									return (
-										<h2 id={id} {...props}>
-											{children}
-										</h2>
-									);
-								},
-								h3: ({ children, ...props }) => {
-									const text = String(children).replace(/<[^>]*>/g, "");
-									const id = text.toLowerCase().replace(/[^\w]+/g, "-");
-									return (
-										<h3 id={id} {...props}>
-											{children}
-										</h3>
-									);
-								},
-								h4: ({ children, ...props }) => {
-									const text = String(children).replace(/<[^>]*>/g, "");
-									const id = text.toLowerCase().replace(/[^\w]+/g, "-");
-									return (
-										<h4 id={id} {...props}>
-											{children}
-										</h4>
-									);
-								},
-								code: ({
-									inline,
-									className,
-									children,
-									...props
-								}: ComponentProps<"code"> & { inline?: boolean }) => {
-									const match = /language-(\w+)/.exec(className || "");
-									if (!inline && match && match[1] === "mermaid") {
-										return (
-											<Suspense
-												fallback={
-													<div className="animate-pulse bg-black/5 dark:bg-white/5 h-32 rounded-lg my-6" />
-												}
-											>
-												<Mermaid chart={String(children).replace(/\n$/, "")} />
-											</Suspense>
-										);
-									}
-									return (
-										<code className={className} {...props}>
-											{children}
-										</code>
-									);
-								},
-							}}
+							components={markdownComponents}
 						>
 							{cleanContent}
 						</Markdown>
