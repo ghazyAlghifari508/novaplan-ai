@@ -221,17 +221,15 @@ export function ChatPanel({
 	const showToast = useUIStore((s) => s.showToast);
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const {
-		messages,
-		isStreaming,
-		isGeneratingPRD,
-		creditsExhausted,
-		addMessage,
-		setStreaming,
-		setGeneratingPRD,
-		setStreamingPRDContent,
-		setCreditsExhausted,
-	} = useChatStore();
+	const messages = useChatStore((s) => s.messages);
+	const isStreaming = useChatStore((s) => s.isStreaming);
+	const isGeneratingPRD = useChatStore((s) => s.isGeneratingPRD);
+	const creditsExhausted = useChatStore((s) => s.creditsExhausted);
+	const addMessage = useChatStore((s) => s.addMessage);
+	const setStreaming = useChatStore((s) => s.setStreaming);
+	const setGeneratingPRD = useChatStore((s) => s.setGeneratingPRD);
+	const setStreamingPRDContent = useChatStore((s) => s.setStreamingPRDContent);
+	const setCreditsExhausted = useChatStore((s) => s.setCreditsExhausted);
 
 	// When generation starts, default first section to loading so the progress
 	// card shows "Overview" spinning from first paint instead of all pending.
