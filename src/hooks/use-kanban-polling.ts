@@ -55,8 +55,15 @@ export function useKanbanTasks({
 		enabled: enabled && !!projectId,
 	});
 
+	// ponytail: server always responds staleness:"live" — the degraded-state
+	// signal lives client-side. failureCount = consecutive failed polls,
+	// resets on success (same semantics as the old errorCountRef).
 	const staleness: "live" | "stale" | "disconnected" =
-		query.data?.staleness ?? (query.isError ? "disconnected" : "live");
+		query.failureCount >= 10
+			? "disconnected"
+			: query.failureCount >= 3
+				? "stale"
+				: (query.data?.staleness ?? "live");
 
 	return {
 		data: query.data ?? null,
