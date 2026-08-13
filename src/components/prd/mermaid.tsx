@@ -4,7 +4,7 @@ import DOMPurify from "dompurify";
 import mermaid from "mermaid";
 import { useTheme } from "next-themes";
 import type React from "react";
-import { useDeferredValue, useEffect, useRef, useState } from "react";
+import { memo, useDeferredValue, useEffect, useRef, useState } from "react";
 
 interface MermaidProps {
 	chart: string;
@@ -24,7 +24,7 @@ function ensureMermaidInit(theme: "dark" | "default") {
 	});
 }
 
-export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
+export const Mermaid = memo(({ chart }: MermaidProps) => {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [svg, setSvg] = useState<string>("");
 	const [hasError, setHasError] = useState(false);
@@ -175,4 +175,4 @@ export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
 			dangerouslySetInnerHTML={{ __html: svg }}
 		/>
 	);
-};
+});
