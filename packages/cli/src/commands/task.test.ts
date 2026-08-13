@@ -20,7 +20,7 @@ const baseTask = {
 };
 
 function loggedText(logSpy: ReturnType<typeof vi.spyOn>) {
-	return logSpy.mock.calls.map((call) => call.map(String).join(" ")).join("\n");
+	return logSpy.mock.calls.map((call: unknown[]) => call.map(String).join(" ")).join("\n");
 }
 
 describe("taskNextCommand", () => {
