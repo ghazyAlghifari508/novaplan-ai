@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -25,7 +26,7 @@ interface ChatBubbleProps {
 	className?: string;
 }
 
-export function ChatBubble({
+export const ChatBubble = memo(function ChatBubble({
 	role,
 	content,
 	isStreaming,
@@ -65,4 +66,4 @@ export function ChatBubble({
 			</div>
 		</motion.div>
 	);
-}
+});
