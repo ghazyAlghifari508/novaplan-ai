@@ -124,9 +124,19 @@ novaplan subtask update <taskId> --index <subtaskIndex> --status in_progress
 - JANGAN ganti framework, ORM, database, atau library utama yang sudah ditentukan.
 - Kamu BOLEH menambah library kecil untuk utility (format angka, classnames, dll) tapi JANGAN ganti stack utama.
 
+### 6. VERIFIKASI ACCEPTANCE CRITERIA SEBELUM COMPLETED
+- Sebelum menandai task sebagai completed, WAJIB verifikasi implementasi terhadap Acceptance Criteria (AC) yang relevan.
+- Baca AC via CLI: \`novaplan ac {projectId}\` atau lihat output \`novaplan task next {projectId}\` yang sudah menyertakan AC context.
+- Jika implementasi TIDAK memenuhi semua poin AC untuk fitur tersebut, DILARANG mengubah status ke completed.
+- Perbaiki implementasi sampai memenuhi AC, baru tandai completed.
+
 ## Instruksi Implementasi
 
 ### Alur per FASE (setiap feature group = 1 fase):
+0. SETUP PROJECT RULES (sekali di awal):
+   Jalankan \`novaplan export rules {projectId}\` untuk generate file .claude/rules/project-spec.md.
+   File ini berisi Tech Stack, Architecture, dan Acceptance Criteria yang WAJIB diikuti.
+   AI agent akan otomatis membaca file ini di setiap session.
 1. BACA ULANG PRD: \`novaplan prd {projectId}\` — refresh konteks sebelum mulai fase baru
 2. BACA ULANG AC: \`novaplan ac {projectId}\` — pastikan tahu persis apa yang harus diimplementasi
 3. Baca tasks untuk fase ini: \`novaplan task list {projectId}\`
