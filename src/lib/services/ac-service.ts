@@ -96,3 +96,34 @@ export async function getLatestAcMarkdown(
 ): Promise<string | null> {
 	return getLatestAcContent(projectId);
 }
+
+/**
+ * Extract one feature's AC block from full AC markdown, matched by its
+ * `## <featureName>` heading (case-insensitive). Content runs until the
+ * next `## `/`# ` heading or end of string.
+ */
+export function extractFeatureSection(
+	acMarkdown: string,
+	featureName: string,
+): string | null {
+	const target = featureName.trim().toLowerCase();
+
+	const headingRe = /^(#{1,2})\s+(.+)$/gm;
+	let start = -1;
+	let bodyStart = -1;
+	for (const match of acMarkdown.matchAll(headingRe)) {
+		const [full, level, text] = match;
+		if (level === "##" && text.trim().toLowerCase() === target) {
+			start = match.index;
+			bodyStart = match.index + full.length;
+			break;
+		}
+	}
+	if (start === -1) return null;
+
+	headingRe.lastIndex = bodyStart;
+	const next = headingRe.exec(acMarkdown);
+	const end = next ? next.index : acMarkdown.length;
+
+	return acMarkdown.slice(start, end).trim();
+}
