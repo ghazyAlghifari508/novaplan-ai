@@ -300,6 +300,9 @@ export function ChatPanel({
 	 * Stream an API call to /api/chat and handle SSE events.
 	 * Shared between handleSend (user-typed) and handleSendWithMessage (auto-submit).
 	 */
+	const thinkingTextRef = useRef(thinkingText);
+	thinkingTextRef.current = thinkingText;
+
 	const streamApiCall = useCallback(
 		async (
 			body: Record<string, unknown>,
@@ -459,7 +462,7 @@ export function ChatPanel({
 							} else if (parsed.type === "thinking") {
 								setThinkingText((prev) => prev + parsed.content);
 							} else if (parsed.type === "delta") {
-								if (thinkingText) setThinkingText("");
+								if (thinkingTextRef.current) setThinkingText("");
 								_sawAnyDelta = true;
 								fullContent += parsed.content;
 
@@ -686,7 +689,6 @@ export function ChatPanel({
 			setStreamingPRDContent,
 			showToast,
 			streamingContent,
-			thinkingText,
 			router,
 		],
 	);
