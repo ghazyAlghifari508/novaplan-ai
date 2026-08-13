@@ -9,7 +9,7 @@ import {
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useKanbanPolling } from "@/hooks/use-kanban-polling";
+import { useKanbanTasks } from "@/hooks/use-kanban-polling";
 import { KanbanBanner } from "./kanban-banner";
 import { KanbanColumn, type KanbanColumnHandle } from "./kanban-column";
 
@@ -19,7 +19,7 @@ interface KanbanBoardProps {
 }
 
 export function KanbanBoard({ projectId, projectName }: KanbanBoardProps) {
-	const { data, isLoading, isError, staleness, refetch } = useKanbanPolling({
+	const { data, isLoading, isError, staleness, refetch } = useKanbanTasks({
 		projectId,
 		intervalMs: 10000,
 	});
