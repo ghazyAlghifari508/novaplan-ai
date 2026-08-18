@@ -23,9 +23,9 @@ export const Route = createFileRoute("/api/task/generate")({
 		handlers: {
 			POST: async ({ request }: { request: Request }) => {
 				const user = await requireUser(getRequestHeaders());
-				const { projectId, model } = await request
+				const { projectId } = await request
 					.json()
-					.catch(() => ({ projectId: undefined, model: undefined }));
+					.catch(() => ({ projectId: undefined }));
 				if (!projectId)
 					return Response.json(
 						{ error: "Project ID required" },
@@ -109,7 +109,7 @@ export const Route = createFileRoute("/api/task/generate")({
 					);
 				}
 
-				const modelsToTry = selectModels(plan, model);
+				const modelsToTry = selectModels();
 				const systemPrompt = `${TASK_GENERATION_PROMPT}\n\n--- ACCEPTANCE CRITERIA ---\n${acMarkdown}`;
 				const messages: Array<{
 					role: "system" | "user" | "assistant";

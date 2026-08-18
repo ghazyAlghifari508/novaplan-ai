@@ -31,9 +31,8 @@ export const Route = createFileRoute("/api/ask/options")({
 					projectId?: string;
 					prompt?: string;
 					platform?: string;
-					model?: string;
 				};
-				const { projectId, prompt, platform, model } = body;
+				const { projectId, prompt, platform } = body;
 				if (!projectId)
 					return Response.json(
 						{ error: "Project ID required" },
@@ -82,7 +81,7 @@ export const Route = createFileRoute("/api/ask/options")({
 					},
 				];
 
-				const modelsToTry = selectModels(plan, model);
+				const modelsToTry = selectModels();
 
 				try {
 					// ponytail: non-stream: payload is 5-7 short questions, progressive
@@ -91,12 +90,13 @@ export const Route = createFileRoute("/api/ask/options")({
 					// and reasoning tokens spend from the same maxOutputTokens budget before
 					// any JSON content is emitted — 4000 left too little headroom and the
 					// JSON got cut off mid-object on verbose reasoning runs.
-					const { generator, firstChunk, outcome } = await tryStreamWithFallback(
-						modelsToTry,
-						messages,
-						request.signal,
-						12000,
-					);
+					const { generator, firstChunk, outcome } =
+						await tryStreamWithFallback(
+							modelsToTry,
+							messages,
+							request.signal,
+							12000,
+						);
 					let fullResponse = firstChunk;
 					for await (const chunk of generator) fullResponse += chunk;
 

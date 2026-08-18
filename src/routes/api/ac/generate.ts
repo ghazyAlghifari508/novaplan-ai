@@ -24,9 +24,9 @@ export const Route = createFileRoute("/api/ac/generate")({
 			POST: async ({ request }: { request: Request }) => {
 				const user = await requireUser(getRequestHeaders());
 
-				const { projectId, model } = await request
+				const { projectId } = await request
 					.json()
-					.catch(() => ({ projectId: undefined, model: undefined }));
+					.catch(() => ({ projectId: undefined }));
 				if (!projectId)
 					return Response.json(
 						{ error: "Project ID required" },
@@ -106,7 +106,7 @@ export const Route = createFileRoute("/api/ac/generate")({
 					);
 				}
 
-				const modelsToTry = selectModels(plan, model);
+				const modelsToTry = selectModels();
 				// ponytail: depth keyed off the primary model, not the plan.
 				const systemPrompt = `${AC_GENERATION_PROMPT}\n${depthDirective("ac")}\n\n--- PRD CONTENT ---\n${prdContent}`;
 				const messages: Array<{

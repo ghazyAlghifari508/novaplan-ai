@@ -145,10 +145,7 @@ export const Route = createFileRoute("/api/chat")({
 					}
 				}
 
-				const modelsToTry = selectModels(
-					plan,
-					preferences?.model as string | undefined,
-				);
+				const modelsToTry = selectModels();
 				systemPrompt += `\n${depthDirective("prd")}`;
 
 				let fullMessages: Array<{
