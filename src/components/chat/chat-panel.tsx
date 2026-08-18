@@ -9,7 +9,6 @@ import {
 	useState,
 } from "react";
 import { syncPaymentStatus } from "@/app/actions/payment";
-import { ALL_MODELS, DEFAULT_MODEL_ID } from "@/lib/model-config";
 import {
 	clearPrdDraft,
 	consumePendingPrdPrompt,
@@ -23,7 +22,6 @@ import { useChatStore, useUIStore } from "@/store";
 import type { Plan } from "@/types/database";
 import { ChatBubble } from "./chat-bubble";
 import { CreditExhaustedModal } from "./credit-exhausted-modal";
-import { ModelDropdown } from "./model-dropdown";
 import { ResumeErrorModal } from "./resume-error-modal";
 import { TypingIndicator } from "./typing-indicator";
 
@@ -198,7 +196,6 @@ export function ChatPanel({
 	const [resumeErrorMsg, setResumeErrorMsg] = useState("");
 	const [partialContentStore, setPartialContentStore] = useState("");
 	const [originalMessageStore, setOriginalMessageStore] = useState("");
-	const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL_ID);
 	const [userPlan, _setUserPlan] = useState<Plan>(initialUserPlan);
 	const [isRevising, setIsRevising] = useState(false);
 	// Section generation progress tracking - persisted in Zustand so it
@@ -221,17 +218,15 @@ export function ChatPanel({
 	const showToast = useUIStore((s) => s.showToast);
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const {
-		messages,
-		isStreaming,
-		isGeneratingPRD,
-		creditsExhausted,
-		addMessage,
-		setStreaming,
-		setGeneratingPRD,
-		setStreamingPRDContent,
-		setCreditsExhausted,
-	} = useChatStore();
+	const messages = useChatStore((s) => s.messages);
+	const isStreaming = useChatStore((s) => s.isStreaming);
+	const isGeneratingPRD = useChatStore((s) => s.isGeneratingPRD);
+	const creditsExhausted = useChatStore((s) => s.creditsExhausted);
+	const addMessage = useChatStore((s) => s.addMessage);
+	const setStreaming = useChatStore((s) => s.setStreaming);
+	const setGeneratingPRD = useChatStore((s) => s.setGeneratingPRD);
+	const setStreamingPRDContent = useChatStore((s) => s.setStreamingPRDContent);
+	const setCreditsExhausted = useChatStore((s) => s.setCreditsExhausted);
 
 	// When generation starts, default first section to loading so the progress
 	// card shows "Overview" spinning from first paint instead of all pending.
@@ -264,14 +259,6 @@ export function ChatPanel({
 
 	// ── Effects ──
 
-	// Restore model from session (plan already passed from server)
-	useEffect(() => {
-		const storedModel = sessionStorage.getItem("novaplan:selected-model");
-		if (storedModel && ALL_MODELS.some((m) => m.id === storedModel)) {
-			setSelectedModel(storedModel);
-		}
-	}, []);
-
 	// Auto-scroll on new messages
 	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional re-scroll trigger on new content
 	useEffect(() => {
@@ -302,6 +289,9 @@ export function ChatPanel({
 	 * Stream an API call to /api/chat and handle SSE events.
 	 * Shared between handleSend (user-typed) and handleSendWithMessage (auto-submit).
 	 */
+	const thinkingTextRef = useRef(thinkingText);
+	thinkingTextRef.current = thinkingText;
+
 	const streamApiCall = useCallback(
 		async (
 			body: Record<string, unknown>,
@@ -461,7 +451,7 @@ export function ChatPanel({
 							} else if (parsed.type === "thinking") {
 								setThinkingText((prev) => prev + parsed.content);
 							} else if (parsed.type === "delta") {
-								if (thinkingText) setThinkingText("");
+								if (thinkingTextRef.current) setThinkingText("");
 								_sawAnyDelta = true;
 								fullContent += parsed.content;
 
@@ -688,7 +678,6 @@ export function ChatPanel({
 			setStreamingPRDContent,
 			showToast,
 			streamingContent,
-			thinkingText,
 			router,
 		],
 	);
@@ -743,10 +732,6 @@ export function ChatPanel({
 			preferences: {},
 		};
 
-		if (typeof window !== "undefined") {
-			const model = sessionStorage.getItem("novaplan:selected-model");
-			if (model) body.preferences = { model };
-		}
 		if (conversationId) body.conversationId = conversationId;
 		if (projectId) body.projectId = projectId;
 		// ponytail: pass selectedVersionNum so server merges against viewed version, not always latest
@@ -761,9 +746,7 @@ export function ChatPanel({
 	/**
 	 * Handle resuming a broken PRD generation from the modal.
 	 */
-	const handleResumePRD = async (newModelId: string) => {
-		setSelectedModel(newModelId);
-		sessionStorage.setItem("novaplan:selected-model", newModelId);
+	const handleResumePRD = async () => {
 		setShowResumeModal(false);
 
 		if (isSubmittingRef.current || !partialContentStore) return;
@@ -777,7 +760,7 @@ export function ChatPanel({
 			message: originalMessageStore,
 			mode: "resume",
 			partialContent: partialContentStore,
-			preferences: { model: newModelId },
+			preferences: {},
 		};
 
 		if (conversationId) body.conversationId = conversationId;
@@ -841,10 +824,6 @@ export function ChatPanel({
 				mode: chatMode,
 				preferences: {},
 			};
-			if (typeof window !== "undefined") {
-				const model = sessionStorage.getItem("novaplan:selected-model");
-				if (model) body.preferences = { model };
-			}
 			if (conversationId) body.conversationId = conversationId;
 			if (projectId) body.projectId = projectId;
 			// ponytail: pass selectedVersionNum so server merges against viewed version
@@ -1090,14 +1069,6 @@ export function ChatPanel({
 						disabled={isStreaming || isEffectivelyDisabled}
 					/>
 					<div className="flex items-center justify-between px-3 pb-3 pt-1">
-						<ModelDropdown
-							selectedModel={selectedModel}
-							onSelect={setSelectedModel}
-							userPlan={userPlan}
-							isDisabled={isEffectivelyDisabled}
-							isStreaming={isStreaming}
-						/>
-
 						<button
 							onClick={isStreaming ? handleCancel : () => handleSend()}
 							disabled={
@@ -1161,8 +1132,6 @@ export function ChatPanel({
 				onClose={() => setShowResumeModal(false)}
 				onResume={handleResumePRD}
 				errorMessage={resumeErrorMsg}
-				userPlan={userPlan}
-				currentModelId={selectedModel}
 			/>
 		</div>
 	);

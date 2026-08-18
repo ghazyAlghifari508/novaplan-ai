@@ -4,6 +4,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
 import { isTruncatedGeneration } from "@/lib/flow-progress";
+import { getLanguageDirective, normalizeLanguage } from "@/lib/language";
 import { ASK_OPTIONS_GENERATION_PROMPT } from "@/lib/prompts-ask";
 import { checkRateLimit, recordRequest } from "@/lib/rate-limit";
 import {
@@ -31,9 +32,9 @@ export const Route = createFileRoute("/api/ask/options")({
 					projectId?: string;
 					prompt?: string;
 					platform?: string;
-					model?: string;
+					language?: string;
 				};
-				const { projectId, prompt, platform, model } = body;
+				const { projectId, prompt, platform, language: reqLang } = body;
 				if (!projectId)
 					return Response.json(
 						{ error: "Project ID required" },
@@ -63,26 +64,28 @@ export const Route = createFileRoute("/api/ask/options")({
 				await recordRequest(user.id, "api_call");
 
 				const [project] = await db
-					.select({ id: projects.id })
+					.select({ id: projects.id, language: projects.language })
 					.from(projects)
 					.where(and(eq(projects.id, projectId), eq(projects.userId, user.id)))
 					.limit(1);
 				if (!project)
 					return Response.json({ error: "Project not found" }, { status: 404 });
 
+				const projectLanguage = normalizeLanguage(reqLang || project.language);
 				const platformLabel = platform === "mobile" ? "Mobile App" : "Web App";
+				const systemPrompt = `${ASK_OPTIONS_GENERATION_PROMPT}\n${getLanguageDirective(projectLanguage, "ask")}`;
 				const messages: Array<{
 					role: "system" | "user" | "assistant";
 					content: string;
 				}> = [
-					{ role: "system", content: ASK_OPTIONS_GENERATION_PROMPT },
+					{ role: "system", content: systemPrompt },
 					{
 						role: "user",
 						content: `Platform: ${platformLabel}\n\nPrompt awal:\n${prompt}`,
 					},
 				];
 
-				const modelsToTry = selectModels(plan, model);
+				const modelsToTry = selectModels();
 
 				try {
 					// ponytail: non-stream: payload is 5-7 short questions, progressive
@@ -91,12 +94,13 @@ export const Route = createFileRoute("/api/ask/options")({
 					// and reasoning tokens spend from the same maxOutputTokens budget before
 					// any JSON content is emitted — 4000 left too little headroom and the
 					// JSON got cut off mid-object on verbose reasoning runs.
-					const { generator, firstChunk, outcome } = await tryStreamWithFallback(
-						modelsToTry,
-						messages,
-						request.signal,
-						12000,
-					);
+					const { generator, firstChunk, outcome } =
+						await tryStreamWithFallback(
+							modelsToTry,
+							messages,
+							request.signal,
+							12000,
+						);
 					let fullResponse = firstChunk;
 					for await (const chunk of generator) fullResponse += chunk;
 

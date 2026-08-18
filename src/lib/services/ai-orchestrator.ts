@@ -1,35 +1,13 @@
 /**
- * AI model selection + streaming orchestration - pure logic, copied from old
- * project. Depends only on ai-client streamChat + model-config.
+ * AI streaming orchestration — simplified for combo routing.
+ * 9Router handles model selection + fallback via novaplan-combo.
  */
 import { type StreamOutcome, streamChat } from "@/lib/ai-client";
-import {
-	ALL_MODELS,
-	getUnlockedModelIds,
-	isModelUnlocked,
-} from "@/lib/model-config";
-import type { Plan } from "@/types/database";
+import { COMBO_MODEL_ID } from "@/lib/model-config";
 
-export function selectModels(plan: Plan, requestedModel?: string): string[] {
-	const modelsToTry = getUnlockedModelIds(plan);
-
-	if (requestedModel) {
-		const requestedModelMeta = ALL_MODELS.find(
-			(model) => model.id === requestedModel,
-		);
-		const isAllowed = requestedModelMeta
-			? isModelUnlocked(requestedModelMeta.tier, plan)
-			: false;
-
-		if (isAllowed) {
-			return [
-				requestedModel,
-				...modelsToTry.filter((m) => m !== requestedModel),
-			];
-		}
-	}
-
-	return modelsToTry;
+/** Returns single-element array with combo ID. No plan/model params needed. */
+export function selectModels(): string[] {
+	return [COMBO_MODEL_ID];
 }
 
 export async function tryStreamWithFallback(
@@ -42,7 +20,6 @@ export async function tryStreamWithFallback(
 	generator: AsyncGenerator<string, void, undefined>;
 	firstChunk: string;
 	abortController: AbortController;
-	/** Filled once `generator` is fully drained. See isTruncatedGeneration. */
 	outcome: StreamOutcome;
 }> {
 	let lastError = "";

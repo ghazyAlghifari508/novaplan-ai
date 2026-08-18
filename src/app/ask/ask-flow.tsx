@@ -4,6 +4,7 @@ import { Cloud, Database, Layers, Palette, Rocket } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
+	getAskLanguage,
 	getAskPlatform,
 	getAskState,
 	getSetupPrompt,
@@ -115,8 +116,7 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 						projectId,
 						prompt,
 						platform: getAskPlatform(),
-						model:
-							sessionStorage.getItem("novaplan:selected-model") || undefined,
+						language: getAskLanguage(),
 					}),
 				});
 				const data = (await res.json().catch(() => ({}))) as {
@@ -194,15 +194,36 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 	const allTechAnswered = true;
 
 	const submit = (tech: TechAnswers) => {
+		const isEn = getAskLanguage() === "en";
+		const skipLabel = isEn ? "(Let AI decide)" : "(Biarkan AI yang memilih)";
+		const defaultChoice = isEn ? "Let AI decide" : "Biarkan AI yang memilih";
+		const fullstackDefault = isEn
+			? "Not used / Let AI decide"
+			: "Tidak dipakai / Biarkan AI yang memilih";
+
 		const nonTechLines = questions.map((q) => {
 			const a = nonTechAnswers[q.id];
-			if (!a || a.skipped || !a.value)
-				return `- ${q.question}: (Biarkan AI yang memilih)`;
+			if (!a || a.skipped || !a.value) return `- ${q.question}: ${skipLabel}`;
 			return `- ${q.question}: ${a.value}`;
 		});
 
 		const platformLabel = platform === "mobile" ? "Mobile App" : "Web App";
-		const compiledPrompt = `Tolong buatkan PRD dengan spesifikasi berikut:
+		const compiledPrompt = isEn
+			? `Please generate a PRD with the following specifications:
+
+[Platform: ${platformLabel}]
+${promptRef.current}
+
+--- Non-Technical Preferences ---
+${nonTechLines.join("\n")}
+
+--- Technical Preferences ---
+Frontend: ${tech.frontend || defaultChoice}
+Backend: ${tech.backend || defaultChoice}
+Fullstack Framework: ${tech.fullstackFramework || fullstackDefault}
+Database: ${tech.database || defaultChoice}
+Deployment: ${tech.deployment || defaultChoice}`
+			: `Tolong buatkan PRD dengan spesifikasi berikut:
 
 [Platform: ${platformLabel}]
 ${promptRef.current}
@@ -211,11 +232,11 @@ ${promptRef.current}
 ${nonTechLines.join("\n")}
 
 --- Preferensi Teknis ---
-Frontend: ${tech.frontend || "Biarkan AI yang memilih"}
-Backend: ${tech.backend || "Biarkan AI yang memilih"}
-Fullstack Framework: ${tech.fullstackFramework || "Tidak dipakai / Biarkan AI yang memilih"}
-Database: ${tech.database || "Biarkan AI yang memilih"}
-Deployment: ${tech.deployment || "Biarkan AI yang memilih"}`;
+Frontend: ${tech.frontend || defaultChoice}
+Backend: ${tech.backend || defaultChoice}
+Fullstack Framework: ${tech.fullstackFramework || fullstackDefault}
+Database: ${tech.database || defaultChoice}
+Deployment: ${tech.deployment || defaultChoice}`;
 
 		savePendingPrdPrompt(compiledPrompt, "auto", projectName);
 		router.push(`/prd/${projectId}`);

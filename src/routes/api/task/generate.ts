@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
 import { checkCredits, consumeCredit, hasFullWorkflow } from "@/lib/credits";
 import { isTruncatedGeneration } from "@/lib/flow-progress";
+import { getLanguageDirective, normalizeLanguage } from "@/lib/language";
 import { TASK_GENERATION_PROMPT } from "@/lib/prompts-task";
 import { checkRateLimit, recordRequest } from "@/lib/rate-limit";
 import { getLatestAcMarkdown } from "@/lib/services/ac-service";
@@ -23,9 +24,9 @@ export const Route = createFileRoute("/api/task/generate")({
 		handlers: {
 			POST: async ({ request }: { request: Request }) => {
 				const user = await requireUser(getRequestHeaders());
-				const { projectId, model } = await request
+				const { projectId } = await request
 					.json()
-					.catch(() => ({ projectId: undefined, model: undefined }));
+					.catch(() => ({ projectId: undefined }));
 				if (!projectId)
 					return Response.json(
 						{ error: "Project ID required" },
@@ -78,7 +79,7 @@ export const Route = createFileRoute("/api/task/generate")({
 				await recordRequest(user.id, "api_call");
 
 				const [project] = await db
-					.select({ id: projects.id })
+					.select({ id: projects.id, language: projects.language })
 					.from(projects)
 					.where(and(eq(projects.id, projectId), eq(projects.userId, user.id)))
 					.limit(1);
@@ -109,18 +110,7 @@ export const Route = createFileRoute("/api/task/generate")({
 					);
 				}
 
-				const modelsToTry = selectModels(plan, model);
-				const systemPrompt = `${TASK_GENERATION_PROMPT}\n\n--- ACCEPTANCE CRITERIA ---\n${acMarkdown}`;
-				const messages: Array<{
-					role: "system" | "user" | "assistant";
-					content: string;
-				}> = [
-					{ role: "system", content: systemPrompt },
-					{
-						role: "user",
-						content: "Generate the task tree JSON based on the AC above.",
-					},
-				];
+				const modelsToTry = selectModels();
 
 				const stream = new ReadableStream<Uint8Array>({
 					async start(controller) {
@@ -221,6 +211,29 @@ export const Route = createFileRoute("/api/task/generate")({
 
 						try {
 							emit({ type: "started", model: modelsToTry[0] });
+
+							// Fail-open grounding runs AFTER the started event so the
+							// client sees progress before the (≤6s) Context7 fan-out.
+							let grounded = "";
+							try {
+								const { groundStack } = await import("@/lib/grounding");
+								grounded = await groundStack(acMarkdown);
+							} catch {
+								/* ponytail: optional grounding must never block generation */
+							}
+							const projectLanguage = normalizeLanguage(project.language);
+							const systemPrompt = `${TASK_GENERATION_PROMPT}\n${getLanguageDirective(projectLanguage, "task")}\n${grounded}\n\n--- ACCEPTANCE CRITERIA ---\n${acMarkdown}`;
+							const messages: Array<{
+								role: "system" | "user" | "assistant";
+								content: string;
+							}> = [
+								{ role: "system", content: systemPrompt },
+								{
+									role: "user",
+									content: "Generate the task tree JSON based on the AC above.",
+								},
+							];
+
 							const { generator, firstChunk, outcome } =
 								await tryStreamWithFallback(
 									modelsToTry,

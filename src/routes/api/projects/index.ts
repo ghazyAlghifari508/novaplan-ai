@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { db } from "@/db";
 import { projects } from "@/db/schema";
+import { normalizeLanguage } from "@/lib/language";
 import { deriveProjectNameSync } from "@/lib/services/prd-service";
 import { requireUser } from "@/lib/session";
 
@@ -12,6 +13,7 @@ export const Route = createFileRoute("/api/projects/")({
 				const user = await requireUser(getRequestHeaders());
 				const body = await request.json().catch(() => null);
 				const message = body?.message;
+				const language = normalizeLanguage(body?.language);
 
 				if (!message || typeof message !== "string" || message.length < 3) {
 					return Response.json(
@@ -33,6 +35,7 @@ export const Route = createFileRoute("/api/projects/")({
 						name: projectName,
 						status: "draft",
 						mode: "ai_auto",
+						language,
 					})
 					.returning({ id: projects.id, name: projects.name });
 

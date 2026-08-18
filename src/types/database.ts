@@ -20,6 +20,8 @@ export interface User {
 export type StepStatus = "pending" | "generating" | "completed" | "failed";
 export type TaskStatus = "pending" | "in_progress" | "completed" | "failed";
 
+export type OutputLanguage = "id" | "en";
+
 export interface Project {
 	id: string;
 	user_id: string;
@@ -27,6 +29,7 @@ export interface Project {
 	description: string | null;
 	status: ProjectStatus;
 	mode: ProjectMode | null;
+	language?: OutputLanguage | null;
 	preferences: Record<string, unknown> | null;
 	share_token: string | null;
 	is_shared: boolean;

@@ -104,7 +104,6 @@ export function TaskDetail({
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
 					projectId,
-					model: sessionStorage.getItem("novaplan:selected-model") || undefined,
 				}),
 				signal: controller.signal,
 			});

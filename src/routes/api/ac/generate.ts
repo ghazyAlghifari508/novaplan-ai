@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
 import { checkCredits, consumeCredit, hasFullWorkflow } from "@/lib/credits";
 import { isTruncatedGeneration } from "@/lib/flow-progress";
+import { getLanguageDirective, normalizeLanguage } from "@/lib/language";
 import { depthDirective } from "@/lib/prompt-depth";
 import { AC_GENERATION_PROMPT } from "@/lib/prompts-ac";
 import { checkRateLimit, recordRequest } from "@/lib/rate-limit";
@@ -24,9 +25,9 @@ export const Route = createFileRoute("/api/ac/generate")({
 			POST: async ({ request }: { request: Request }) => {
 				const user = await requireUser(getRequestHeaders());
 
-				const { projectId, model } = await request
+				const { projectId } = await request
 					.json()
-					.catch(() => ({ projectId: undefined, model: undefined }));
+					.catch(() => ({ projectId: undefined }));
 				if (!projectId)
 					return Response.json(
 						{ error: "Project ID required" },
@@ -75,7 +76,7 @@ export const Route = createFileRoute("/api/ac/generate")({
 				await recordRequest(user.id, "api_call");
 
 				const [project] = await db
-					.select({ id: projects.id })
+					.select({ id: projects.id, language: projects.language })
 					.from(projects)
 					.where(and(eq(projects.id, projectId), eq(projects.userId, user.id)))
 					.limit(1);
@@ -106,19 +107,7 @@ export const Route = createFileRoute("/api/ac/generate")({
 					);
 				}
 
-				const modelsToTry = selectModels(plan, model);
-				// ponytail: depth keyed off the primary model, not the plan.
-				const systemPrompt = `${AC_GENERATION_PROMPT}\n${depthDirective("ac")}\n\n--- PRD CONTENT ---\n${prdContent}`;
-				const messages: Array<{
-					role: "system" | "user" | "assistant";
-					content: string;
-				}> = [
-					{ role: "system", content: systemPrompt },
-					{
-						role: "user",
-						content: "Generate acceptance criteria based on the PRD above.",
-					},
-				];
+				const modelsToTry = selectModels();
 
 				const stream = new ReadableStream<Uint8Array>({
 					async start(controller) {
@@ -203,6 +192,31 @@ export const Route = createFileRoute("/api/ac/generate")({
 
 						try {
 							emit({ type: "started", model: modelsToTry[0] });
+
+							// Fail-open grounding runs AFTER the started event so the
+							// client sees progress before the (≤6s) Context7 fan-out.
+							let grounded = "";
+							try {
+								const { groundStack } = await import("@/lib/grounding");
+								grounded = await groundStack(prdContent);
+							} catch {
+								/* ponytail: optional grounding must never block generation */
+							}
+							// ponytail: depth keyed off the primary model, not the plan.
+							const projectLanguage = normalizeLanguage(project.language);
+							const systemPrompt = `${AC_GENERATION_PROMPT}\n${depthDirective("ac")}\n${getLanguageDirective(projectLanguage, "ac")}\n${grounded}\n\n--- PRD CONTENT ---\n${prdContent}`;
+							const messages: Array<{
+								role: "system" | "user" | "assistant";
+								content: string;
+							}> = [
+								{ role: "system", content: systemPrompt },
+								{
+									role: "user",
+									content:
+										"Generate acceptance criteria based on the PRD above.",
+								},
+							];
+
 							const { generator, firstChunk, outcome } =
 								await tryStreamWithFallback(
 									modelsToTry,

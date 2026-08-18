@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { memo } from "react";
 import { cn } from "@/lib/utils";
 
 function cleanMessage(content: string): string {
@@ -25,7 +25,7 @@ interface ChatBubbleProps {
 	className?: string;
 }
 
-export function ChatBubble({
+export const ChatBubble = memo(function ChatBubble({
 	role,
 	content,
 	isStreaming,
@@ -34,11 +34,9 @@ export function ChatBubble({
 	const isUser = role === "user";
 
 	return (
-		<motion.div
-			initial={{ opacity: 0, y: 10 }}
-			animate={{ opacity: 1, y: 0 }}
+		<div
 			className={cn(
-				"flex gap-3",
+				"flex gap-3 animate-chat-bubble-in",
 				isUser ? "justify-end" : "justify-start",
 				className,
 			)}
@@ -63,6 +61,6 @@ export function ChatBubble({
 					)}
 				</p>
 			</div>
-		</motion.div>
+		</div>
 	);
-}
+});

@@ -11,8 +11,7 @@ describe("extractJson", () => {
 		// Root cause of the "Gagal generate task tree" bug: a non-greedy fence
 		// regex stopped at the FIRST ``` it saw, which can live inside a task's
 		// "details" string (e.g. a shell command), cutting the JSON mid-object.
-		const raw =
-			'```json\n{"details": ["run ```pnpm install```"]}\n```';
+		const raw = '```json\n{"details": ["run ```pnpm install```"]}\n```';
 		const parsed = JSON.parse(extractJson(raw));
 		expect(parsed.details[0]).toContain("pnpm install");
 	});

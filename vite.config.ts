@@ -28,6 +28,25 @@ const config = defineConfig({
     tanstackStart({ router: { autoCodeSplitting: true } } as never),
     viteReact(),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        // ponytail: this Rolldown build requires a function, not the plain
+        // object form Vite/Rollup normally accepts (throws "manualChunks is
+        // not a function" otherwise).
+        manualChunks(id: string) {
+          if (id.includes('node_modules')) {
+            if (/react-markdown|remark-gfm|rehype-highlight/.test(id)) {
+              return 'vendor-markdown'
+            }
+            if (id.includes('mermaid')) {
+              return 'vendor-mermaid'
+            }
+          }
+        },
+      },
+    },
+  },
 })
 
 export default config

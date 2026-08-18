@@ -7,6 +7,36 @@ import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
 import type { Plan } from "@/types/database";
 
+const markdownComponents = {
+	h2: ({ children, ...props }) => {
+		const text = String(children).replace(/<[^>]*>/g, "");
+		const id = text.toLowerCase().replace(/[^\w]+/g, "-");
+		return (
+			<h2 id={id} {...props}>
+				{children}
+			</h2>
+		);
+	},
+	h3: ({ children, ...props }) => {
+		const text = String(children).replace(/<[^>]*>/g, "");
+		const id = text.toLowerCase().replace(/[^\w]+/g, "-");
+		return (
+			<h3 id={id} {...props}>
+				{children}
+			</h3>
+		);
+	},
+	h4: ({ children, ...props }) => {
+		const text = String(children).replace(/<[^>]*>/g, "");
+		const id = text.toLowerCase().replace(/[^\w]+/g, "-");
+		return (
+			<h4 id={id} {...props}>
+				{children}
+			</h4>
+		);
+	},
+};
+
 interface AcViewerProps {
 	content: string | null;
 	streamingContent?: string;
@@ -144,35 +174,7 @@ export const AcViewer = memo(function AcViewer({
 				<Markdown
 					remarkPlugins={[remarkGfm]}
 					rehypePlugins={[rehypeHighlight]}
-					components={{
-						h2: ({ children, ...props }) => {
-							const text = String(children).replace(/<[^>]*>/g, "");
-							const id = text.toLowerCase().replace(/[^\w]+/g, "-");
-							return (
-								<h2 id={id} {...props}>
-									{children}
-								</h2>
-							);
-						},
-						h3: ({ children, ...props }) => {
-							const text = String(children).replace(/<[^>]*>/g, "");
-							const id = text.toLowerCase().replace(/[^\w]+/g, "-");
-							return (
-								<h3 id={id} {...props}>
-									{children}
-								</h3>
-							);
-						},
-						h4: ({ children, ...props }) => {
-							const text = String(children).replace(/<[^>]*>/g, "");
-							const id = text.toLowerCase().replace(/[^\w]+/g, "-");
-							return (
-								<h4 id={id} {...props}>
-									{children}
-								</h4>
-							);
-						},
-					}}
+					components={markdownComponents}
 				>
 					{displayContent}
 				</Markdown>
