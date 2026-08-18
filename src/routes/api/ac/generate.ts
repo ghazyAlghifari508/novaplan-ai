@@ -106,9 +106,17 @@ export const Route = createFileRoute("/api/ac/generate")({
 					);
 				}
 
+				let grounded = "";
+				try {
+					const { groundStack } = await import("@/lib/grounding");
+					grounded = await groundStack(prdContent);
+				} catch {
+					/* ponytail: optional grounding must never block generation */
+				}
+
 				const modelsToTry = selectModels();
 				// ponytail: depth keyed off the primary model, not the plan.
-				const systemPrompt = `${AC_GENERATION_PROMPT}\n${depthDirective("ac")}\n\n--- PRD CONTENT ---\n${prdContent}`;
+				const systemPrompt = `${AC_GENERATION_PROMPT}\n${depthDirective("ac")}\n${grounded}\n\n--- PRD CONTENT ---\n${prdContent}`;
 				const messages: Array<{
 					role: "system" | "user" | "assistant";
 					content: string;
