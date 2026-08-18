@@ -119,8 +119,9 @@ export const Route = createFileRoute("/api/chat")({
 				}
 
 				let systemPrompt = PRD_SYSTEM_PROMPT;
+				let groundingSource = message;
 
-				if (mode === "revise" && projectIdToUse) {
+				if ((mode === "revise" || mode === "chat") && projectIdToUse) {
 					const [projCheck] = await db
 						.select({ id: projects.id })
 						.from(projects)
@@ -137,16 +138,25 @@ export const Route = createFileRoute("/api/chat")({
 							{ status: 403 },
 						);
 
-					const revisionBaseContent = selectedVersionNum
-						? await getPrdVersionContent(projectIdToUse, selectedVersionNum)
-						: await getLatestPrdContent(projectIdToUse);
-					if (revisionBaseContent) {
-						systemPrompt = `${PRD_REVISION_PROMPT}\n\nCURRENT PRD CONTENT:\n\n${revisionBaseContent}`;
+					const activeContent =
+						mode === "revise" && selectedVersionNum
+							? await getPrdVersionContent(projectIdToUse, selectedVersionNum)
+							: await getLatestPrdContent(projectIdToUse);
+					if (activeContent) {
+						groundingSource = `${activeContent}\n\n${message}`;
+						if (mode === "revise") {
+							systemPrompt = `${PRD_REVISION_PROMPT}\n\nCURRENT PRD CONTENT:\n\n${activeContent}`;
+						}
 					}
 				}
 
 				const modelsToTry = selectModels();
 				systemPrompt += `\n${depthDirective("prd")}`;
+
+				// ponytail: server-only grounding, dynamically imported so it never
+				// enters the client bundle. groundStack() returns "" on any failure.
+				const { groundStack } = await import("@/lib/grounding");
+				systemPrompt += await groundStack(groundingSource);
 
 				let fullMessages: Array<{
 					role: "system" | "user" | "assistant";
