@@ -11,6 +11,12 @@ describe("AI_MODELS", () => {
 		expect(AI_MODELS.fallback).toBeTruthy();
 		expect(AI_MODELS.premium).toBeTruthy();
 	});
+
+	it("all point to combo model", () => {
+		expect(AI_MODELS.primary).toBe("novaplan-combo");
+		expect(AI_MODELS.fallback).toBe("novaplan-combo");
+		expect(AI_MODELS.premium).toBe("novaplan-combo");
+	});
 });
 
 describe("RATE_LIMITS", () => {

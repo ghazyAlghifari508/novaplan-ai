@@ -1,18 +1,13 @@
-import { ALL_MODELS, DEFAULT_MODEL_ID } from "@/lib/model-config";
+import { COMBO_MODEL_ID } from "@/lib/model-config";
 
 const NINE_ROUTER_URL = process.env.NINE_ROUTER_URL || "http://localhost:20128";
 export const ROUTER_BASE_URL = `${NINE_ROUTER_URL}/v1`;
-export const CHAT_COMPLETIONS_URL = `${ROUTER_BASE_URL}/chat/completions`;
 
-// Primary/fallback shorthands used by ai-client.ts & chat/route.ts
+// Single combo model — 9Router handles selection + fallback internally.
 export const AI_MODELS = {
-	primary: DEFAULT_MODEL_ID,
-	fallback:
-		ALL_MODELS.find(
-			(model) => model.tier === "free" && model.id !== DEFAULT_MODEL_ID,
-		)?.id ?? DEFAULT_MODEL_ID,
-	premium:
-		ALL_MODELS.find((model) => model.tier === "pro")?.id ?? DEFAULT_MODEL_ID,
+	primary: COMBO_MODEL_ID,
+	fallback: COMBO_MODEL_ID,
+	premium: COMBO_MODEL_ID,
 } as const;
 
 export const RATE_LIMITS = {
