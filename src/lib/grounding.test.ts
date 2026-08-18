@@ -53,6 +53,58 @@ const PAIR = (() => {
 const LABEL_A = PAIR.a;
 const LABEL_B = PAIR.b;
 
+// Shortest key made of Unicode letters only — used to prove token-boundary
+// matching rejects a key embedded inside an ordinary word. Throws if absent
+// so the test can never silently pass by falling back to a hardcode.
+const SHORT_LETTER_KEY = (() => {
+	const letters = STACK_KEYS.filter((k) => /^[\p{L}]+$/u.test(k));
+	if (letters.length === 0) throw new Error("setup: no letter-only stack key");
+	return [...letters].sort((a, b) => a.length - b.length)[0];
+})();
+
+// Pick N mutually non-overlapping keys (no key is a substring of another) so a
+// joined input yields exactly N extracted labels — enough to exceed worker
+// concurrency without hardcoding a single label.
+function pickNonOverlapping(keys: string[], n: number): string[] {
+	const chosen: string[] = [];
+	for (const k of keys) {
+		if (chosen.length >= n) break;
+		const kl = k.toLowerCase();
+		const clashes = chosen.some(
+			(c) => kl.includes(c.toLowerCase()) || c.toLowerCase().includes(kl),
+		);
+		if (!clashes) chosen.push(k);
+	}
+	if (chosen.length < n) {
+		throw new Error(`setup: only ${chosen.length} non-overlapping keys`);
+	}
+	return chosen;
+}
+
+type Deferred<T> = {
+	promise: Promise<T>;
+	resolve: (v: T) => void;
+	reject: (e: unknown) => void;
+};
+function deferred<T>(): Deferred<T> {
+	let resolve!: (v: T) => void;
+	let reject!: (e: unknown) => void;
+	const promise = new Promise<T>((res, rej) => {
+		resolve = res;
+		reject = rej;
+	});
+	return { promise, resolve, reject };
+}
+
+// Flush microtasks (real queue, independent of fake timers) so async worker
+// scheduling settles without advancing any real timeout.
+async function flushTicks(rounds = 8): Promise<void> {
+	for (let i = 0; i < rounds; i++) {
+		await Promise.resolve();
+		await vi.advanceTimersByTimeAsync(0);
+	}
+}
+
 beforeEach(() => {
 	mockResolve.mockClear();
 	mockQuery.mockClear();
@@ -103,6 +155,21 @@ describe("extractStackLabels", () => {
 		const direct = extractStackLabels(`${LABEL_A} ${LABEL_B}`);
 		const reversed = extractStackLabels(`${LABEL_B} ${LABEL_A}`);
 		expect(reversed).toEqual([...direct].reverse());
+	});
+
+	// Token boundary: a short letter-only key embedded in an ordinary word must
+	// NOT match, but the same key delimited by non-word chars must.
+	it("does not match a short letter-only key embedded inside an ordinary word", () => {
+		const key = SHORT_LETTER_KEY;
+		const embedded = `x${key}y`; // glued to letters on both sides
+		expect(extractStackLabels(embedded)).not.toContain(key);
+		expect(extractStackLabels(embedded)).toEqual([]);
+	});
+
+	it("matches a short letter-only key when delimited by non-word characters", () => {
+		const key = SHORT_LETTER_KEY;
+		const delimited = `(${key})`; // wrapped in non-word punctuation
+		expect(extractStackLabels(delimited)).toContain(key);
 	});
 });
 
@@ -222,6 +289,84 @@ describe("groundStack", () => {
 				"--- FAKTA EKSTERNAL TERVERIFIKASI (dari Context7 docs) ---",
 			);
 			expect(vi.getTimerCount()).toBe(0);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	// Cancellation: once the total budget elapses, no NEW resolve calls may be
+	// dequeued. Already-started resolve RPCs may settle (under their own 3s
+	// per-RPC ceiling) but the fan-out must halt.
+	it("stops starting new resolve calls after the total budget elapses", async () => {
+		vi.useFakeTimers();
+		try {
+			const keys = pickNonOverlapping(STACK_KEYS, 8);
+			const input = keys.map((k) => `(${k})`).join(" ");
+			const extracted = extractStackLabels(input);
+			expect(extracted.length).toBe(keys.length);
+
+			const startedResolves: Deferred<string>[] = [];
+			mockResolve.mockImplementation(() => {
+				const d = deferred<string>();
+				startedResolves.push(d);
+				return d.promise;
+			});
+
+			const promise = groundStack(input);
+			await flushTicks();
+			const resolveStartCount = mockResolve.mock.calls.length;
+			// Positive and below the extracted count → some work still queued.
+			expect(resolveStartCount).toBeGreaterThan(0);
+			expect(resolveStartCount).toBeLessThan(extracted.length);
+
+			await vi.advanceTimersByTimeAsync(60_000);
+			await expect(promise).resolves.toBe("");
+
+			// Release the already-started RPCs; background must not dequeue more.
+			startedResolves.forEach((d) => {
+				d.resolve("/example/sdk");
+			});
+			await flushTicks();
+			expect(mockResolve.mock.calls.length).toBe(resolveStartCount);
+			expect(mockQuery).not.toHaveBeenCalled();
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	// Cancellation: once the budget elapses mid docs-phase, no NEW docs calls
+	// may be dequeued even though all resolves succeeded immediately.
+	it("stops starting new docs calls after the total budget elapses", async () => {
+		vi.useFakeTimers();
+		try {
+			const keys = pickNonOverlapping(STACK_KEYS, 8);
+			const input = keys.map((k) => `(${k})`).join(" ");
+			const extracted = extractStackLabels(input);
+			expect(extracted.length).toBe(keys.length);
+
+			// Resolve all immediately; defer every docs fetch.
+			mockResolve.mockImplementation(async () => "/example/sdk");
+			const startedDocs: Deferred<string>[] = [];
+			mockQuery.mockImplementation(() => {
+				const d = deferred<string>();
+				startedDocs.push(d);
+				return d.promise;
+			});
+
+			const promise = groundStack(input);
+			await flushTicks();
+			const docsStartCount = mockQuery.mock.calls.length;
+			expect(docsStartCount).toBeGreaterThan(0);
+			expect(docsStartCount).toBeLessThan(extracted.length);
+
+			await vi.advanceTimersByTimeAsync(60_000);
+			await expect(promise).resolves.toBe("");
+
+			startedDocs.forEach((d) => {
+				d.resolve("Synthetic documentation.");
+			});
+			await flushTicks();
+			expect(mockQuery.mock.calls.length).toBe(docsStartCount);
 		} finally {
 			vi.useRealTimers();
 		}

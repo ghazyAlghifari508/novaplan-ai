@@ -9,6 +9,16 @@ import { STACK_ICONS } from "@/lib/stack-data";
 
 const STACK_LABELS = Object.keys(STACK_ICONS);
 
+/** ponytail: token-boundary guard — a key is only a real match when it is not
+ *  glued to a Unicode word char on either side (a key embedded in an ordinary
+ *  word is not a stack match). Avoids hardcoded label/regex-escaping by
+ *  querying the char class directly. Extend with \p{M} if grapheme boundaries
+ *  ever matter. */
+const WORD_CHAR = /[\p{L}\p{N}_]/u;
+function isWordChar(ch: string | undefined): boolean {
+	return ch !== undefined && WORD_CHAR.test(ch);
+}
+
 /** ponytail: capped total latency; underlying bounded calls may finish later
  *  in background, but the caller (already past its AC claim, pre-SSE) must never
  *  stall. Raise if real Context7 fan-out legitimately needs more than 6s. */
@@ -38,7 +48,14 @@ export function extractStackLabels(text: string): string[] {
 		let from = 0;
 		let start = lower.indexOf(needle, from);
 		while (start !== -1) {
-			matches.push({ label, start, end: start + needle.length });
+			// Token boundary: a key is a real match only when not glued to a
+			// Unicode word char on either side (a key embedded in an ordinary
+			// word is not a stack match).
+			const prev = lower[start - 1];
+			const next = lower[start + needle.length];
+			if (!isWordChar(prev) && !isWordChar(next)) {
+				matches.push({ label, start, end: start + needle.length });
+			}
 			from = start + 1; // advance at least 1 char to scan all occurrences
 			start = lower.indexOf(needle, from);
 		}
@@ -62,18 +79,21 @@ export function extractStackLabels(text: string): string[] {
 	return ordered;
 }
 
-/** Run fn over items with bounded concurrency; isolate per-item failures to null. */
+/** Run fn over items with bounded concurrency; isolate per-item failures to null.
+ *  Stops dequeuing NEW items the moment isCancelled() flips true — already
+ *  in-flight promises still settle (under the client's own per-RPC timeout). */
 async function mapLimit<T, R>(
 	items: T[],
 	limit: number,
 	fn: (item: T) => Promise<R | null>,
+	isCancelled: () => boolean,
 ): Promise<R[]> {
 	const out: (R | null)[] = new Array(items.length);
 	let idx = 0;
 	const workers = Array.from(
 		{ length: Math.min(limit, items.length) },
 		async () => {
-			while (idx < items.length) {
+			while (idx < items.length && !isCancelled()) {
 				const i = idx++;
 				out[i] = await fn(items[i]).catch(() => null);
 			}
@@ -87,9 +107,13 @@ async function mapLimit<T, R>(
  * Resolve + fetch latest docs for each detected stack label, then build a single
  * grounded-context block. Returns "" when nothing resolved (graceful no-op).
  * Never rejects: every failure (extraction, resolution, or fetch) is swallowed.
- * This is the unbounded body; `groundStack` races it against a total budget.
+ * This is the unbounded body; `groundStack` races it against a total budget and
+ * stops new work via `isCancelled` once that budget elapses.
  */
-async function buildGroundedContext(text: string): Promise<string> {
+async function buildGroundedContext(
+	text: string,
+	isCancelled: () => boolean,
+): Promise<string> {
 	const labels = extractStackLabels(text);
 	if (labels.length === 0) return "";
 
@@ -100,7 +124,9 @@ async function buildGroundedContext(text: string): Promise<string> {
 			const id = await resolveLibraryId(label);
 			return id ? { label, id } : null;
 		},
+		isCancelled,
 	);
+	if (isCancelled()) return ""; // budget elapsed mid-resolution
 
 	const sections = await mapLimit(
 		resolutions,
@@ -110,6 +136,7 @@ async function buildGroundedContext(text: string): Promise<string> {
 			if (!content) return null;
 			return `## ${label}\n${content}`;
 		},
+		isCancelled,
 	);
 
 	if (sections.length === 0) return "";
@@ -131,12 +158,21 @@ async function buildGroundedContext(text: string): Promise<string> {
  * later but its result is discarded.
  */
 export async function groundStack(text: string): Promise<string> {
+	// Shared cancellation flag for one call: the 6s budget flips it true (and
+	// resolves "") before any further resolve/docs work may be dequeued.
+	const cancel = { cancelled: false };
 	let timeoutId: ReturnType<typeof setTimeout> | undefined;
 	const timeout = new Promise<string>((resolve) => {
-		timeoutId = setTimeout(() => resolve(""), GROUNDING_TOTAL_TIMEOUT_MS);
+		timeoutId = setTimeout(() => {
+			cancel.cancelled = true; // ponytail: halt new work, no AbortSignal
+			resolve("");
+		}, GROUNDING_TOTAL_TIMEOUT_MS);
 	});
 	try {
-		return await Promise.race([buildGroundedContext(text), timeout]);
+		return await Promise.race([
+			buildGroundedContext(text, () => cancel.cancelled),
+			timeout,
+		]);
 	} catch {
 		return "";
 	} finally {
