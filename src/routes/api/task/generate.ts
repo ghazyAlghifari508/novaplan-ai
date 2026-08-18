@@ -110,17 +110,6 @@ export const Route = createFileRoute("/api/task/generate")({
 				}
 
 				const modelsToTry = selectModels();
-				const systemPrompt = `${TASK_GENERATION_PROMPT}\n\n--- ACCEPTANCE CRITERIA ---\n${acMarkdown}`;
-				const messages: Array<{
-					role: "system" | "user" | "assistant";
-					content: string;
-				}> = [
-					{ role: "system", content: systemPrompt },
-					{
-						role: "user",
-						content: "Generate the task tree JSON based on the AC above.",
-					},
-				];
 
 				const stream = new ReadableStream<Uint8Array>({
 					async start(controller) {
@@ -221,6 +210,28 @@ export const Route = createFileRoute("/api/task/generate")({
 
 						try {
 							emit({ type: "started", model: modelsToTry[0] });
+
+							// Fail-open grounding runs AFTER the started event so the
+							// client sees progress before the (≤6s) Context7 fan-out.
+							let grounded = "";
+							try {
+								const { groundStack } = await import("@/lib/grounding");
+								grounded = await groundStack(acMarkdown);
+							} catch {
+								/* ponytail: optional grounding must never block generation */
+							}
+							const systemPrompt = `${TASK_GENERATION_PROMPT}\n${grounded}\n\n--- ACCEPTANCE CRITERIA ---\n${acMarkdown}`;
+							const messages: Array<{
+								role: "system" | "user" | "assistant";
+								content: string;
+							}> = [
+								{ role: "system", content: systemPrompt },
+								{
+									role: "user",
+									content: "Generate the task tree JSON based on the AC above.",
+								},
+							];
+
 							const { generator, firstChunk, outcome } =
 								await tryStreamWithFallback(
 									modelsToTry,
