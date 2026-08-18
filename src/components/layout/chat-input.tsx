@@ -1,21 +1,13 @@
 "use client";
 
-import { Check, ChevronDown, Lock, Monitor, Smartphone } from "lucide-react";
+import { Monitor, Smartphone } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { CreditExhaustedModal } from "@/components/chat/credit-exhausted-modal";
-import { ModelIcon } from "@/components/ui/model-icon";
 import { useTypingPlaceholder } from "@/hooks/use-typing-placeholder";
 import { useUserPlan } from "@/hooks/use-user-plan";
 import { authClient } from "@/lib/auth-client";
-import {
-	ALL_MODELS,
-	DEFAULT_MODEL_ID,
-	findModel,
-	isModelUnlocked,
-	TIER_ORDER,
-} from "@/lib/model-config";
 import {
 	clearHomeDraft,
 	getHomeDraft,
@@ -24,47 +16,12 @@ import {
 	saveSetupPrompt,
 } from "@/lib/prompt-handoff";
 import { cn } from "@/lib/utils";
-import { PLAN_CREDITS, type Plan } from "@/types/database";
+import { PLAN_CREDITS } from "@/types/database";
 
 const MIN_PROMPT_LENGTH = 20;
 
 interface ChatInputProps {
 	className?: string;
-}
-
-function QualityBars({ quality }: { quality: number }) {
-	const color =
-		quality <= 2
-			? "bg-red-500"
-			: quality === 3
-				? "bg-amber-500"
-				: "bg-emerald-500";
-
-	return (
-		<div
-			className="flex items-end gap-[2px] h-[12px] opacity-80"
-			title={`Model Quality: ${quality}/5`}
-		>
-			{[1, 2, 3, 4, 5].map((level) => (
-				<div
-					key={level}
-					className={cn(
-						"w-[3px] rounded-[1px] transition-colors duration-300",
-						level <= quality ? color : "bg-graphite",
-						level === 1
-							? "h-[4px]"
-							: level === 2
-								? "h-[6px]"
-								: level === 3
-									? "h-[8px]"
-									: level === 4
-										? "h-[10px]"
-										: "h-[12px]",
-					)}
-				/>
-			))}
-		</div>
-	);
 }
 
 export function ChatInput({ className }: ChatInputProps) {
@@ -73,12 +30,9 @@ export function ChatInput({ className }: ChatInputProps) {
 	const [isMobileMode, setIsMobileMode] = useState(false);
 	const [promptError, setPromptError] = useState("");
 
-	const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
-	const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL_ID);
 	const [creditsExhaustedMsg, setCreditsExhaustedMsg] = useState<string | null>(
 		null,
 	);
-	const dropdownRef = useRef<HTMLDivElement>(null);
 
 	// ponytail: shared TanStack Query hook — deduped across all components
 	// that read /api/user/plan. 60s staleTime. Replaces manual fetch() calls.
@@ -87,27 +41,6 @@ export function ChatInput({ className }: ChatInputProps) {
 	const { data: session } = authClient.useSession();
 
 	const router = useRouter();
-
-	useEffect(() => {
-		// Restore preferred model if exists
-		const storedModel = sessionStorage.getItem("novaplan:selected-model");
-		if (storedModel && ALL_MODELS.some((m) => m.id === storedModel)) {
-			setSelectedModel(storedModel);
-		}
-	}, []);
-
-	useEffect(() => {
-		const handleClickOutside = (event: MouseEvent) => {
-			if (
-				dropdownRef.current &&
-				!dropdownRef.current.contains(event.target as Node)
-			) {
-				setIsModelDropdownOpen(false);
-			}
-		};
-		document.addEventListener("mousedown", handleClickOutside);
-		return () => document.removeEventListener("mousedown", handleClickOutside);
-	}, []);
 
 	// ponytail: 300ms debounce keeps the home seed-prompt draft alive across
 	// refresh, so a long product description isn't lost before send.
@@ -138,7 +71,6 @@ export function ChatInput({ className }: ChatInputProps) {
 		saveAskPlatform(isMobileMode ? "mobile" : "web");
 		// Save original message for display in chat bubble (without platform tags)
 		sessionStorage.setItem("novaplan:original-message", originalMessage);
-		sessionStorage.setItem("novaplan:selected-model", selectedModel);
 
 		// ponytail: use reactive session (shared nanostore with Navbar) instead
 		// of a manual getSession() round-trip per send attempt.
@@ -185,8 +117,6 @@ export function ChatInput({ className }: ChatInputProps) {
 		}
 	};
 
-	const userPlan: Plan = (planData?.plan ?? "free") as Plan;
-	const selectedModelMeta = findModel(selectedModel);
 	const typingPlaceholder = useTypingPlaceholder(isMobileMode);
 
 	return (
@@ -270,128 +200,7 @@ export function ChatInput({ className }: ChatInputProps) {
 						/>
 
 						{/* Bottom row inside input area */}
-						<div className="flex items-center justify-between px-3 pb-3 pt-1">
-							{/* Model Selector */}
-							<div ref={dropdownRef} className="relative">
-								<button
-									id="model-selector-btn"
-									onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
-									className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 font-inter text-[11px] font-[510] text-fog shadow-[var(--shadow-inset)] transition-colors duration-300 hover:bg-steel/70 hover:text-snow"
-								>
-									<ModelIcon model={selectedModel} />
-									{selectedModelMeta.label}
-									<span
-										className={cn(
-											"text-[9px]",
-											selectedModelMeta.reasoning
-												? "text-indigo"
-												: "text-emerald-500",
-										)}
-									>
-										{selectedModelMeta.reasoning ? "thinking" : "fast"}
-									</span>
-									<ChevronDown
-										size={11}
-										className={cn(
-											"transition-transform",
-											isModelDropdownOpen && "rotate-180",
-										)}
-									/>
-								</button>
-
-								{isModelDropdownOpen && (
-									<div className="absolute bottom-full left-0 z-50 mb-2 flex w-[260px] flex-col overflow-hidden rounded-xl bg-obsidian shadow-[var(--shadow-overlay)]">
-										<div className="overflow-y-auto" style={{ maxHeight: 200 }}>
-											{TIER_ORDER.map((tier) => {
-												const tierModels = ALL_MODELS.filter(
-													(m) => m.tier === tier,
-												);
-												if (tierModels.length === 0) return null;
-
-												const unlocked = isModelUnlocked(tier, userPlan);
-
-												const tierColor =
-													tier === "free"
-														? "text-fog"
-														: tier === "pro"
-															? "text-indigo"
-															: "text-mist";
-
-												return (
-													<div key={tier}>
-														<div
-															className={cn(
-																"sticky top-0 z-10 flex items-center gap-1.5 border-b border-graphite bg-obsidian px-3 py-1.5 font-inter text-[10px] font-[510] uppercase",
-																tierColor,
-															)}
-														>
-															{tier.toUpperCase()}
-															{!unlocked && <Lock size={9} />}
-														</div>
-														{tierModels.map((model) => {
-															const isSelected = selectedModel === model.id;
-															return (
-																<button
-																	key={model.id}
-																	onClick={() => {
-																		if (!unlocked) return;
-																		setSelectedModel(model.id);
-																		setIsModelDropdownOpen(false);
-																	}}
-																	disabled={!unlocked}
-																	className={cn(
-																		"flex w-full items-center gap-2.5 px-3 py-2 font-inter text-[12px] transition-colors",
-																		unlocked
-																			? "cursor-pointer hover:bg-white/5"
-																			: "cursor-not-allowed opacity-40",
-																		isSelected && "bg-white/5 font-[510]",
-																	)}
-																	style={{ color: "var(--text-primary)" }}
-																>
-																	<ModelIcon
-																		model={model.id}
-																		isLocked={!unlocked}
-																	/>
-																	<span className="flex-1 text-left">
-																		{model.label}
-																		<span
-																			style={{
-																				color: model.reasoning
-																					? "var(--color-indigo)"
-																					: "#10b981",
-																			}}
-																			className="text-[9px] ml-1.5"
-																		>
-																			{model.reasoning ? "thinking" : "fast"}
-																		</span>
-																	</span>
-																	<div className="flex items-center gap-3 shrink-0 ml-2">
-																		<QualityBars quality={model.quality} />
-																		{!unlocked ? (
-																			<Lock
-																				size={10}
-																				className="flex-shrink-0 text-fog"
-																			/>
-																		) : isSelected ? (
-																			<Check
-																				size={10}
-																				className="flex-shrink-0 text-emerald-500"
-																			/>
-																		) : (
-																			<div className="w-[10px]" />
-																		)}
-																	</div>
-																</button>
-															);
-														})}
-													</div>
-												);
-											})}
-										</div>
-									</div>
-								)}
-							</div>
-
+						<div className="flex items-center justify-end gap-3 px-3 pb-3 pt-1">
 							<div className="flex items-center gap-3">
 								<span
 									className={cn(
