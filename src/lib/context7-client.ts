@@ -10,6 +10,9 @@ function getMcpUrl(): string | null {
 
 const PROTOCOL_VERSION = "2025-11-25";
 const DEFAULT_TIMEOUT_MS = 3000;
+// ponytail: static safety ceiling — bound the response we buffer in memory so a
+// hostile/oversized Context7 body can't exhaust process memory. 1,000,000 bytes.
+const MAX_RESPONSE_BYTES = 1_000_000;
 
 /**
  * Split an SSE body into event payloads. One event ends at a blank line; each
@@ -51,6 +54,53 @@ interface McpMessage {
 	error?: { message: string };
 }
 
+/**
+ * Read a response body with a hard byte ceiling. Reads incrementally via the
+ * stream reader and stops (canceling the reader) the moment the cumulative byte
+ * count exceeds MAX_RESPONSE_BYTES — so we never buffer an unbounded body.
+ * Returns null on oversize, stream/read/cancel error, or incompatible Response.
+ */
+async function readResponseText(res: Response): Promise<string | null> {
+	// Native/synthetic test doubles often expose only text(); fall back to it,
+	// then enforce the byte ceiling on the decoded result. Real fetch Responses
+	// carry a readable body stream.
+	if (!res.body) {
+		try {
+			const fallback = await res.text();
+			return new TextEncoder().encode(fallback).byteLength > MAX_RESPONSE_BYTES
+				? null
+				: fallback;
+		} catch {
+			return null;
+		}
+	}
+
+	const reader = res.body.getReader();
+	const decoder = new TextDecoder();
+	let total = 0;
+	let text = "";
+	try {
+		while (true) {
+			const { done, value } = await reader.read();
+			if (done) break;
+			total += value.byteLength;
+			if (total > MAX_RESPONSE_BYTES) {
+				// ponytail: nonblocking — don't await the cancel promise; an
+				// adversarial stream could hang it. Fire-and-forget, return null.
+				void reader.cancel().catch(() => {});
+				return null;
+			}
+			text += decoder.decode(value, { stream: true });
+		}
+		text += decoder.decode();
+		return text;
+	} catch {
+		// Nonblocking best-effort cleanup; the cancel result itself is irrelevant.
+		void reader.cancel().catch(() => {});
+		return null;
+	}
+}
+
 /** Send one JSON-RPC request; parse SSE `data:` lines OR application/json. Return first valid message. */
 async function rpc(
 	method: string,
@@ -74,6 +124,8 @@ async function rpc(
 				method,
 				params,
 			}),
+			// Reject rather than follow redirects (SSRF/open-redirect hardening).
+			redirect: "error",
 			signal,
 		});
 	} catch {
@@ -81,7 +133,8 @@ async function rpc(
 	}
 	if (!res.ok) return null;
 
-	const text = await res.text();
+	const text = await readResponseText(res);
+	if (text === null) return null;
 	// Accumulate `data:` lines per SSE event (one event ends at a blank line),
 	// then parse the combined payload — a JSON-RPC message may span many data lines.
 	const events = parseSseEvents(text);

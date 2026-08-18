@@ -199,6 +199,136 @@ describe("queryDocs", () => {
 	});
 });
 
+describe("security hardening", () => {
+	it("rejects redirects on every fetch (redirect: error)", async () => {
+		const captured: RequestInit[] = [];
+		const fetchMock = vi.fn(async (_url: string, opts: RequestInit) => {
+			captured.push(opts);
+			const body = JSON.parse(opts.body as string);
+			if (body.method === "initialize") {
+				return jsonResponse(
+					jsonRpc({ content: [{ type: "text", text: "ok" }] }),
+				);
+			}
+			return jsonResponse(
+				jsonRpc({
+					content: [
+						{
+							type: "text",
+							text: "Context7-compatible library ID: /example/sdk",
+						},
+					],
+				}),
+			);
+		});
+		vi.stubGlobal("fetch", fetchMock);
+
+		await resolveLibraryId("example sdk", 1000);
+		expect(captured.length).toBeGreaterThan(0);
+		for (const opts of captured) expect(opts.redirect).toBe("error");
+	});
+
+	it("resolves null when streamed body exceeds the byte ceiling (and cancels)", async () => {
+		let cancelled = false;
+		// Two sub-cap chunks so the second read crosses the cap while the stream
+		// is still open — makes the cancel() path genuinely exercised.
+		const chunks = [new Uint8Array(600_000), new Uint8Array(600_000)];
+		const stream = new ReadableStream<Uint8Array>({
+			// Keep the stream readable (never close) so cancel() is genuinely
+			// invoked when we cross the cap — a closed stream makes cancel a no-op.
+			pull(controller) {
+				if (chunks.length) controller.enqueue(chunks.shift() as Uint8Array);
+			},
+			cancel() {
+				cancelled = true;
+			},
+		});
+		const res = {
+			ok: true,
+			body: stream,
+			text: async () => "",
+		} as unknown as Response;
+
+		const fetchMock = vi.fn(async (_url: string, opts: RequestInit) => {
+			const body = JSON.parse(opts.body as string);
+			// initialize must succeed so the call reaches the tools/call read
+			if (body.method === "initialize") {
+				return jsonResponse(
+					jsonRpc({ content: [{ type: "text", text: "ok" }] }),
+				);
+			}
+			return res;
+		});
+		vi.stubGlobal("fetch", fetchMock);
+
+		const id = await resolveLibraryId("example sdk", 1000);
+		expect(id).toBeNull();
+		// reader must be cancelled once the cap is exceeded
+		expect(cancelled).toBe(true);
+	});
+
+	it("returns empty string for queryDocs when body exceeds the byte ceiling", async () => {
+		const huge = new Uint8Array(1_000_001);
+		const stream = new ReadableStream<Uint8Array>({
+			start(controller) {
+				controller.enqueue(huge);
+				controller.close();
+			},
+		});
+		const res = {
+			ok: true,
+			body: stream,
+			text: async () => "",
+		} as unknown as Response;
+
+		const fetchMock = vi.fn(async (_url: string, opts: RequestInit) => {
+			const body = JSON.parse(opts.body as string);
+			if (body.method === "initialize") {
+				return jsonResponse(
+					jsonRpc({ content: [{ type: "text", text: "ok" }] }),
+				);
+			}
+			return res;
+		});
+		vi.stubGlobal("fetch", fetchMock);
+
+		const out = await queryDocs("/example/sdk", "q", 1000);
+		expect(out).toBe("");
+	});
+
+	it("gracefully returns null/empty when the stream rejects mid-read", async () => {
+		// Fresh erroring stream per tools/call so each export genuinely exercises
+		// a mid-read rejection (no shared/consumed body leaking between calls).
+		function erroringResponse(): Response {
+			const stream = new ReadableStream<Uint8Array>({
+				start(controller) {
+					controller.enqueue(new Uint8Array([104, 105])); // "hi"
+					controller.error(new Error("stream broke"));
+				},
+			});
+			return {
+				ok: true,
+				body: stream,
+				text: async () => "",
+			} as unknown as Response;
+		}
+
+		const fetchMock = vi.fn(async (_url: string, opts: RequestInit) => {
+			const body = JSON.parse(opts.body as string);
+			if (body.method === "initialize") {
+				return jsonResponse(
+					jsonRpc({ content: [{ type: "text", text: "ok" }] }),
+				);
+			}
+			return erroringResponse();
+		});
+		vi.stubGlobal("fetch", fetchMock);
+
+		expect(await resolveLibraryId("example sdk", 1000)).toBeNull();
+		expect(await queryDocs("/example/sdk", "q", 1000)).toBe("");
+	});
+});
+
 describe("protocol", () => {
 	it("initializes with protocolVersion 2025-11-25", async () => {
 		let initBody: Record<string, unknown> = {};
