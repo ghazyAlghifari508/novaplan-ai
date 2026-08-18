@@ -190,4 +190,40 @@ describe("groundStack", () => {
 		expect(out).toContain(`## ${LABEL_A}`);
 		expect(out).not.toContain(`## ${LABEL_B}`);
 	});
+
+	// RED→GREEN: grounding must never stall the caller (AC claim already set,
+	// zero SSE during a multi-wave hang). A total budget race guarantees a
+	// "" no-op even if the underlying Context7 calls never settle.
+	it("resolves to empty string when grounding exceeds the total budget", async () => {
+		vi.useFakeTimers();
+		try {
+			// resolveLibraryId never settles → bounded calls hang forever.
+			mockResolve.mockImplementation(() => new Promise<string>(() => {}));
+			const promise = groundStack(LABEL_A);
+			let settled = false;
+			void promise.finally(() => {
+				settled = true;
+			});
+			// Advance far past the budget without duplicating the private value.
+			await vi.advanceTimersByTimeAsync(60_000);
+			expect(settled).toBe(true);
+			await expect(promise).resolves.toBe("");
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	// Single timer must be cleared on fast success — no leaked timeout.
+	it("clears its timer when grounding succeeds quickly", async () => {
+		vi.useFakeTimers();
+		try {
+			const out = await groundStack(LABEL_A);
+			expect(out).toContain(
+				"--- FAKTA EKSTERNAL TERVERIFIKASI (dari Context7 docs) ---",
+			);
+			expect(vi.getTimerCount()).toBe(0);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
 });
