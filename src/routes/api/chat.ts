@@ -154,9 +154,14 @@ export const Route = createFileRoute("/api/chat")({
 				systemPrompt += `\n${depthDirective("prd")}`;
 
 				// ponytail: server-only grounding, dynamically imported so it never
-				// enters the client bundle. groundStack() returns "" on any failure.
-				const { groundStack } = await import("@/lib/grounding");
-				systemPrompt += await groundStack(groundingSource);
+				// enters the client bundle. groundStack() returns "" on any failure;
+				// the import itself is wrapped so a module-load error can't 500 the route.
+				try {
+					const { groundStack } = await import("@/lib/grounding");
+					systemPrompt += await groundStack(groundingSource);
+				} catch {
+					/* ponytail: optional grounding must never block generation */
+				}
 
 				let fullMessages: Array<{
 					role: "system" | "user" | "assistant";
