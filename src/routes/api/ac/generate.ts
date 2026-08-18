@@ -106,27 +106,7 @@ export const Route = createFileRoute("/api/ac/generate")({
 					);
 				}
 
-				let grounded = "";
-				try {
-					const { groundStack } = await import("@/lib/grounding");
-					grounded = await groundStack(prdContent);
-				} catch {
-					/* ponytail: optional grounding must never block generation */
-				}
-
 				const modelsToTry = selectModels();
-				// ponytail: depth keyed off the primary model, not the plan.
-				const systemPrompt = `${AC_GENERATION_PROMPT}\n${depthDirective("ac")}\n${grounded}\n\n--- PRD CONTENT ---\n${prdContent}`;
-				const messages: Array<{
-					role: "system" | "user" | "assistant";
-					content: string;
-				}> = [
-					{ role: "system", content: systemPrompt },
-					{
-						role: "user",
-						content: "Generate acceptance criteria based on the PRD above.",
-					},
-				];
 
 				const stream = new ReadableStream<Uint8Array>({
 					async start(controller) {
@@ -211,6 +191,30 @@ export const Route = createFileRoute("/api/ac/generate")({
 
 						try {
 							emit({ type: "started", model: modelsToTry[0] });
+
+							// Fail-open grounding runs AFTER the started event so the
+							// client sees progress before the (≤6s) Context7 fan-out.
+							let grounded = "";
+							try {
+								const { groundStack } = await import("@/lib/grounding");
+								grounded = await groundStack(prdContent);
+							} catch {
+								/* ponytail: optional grounding must never block generation */
+							}
+							// ponytail: depth keyed off the primary model, not the plan.
+							const systemPrompt = `${AC_GENERATION_PROMPT}\n${depthDirective("ac")}\n${grounded}\n\n--- PRD CONTENT ---\n${prdContent}`;
+							const messages: Array<{
+								role: "system" | "user" | "assistant";
+								content: string;
+							}> = [
+								{ role: "system", content: systemPrompt },
+								{
+									role: "user",
+									content:
+										"Generate acceptance criteria based on the PRD above.",
+								},
+							];
+
 							const { generator, firstChunk, outcome } =
 								await tryStreamWithFallback(
 									modelsToTry,
