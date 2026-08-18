@@ -16,13 +16,13 @@ export const SUPPORTED_LANGUAGES: readonly LanguageOption[] = [
 		id: "id",
 		label: "Bahasa Indonesia",
 		shortLabel: "ID",
-		flag: "????",
+		flag: "🇮🇩",
 	},
 	{
 		id: "en",
 		label: "English",
 		shortLabel: "EN",
-		flag: "????",
+		flag: "🇬🇧",
 	},
 ] as const;
 
