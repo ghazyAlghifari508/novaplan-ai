@@ -4,6 +4,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
 import { isTruncatedGeneration } from "@/lib/flow-progress";
+import { getLanguageDirective, normalizeLanguage } from "@/lib/language";
 import { ASK_OPTIONS_GENERATION_PROMPT } from "@/lib/prompts-ask";
 import { checkRateLimit, recordRequest } from "@/lib/rate-limit";
 import {
@@ -31,8 +32,9 @@ export const Route = createFileRoute("/api/ask/options")({
 					projectId?: string;
 					prompt?: string;
 					platform?: string;
+					language?: string;
 				};
-				const { projectId, prompt, platform } = body;
+				const { projectId, prompt, platform, language: reqLang } = body;
 				if (!projectId)
 					return Response.json(
 						{ error: "Project ID required" },
@@ -62,19 +64,21 @@ export const Route = createFileRoute("/api/ask/options")({
 				await recordRequest(user.id, "api_call");
 
 				const [project] = await db
-					.select({ id: projects.id })
+					.select({ id: projects.id, language: projects.language })
 					.from(projects)
 					.where(and(eq(projects.id, projectId), eq(projects.userId, user.id)))
 					.limit(1);
 				if (!project)
 					return Response.json({ error: "Project not found" }, { status: 404 });
 
+				const projectLanguage = normalizeLanguage(reqLang || project.language);
 				const platformLabel = platform === "mobile" ? "Mobile App" : "Web App";
+				const systemPrompt = `${ASK_OPTIONS_GENERATION_PROMPT}\n${getLanguageDirective(projectLanguage, "ask")}`;
 				const messages: Array<{
 					role: "system" | "user" | "assistant";
 					content: string;
 				}> = [
-					{ role: "system", content: ASK_OPTIONS_GENERATION_PROMPT },
+					{ role: "system", content: systemPrompt },
 					{
 						role: "user",
 						content: `Platform: ${platformLabel}\n\nPrompt awal:\n${prompt}`,

@@ -1,8 +1,11 @@
+import type { OutputLanguage } from "@/types/database";
+
 export type PendingPrdPromptMode = "auto" | "chat";
 
 const SETUP_PROMPT_KEY = "novaplan:setup-prompt";
 const PRD_PROMPT_KEY = "novaplan:prd-prompt";
 const ASK_PLATFORM_KEY = "novaplan:ask-platform";
+const ASK_LANGUAGE_KEY = "novaplan:ask-language";
 
 /** Setup prompt expires after 5 minutes to prevent stale prompts */
 const SETUP_PROMPT_MAX_AGE_MS = 5 * 60 * 1000;
@@ -115,6 +118,14 @@ export function getAskPlatform(): "web" | "mobile" {
 		: "web";
 }
 
+export function saveAskLanguage(language: OutputLanguage) {
+	getStorage()?.setItem(ASK_LANGUAGE_KEY, language);
+}
+
+export function getAskLanguage(): OutputLanguage {
+	return getStorage()?.getItem(ASK_LANGUAGE_KEY) === "en" ? "en" : "id";
+}
+
 /* ---------- /ask flow persistence (survives refresh) ---------- */
 const ASK_STATE_KEY = "novaplan:ask-state";
 
@@ -122,6 +133,7 @@ export interface AskState {
 	projectId: string;
 	prompt: string;
 	platform: "web" | "mobile";
+	language?: OutputLanguage;
 	session: 1 | 2;
 	questions: {
 		id: string;

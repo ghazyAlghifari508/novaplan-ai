@@ -1,16 +1,29 @@
-"use client";
-
-import { Monitor, Smartphone } from "lucide-react";
+import {
+	Check,
+	ChevronDown,
+	Languages,
+	Monitor,
+	Smartphone,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CreditExhaustedModal } from "@/components/chat/credit-exhausted-modal";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useTypingPlaceholder } from "@/hooks/use-typing-placeholder";
 import { useUserPlan } from "@/hooks/use-user-plan";
 import { authClient } from "@/lib/auth-client";
+import { type OutputLanguage, SUPPORTED_LANGUAGES } from "@/lib/language";
 import {
 	clearHomeDraft,
+	getAskLanguage,
 	getHomeDraft,
+	saveAskLanguage,
 	saveAskPlatform,
 	saveHomeDraft,
 	saveSetupPrompt,
@@ -28,6 +41,9 @@ export function ChatInput({ className }: ChatInputProps) {
 	const [message, setMessage] = useState(() => getHomeDraft());
 	const [focused, setFocused] = useState(false);
 	const [isMobileMode, setIsMobileMode] = useState(false);
+	const [language, setLanguage] = useState<OutputLanguage>(() =>
+		getAskLanguage(),
+	);
 	const [promptError, setPromptError] = useState("");
 
 	const [creditsExhaustedMsg, setCreditsExhaustedMsg] = useState<string | null>(
@@ -44,7 +60,6 @@ export function ChatInput({ className }: ChatInputProps) {
 
 	// ponytail: 300ms debounce keeps the home seed-prompt draft alive across
 	// refresh, so a long product description isn't lost before send.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional draft snapshot
 	useEffect(() => {
 		const t = setTimeout(() => saveHomeDraft(message), 300);
 		return () => clearTimeout(t);
@@ -69,6 +84,7 @@ export function ChatInput({ className }: ChatInputProps) {
 
 		saveSetupPrompt(enrichedPrompt);
 		saveAskPlatform(isMobileMode ? "mobile" : "web");
+		saveAskLanguage(language);
 		// Save original message for display in chat bubble (without platform tags)
 		sessionStorage.setItem("novaplan:original-message", originalMessage);
 
@@ -101,7 +117,7 @@ export function ChatInput({ className }: ChatInputProps) {
 			const res = await fetch("/api/projects", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ message: enrichedPrompt }),
+				body: JSON.stringify({ message: enrichedPrompt, language }),
 			});
 			const project = (await res.json().catch(() => ({}))) as {
 				id?: string;
@@ -150,6 +166,7 @@ export function ChatInput({ className }: ChatInputProps) {
 						{/* Mobile / Web Segmented Control */}
 						<div className="flex items-center gap-0.5 rounded-md bg-charcoal p-1 shadow-[var(--shadow-inset)]">
 							<button
+								type="button"
 								id="platform-toggle-mobile-label"
 								onClick={() => setIsMobileMode(true)}
 								title="Generate PRD untuk Mobile App"
@@ -164,6 +181,7 @@ export function ChatInput({ className }: ChatInputProps) {
 								App
 							</button>
 							<button
+								type="button"
 								id="platform-toggle-web"
 								onClick={() => setIsMobileMode(false)}
 								title="Generate PRD untuk Web App"
@@ -200,7 +218,53 @@ export function ChatInput({ className }: ChatInputProps) {
 						/>
 
 						{/* Bottom row inside input area */}
-						<div className="flex items-center justify-end gap-3 px-3 pb-3 pt-1">
+						<div className="flex items-center justify-between gap-3 px-3 pb-3 pt-1">
+							{/* Left side: Output language selector dropdown */}
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<button
+										type="button"
+										id="output-language-selector-btn"
+										title="Pilih bahasa output generasi AI"
+										className="flex items-center gap-1.5 rounded-md px-2 py-1 font-inter text-[11px] font-[510] text-mist transition-all duration-200 hover:bg-steel/50 hover:text-snow focus:outline-none"
+									>
+										<Languages size={13} className="text-fog" />
+										<span>{language === "en" ? "🇬🇧 EN" : "🇮🇩 ID"}</span>
+										<ChevronDown size={11} className="text-slate" />
+									</button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent
+									align="start"
+									side="bottom"
+									className="min-w-[160px] border-steel/60 bg-obsidian/95 p-1 backdrop-blur"
+								>
+									{SUPPORTED_LANGUAGES.map((langOpt) => (
+										<DropdownMenuItem
+											key={langOpt.id}
+											onClick={() => {
+												setLanguage(langOpt.id);
+												saveAskLanguage(langOpt.id);
+											}}
+											className={cn(
+												"flex cursor-pointer items-center justify-between px-2.5 py-2 font-inter text-xs transition-colors",
+												language === langOpt.id
+													? "bg-steel font-[510] text-snow"
+													: "text-mist hover:bg-white/5 hover:text-snow",
+											)}
+										>
+											<span className="flex items-center gap-2">
+												<span>{langOpt.flag}</span>
+												<span>{langOpt.label}</span>
+											</span>
+											{language === langOpt.id && (
+												<Check size={13} className="text-snow" />
+											)}
+										</DropdownMenuItem>
+									))}
+								</DropdownMenuContent>
+							</DropdownMenu>
+
+							{/* Right side: Character counter & Submit */}
 							<div className="flex items-center gap-3">
 								<span
 									className={cn(
@@ -214,9 +278,11 @@ export function ChatInput({ className }: ChatInputProps) {
 									{message.length.toLocaleString()}/3,000
 								</span>
 								<button
+									type="button"
 									id="hero-send-btn"
 									onClick={handleSend}
 									disabled={!message.trim()}
+									aria-label="Kirim prompt ide produk"
 									className={cn(
 										"flex h-9 w-9 items-center justify-center rounded-md transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]",
 										message.trim()
@@ -230,7 +296,10 @@ export function ChatInput({ className }: ChatInputProps) {
 										viewBox="0 0 14 14"
 										fill="none"
 										xmlns="http://www.w3.org/2000/svg"
+										role="img"
+										aria-label="Kirim"
 									>
+										<title>Kirim</title>
 										<path
 											d="M7 11.5V2.5M7 2.5L2.5 7M7 2.5L11.5 7"
 											stroke="currentColor"

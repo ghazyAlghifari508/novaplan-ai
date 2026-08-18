@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
 import { checkCredits, consumeCredit } from "@/lib/credits";
 import { isTruncatedGeneration } from "@/lib/flow-progress";
+import { getLanguageDirective, normalizeLanguage } from "@/lib/language";
 import { depthDirective } from "@/lib/prompt-depth";
 import { PRD_REVISION_PROMPT, PRD_SYSTEM_PROMPT } from "@/lib/prompts";
 import { checkRateLimit, recordRequest } from "@/lib/rate-limit";
@@ -120,10 +121,11 @@ export const Route = createFileRoute("/api/chat")({
 
 				let systemPrompt = PRD_SYSTEM_PROMPT;
 				let groundingSource = message;
+				let projectLanguage = "id";
 
-				if ((mode === "revise" || mode === "chat") && projectIdToUse) {
+				if (projectIdToUse) {
 					const [projCheck] = await db
-						.select({ id: projects.id })
+						.select({ id: projects.id, language: projects.language })
 						.from(projects)
 						.where(
 							and(
@@ -132,26 +134,35 @@ export const Route = createFileRoute("/api/chat")({
 							),
 						)
 						.limit(1);
-					if (!projCheck)
+
+					if ((mode === "revise" || mode === "chat") && !projCheck) {
 						return Response.json(
 							{ error: "Project not found or unauthorized" },
 							{ status: 403 },
 						);
+					}
 
-					const activeContent =
-						mode === "revise" && selectedVersionNum
-							? await getPrdVersionContent(projectIdToUse, selectedVersionNum)
-							: await getLatestPrdContent(projectIdToUse);
-					if (activeContent) {
-						groundingSource = `${activeContent}\n\n${message}`;
-						if (mode === "revise") {
-							systemPrompt = `${PRD_REVISION_PROMPT}\n\nCURRENT PRD CONTENT:\n\n${activeContent}`;
+					if (projCheck?.language) {
+						projectLanguage = projCheck.language;
+					}
+
+					if (mode === "revise" || mode === "chat") {
+						const activeContent =
+							mode === "revise" && selectedVersionNum
+								? await getPrdVersionContent(projectIdToUse, selectedVersionNum)
+								: await getLatestPrdContent(projectIdToUse);
+						if (activeContent) {
+							groundingSource = `${activeContent}\n\n${message}`;
+							if (mode === "revise") {
+								systemPrompt = `${PRD_REVISION_PROMPT}\n\nCURRENT PRD CONTENT:\n\n${activeContent}`;
+							}
 						}
 					}
 				}
 
 				const modelsToTry = selectModels();
 				systemPrompt += `\n${depthDirective("prd")}`;
+				systemPrompt += `\n${getLanguageDirective(projectLanguage, "prd")}`;
 
 				// ponytail: server-only grounding, dynamically imported so it never
 				// enters the client bundle. groundStack() returns "" on any failure;
@@ -227,9 +238,12 @@ export const Route = createFileRoute("/api/chat")({
 						const safeDone = (extras: Record<string, unknown>) => {
 							if (eventDone) return;
 							eventDone = true;
+							const isEn = normalizeLanguage(projectLanguage) === "en";
 							emit({
 								type: "done",
-								summaryMessage: "Selesai menyusun PRD.",
+								summaryMessage: isEn
+									? "Finished generating PRD."
+									: "Selesai menyusun PRD.",
 								...extras,
 							});
 							try {

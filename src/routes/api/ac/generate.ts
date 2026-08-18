@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
 import { checkCredits, consumeCredit, hasFullWorkflow } from "@/lib/credits";
 import { isTruncatedGeneration } from "@/lib/flow-progress";
+import { getLanguageDirective, normalizeLanguage } from "@/lib/language";
 import { depthDirective } from "@/lib/prompt-depth";
 import { AC_GENERATION_PROMPT } from "@/lib/prompts-ac";
 import { checkRateLimit, recordRequest } from "@/lib/rate-limit";
@@ -75,7 +76,7 @@ export const Route = createFileRoute("/api/ac/generate")({
 				await recordRequest(user.id, "api_call");
 
 				const [project] = await db
-					.select({ id: projects.id })
+					.select({ id: projects.id, language: projects.language })
 					.from(projects)
 					.where(and(eq(projects.id, projectId), eq(projects.userId, user.id)))
 					.limit(1);
@@ -202,7 +203,8 @@ export const Route = createFileRoute("/api/ac/generate")({
 								/* ponytail: optional grounding must never block generation */
 							}
 							// ponytail: depth keyed off the primary model, not the plan.
-							const systemPrompt = `${AC_GENERATION_PROMPT}\n${depthDirective("ac")}\n${grounded}\n\n--- PRD CONTENT ---\n${prdContent}`;
+							const projectLanguage = normalizeLanguage(project.language);
+							const systemPrompt = `${AC_GENERATION_PROMPT}\n${depthDirective("ac")}\n${getLanguageDirective(projectLanguage, "ac")}\n${grounded}\n\n--- PRD CONTENT ---\n${prdContent}`;
 							const messages: Array<{
 								role: "system" | "user" | "assistant";
 								content: string;

@@ -133,6 +133,7 @@ export const projects = pgTable(
 		description: text("description"),
 		status: text("status").default("draft"),
 		mode: text("mode").default("ai_auto"),
+		language: text("language").default("id"),
 		step: text("step").default("prd"), // prd, ac, task
 		acStatus: text("ac_status").default("pending"),
 		taskStatus: text("task_status").default("pending"),
