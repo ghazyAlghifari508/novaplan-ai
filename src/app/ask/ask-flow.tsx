@@ -115,8 +115,6 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 						projectId,
 						prompt,
 						platform: getAskPlatform(),
-						model:
-							sessionStorage.getItem("novaplan:selected-model") || undefined,
 					}),
 				});
 				const data = (await res.json().catch(() => ({}))) as {

@@ -64,17 +64,6 @@ export function getSetupPrompt(): string {
 	}
 }
 
-/**
- * Read and DELETE the setup prompt in one call (consume pattern).
- * Returns empty string if missing or expired.
- * After this call, the prompt is gone from sessionStorage.
- */
-export function consumeSetupPrompt(): string {
-	const prompt = getSetupPrompt();
-	getStorage()?.removeItem(SETUP_PROMPT_KEY);
-	return prompt;
-}
-
 export function savePendingPrdPrompt(
 	prompt: string,
 	mode: PendingPrdPromptMode,

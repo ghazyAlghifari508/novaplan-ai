@@ -18,11 +18,6 @@ export const getSession = createServerFn({ method: "GET" }).handler(() =>
 	getSessionFromHeaders(getRequestHeaders()),
 );
 
-export const getUser = createServerFn({ method: "GET" }).handler(async () => {
-	const session = await getSessionFromHeaders(getRequestHeaders());
-	return session?.user ?? null;
-});
-
 // Throws Unauthorized when no session - for guarded server fns.
 export async function requireUser(headers: Headers) {
 	const session = await getSessionFromHeaders(headers);
@@ -37,21 +32,6 @@ export async function requireUser(headers: Headers) {
 export const requireUserServer = createServerFn({ method: "GET" }).handler(
 	async () => {
 		return requireUser(getRequestHeaders());
-	},
-);
-
-export const getUserProfile = createServerFn({ method: "GET" }).handler(
-	async () => {
-		const session = await getSessionFromHeaders(getRequestHeaders());
-		if (!session?.user) return null;
-		const { db } = await import("@/db");
-		const { users } = await import("@/db/schema");
-		const [profile] = await db
-			.select()
-			.from(users)
-			.where(eq(users.id, session.user.id))
-			.limit(1);
-		return profile ?? null;
 	},
 );
 

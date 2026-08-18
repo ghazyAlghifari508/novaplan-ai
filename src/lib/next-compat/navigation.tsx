@@ -3,7 +3,6 @@
 // to native TanStack hooks when a component is otherwise touched.
 import {
 	useLocation,
-	useMatches,
 	useNavigate,
 	useRouter as useTanstackRouter,
 } from "@tanstack/react-router";
@@ -34,11 +33,4 @@ export function usePathname(): string {
 export function useSearchParams(): URLSearchParams {
 	const search = useLocation({ select: (l) => l.searchStr });
 	return new URLSearchParams(search);
-}
-
-// next/navigation also exports these; provide no-op/basic parity.
-export function useParams<T = Record<string, string>>(): T {
-	const matches = useMatches();
-	const leaf = matches[matches.length - 1];
-	return (leaf?.params ?? {}) as T;
 }
