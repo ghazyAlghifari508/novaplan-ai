@@ -1,7 +1,6 @@
 import {
 	Check,
 	ChevronDown,
-	Languages,
 	Monitor,
 	Smartphone,
 } from "lucide-react";
@@ -133,7 +132,7 @@ export function ChatInput({ className }: ChatInputProps) {
 		}
 	};
 
-	const typingPlaceholder = useTypingPlaceholder(isMobileMode);
+	const typingPlaceholder = useTypingPlaceholder(isMobileMode, language);
 
 	return (
 		<>
@@ -228,15 +227,19 @@ export function ChatInput({ className }: ChatInputProps) {
 										title="Pilih bahasa output generasi AI"
 										className="flex items-center gap-1.5 rounded-md px-2 py-1 font-inter text-[11px] font-[510] text-mist transition-all duration-200 hover:bg-steel/50 hover:text-snow focus:outline-none"
 									>
-										<Languages size={13} className="text-fog" />
-										<span>{language === "en" ? "🇬🇧 EN" : "🇮🇩 ID"}</span>
+										<span className="font-mono text-[10px] font-semibold text-fog">
+											{language === "en" ? "EN" : "ID"}
+										</span>
+										<span>
+											{language === "en" ? "English" : "Bahasa Indonesia"}
+										</span>
 										<ChevronDown size={11} className="text-slate" />
 									</button>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent
 									align="start"
 									side="bottom"
-									className="min-w-[160px] border-steel/60 bg-obsidian/95 p-1 backdrop-blur"
+									className="min-w-[170px] border-steel/60 bg-obsidian/95 p-1 backdrop-blur"
 								>
 									{SUPPORTED_LANGUAGES.map((langOpt) => (
 										<DropdownMenuItem
@@ -253,7 +256,9 @@ export function ChatInput({ className }: ChatInputProps) {
 											)}
 										>
 											<span className="flex items-center gap-2">
-												<span>{langOpt.flag}</span>
+												<span className="font-mono text-[10px] font-semibold text-fog">
+													{langOpt.shortLabel}
+												</span>
 												<span>{langOpt.label}</span>
 											</span>
 											{language === langOpt.id && (
