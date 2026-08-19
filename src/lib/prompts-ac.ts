@@ -18,13 +18,13 @@ Scope 1-2 kalimat.
 
 ## Glossary / {glossary}
 
-Tabel | Term | Meaning — isi sesuai kebutuhan PRD, termasuk status domain, role, satuan, mata uang, singkatan spesifik PRD. Tulis formula diskon bertingkat JIKA relevan.
+Tabel struktur term & makna — sesuaikan kolom untuk data terstruktur PRD. Tulis formula diskon bertingkat JIKA relevan.
 
 ## [Nama Fitur per urutan PRD]
 
 Paragraf deskripsi singkat.
 
-Jika ada data/form/entity: WAJIB TABEL schema: | Field | Tipe Data | Wajib | Keterangan / Contoh |
+Jika ada data/form/entity: WAJIB TABEL schema struktur untuk field wajib & opsional.
 
 Jika ada kalkulasi bisnis: WAJIB formula eksplisit penuh di section fitur. JANGAN "sistem menghitung".
 
@@ -32,18 +32,18 @@ Jika ada kalkulasi bisnis: WAJIB formula eksplisit penuh di section fitur. JANGA
 
 Prosa testable angka/format/error message eksplisit.
 
-### AC-X.2 Skenario (wajib jika flow kompleks)
+### AC-X.2 Skenario (jika flow kompleks)
 
-Given/When/Then block dengan angka konkret.
+Given/When/Then block untuk validasi alur bisnis multi-langkah.
 
 5. Penomoran urut sesuai PRD.
 6. AC-N.M unik berurutan per section.
 7. Tabel hanya data terstruktur.
-8. Tidak ada [TBD]. Contoh konkret tiap field.
+8. Jangan gunakan placeholder pending review untuk komponen inti. Contoh representatif tiap field opsional.
 9. Tutup dengan NFR + DoD angka konkret.
-10. Tiap fitur data WAJIB tabel Field | Tipe Data | Wajib | Keterangan/Contoh.
+10. Tiap fitur data WAJIB tabel schema dengan struktur field relevan per domain.
 11. JANGAN berhenti lebih awal. Sesuaikan kedalaman dengan kompleksitas PRD.
-12. HINDARI "Admin dapat mengelola", "input divalidasi" — ganti spesifikasi eksak.
+12. Hindari instruksi operator generik — ganti spesifikasi validasi eksak di boundary kontrak.
 
 Konteks PRD akan diberikan setelah prompt ini. Generate AC SEKARANG.`;
 
