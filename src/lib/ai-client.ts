@@ -44,6 +44,15 @@ export async function* streamChat(
 	outcome?: StreamOutcome,
 	onThinking?: (text: string) => void,
 ): AsyncGenerator<string, void, undefined> {
+	const systemMessages = messages
+		.filter((m) => m.role === "system")
+		.map((m) => m.content)
+		.join("\n\n");
+	const nonSystemMessages = messages.filter(
+		(m): m is { role: "user" | "assistant"; content: string } =>
+			m.role !== "system",
+	);
+
 	const result = streamText({
 		// ponytail: provider.chat(), not provider(). The v5 default routes to the
 		// Responses API, whose stream 9router answers with a chat-completions body;
@@ -51,8 +60,8 @@ export async function* streamChat(
 		// finished cleanly ("stop" on the wire), and isTruncatedGeneration then
 		// discards a complete document. .chat() pins /v1/chat/completions.
 		model: provider.chat(model || "oc/big-pickle"),
-		messages,
-		allowSystemInMessages: true,
+		system: systemMessages || undefined,
+		messages: nonSystemMessages,
 		abortSignal: signal,
 		maxOutputTokens: maxTokens,
 		stopSequences: ["<|eot_id|>", "<|end_of_text|>", "===DONE==="],
@@ -95,10 +104,19 @@ export async function completeChat(
 	messages: ChatMessage[],
 	model?: string,
 ): Promise<string> {
+	const systemMessages = messages
+		.filter((m) => m.role === "system")
+		.map((m) => m.content)
+		.join("\n\n");
+	const nonSystemMessages = messages.filter(
+		(m): m is { role: "user" | "assistant"; content: string } =>
+			m.role !== "system",
+	);
+
 	const { text } = await generateText({
 		model: provider.chat(model || "oc/big-pickle"),
-		messages,
-		allowSystemInMessages: true,
+		system: systemMessages || undefined,
+		messages: nonSystemMessages,
 	});
 	return text;
 }
