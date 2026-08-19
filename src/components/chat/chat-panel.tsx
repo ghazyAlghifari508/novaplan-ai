@@ -491,6 +491,10 @@ export function ChatPanel({
 									onProjectCreated(parsed.projectId);
 								} else if (chatMode === "generate") {
 									setGeneratingPRD(false);
+									setStreamingPRDContent("");
+									if (typeof parsed.content === "string" && parsed.content) {
+										onPrdRevised?.(parsed.content);
+									}
 									startTransition(() => {
 										router.refresh();
 									});

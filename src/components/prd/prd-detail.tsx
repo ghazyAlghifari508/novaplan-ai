@@ -361,7 +361,6 @@ export function PrdDetail({
 						onProjectCreated={handleProjectCreated}
 						onPrdRevised={handlePrdRevised}
 						className="h-full w-full border-none"
-						enableAutoSubmit={false}
 						inputDisabled={!projectId && !isGeneratingPRD}
 						currentPrdContent={currentContent}
 						userPlan={plan}
@@ -395,7 +394,6 @@ export function PrdDetail({
 									onProjectCreated={handleProjectCreated}
 									onPrdRevised={handlePrdRevised}
 									className="w-full border-none"
-									enableAutoSubmit={false}
 									inputDisabled={!projectId && !isGeneratingPRD}
 									currentPrdContent={currentContent}
 									userPlan={plan}

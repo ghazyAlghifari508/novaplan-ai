@@ -57,6 +57,13 @@
       "when": 1786402819058,
       "tag": "0007_conscious_epoch",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1787054578880,
+      "tag": "0008_colorful_prowler",
+      "breakpoints": true
     }
   ]
 }

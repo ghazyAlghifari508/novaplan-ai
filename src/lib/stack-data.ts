@@ -68,6 +68,7 @@ export const FULLSTACK_FRAMEWORK_OPTIONS = [
 	"Laravel + Vue (Inertia)",
 	"RedwoodJS",
 	"SolidStart",
+	"Wasp (Fullstack)",
 ];
 
 /** Mobile full-stack: mobile FE + backend bundled as one stack. */
@@ -188,6 +189,7 @@ export const STACK_ICONS: Record<string, string> = {
 	"Laravel + Vue (Inertia)": "laravel",
 	RedwoodJS: "redwoodjs",
 	SolidStart: "soliddotjs",
+	"Wasp (Fullstack)": "wasp",
 	// database
 	PostgreSQL: "postgresql",
 	"Supabase Postgres": "supabase",
