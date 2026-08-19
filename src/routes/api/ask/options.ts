@@ -12,6 +12,7 @@ import {
 	tryStreamWithFallback,
 } from "@/lib/services/ai-orchestrator";
 import { parseAskOptionsJson } from "@/lib/services/ask-service";
+import { sanitizeModelOutput } from "@/lib/services/prd-service";
 import { sanitizeErrorForClient } from "@/lib/services/error-sanitizer";
 import { extractJson } from "@/lib/services/json-extract";
 import { requireUser } from "@/lib/session";
@@ -114,7 +115,9 @@ export const Route = createFileRoute("/api/ask/options")({
 						);
 					}
 
-					const questions = parseAskOptionsJson(extractJson(fullResponse));
+					const questions = parseAskOptionsJson(
+						extractJson(sanitizeModelOutput(fullResponse)),
+					);
 					if (!questions) {
 						return Response.json(
 							{ error: "AI menghasilkan JSON tidak valid. Coba lagi." },

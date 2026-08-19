@@ -3,6 +3,31 @@
  * content, change_summary); projects.share_token exists.
  */
 import { randomBytes } from "node:crypto";
+
+/**
+ * Normalize a content document that an AI model mis-rendered as a full HTML
+ * page back into plain text (strip markup, keep visible text). Leaves any
+ * document that does not look like a whole HTML page untouched, so valid
+ * markdown survives unaffected. Structural rule only — independent of any
+ * specific model, symptom, or provider.
+ */
+export function sanitizeModelOutput(content: string): string {
+  if (!content) return content;
+  const isFullHtmlPage =
+    /^\s*<!DOCTYPE\s+html/i.test(content) && /<\/html>/i.test(content);
+  if (!isFullHtmlPage) return content;
+  const stripped = content
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<head[\s\S]*?<\/head>/gi, " ");
+  const text = stripped
+    .replace(/><(?=\/?)/g, "> <")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text.length > 0 ? text : content;
+}
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { conversations, prdVersions, projects } from "@/db/schema";
@@ -339,6 +364,22 @@ export async function savePrdVersion(
 			.where(eq(projects.id, projectId));
 	}
 
+	// Enforce the PRD contract before persist: a generate must carry section
+	// markers. HTML-page output (a model that ignored the markdown instruction)
+	// is unwrapped to text when possible; content with no section markers at all
+	// is rejected rather than saved as a broken version. Revisions patch into
+	// existing content, so they may legitimately ship a single section block.
+	const cleanContent = sanitizeModelOutput(fullResponse);
+	if (
+		mode === "generate" &&
+		!/<!--\s*SECTION:/i.test(cleanContent) &&
+		cleanContent.trim()
+	) {
+		throw new Error(
+			"PRD output tidak memiliki struktur section yang valid. Tidak disimpan. Coba lagi.",
+		);
+	}
+
 	let nextVersion = 1;
 	if (mode === "revise") {
 		const [latest] = await db
@@ -356,7 +397,7 @@ export async function savePrdVersion(
 			id: crypto.randomUUID(),
 			projectId,
 			version: nextVersion,
-			content: fullResponse,
+			content: cleanContent,
 			changeSummary:
 				mode === "generate"
 					? "Initial PRD generation"
@@ -378,7 +419,7 @@ export async function savePrdVersion(
 				id: crypto.randomUUID(),
 				projectId,
 				version: nextVersion,
-				content: fullResponse,
+				content: cleanContent,
 				changeSummary:
 					mode === "generate"
 						? "Initial PRD generation"

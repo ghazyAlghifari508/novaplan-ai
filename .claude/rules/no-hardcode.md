@@ -93,6 +93,23 @@ Before writing ANY value into code:
 
 ---
 
+## Rule 6: Never Embed User's Problem/Symptom Into Code
+
+When the user reports a bug, error, or symptom, NEVER copy their literal problem text, exact error message, domain-specific example, or reproduction string into the codebase as a check, regex, denylist, test fixture, or comment.
+
+| Bad | Good |
+|---|---|
+| regex matching the exact bug text the user reported | generic guard at the right boundary that normalizes/validates output shape, with no literal user content |
+| test fixture containing the user's exact error phrase | synthetic placeholder ("`<sample content>`") or structural fixture |
+| denylist of reported symptom values | validation of the contract (format, shape, structure) independent of any specific value |
+| magic-string list that only matches what the user happened to report | behavior fixes at root cause that handle the whole class of problem |
+
+**Why:** A guard keyed to the user's specific observed text only fixes THAT one occurrence; a different model, wording, or provider reproduces the same bug brand-new. It also leaks user conversation content into the repo. Also, bug fixes must target the root cause (why the AI output violated the contract), not the specific symptom value — otherwise every new manifestation needs a new hardcoded string.
+
+**How to apply:** When a repair is needed, fix the mechanism that let invalid output through (validation, extraction, parsing, contract enforcement). Use generic structural rules. Test with neutral placeholders, never with the user's literal problem text.
+
+---
+
 ## Summary
 
 1. **No magic numbers** — use constants
@@ -100,3 +117,4 @@ Before writing ANY value into code:
 3. **No hardcoded secrets/URLs** — use env vars
 4. **No scattered business rules** — use constants module
 5. **Verify before writing** — check existing config first
+6. **Never embed user's problem/symptom into code** — fix root cause generically, test with neutral placeholders

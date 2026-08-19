@@ -6,6 +6,7 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { acVersions, projects } from "@/db/schema";
 import { advanceStep } from "@/lib/flow-progress";
+import { sanitizeModelOutput } from "@/lib/services/prd-service";
 
 /**
  * Save AC version. Advances projects.step to 'ac' — but only forward:
@@ -24,6 +25,7 @@ export async function saveAcVersion(
 		.orderBy(desc(acVersions.version))
 		.limit(1);
 	let nextVersion = latest ? latest.version + 1 : 1;
+	const cleanContent = sanitizeModelOutput(fullResponse);
 
 	const inserted = await db
 		.insert(acVersions)
@@ -31,7 +33,7 @@ export async function saveAcVersion(
 			id: crypto.randomUUID(),
 			projectId,
 			version: nextVersion,
-			content: fullResponse,
+			content: cleanContent,
 			changeSummary: userMessage || "Initial AC generation",
 		})
 		.returning({ id: acVersions.id })
@@ -53,7 +55,7 @@ export async function saveAcVersion(
 					id: crypto.randomUUID(),
 					projectId,
 					version: nextVersion,
-					content: fullResponse,
+					content: cleanContent,
 					changeSummary: userMessage || "Initial AC generation",
 				})
 				.returning({ id: acVersions.id });

@@ -9,6 +9,7 @@ import { getLanguageDirective, normalizeLanguage } from "@/lib/language";
 import { TASK_GENERATION_PROMPT } from "@/lib/prompts-task";
 import { checkRateLimit, recordRequest } from "@/lib/rate-limit";
 import { getLatestAcMarkdown } from "@/lib/services/ac-service";
+import { sanitizeModelOutput } from "@/lib/services/prd-service";
 import {
 	selectModels,
 	tryStreamWithFallback,
@@ -137,7 +138,9 @@ export const Route = createFileRoute("/api/task/generate")({
 							}
 							eventDone = true;
 							try {
-								const taskTree = parseTaskJson(extractJson(fullResponse));
+								const taskTree = parseTaskJson(
+								extractJson(sanitizeModelOutput(fullResponse)),
+							);
 								if (!taskTree) {
 									await db
 										.update(projects)
