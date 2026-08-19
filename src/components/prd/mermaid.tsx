@@ -21,6 +21,8 @@ function ensureMermaidInit(theme: "dark" | "default") {
 		theme,
 		securityLevel: "loose",
 		logLevel: 4, // ERROR only - 0 = TRACE floods console
+		htmlLabels: false,
+		flowchart: { htmlLabels: false },
 	});
 }
 
