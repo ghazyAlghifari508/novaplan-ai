@@ -10,7 +10,7 @@ export const Route = createFileRoute("/api/projects/")({
 	server: {
 		handlers: {
 			POST: async ({ request }: { request: Request }) => {
-				const user = await requireUser(getRequestHeaders());
+				const user = await requireUser(request.headers);
 				const body = await request.json().catch(() => null);
 				const message = body?.message;
 				const language = normalizeLanguage(body?.language);

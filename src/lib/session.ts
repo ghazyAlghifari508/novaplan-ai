@@ -19,8 +19,9 @@ export const getSession = createServerFn({ method: "GET" }).handler(() =>
 );
 
 // Throws Unauthorized when no session - for guarded server fns.
-export async function requireUser(headers: Headers) {
-	const session = await getSessionFromHeaders(headers);
+export async function requireUser(headers?: Headers) {
+	const h = headers ?? getRequestHeaders();
+	const session = await getSessionFromHeaders(h);
 	if (!session?.user) throw new Error("Unauthorized");
 	return session.user;
 }

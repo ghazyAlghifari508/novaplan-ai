@@ -34,7 +34,7 @@ export const Route = createFileRoute("/api/chat")({
 	server: {
 		handlers: {
 			POST: async ({ request }: { request: Request }) => {
-				const user = await requireUser(getRequestHeaders());
+				const user = await requireUser(request.headers);
 
 				const [sub] = await db
 					.select({ plan: subscriptions.plan })
