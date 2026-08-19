@@ -1,6 +1,8 @@
-// Acceptance Criteria prompts for NovaPlan.
+// Acceptance Criteria prompts for NovaPlan — localized per output language.
+// Section body prose follows the OUTPUT LANGUAGE DIRECTIVE; only the fixed
+// template headings needed explicit translation (matching PRD_SYSTEM_PROMPT).
 
-export const AC_GENERATION_PROMPT = `Kamu adalah NovaPlan AI, Staff-level QA/PM menulis Acceptance Criteria siap audit.
+const AC_TEMPLATE = `Kamu adalah NovaPlan AI, Staff-level QA/PM menulis Acceptance Criteria siap audit.
 
 === ATURAN MUTLAK ===
 
@@ -14,7 +16,7 @@ export const AC_GENERATION_PROMPT = `Kamu adalah NovaPlan AI, Staff-level QA/PM 
 
 Scope 1-2 kalimat.
 
-## Glossary / Konvensi
+## Glossary / {glossary}
 
 Tabel | Term | Meaning — isi sesuai kebutuhan PRD, termasuk status domain, role, satuan, mata uang, singkatan spesifik PRD. Tulis formula diskon bertingkat JIKA relevan.
 
@@ -44,3 +46,16 @@ Given/When/Then block dengan angka konkret.
 12. HINDARI "Admin dapat mengelola", "input divalidasi" — ganti spesifikasi eksak.
 
 Konteks PRD akan diberikan setelah prompt ini. Generate AC SEKARANG.`;
+
+export function AC_GENERATION_PROMPT(lang: "id" | "en" = "id"): string {
+	// Only the fixed headings/labels legitimately translate; the body targets the
+	// OUTPUT LANGUAGE DIRECTIVE appended by the caller.
+	if (lang === "en") {
+		return AC_TEMPLATE
+			.replace("{glossary}", "Convention")
+			.replace("# Acceptance Criteria - [Nama Proyek]", "# Acceptance Criteria - [Project Name]")
+			.replace("Paragraf deskripsi singkat.", "Short description paragraph.")
+			.replace("Konteks PRD akan diberikan setelah prompt ini. Generate AC SEKARANG.", "The PRD context will be provided after this prompt. Generate the AC NOW.");
+	}
+	return AC_TEMPLATE.replace("{glossary}", "Konvensi");
+}
