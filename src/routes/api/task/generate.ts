@@ -23,7 +23,7 @@ export const Route = createFileRoute("/api/task/generate")({
 	server: {
 		handlers: {
 			POST: async ({ request }: { request: Request }) => {
-				const user = await requireUser(getRequestHeaders());
+				const user = await requireUser(request.headers);
 				const { projectId } = await request
 					.json()
 					.catch(() => ({ projectId: undefined }));

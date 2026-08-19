@@ -23,7 +23,7 @@ export const Route = createFileRoute("/api/ac/generate")({
 	server: {
 		handlers: {
 			POST: async ({ request }: { request: Request }) => {
-				const user = await requireUser(getRequestHeaders());
+				const user = await requireUser(request.headers);
 
 				const { projectId } = await request
 					.json()
