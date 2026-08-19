@@ -22,7 +22,7 @@ export const Route = createFileRoute("/api/projects/$id/step")({
 				request: Request;
 				params: { id: string };
 			}) => {
-				const user = await requireUser(getRequestHeaders());
+				const user = await requireUser(request.headers);
 				const { id: projectId } = params;
 				if (!projectId)
 					return Response.json(

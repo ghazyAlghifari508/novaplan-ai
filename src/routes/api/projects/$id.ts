@@ -15,8 +15,8 @@ import { requireUser } from "@/lib/session";
 export const Route = createFileRoute("/api/projects/$id")({
 	server: {
 		handlers: {
-			DELETE: async ({ params }: { params: { id: string } }) => {
-				const user = await requireUser(getRequestHeaders());
+			DELETE: async ({ request, params }: { request: Request; params: { id: string } }) => {
+				const user = await requireUser(request.headers);
 				const { id: projectId } = params;
 				if (!projectId)
 					return Response.json(

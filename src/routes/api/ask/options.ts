@@ -23,7 +23,7 @@ export const Route = createFileRoute("/api/ask/options")({
 			POST: async ({ request }: { request: Request }) => {
 				let user: { id: string };
 				try {
-					user = await requireUser(getRequestHeaders());
+					user = await requireUser(request.headers);
 				} catch {
 					return Response.json({ error: "Unauthorized" }, { status: 401 });
 				}
