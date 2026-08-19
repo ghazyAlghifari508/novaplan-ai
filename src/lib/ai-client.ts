@@ -98,25 +98,15 @@ export async function* streamChat(
 }
 
 /**
- * Non-streaming completion. Mirrors old completeChat signature.
+ * Non-streaming completion. Accumulates streamChat chunks to handle 9router streaming format safely.
  */
 export async function completeChat(
 	messages: ChatMessage[],
 	model?: string,
 ): Promise<string> {
-	const systemMessages = messages
-		.filter((m) => m.role === "system")
-		.map((m) => m.content)
-		.join("\n\n");
-	const nonSystemMessages = messages.filter(
-		(m): m is { role: "user" | "assistant"; content: string } =>
-			m.role !== "system",
-	);
-
-	const { text } = await generateText({
-		model: provider.chat(model || "oc/big-pickle"),
-		system: systemMessages || undefined,
-		messages: nonSystemMessages,
-	});
-	return text;
+	let fullText = "";
+	for await (const chunk of streamChat(messages, model)) {
+		fullText += chunk;
+	}
+	return fullText;
 }
