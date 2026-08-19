@@ -21,7 +21,7 @@ import {
 } from "@/lib/services/chat-service";
 import { sanitizeErrorForClient } from "@/lib/services/error-sanitizer";
 import {
-	deriveProjectName,
+	deriveProjectNameSync,
 	getLatestPrdContent,
 	getPrdVersionContent,
 	resolveProjectId,
@@ -282,7 +282,7 @@ export const Route = createFileRoute("/api/chat")({
 								const result = await ensureConversation(
 									user.id,
 									projectIdToUse,
-									await deriveProjectName(message),
+									deriveProjectNameSync(message),
 									preferences || null,
 								);
 								conversationIdToUse = result.conversationId;
@@ -430,7 +430,7 @@ export const Route = createFileRoute("/api/chat")({
 								const { FEATURES } = await import("@/types/database");
 								const allowShare = FEATURES[plan].shareLink !== false;
 								await savePrdVersion(
-									conversationIdToUse,
+									(conversationIdToUse || projectIdToUse)!,
 									finalPrdToSave,
 									message,
 									mode === "resume" ? "generate" : mode,

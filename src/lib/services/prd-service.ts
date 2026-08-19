@@ -300,25 +300,37 @@ export async function deriveProjectName(message: string): Promise<string> {
  * Resolves projectId from conversationId if needed.
  */
 export async function savePrdVersion(
-	conversationId: string,
+	idOrConversationId: string,
 	fullResponse: string,
 	userMessage: string,
 	mode: "generate" | "revise",
 	allowShareLink = true,
 ): Promise<void> {
+	let projectId: string | undefined;
 	const [conv] = await db
 		.select({ projectId: conversations.projectId })
 		.from(conversations)
-		.where(eq(conversations.id, conversationId))
+		.where(eq(conversations.id, idOrConversationId))
 		.limit(1);
-	if (!conv?.projectId) {
+	if (conv?.projectId) {
+		projectId = conv.projectId;
+	} else {
+		const [proj] = await db
+			.select({ id: projects.id })
+			.from(projects)
+			.where(eq(projects.id, idOrConversationId))
+			.limit(1);
+		if (proj?.id) {
+			projectId = proj.id;
+		}
+	}
+	if (!projectId) {
 		console.warn(
-			"savePrdVersion: conversation missing project_id, content discarded",
-			{ conversationId },
+			"savePrdVersion: conversation or project missing, content discarded",
+			{ idOrConversationId },
 		);
 		return;
 	}
-	const projectId = conv.projectId;
 
 	if (mode === "generate" && allowShareLink) {
 		await db
