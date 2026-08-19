@@ -191,7 +191,17 @@ export function TaskDetail({
 			if (error instanceof DOMException && error.name === "AbortError") {
 				// A newer handleGenerate call already superseded this one (see abortRef.current?.abort()
 				// above) - that call owns isGenerating state now, so don't stomp on it.
-				if (abortRef.current !== controller) return;
+				if (abortRef.current !== controller) {
+					// Abort came from unmount/route transition, not a newer
+					// handleGenerate taking over (abortRef was cleared). Surface a
+					// retryable error so the user isn't left at a dead-end.
+					if (abortRef.current === null) {
+						isGeneratingRef.current = false;
+						setIsGenerating(false);
+						setHasError(true);
+					}
+					return;
+				}
 				isGeneratingRef.current = false;
 				setIsGenerating(false);
 				return;
