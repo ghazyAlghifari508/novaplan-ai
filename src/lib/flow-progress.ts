@@ -39,7 +39,6 @@ export function advanceStep(
 const TRUNCATING_REASONS = new Set([
 	"length",
 	"error",
-	"other",
 	"content-filter",
 ]);
 
@@ -47,10 +46,10 @@ export function isTruncatedGeneration(
 	content: string,
 	finishReason: string | undefined,
 ): boolean {
-	if (!content.trim()) return true;
-	// ponytail: deny-list, not allow-list. undefined/"unknown" means the provider
-	// reported nothing - not evidence of truncation, so keep the content the user
-	// paid an AI call for. Only explicit failure reasons discard it.
+	if (!content || !content.trim()) return true;
+	// ponytail: deny-list, not allow-list. undefined/"unknown"/"other" means the provider
+	// reported a non-standard finish or completed via custom stop sequence.
+	// Only explicit hard failure reasons ("length", "error", "content-filter") discard it.
 	return finishReason !== undefined && TRUNCATING_REASONS.has(finishReason);
 }
 
