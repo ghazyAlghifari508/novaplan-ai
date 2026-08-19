@@ -1,11 +1,18 @@
 // src/lib/context7-client.ts
-// Minimal Context7 MCP client over HTTP JSON-RPC. No SDK, no API key.
+// Minimal Context7 MCP client over HTTP JSON-RPC. No SDK.
 // Context7 serves SSE-framed JSON-RPC responses (event: message / data: {...}).
+// Optional CONTEXT7_API_KEY sent as Bearer auth for higher rate limits
+// (Context7 streamable-HTTP MCP docs: Authorization: Bearer <key>).
 import "@tanstack/react-start/server-only";
 
 // ponytail: URL only from env — no hardcoded endpoint, no fallback string.
 function getMcpUrl(): string | null {
 	return process.env.CONTEXT7_MCP_URL ?? null;
+}
+
+function getAuthHeaders(): Record<string, string> {
+	const key = process.env.CONTEXT7_API_KEY;
+	return key ? { Authorization: `Bearer ${key}` } : {};
 }
 
 const PROTOCOL_VERSION = "2025-11-25";
@@ -117,6 +124,7 @@ async function rpc(
 			headers: {
 				"Content-Type": "application/json",
 				Accept: "application/json, text/event-stream",
+				...getAuthHeaders(),
 			},
 			body: JSON.stringify({
 				jsonrpc: "2.0",
