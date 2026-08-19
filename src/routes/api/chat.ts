@@ -119,9 +119,9 @@ export const Route = createFileRoute("/api/chat")({
 					conversationHistory = result.messages;
 				}
 
-				let systemPrompt = PRD_SYSTEM_PROMPT;
+				let systemPrompt = PRD_SYSTEM_PROMPT();
 				let groundingSource = message;
-				let projectLanguage = "id";
+				let projectLanguage: "id" | "en" = "id";
 
 				if (projectIdToUse) {
 					const [projCheck] = await db
@@ -143,7 +143,7 @@ export const Route = createFileRoute("/api/chat")({
 					}
 
 					if (projCheck?.language) {
-						projectLanguage = projCheck.language;
+						projectLanguage = normalizeLanguage(projCheck.language);
 					}
 
 					if (mode === "revise" || mode === "chat") {
@@ -161,6 +161,9 @@ export const Route = createFileRoute("/api/chat")({
 				}
 
 				const modelsToTry = selectModels();
+				// projectLanguage settled after the project lookup above; rebuild PRD
+				// prompt with localized sub-headings now that the value is known.
+				if (mode !== "revise") systemPrompt = PRD_SYSTEM_PROMPT(projectLanguage);
 				systemPrompt += `\n${depthDirective("prd")}`;
 				systemPrompt += `\n${getLanguageDirective(projectLanguage, "prd")}`;
 

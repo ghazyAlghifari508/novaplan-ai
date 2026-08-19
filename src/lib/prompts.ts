@@ -1,4 +1,128 @@
-export const PRD_SYSTEM_PROMPT = `Kamu adalah NovaPlan, AI Product Manager elite level ex-FAANG (Google, Meta, Amazon) yang menghasilkan PRD profesional kelas dunia, TERSTRUKTUR, TO THE POINT, dan siap pakai oleh tim engineering dan stakeholder nyata.
+/** Sub-heading labels per language. Section names stay English per spec
+ *  (technical terms are never translated); only the prose headings translate. */
+const PRD_HEADINGS: Record<"id" | "en", Record<string, string>> = {
+	id: {
+		"1.1": "Latar Belakang",
+		"1.2": "Deskripsi Produk",
+		"1.3": "Target Pengguna",
+		"1.4": "Nilai Proposisi",
+		"2.1": "Business & Product Goals",
+		"2.2": "Success Metrics (KPI)",
+		"3.1": "Functional Requirements",
+		"3.2": "Non-Functional Requirements",
+		"3.3": "Integrasi Pihak Ketiga",
+		"4.1": "Core Features",
+		"5.1": "Flow Utama",
+		"5.2": "Flow Tambahan",
+		"6.1": "High-Level Architecture",
+		"6.2": "Tech Stack",
+		"6.3": "Struktur Folder",
+		"7.1": "Daftar Tabel / Collection",
+		"7.2": "Entity Relationship Diagram (ERD)",
+		"8.1": "Design Constraints",
+		"8.2": "Technical Constraints",
+	},
+	en: {
+		"1.1": "Background",
+		"1.2": "Product Description",
+		"1.3": "Target Users",
+		"1.4": "Value Proposition",
+		"2.1": "Business & Product Goals",
+		"2.2": "Success Metrics (KPI)",
+		"3.1": "Functional Requirements",
+		"3.2": "Non-Functional Requirements",
+		"3.3": "Third-Party Integrations",
+		"4.1": "Core Features",
+		"5.1": "Primary Flow",
+		"5.2": "Secondary Flow",
+		"6.1": "High-Level Architecture",
+		"6.2": "Tech Stack",
+		"6.3": "Folder Structure",
+		"7.1": "Tables / Collections",
+		"7.2": "Entity Relationship Diagram (ERD)",
+		"8.1": "Design Constraints",
+		"8.2": "Technical Constraints",
+	},
+};
+
+/** Structure-only section template. Sub-heading numbers resolved per language. */
+const PRD_SECTION_TEMPLATE = `<!-- SECTION: Overview -->
+## 1. Overview
+### 1.1 {1.1}
+(Pain points, concise.)
+### 1.2 {1.2}
+(Product and solution, 1-2 tight paragraphs.)
+### 1.3 {1.3}
+(Table of Role and Description.)
+### 1.4 {1.4}
+(Concise bullet points.)
+<!-- /SECTION -->
+
+<!-- SECTION: Goals & Success Metrics -->
+## 2. Goals & Success Metrics
+### 2.1 {2.1}
+(Goals with realistic targets.)
+### 2.2 {2.2}
+(Table of Metric and Target.)
+<!-- /SECTION -->
+
+<!-- SECTION: Requirements -->
+## 3. Requirements
+### 3.1 {3.1}
+(Group per domain: \`#### FR-01 · [Domain Name]\`. Intro paragraph + specific bullets.)
+### 3.2 {3.2}
+(NFR with concrete numbers.)
+### 3.3 {3.3}
+(Table of service and function.)
+<!-- /SECTION -->
+
+<!-- SECTION: Core Features -->
+## 4. Core Features
+(### 4.1, 4.2, etc. Dense descriptions + sub-features/bullets.)
+<!-- /SECTION -->
+
+<!-- SECTION: User Flow -->
+## 5. User Flow
+### 5.1 {5.1}
+(Narrative or mermaid sequenceDiagram.)
+### 5.2 {5.2}
+(Other important feature flows.)
+<!-- /SECTION -->
+
+<!-- SECTION: Architecture & Tech Stack -->
+## 6. Architecture & Tech Stack
+### 6.1 {6.1}
+(Mermaid graph TD.)
+### 6.2 {6.2}
+(Table of Layer and Technology.)
+### 6.3 {6.3}
+(Folder tree with comments.)
+<!-- /SECTION -->
+
+<!-- SECTION: Database Schema -->
+## 7. Database Schema
+### 7.1 {7.1}
+(Full prisma/sql schema.)
+### 7.2 {7.2}
+(Mermaid erDiagram with attributes.)
+<!-- /SECTION -->
+
+<!-- SECTION: Design & Technical Constraints -->
+## 8. Design & Technical Constraints
+### 8.1 {8.1}
+(Table of design constraints.)
+### 8.2 {8.2}
+(Table of technical constraints.)
+<!-- /SECTION -->`;
+
+/** PRD system prompt with sub-headings localized to the output language. */
+export function PRD_SYSTEM_PROMPT(lang: "id" | "en" = "id"): string {
+	const headings = PRD_HEADINGS[lang];
+	let structure = PRD_SECTION_TEMPLATE;
+	for (const [key, label] of Object.entries(headings)) {
+		structure = structure.replaceAll(`{${key}}`, label);
+	}
+	return `Kamu adalah NovaPlan, AI Product Manager elite level ex-FAANG (Google, Meta, Amazon) yang menghasilkan PRD profesional kelas dunia, TERSTRUKTUR, TO THE POINT, dan siap pakai oleh tim engineering dan stakeholder nyata.
 
 ## ATURAN MUTLAK GAYA PENULISAN:
 1. **LENGKAP TAPI PADAT**: 1-3 kalimat per paragraf. Langsung ke inti.
@@ -16,76 +140,10 @@ Sesuaikan kedalaman dan panjang setiap section dengan KOMPLEKSITAS deskripsi pro
 
 ## STRUKTUR PRD WAJIB:
 
-<!-- SECTION: Overview -->
-## 1. Overview
-### 1.1 Latar Belakang
-(Masalah nyata dan pain point, padat.)
-### 1.2 Deskripsi Produk
-(Produk dan solusi, 1-2 paragraf padat.)
-### 1.3 Target Pengguna
-(Tabel Role dan Deskripsi.)
-### 1.4 Nilai Proposisi
-(Bullet points ringkas.)
-<!-- /SECTION -->
-
-<!-- SECTION: Goals & Success Metrics -->
-## 2. Goals & Success Metrics
-### 2.1 Business & Product Goals
-(Goals dengan target realistis.)
-### 2.2 Success Metrics (KPI)
-(Tabel Metrik dan Target.)
-<!-- /SECTION -->
-
-<!-- SECTION: Requirements -->
-## 3. Requirements
-### 3.1 Functional Requirements
-(Kelompokkan per domain: \`#### FR-01 · [Nama Domain]\`. Paragraf pengantar + bullet spesifik.)
-### 3.2 Non-Functional Requirements
-(NFR dengan angka pasti.)
-### 3.3 Integrasi Pihak Ketiga
-(Tabel layanan dan fungsi.)
-<!-- /SECTION -->
-
-<!-- SECTION: Core Features -->
-## 4. Core Features
-(### 4.1, 4.2, dst. Deskripsi padat + sub-fitur/bullet.)
-<!-- /SECTION -->
-
-<!-- SECTION: User Flow -->
-## 5. User Flow
-### 5.1 Flow Utama
-(Naratif atau mermaid sequenceDiagram.)
-### 5.2 Flow Tambahan
-(Flow fitur penting lainnya.)
-<!-- /SECTION -->
-
-<!-- SECTION: Architecture & Tech Stack -->
-## 6. Architecture & Tech Stack
-### 6.1 High-Level Architecture
-(Mermaid graph TD.)
-### 6.2 Tech Stack
-(Tabel Layer dan Teknologi.)
-### 6.3 Struktur Folder
-(Tree folder dengan komentar.)
-<!-- /SECTION -->
-
-<!-- SECTION: Database Schema -->
-## 7. Database Schema
-### 7.1 Daftar Tabel / Collection
-(Schema prisma/sql lengkap.)
-### 7.2 Entity Relationship Diagram (ERD)
-(Mermaid erDiagram dengan atribut.)
-<!-- /SECTION -->
-
-<!-- SECTION: Design & Technical Constraints -->
-## 8. Design & Technical Constraints
-### 8.1 Design Constraints
-(Tabel ketentuan desain.)
-### 8.2 Technical Constraints
-(Tabel batasan teknis.)
-<!-- /SECTION -->
+${structure}
 
 SETELAH section 8 selesai, LANGSUNG BERHENTI. JANGAN mengulang section, JANGAN menambah konten di luar struktur.`;
+}
 
 export const PRD_REVISION_PROMPT = `Kamu adalah NovaPlan, ahli revisi Product Requirements Documents tingkat senior yang sangat ketat dan disiplin.
 
