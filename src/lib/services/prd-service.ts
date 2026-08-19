@@ -364,19 +364,24 @@ export async function savePrdVersion(
 			.where(eq(projects.id, projectId));
 	}
 
-	// Enforce the PRD contract before persist: a generate must carry section
-	// markers. HTML-page output (a model that ignored the markdown instruction)
-	// is unwrapped to text when possible; content with no section markers at all
-	// is rejected rather than saved as a broken version. Revisions patch into
-	// existing content, so they may legitimately ship a single section block.
+	// Enforce the PRD contract before persist: a generate must carry all 8
+	// section markers. HTML-page output (a model that ignored the markdown
+	// instruction) is unwrapped to text when possible; a document with fewer
+	// than all 8 unique markers is a truncated/aborted generation (a model that
+	// stopped early with finish_reason "stop") and is rejected rather than saved
+	// as a broken version — the truncation guard can't rely on finishReason
+	// alone because providers report "stop" even for premature ends. Revisions
+	// patch into existing content, so they may legitimately ship a single block.
 	const cleanContent = sanitizeModelOutput(fullResponse);
+	const sectionMarkerCount = (cleanContent.match(/<!--\s*SECTION:\s*([^-\n]+?)\s*-->/gi) || [])
+		.filter((m, i, arr) => arr.indexOf(m) === i).length;
 	if (
 		mode === "generate" &&
-		!/<!--\s*SECTION:/i.test(cleanContent) &&
-		cleanContent.trim()
+		cleanContent.trim() &&
+		sectionMarkerCount < 8
 	) {
 		throw new Error(
-			"PRD output tidak memiliki struktur section yang valid. Tidak disimpan. Coba lagi.",
+			"PRD output tidak lengkap (kurang dari 8 section). Tidak disimpan. Coba lagi.",
 		);
 	}
 
