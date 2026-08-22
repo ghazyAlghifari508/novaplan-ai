@@ -29,3 +29,6 @@ export const AI_STREAM_RETRY_ATTEMPTS = 1;
 // immediate retry (StrictMode double-mount) must give it time to free up.
 export const AC_CLAIM_POLL_MS = 500;
 export const AC_CLAIM_RETRY_MS = 2000;
+// Max time a second generate caller waits for an in-flight sibling attempt
+// to settle before giving up silently (prevents stacked duplicate requests).
+export const AC_GUARD_WAIT_MS = 3000;

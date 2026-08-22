@@ -8,6 +8,7 @@ import { syncPaymentStatus } from "@/app/actions/payment";
 import { CreditExhaustedModal } from "@/components/chat/credit-exhausted-modal";
 import { TableOfContents } from "@/components/prd/table-of-contents";
 import { usePanelResize } from "@/hooks/use-panel-resize";
+import { AC_GUARD_WAIT_MS } from "@/lib/constants";
 import {
 	consumeResumeIntent,
 	consumeSuppressAutoGen,
@@ -24,6 +25,12 @@ interface AcDetailProps {
 	latestPrdContent?: string;
 	plan?: Plan;
 }
+
+// ponytail: module-level in-flight guard. StrictMode's phantom
+// unmount->remount aborts the first fetch but the remount fires a second
+// generate before the server frees its claim — dedupe at module scope so both
+// mounts share one generation per project instead of racing two.
+const inFlightAcProjects = new Set<string>();
 
 export function AcDetail({
 	projectId,
@@ -81,6 +88,18 @@ export function AcDetail({
 			showToast("PRD belum tersedia. Generate PRD terlebih dahulu.", "error");
 			return;
 		}
+		// StrictMode remount fires while the phantom attempt is still settling
+		// (its abort lands within ms). Wait briefly for the guard to free up so
+		// the real retry proceeds; a genuine duplicate (double-click) times out
+		// silently instead of stacking a second request.
+		if (inFlightAcProjects.has(projectId)) {
+			const deadline = Date.now() + AC_GUARD_WAIT_MS;
+			while (inFlightAcProjects.has(projectId) && Date.now() < deadline) {
+				await new Promise((r) => setTimeout(r, 50));
+			}
+			if (inFlightAcProjects.has(projectId)) return;
+		}
+		inFlightAcProjects.add(projectId);
 		setIsGenerating(true);
 		setGeneratingAC(true);
 		setStreamingContent("");
@@ -209,6 +228,8 @@ export function AcDetail({
 			setHasError(true);
 			setIsGenerating(false);
 			setGeneratingAC(false);
+		} finally {
+			inFlightAcProjects.delete(projectId);
 		}
 	}, [
 		projectId,
