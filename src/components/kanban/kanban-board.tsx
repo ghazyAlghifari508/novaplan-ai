@@ -270,7 +270,7 @@ export function KanbanBoard({ projectId, projectName }: KanbanBoardProps) {
 						))}
 					</div>
 				) : !hasTasks ? (
-					<div className="flex flex-1 flex-col items-center justify-center text-center">
+					<div className="flex h-full w-full flex-col items-center justify-center text-center">
 						<KanbanSquare size={64} className="text-fog/40 mb-4" />
 						<h2 className="text-lg font-[510] text-snow">Belum ada task</h2>
 						<p className="text-xs text-fog max-w-sm mt-1.5 leading-relaxed">
