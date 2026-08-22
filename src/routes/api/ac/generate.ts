@@ -42,7 +42,6 @@ export const Route = createFileRoute("/api/ac/generate")({
 					.limit(1);
 				const plan = (sub?.plan || "free") as Plan;
 
-				// Plan gate: free tier is PRD-only. Credit gate follows below.
 				if (!hasFullWorkflow(plan)) {
 					return Response.json(
 						{
@@ -124,11 +123,6 @@ export const Route = createFileRoute("/api/ac/generate")({
 							} catch {}
 						};
 
-						// Never persist a generation the model didn't finish. A dropped
-						// stream used to be saved anyway, producing AC v2 (1440 chars,
-						// cut mid-table) that outranked the complete v1 (19818) in the
-						// viewer. Reject instead - ac-detail's saveFailed banner lets the
-						// user retry, and the good version stays the latest.
 						const safeDone = async (finishReason: string | undefined) => {
 							if (eventDone || eventErrored) return;
 							if (isTruncatedGeneration(fullResponse, finishReason)) {
@@ -139,27 +133,20 @@ export const Route = createFileRoute("/api/ac/generate")({
 							}
 							eventDone = true;
 							try {
-								const { acVersionId, version } = await saveAcVersion(
+								// saveAcVersion also flips acStatus → "completed" + advances step
+								await saveAcVersion(
 									projectId,
 									fullResponse,
 									"Initial AC generation",
 								);
-								emit({ type: "done", acVersionId, version });
-								try {
-									await consumeCredit(user.id);
-								} catch (e) {
-									console.error("AC credit burn failed:", e);
-									emit({
-										type: "error",
-										error:
-											"AC tersimpan, namun terjadi kesalahan saat memotong kredit.",
-									});
-								}
-							} catch (err) {
-								console.error("saveAcVersion failed:", err);
+								await consumeCredit(user.id);
+								emit({ type: "done" });
+							} catch (e) {
+								console.error("AC credit burn failed:", e);
 								emit({
 									type: "error",
-									error: sanitizeErrorForClient(err, "ac"),
+									error:
+										"AC tersimpan, namun terjadi kesalahan saat memotong kredit.",
 								});
 							}
 							try {
@@ -193,8 +180,6 @@ export const Route = createFileRoute("/api/ac/generate")({
 						try {
 							emit({ type: "started", model: modelsToTry[0] });
 
-							// Fail-open grounding runs AFTER the started event so the
-							// client sees progress before the (≤6s) Context7 fan-out.
 							let grounded = "";
 							try {
 								const { groundStack } = await import("@/lib/grounding");
@@ -202,7 +187,6 @@ export const Route = createFileRoute("/api/ac/generate")({
 							} catch {
 								/* ponytail: optional grounding must never block generation */
 							}
-							// ponytail: depth keyed off the primary model, not the plan.
 							const projectLanguage = normalizeLanguage(project.language);
 							const systemPrompt = `${AC_GENERATION_PROMPT(projectLanguage)}\n${depthDirective("ac")}\n${getLanguageDirective(projectLanguage, "ac")}\n${grounded}\n\n--- PRD CONTENT ---\n${prdContent}`;
 							const messages: Array<{
