@@ -18,3 +18,8 @@ export const RATE_LIMITS = {
 } as const;
 
 export const RATE_LIMIT_WINDOW_MS = 60_000;
+
+// Pre-byte-retry for AI generation: if the upstream router drops/errors before
+// any text-delta leaves the server, retry once before failing the whole request.
+// Only safe because no client-visible delta has been emitted yet.
+export const AI_STREAM_RETRY_ATTEMPTS = 1;

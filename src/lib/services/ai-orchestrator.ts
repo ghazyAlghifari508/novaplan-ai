@@ -3,6 +3,7 @@
  * 9Router handles model selection + fallback via novaplan-combo.
  */
 import { type StreamOutcome, streamChat } from "@/lib/ai-client";
+import { AI_STREAM_RETRY_ATTEMPTS } from "@/lib/constants";
 import { COMBO_MODEL_ID } from "@/lib/model-config";
 
 /** Returns single-element array with combo ID. No plan/model params needed. */
@@ -26,43 +27,53 @@ export async function tryStreamWithFallback(
 
 	for (let i = 0; i < models.length; i++) {
 		const modelToTry = models[i];
-		const abortController = new AbortController();
-		if (externalSignal) {
-			if (externalSignal.aborted) abortController.abort();
-			else
-				externalSignal.addEventListener(
-					"abort",
-					() => abortController.abort(),
-					{ once: true },
-				);
-		}
-		const outcome: StreamOutcome = {};
-		const gen = streamChat(
-			messages,
-			modelToTry,
-			abortController.signal,
-			maxTokens,
-			outcome,
-			onThinking,
-		);
-
-		try {
-			const first = await gen.next();
-
-			if (first.done || typeof first.value !== "string" || !first.value) {
-				throw new Error("Respons kosong dari chunk model.");
+		// Retry the upstream only while NO client-visible delta has been emitted
+		// yet. Once firstChunk is in hand the real stream has started, so we
+		// return and let the caller finish — retrying then would duplicate
+		// already-sent bytes to the client.
+		const attemptCeiling = 1 + AI_STREAM_RETRY_ATTEMPTS;
+		for (let attempt = 0; attempt < attemptCeiling; attempt++) {
+			const abortController = new AbortController();
+			if (externalSignal) {
+				if (externalSignal.aborted) abortController.abort();
+				else
+					externalSignal.addEventListener(
+						"abort",
+						() => abortController.abort(),
+						{ once: true },
+					);
 			}
-
-			return {
-				generator: gen,
-				firstChunk: first.value,
-				abortController,
+			const outcome: StreamOutcome = {};
+			const gen = streamChat(
+				messages,
+				modelToTry,
+				abortController.signal,
+				maxTokens,
 				outcome,
-			};
-		} catch (e) {
-			lastError = e instanceof Error ? e.message : String(e);
-			abortController.abort();
-			await gen.return().catch(() => {});
+				onThinking,
+			);
+
+			try {
+				const first = await gen.next();
+
+				if (first.done || typeof first.value !== "string" || !first.value) {
+					throw new Error("Respons kosong dari chunk model.");
+				}
+
+				return {
+					generator: gen,
+					firstChunk: first.value,
+					abortController,
+					outcome,
+				};
+			} catch (e) {
+				lastError = e instanceof Error ? e.message : String(e);
+				abortController.abort();
+				await gen.return().catch(() => {});
+				// Only loop if a retry is still available; otherwise fall through
+				// to the next model (or the final throw below).
+				if (attempt < attemptCeiling - 1) continue;
+			}
 		}
 	}
 

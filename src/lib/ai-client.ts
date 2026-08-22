@@ -65,9 +65,17 @@ export async function* streamChat(
 		abortSignal: signal,
 		maxOutputTokens: maxTokens,
 		stopSequences: ["<|eot_id|>", "<|end_of_text|>", "===DONE==="],
+		onError({ error }) {
+			// SDK suppresses stream errors into fullStream `error` parts (handled
+			// above), but captures non-stream errors here too. Re-emit so the
+			// caller's try/catch sees the real failure reason.
+			if (outcome) outcome.finishReason = "error";
+			console.error("streamText error:", error);
+		},
 	});
 
 	try {
+		let yieldedText = false;
 		for await (const chunk of result.fullStream) {
 			if (chunk.type === "reasoning-delta") {
 				onThinking?.(
@@ -77,8 +85,26 @@ export async function* streamChat(
 			}
 			if (chunk.type === "text-delta") {
 				if (!chunk.text) continue;
+				yieldedText = true;
 				yield chunk.text;
 			}
+			if (chunk.type === "error") {
+				if (outcome) outcome.finishReason = "error";
+				throw chunk.error;
+			}
+			// abort part = client disconnected; surface as error so the
+			// orchestrator doesn't treat it as an empty successful stream.
+			if (chunk.type === "abort") {
+				if (outcome) outcome.finishReason = "error";
+				throw new Error("AI stream aborted");
+			}
+		}
+		// Stream finished without producing any text (only reasoning/empty
+		// deltas, or an upstream that closed early). A silent success here is
+		// exactly the flaky "Respons kosong" path — treat it as a failure.
+		if (!yieldedText) {
+			if (outcome) outcome.finishReason = "error";
+			throw new Error("Respons kosong dari chunk model.");
 		}
 	} catch (err) {
 		// A dropped/aborted stream is exactly the case that used to persist a
