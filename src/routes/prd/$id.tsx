@@ -25,7 +25,14 @@ const loadPrd = createServerFn({ method: "GET" })
 				.where(and(eq(projects.id, id), eq(projects.userId, user.id)))
 				.limit(1),
 			db
-				.select()
+				.select({
+					id: prdVersions.id,
+					project_id: prdVersions.projectId,
+					version: prdVersions.version,
+					content: prdVersions.content,
+					change_summary: prdVersions.changeSummary,
+					created_at: prdVersions.createdAt,
+				})
 				.from(prdVersions)
 				.where(eq(prdVersions.projectId, id))
 				.orderBy(desc(prdVersions.version)),

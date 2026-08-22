@@ -20,6 +20,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AcIdRouteImport } from './routes/ac/$id'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiFeedbackRouteImport } from './routes/api/feedback'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiReportErrorRouteImport } from './routes/api/report-error'
 import { Route as AskIdRouteImport } from './routes/ask/$id'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
@@ -52,6 +53,7 @@ import { Route as ApiUserPlanRouteImport } from './routes/api/user/plan'
 import { Route as PrdShareTokenRouteImport } from './routes/prd/share/$token'
 import { Route as ApiProjectsIdLastRouteRouteImport } from './routes/api/projects/$id/last-route'
 import { Route as ApiProjectsIdStepRouteImport } from './routes/api/projects/$id/step'
+import { Route as ApiProjectsIdVersionsRouteImport } from './routes/api/projects/$id/versions'
 import { Route as ApiSettingsApiKeysIndexRouteImport } from './routes/api/settings/api-keys/index'
 import { Route as ApiSettingsApiKeysIdRouteImport } from './routes/api/settings/api-keys/$id'
 import { Route as ApiSettingsApiKeysAutoRouteImport } from './routes/api/settings/api-keys/auto'
@@ -116,6 +118,11 @@ const ApiChatRoute = ApiChatRouteImport.update({
 const ApiFeedbackRoute = ApiFeedbackRouteImport.update({
   id: '/api/feedback',
   path: '/api/feedback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiReportErrorRoute = ApiReportErrorRouteImport.update({
@@ -278,6 +285,11 @@ const ApiProjectsIdStepRoute = ApiProjectsIdStepRouteImport.update({
   path: '/step',
   getParentRoute: () => ApiProjectsIdRoute,
 } as any)
+const ApiProjectsIdVersionsRoute = ApiProjectsIdVersionsRouteImport.update({
+  id: '/versions',
+  path: '/versions',
+  getParentRoute: () => ApiProjectsIdRoute,
+} as any)
 const ApiSettingsApiKeysIndexRoute = ApiSettingsApiKeysIndexRouteImport.update({
   id: '/api/settings/api-keys/',
   path: '/api/settings/api-keys/',
@@ -341,6 +353,7 @@ export interface FileRoutesByFullPath {
   '/ac/$id': typeof AcIdRoute
   '/api/chat': typeof ApiChatRoute
   '/api/feedback': typeof ApiFeedbackRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/report-error': typeof ApiReportErrorRoute
   '/ask/$id': typeof AskIdRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -373,6 +386,7 @@ export interface FileRoutesByFullPath {
   '/api/projects/': typeof ApiProjectsIndexRoute
   '/api/projects/$id/last-route': typeof ApiProjectsIdLastRouteRoute
   '/api/projects/$id/step': typeof ApiProjectsIdStepRoute
+  '/api/projects/$id/versions': typeof ApiProjectsIdVersionsRoute
   '/api/settings/api-keys/$id': typeof ApiSettingsApiKeysIdRoute
   '/api/settings/api-keys/auto': typeof ApiSettingsApiKeysAutoRoute
   '/api/v1/projects/$id': typeof ApiV1ProjectsIdRouteWithChildren
@@ -395,6 +409,7 @@ export interface FileRoutesByTo {
   '/ac/$id': typeof AcIdRoute
   '/api/chat': typeof ApiChatRoute
   '/api/feedback': typeof ApiFeedbackRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/report-error': typeof ApiReportErrorRoute
   '/ask/$id': typeof AskIdRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -427,6 +442,7 @@ export interface FileRoutesByTo {
   '/api/projects': typeof ApiProjectsIndexRoute
   '/api/projects/$id/last-route': typeof ApiProjectsIdLastRouteRoute
   '/api/projects/$id/step': typeof ApiProjectsIdStepRoute
+  '/api/projects/$id/versions': typeof ApiProjectsIdVersionsRoute
   '/api/settings/api-keys/$id': typeof ApiSettingsApiKeysIdRoute
   '/api/settings/api-keys/auto': typeof ApiSettingsApiKeysAutoRoute
   '/api/v1/projects/$id': typeof ApiV1ProjectsIdRouteWithChildren
@@ -451,6 +467,7 @@ export interface FileRoutesById {
   '/ac/$id': typeof AcIdRoute
   '/api/chat': typeof ApiChatRoute
   '/api/feedback': typeof ApiFeedbackRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/report-error': typeof ApiReportErrorRoute
   '/ask/$id': typeof AskIdRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -483,6 +500,7 @@ export interface FileRoutesById {
   '/api/projects/': typeof ApiProjectsIndexRoute
   '/api/projects/$id/last-route': typeof ApiProjectsIdLastRouteRoute
   '/api/projects/$id/step': typeof ApiProjectsIdStepRoute
+  '/api/projects/$id/versions': typeof ApiProjectsIdVersionsRoute
   '/api/settings/api-keys/$id': typeof ApiSettingsApiKeysIdRoute
   '/api/settings/api-keys/auto': typeof ApiSettingsApiKeysAutoRoute
   '/api/v1/projects/$id': typeof ApiV1ProjectsIdRouteWithChildren
@@ -508,6 +526,7 @@ export interface FileRouteTypes {
     | '/ac/$id'
     | '/api/chat'
     | '/api/feedback'
+    | '/api/health'
     | '/api/report-error'
     | '/ask/$id'
     | '/auth/callback'
@@ -540,6 +559,7 @@ export interface FileRouteTypes {
     | '/api/projects/'
     | '/api/projects/$id/last-route'
     | '/api/projects/$id/step'
+    | '/api/projects/$id/versions'
     | '/api/settings/api-keys/$id'
     | '/api/settings/api-keys/auto'
     | '/api/v1/projects/$id'
@@ -562,6 +582,7 @@ export interface FileRouteTypes {
     | '/ac/$id'
     | '/api/chat'
     | '/api/feedback'
+    | '/api/health'
     | '/api/report-error'
     | '/ask/$id'
     | '/auth/callback'
@@ -594,6 +615,7 @@ export interface FileRouteTypes {
     | '/api/projects'
     | '/api/projects/$id/last-route'
     | '/api/projects/$id/step'
+    | '/api/projects/$id/versions'
     | '/api/settings/api-keys/$id'
     | '/api/settings/api-keys/auto'
     | '/api/v1/projects/$id'
@@ -617,6 +639,7 @@ export interface FileRouteTypes {
     | '/ac/$id'
     | '/api/chat'
     | '/api/feedback'
+    | '/api/health'
     | '/api/report-error'
     | '/ask/$id'
     | '/auth/callback'
@@ -649,6 +672,7 @@ export interface FileRouteTypes {
     | '/api/projects/'
     | '/api/projects/$id/last-route'
     | '/api/projects/$id/step'
+    | '/api/projects/$id/versions'
     | '/api/settings/api-keys/$id'
     | '/api/settings/api-keys/auto'
     | '/api/v1/projects/$id'
@@ -673,6 +697,7 @@ export interface RootRouteChildren {
   AcIdRoute: typeof AcIdRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiFeedbackRoute: typeof ApiFeedbackRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   ApiReportErrorRoute: typeof ApiReportErrorRoute
   AskIdRoute: typeof AskIdRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
@@ -781,6 +806,13 @@ declare module '@tanstack/react-router' {
       path: '/api/feedback'
       fullPath: '/api/feedback'
       preLoaderRoute: typeof ApiFeedbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/report-error': {
@@ -1007,6 +1039,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiProjectsIdStepRouteImport
       parentRoute: typeof ApiProjectsIdRoute
     }
+    '/api/projects/$id/versions': {
+      id: '/api/projects/$id/versions'
+      path: '/versions'
+      fullPath: '/api/projects/$id/versions'
+      preLoaderRoute: typeof ApiProjectsIdVersionsRouteImport
+      parentRoute: typeof ApiProjectsIdRoute
+    }
     '/api/settings/api-keys/': {
       id: '/api/settings/api-keys/'
       path: '/api/settings/api-keys'
@@ -1107,11 +1146,13 @@ const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
 interface ApiProjectsIdRouteChildren {
   ApiProjectsIdLastRouteRoute: typeof ApiProjectsIdLastRouteRoute
   ApiProjectsIdStepRoute: typeof ApiProjectsIdStepRoute
+  ApiProjectsIdVersionsRoute: typeof ApiProjectsIdVersionsRoute
 }
 
 const ApiProjectsIdRouteChildren: ApiProjectsIdRouteChildren = {
   ApiProjectsIdLastRouteRoute: ApiProjectsIdLastRouteRoute,
   ApiProjectsIdStepRoute: ApiProjectsIdStepRoute,
+  ApiProjectsIdVersionsRoute: ApiProjectsIdVersionsRoute,
 }
 
 const ApiProjectsIdRouteWithChildren = ApiProjectsIdRoute._addFileChildren(
@@ -1148,6 +1189,7 @@ const rootRouteChildren: RootRouteChildren = {
   AcIdRoute: AcIdRoute,
   ApiChatRoute: ApiChatRoute,
   ApiFeedbackRoute: ApiFeedbackRoute,
+  ApiHealthRoute: ApiHealthRoute,
   ApiReportErrorRoute: ApiReportErrorRoute,
   AskIdRoute: AskIdRoute,
   AuthCallbackRoute: AuthCallbackRoute,
