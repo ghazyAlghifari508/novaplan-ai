@@ -19,18 +19,17 @@ export interface PriceTier {
 
 /**
  * Shared row order so the comparison table lines up across tiers.
- * Model names mirror src/lib/model-config.ts - keep them in sync.
+ * Reflects the current feature set in src/types/database.ts (FEATURES).
+ * Model selection was removed — NovaPlan uses a single 9Router combo
+ * (src/lib/model-config.ts) with no user-facing picker.
  */
 const FEATURE_ROWS = [
 	{ key: "prd", name: "Generate PRD" },
 	{ key: "revisi", name: "Revisi tanpa batas" },
 	{ key: "export-md", name: "Export ke Markdown" },
-	{ key: "model-free", name: "Model Free (Ling 3.0 Flash, Big Pickle)" },
 	{ key: "workflow", name: "Full workflow (AC + Task + Kanban)" },
-	{ key: "model-pro", name: "Model Pro (Nemotron 3 Ultra, MiMo v2.5)" },
 	{ key: "share", name: "Bagikan PRD (Share Link)" },
 	{ key: "version-30", name: "Riwayat 30 versi" },
-	{ key: "model-hengker", name: "Model Hengker (DeepSeek v4 Flash)" },
 	{ key: "version-unlimited", name: "Riwayat versi tak terbatas" },
 	{ key: "priority", name: "Antrean prioritas" },
 ] as const;
@@ -52,7 +51,7 @@ export const novaPlanPlans: [PriceTier, PriceTier, PriceTier] = [
 		credits: 2,
 		isPopular: false,
 		buttonLabel: "Mulai Gratis",
-		features: buildFeatures(["prd", "revisi", "export-md", "model-free"]),
+		features: buildFeatures(["prd", "revisi", "export-md"]),
 	},
 	{
 		id: "pro",
@@ -66,9 +65,7 @@ export const novaPlanPlans: [PriceTier, PriceTier, PriceTier] = [
 			"prd",
 			"revisi",
 			"export-md",
-			"model-free",
 			"workflow",
-			"model-pro",
 			"share",
 			"version-30",
 		]),
