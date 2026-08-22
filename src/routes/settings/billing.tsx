@@ -128,7 +128,7 @@ function BillingPage() {
 							<div
 								className="h-full rounded-full bg-indigo transition-all"
 								style={{
-									width: `${credits > 0 ? ((credits - creditsUsed) / credits) * 100 : 0}%`,
+									width: `${credits > 0 ? (creditsUsed / credits) * 100 : 0}%`,
 								}}
 							/>
 						</div>
