@@ -394,6 +394,7 @@ export function AcDetail({
 								streamingContent={streamingContent}
 								isStreaming={isStreaming}
 								hasError={hasError}
+								thinkingText={thinkingText}
 								projectName={projectName}
 								plan={plan}
 								className=""

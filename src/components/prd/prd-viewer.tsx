@@ -1,7 +1,6 @@
 "use client";
 
 import {
-	type ComponentProps,
 	lazy,
 	memo,
 	Suspense,
@@ -9,6 +8,7 @@ import {
 	useMemo,
 	useRef,
 } from "react";
+import type { Components } from "react-markdown";
 import Markdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import remarkGfm from "remark-gfm";
@@ -29,7 +29,7 @@ import { VersionHistory } from "./version-history";
 
 // ponytail: extracted to module scope so react-markdown re-parses only once
 // (not on every parent render). Pure functions — no useMemo needed.
-const markdownComponents = {
+const markdownComponents: Components = {
 	h2: ({ children, ...props }) => {
 		const text = String(children).replace(/<[^>]*>/g, "");
 		const id = text.toLowerCase().replace(/[^\w]+/g, "-");
@@ -46,13 +46,12 @@ const markdownComponents = {
 		return <h4 id={id} {...props}>{children}</h4>;
 	},
 	code: ({
-		inline,
 		className,
 		children,
 		...props
-	}: ComponentProps<"code"> & { inline?: boolean }) => {
+	}) => {
 		const match = /language-(\w+)/.exec(className || "");
-		if (!inline && match && match[1] === "mermaid") {
+		if (match && match[1] === "mermaid") {
 			return (
 				<Suspense fallback={<div className="animate-pulse bg-black/5 dark:bg-white/5 h-32 rounded-lg my-6" />}>
 					<Mermaid chart={String(children).replace(/\n$/, "")} />

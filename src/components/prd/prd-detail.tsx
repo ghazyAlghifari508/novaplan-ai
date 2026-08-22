@@ -93,18 +93,6 @@ export function PrdDetail({
 	const [revealChars, setRevealChars] = useState<number | null>(null);
 	const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-	// Waiting-for-first-token: plain loading first, rotating thinking steps
-	// after ~5s of model silence (reasoning models burst late).
-	const [prdThinking, setPrdThinking] = useState(false);
-	useEffect(() => {
-		if (!isGeneratingPRD || streamingPRDContent) {
-			setPrdThinking(false);
-			return;
-		}
-		const t = setTimeout(() => setPrdThinking(true), 5000);
-		return () => clearTimeout(t);
-	}, [isGeneratingPRD, streamingPRDContent]);
-
 	useEffect(() => {
 		if (!isGeneratingPRD) {
 			setRevealChars(null);
@@ -299,7 +287,7 @@ export function PrdDetail({
 						    has been silent a few seconds. Real content replaces it. */}
 						{isGeneratingPRD && !streamingPRDContent && !latestVersion && (
 							<div className="absolute inset-0 z-10 overflow-y-auto bg-onyx">
-								<GenerationProgress label="PRD" thinking={prdThinking} />
+								<GenerationProgress label="PRD" />
 							</div>
 						)}
 						<PrdViewer

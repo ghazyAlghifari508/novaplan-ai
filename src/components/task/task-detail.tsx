@@ -343,7 +343,10 @@ export function TaskDetail({
 					{/* Waiting-for-first-token overlay: plain load → rotating steps */}
 					{isGenerating && !currentTaskTree && (
 						<div className="absolute inset-0 z-10 overflow-y-auto bg-onyx">
-							<GenerationProgress label="Task Tree" thinking />
+							<GenerationProgress
+								label="Task Tree"
+								thinkingText={thinkingText}
+							/>
 						</div>
 					)}
 					{/* Mobile: stacked accordion <md */}

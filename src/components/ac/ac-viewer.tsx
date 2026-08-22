@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef } from "react";
 import type { Components } from "react-markdown";
 import Markdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
@@ -44,6 +44,7 @@ interface AcViewerProps {
 	streamingContent?: string;
 	isStreaming?: boolean;
 	hasError?: boolean;
+	thinkingText?: string;
 	projectName: string;
 	plan?: Plan;
 	className?: string;
@@ -59,6 +60,7 @@ export const AcViewer = memo(function AcViewer({
 	streamingContent,
 	isStreaming = false,
 	hasError = false,
+	thinkingText,
 	projectName: _projectName,
 	plan: _plan = "free",
 	className,
@@ -105,22 +107,13 @@ export const AcViewer = memo(function AcViewer({
 	const displayContent =
 		isStreaming && streamingContent ? streamingContent : cleanContent;
 
-	// Waiting-for-first-token placeholder: plain loading first, then the
-	// rotating "thinking" step list once the model has been silent ~4s.
-	const [thinking, setThinking] = useState(false);
-	useEffect(() => {
-		if (!isStreaming || streamingContent) {
-			setThinking(false);
-			return;
-		}
-		const t = setTimeout(() => setThinking(true), 4000);
-		return () => clearTimeout(t);
-	}, [isStreaming, streamingContent]);
-
 	if (isStreaming && !streamingContent) {
 		return (
 			<div ref={scrollRef} className={cn("h-full overflow-y-auto", className)}>
-				<GenerationProgress label="Acceptance Criteria" thinking={thinking} />
+				<GenerationProgress
+					label="Acceptance Criteria"
+					thinkingText={thinkingText}
+				/>
 			</div>
 		);
 	}
@@ -150,7 +143,10 @@ export const AcViewer = memo(function AcViewer({
 	if (!displayContent) {
 		return (
 			<div className={cn("h-full overflow-y-auto", className)}>
-				<GenerationProgress label="Acceptance Criteria" thinking />
+				<GenerationProgress
+					label="Acceptance Criteria"
+					thinkingText={thinkingText}
+				/>
 			</div>
 		);
 	}
