@@ -167,7 +167,7 @@ export function ChatInput({ className }: ChatInputProps) {
 								className={cn(
 									"flex items-center gap-1.5 rounded px-2.5 py-1 font-inter text-[11px] font-[510] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
 									isMobileMode
-										? "border border-graphite bg-slate text-snow"
+										? "border border-iron/50 bg-iron text-snow"
 										: "border border-transparent text-fog hover:text-snow",
 								)}
 							>
@@ -182,7 +182,7 @@ export function ChatInput({ className }: ChatInputProps) {
 								className={cn(
 									"flex items-center gap-1.5 rounded px-2.5 py-1 font-inter text-[11px] font-[510] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
 									!isMobileMode
-										? "border border-graphite bg-slate text-snow"
+										? "border border-iron/50 bg-iron text-snow"
 										: "border border-transparent text-fog hover:text-snow",
 								)}
 							>
