@@ -1,9 +1,4 @@
-import {
-	Check,
-	ChevronDown,
-	Monitor,
-	Smartphone,
-} from "lucide-react";
+import { Check, ChevronDown, Monitor, Smartphone } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -172,8 +167,8 @@ export function ChatInput({ className }: ChatInputProps) {
 								className={cn(
 									"flex items-center gap-1.5 rounded px-2.5 py-1 font-inter text-[11px] font-[510] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
 									isMobileMode
-										? "bg-steel text-snow"
-										: "text-fog hover:text-snow",
+										? "border border-graphite bg-slate text-snow"
+										: "border border-transparent text-fog hover:text-snow",
 								)}
 							>
 								<Smartphone size={12} />
@@ -187,8 +182,8 @@ export function ChatInput({ className }: ChatInputProps) {
 								className={cn(
 									"flex items-center gap-1.5 rounded px-2.5 py-1 font-inter text-[11px] font-[510] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
 									!isMobileMode
-										? "bg-steel text-snow"
-										: "text-fog hover:text-snow",
+										? "border border-graphite bg-slate text-snow"
+										: "border border-transparent text-fog hover:text-snow",
 								)}
 							>
 								<Monitor size={12} />
