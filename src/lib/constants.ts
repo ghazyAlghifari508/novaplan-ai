@@ -23,3 +23,9 @@ export const RATE_LIMIT_WINDOW_MS = 60_000;
 // any text-delta leaves the server, retry once before failing the whole request.
 // Only safe because no client-visible delta has been emitted yet.
 export const AI_STREAM_RETRY_ATTEMPTS = 1;
+
+// Bounded wait before a 409 when another generation still holds the claim —
+// an aborted request releases ac_status/task_status asynchronously, so an
+// immediate retry (StrictMode double-mount) must give it time to free up.
+export const AC_CLAIM_POLL_MS = 500;
+export const AC_CLAIM_RETRY_MS = 2000;

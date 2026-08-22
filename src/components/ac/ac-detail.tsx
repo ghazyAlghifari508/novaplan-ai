@@ -119,6 +119,14 @@ export function AcDetail({
 					setGeneratingAC(false);
 					return;
 				}
+				// ponytail: a 409 means another generation is already in flight
+				// (double-mount / double-click). That request owns the result —
+				// this one must not paint a "Gagal" state the user then retries.
+				if (response.status === 409) {
+					setIsGenerating(false);
+					setGeneratingAC(false);
+					return;
+				}
 				throw new Error(error.error || "Failed to generate AC");
 			}
 			const reader = response.body?.getReader();

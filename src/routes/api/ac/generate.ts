@@ -3,6 +3,7 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, desc, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
+import { AC_CLAIM_POLL_MS, AC_CLAIM_RETRY_MS } from "@/lib/constants";
 import { checkCredits, consumeCredit, hasFullWorkflow } from "@/lib/credits";
 import { isTruncatedGeneration } from "@/lib/flow-progress";
 import { getLanguageDirective, normalizeLanguage } from "@/lib/language";
@@ -89,21 +90,39 @@ export const Route = createFileRoute("/api/ac/generate")({
 						{ status: 404 },
 					);
 
-				const claimed = await db
-					.update(projects)
-					.set({ acStatus: "generating" })
-					.where(
-						and(
-							eq(projects.id, projectId),
-							ne(projects.acStatus, "generating"),
-						),
-					)
-					.returning({ id: projects.id });
+				const claimAc = () =>
+					db
+						.update(projects)
+						.set({ acStatus: "generating" })
+						.where(
+							and(
+								eq(projects.id, projectId),
+								ne(projects.acStatus, "generating"),
+							),
+						)
+						.returning({ id: projects.id });
+
+				let claimed = await claimAc();
 				if (!claimed.length) {
-					return Response.json(
-						{ error: "AC sedang digenerate. Tunggu hingga selesai." },
-						{ status: 409 },
-					);
+					// A just-aborted generation releases acStatus asynchronously
+					// (safeError runs after the abort settles). Give it a bounded
+					// window to free the claim before answering 409 — covers the
+					// StrictMode double-mount retry that fires immediately.
+					for (
+						let waited = 0;
+						waited < AC_CLAIM_RETRY_MS;
+						waited += AC_CLAIM_POLL_MS
+					) {
+						await new Promise((r) => setTimeout(r, AC_CLAIM_POLL_MS));
+						claimed = await claimAc();
+						if (claimed.length) break;
+					}
+					if (!claimed.length) {
+						return Response.json(
+							{ error: "AC sedang digenerate. Tunggu hingga selesai." },
+							{ status: 409 },
+						);
+					}
 				}
 
 				const modelsToTry = selectModels();
