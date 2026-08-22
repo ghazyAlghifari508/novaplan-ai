@@ -37,7 +37,7 @@ const GENERATING_PHRASES = [
 	"Menganalisis kebutuhan",
 	"Menyusun task tree",
 	"Memetakan dependensi",
-	"Menataur urutan pengerjaan",
+	"Menata urutan pengerjaan",
 ];
 
 /**
@@ -317,7 +317,7 @@ export function TaskDetail({
 
 	// Title: rotating status + animated dots while generating, project name when done
 	const displayTitle = isGenerating
-		? GENERATING_PHRASES[phraseIdx % GENERATING_PHRASES.length]
+		? GENERATING_PHRASES[phraseIdx]
 		: projectName;
 
 	return (
