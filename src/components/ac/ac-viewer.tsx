@@ -129,6 +129,7 @@ export const AcViewer = memo(function AcViewer({
 							Terjadi kesalahan saat menghubungi AI. Silakan coba lagi.
 						</p>
 						<button
+							type="button"
 							onClick={() => window.location.reload()}
 							className="btn-primary inline-flex items-center gap-2 rounded-md px-4 py-2"
 						>

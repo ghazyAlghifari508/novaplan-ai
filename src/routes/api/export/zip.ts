@@ -3,13 +3,7 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { projects } from "@/db/schema";
-import { getLatestAcMarkdown } from "@/lib/services/ac-service";
-import {
-	formatAcMarkdown,
-	formatPrdMarkdown,
-	formatTasksJson,
-	generateZipBuffer,
-} from "@/lib/services/export-service";
+import { formatPrdMarkdown, formatTasksJson, generateZipBuffer } from "@/lib/services/export-service";
 import { getLatestPrdContent } from "@/lib/services/prd-service";
 import { getTaskTree } from "@/lib/services/task-service";
 import { requireUser } from "@/lib/session";
@@ -34,15 +28,14 @@ export const Route = createFileRoute("/api/export/zip")({
 				if (!project)
 					return Response.json({ error: "Project not found" }, { status: 404 });
 
-				const [prdContent, acMarkdown, taskTree] = await Promise.all([
+				const [prdContent, taskTree] = await Promise.all([
 					getLatestPrdContent(projectId),
-					getLatestAcMarkdown(projectId),
 					getTaskTree(projectId),
 				]);
 
 				const zipBuffer = await generateZipBuffer({
 					prd: prdContent ? formatPrdMarkdown(prdContent) : undefined,
-					ac: acMarkdown ? formatAcMarkdown(acMarkdown) : undefined,
+					ac: undefined,
 					tasks: formatTasksJson(taskTree),
 				});
 

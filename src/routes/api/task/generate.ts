@@ -8,12 +8,8 @@ import { isTruncatedGeneration } from "@/lib/flow-progress";
 import { getLanguageDirective, normalizeLanguage } from "@/lib/language";
 import { TASK_GENERATION_PROMPT } from "@/lib/prompts-task";
 import { checkRateLimit, recordRequest } from "@/lib/rate-limit";
-import { getLatestAcMarkdown } from "@/lib/services/ac-service";
 import { sanitizeModelOutput } from "@/lib/services/prd-service";
-import {
-	selectModels,
-	tryStreamWithFallback,
-} from "@/lib/services/ai-orchestrator";
+import { selectModels, tryStreamWithFallback } from "@/lib/services/ai-orchestrator";
 import { sanitizeErrorForClient } from "@/lib/services/error-sanitizer";
 import { extractJson } from "@/lib/services/json-extract";
 import { parseTaskJson, saveTaskTree } from "@/lib/services/task-service";
@@ -45,7 +41,6 @@ export const Route = createFileRoute("/api/task/generate")({
 					? (rawPlan as Plan)
 					: "free";
 
-				// Plan gate: free tier is PRD-only. Credit gate follows below.
 				if (!hasFullWorkflow(plan)) {
 					return Response.json(
 						{
@@ -61,8 +56,7 @@ export const Route = createFileRoute("/api/task/generate")({
 				if (!creditCheck.allowed) {
 					return Response.json(
 						{
-							error:
-								"Kredit kamu sudah habis. Beli kredit untuk generate Task.",
+							error: "Kredit kamu sudah habis. Beli kredit untuk generate Task.",
 							code: "NO_CREDITS",
 							plan: creditCheck.plan,
 							remaining: creditCheck.remaining,
@@ -86,13 +80,6 @@ export const Route = createFileRoute("/api/task/generate")({
 					.limit(1);
 				if (!project)
 					return Response.json({ error: "Project not found" }, { status: 404 });
-
-				const acMarkdown = await getLatestAcMarkdown(projectId);
-				if (!acMarkdown)
-					return Response.json(
-						{ error: "AC not found. Generate AC first." },
-						{ status: 404 },
-					);
 
 				const claimed = await db
 					.update(projects)
@@ -139,8 +126,8 @@ export const Route = createFileRoute("/api/task/generate")({
 							eventDone = true;
 							try {
 								const taskTree = parseTaskJson(
-								extractJson(sanitizeModelOutput(fullResponse)),
-							);
+									extractJson(sanitizeModelOutput(fullResponse)),
+								);
 								if (!taskTree) {
 									await db
 										.update(projects)
@@ -215,17 +202,15 @@ export const Route = createFileRoute("/api/task/generate")({
 						try {
 							emit({ type: "started", model: modelsToTry[0] });
 
-							// Fail-open grounding runs AFTER the started event so the
-							// client sees progress before the (≤6s) Context7 fan-out.
 							let grounded = "";
 							try {
 								const { groundStack } = await import("@/lib/grounding");
-								grounded = await groundStack(acMarkdown);
+								grounded = await groundStack("");
 							} catch {
 								/* ponytail: optional grounding must never block generation */
 							}
 							const projectLanguage = normalizeLanguage(project.language);
-							const systemPrompt = `${TASK_GENERATION_PROMPT}\n${getLanguageDirective(projectLanguage, "task")}\n${grounded}\n\n--- ACCEPTANCE CRITERIA ---\n${acMarkdown}`;
+							const systemPrompt = `${TASK_GENERATION_PROMPT}\n${getLanguageDirective(projectLanguage, "task")}\n${grounded}`;
 							const messages: Array<{
 								role: "system" | "user" | "assistant";
 								content: string;
@@ -233,7 +218,7 @@ export const Route = createFileRoute("/api/task/generate")({
 								{ role: "system", content: systemPrompt },
 								{
 									role: "user",
-									content: "Generate the task tree JSON based on the AC above.",
+									content: "Generate the task tree JSON.",
 								},
 							];
 

@@ -2,14 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import {
-	acVersions,
-	conversations,
-	messages,
-	prdVersions,
-	projects,
-	tasks,
-} from "@/db/schema";
+import { conversations, messages, prdVersions, projects, tasks } from "@/db/schema";
 import { requireUser } from "@/lib/session";
 
 export const Route = createFileRoute("/api/projects/$id")({
@@ -59,9 +52,6 @@ export const Route = createFileRoute("/api/projects/$id")({
 					await tx
 						.delete(prdVersions)
 						.where(eq(prdVersions.projectId, projectId));
-					await tx
-						.delete(acVersions)
-						.where(eq(acVersions.projectId, projectId));
 					await tx.delete(tasks).where(eq(tasks.projectId, projectId));
 					await tx.delete(projects).where(eq(projects.id, projectId));
 				});

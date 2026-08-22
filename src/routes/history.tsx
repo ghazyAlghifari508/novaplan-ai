@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { desc, eq, inArray } from "drizzle-orm";
 import { HistoryPage } from "@/components/history/history-page";
 import { db } from "@/db";
-import { acVersions, prdVersions, projects } from "@/db/schema";
+import { prdVersions, projects } from "@/db/schema";
 import { requireUserServer } from "@/lib/session";
 
 export interface HistoryItem {
@@ -17,8 +17,6 @@ export interface HistoryItem {
 	taskStatus: string | null;
 }
 
-// ponytail: requireUserServer is a server fn → its auth/db imports get pruned
-// from the client bundle. Plain requireUser would drag pg (→ Buffer) in.
 const loadHistory = createServerFn({ method: "GET" }).handler(async () => {
 	const user = await requireUserServer();
 
@@ -39,42 +37,23 @@ const loadHistory = createServerFn({ method: "GET" }).handler(async () => {
 	if (projectRows.length === 0) return { items: [] as HistoryItem[] };
 
 	const ids = projectRows.map((p) => p.id);
-	// Batch-fetch latest PRD + AC content per project in 2 queries, not N.
-	const [prdRows, acRows] = await Promise.all([
-		db
-			.select({
-				projectId: prdVersions.projectId,
-				content: prdVersions.content,
-				version: prdVersions.version,
-			})
-			.from(prdVersions)
-			.where(inArray(prdVersions.projectId, ids))
-			.orderBy(desc(prdVersions.version)),
-		db
-			.select({
-				projectId: acVersions.projectId,
-				content: acVersions.content,
-				version: acVersions.version,
-			})
-			.from(acVersions)
-			.where(inArray(acVersions.projectId, ids))
-			.orderBy(desc(acVersions.version)),
-	]);
+	const prdRows = await db
+		.select({
+			projectId: prdVersions.projectId,
+			content: prdVersions.content,
+			version: prdVersions.version,
+		})
+		.from(prdVersions)
+		.where(inArray(prdVersions.projectId, ids))
+		.orderBy(desc(prdVersions.version));
 
-	// Latest version per project = first occurrence (rows already desc by version).
 	const latestPrd = new Map<string, string>();
 	for (const r of prdRows) {
 		if (!latestPrd.has(r.projectId)) latestPrd.set(r.projectId, r.content);
 	}
-	const latestAc = new Map<string, string>();
-	for (const r of acRows) {
-		if (!latestAc.has(r.projectId)) latestAc.set(r.projectId, r.content);
-	}
 
 	const items: HistoryItem[] = projectRows.map((p) => {
-		// Preview = latest AC if at/ past ac step, else latest PRD. Stripped + capped.
-		const atOrPastAc = p.step === "ac" || p.step === "task";
-		const raw = atOrPastAc ? latestAc.get(p.id) : latestPrd.get(p.id);
+		const raw = latestPrd.get(p.id);
 		const preview = raw ? stripMarkdown(raw).slice(0, 160) : null;
 		return {
 			id: p.id,
@@ -91,8 +70,6 @@ const loadHistory = createServerFn({ method: "GET" }).handler(async () => {
 	return { items };
 });
 
-// ponytail: cheap markdown strip for a one-line preview. Not a full parser -
-// fences, headings, emphasis markers removed, whitespace collapsed. Cap 160.
 function stripMarkdown(raw: string): string {
 	return raw
 		.replace(/```[\s\S]*?```/g, " ")

@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getRequestHeaders } from "@tanstack/react-start/server";
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { acVersions, projects, tasks } from "@/db/schema";
+import { projects, tasks } from "@/db/schema";
 import { requireUser } from "@/lib/session";
 
 interface TaskCard {
@@ -40,30 +40,22 @@ export const Route = createFileRoute("/api/kanban/$pid")({
 				if (!project)
 					return Response.json({ error: "Project not found" }, { status: 404 });
 
-				const [taskRows, acRows] = await Promise.all([
-					db
-						.select({
-							id: tasks.id,
-							title: tasks.title,
-							description: tasks.description,
-							status: tasks.status,
-							featureName: tasks.featureName,
-							dependencies: tasks.dependencies,
-							subtasks: tasks.subtasks,
-							startedAt: tasks.startedAt,
-							completedAt: tasks.completedAt,
-							createdAt: tasks.createdAt,
-						})
-						.from(tasks)
-						.where(eq(tasks.projectId, projectId))
-						.orderBy(asc(tasks.order)),
-					db
-						.select({ createdAt: acVersions.createdAt })
-						.from(acVersions)
-						.where(eq(acVersions.projectId, projectId))
-						.orderBy(desc(acVersions.version))
-						.limit(1),
-				]);
+				const taskRows = await db
+					.select({
+						id: tasks.id,
+						title: tasks.title,
+						description: tasks.description,
+						status: tasks.status,
+						featureName: tasks.featureName,
+						dependencies: tasks.dependencies,
+						subtasks: tasks.subtasks,
+						startedAt: tasks.startedAt,
+						completedAt: tasks.completedAt,
+						createdAt: tasks.createdAt,
+					})
+					.from(tasks)
+					.where(eq(tasks.projectId, projectId))
+					.orderBy(asc(tasks.order));
 
 				const columns: Record<string, TaskCard[]> = {
 					pending: [],
@@ -83,11 +75,8 @@ export const Route = createFileRoute("/api/kanban/$pid")({
 						description: t.description ?? "",
 						status: (t.status ?? "pending") as TaskCard["status"],
 						subtaskCount: sub.length,
-						subtaskCompleted: sub.filter((s) => s.status === "completed")
-							.length,
-						dependencies: Array.isArray(t.dependencies)
-							? (t.dependencies as string[])
-							: [],
+						subtaskCompleted: sub.filter((s) => s.status === "completed").length,
+						dependencies: Array.isArray(t.dependencies) ? (t.dependencies as string[]) : [],
 						startedAt: t.startedAt ? (t.startedAt as Date).toISOString() : null,
 						completedAt: t.completedAt
 							? (t.completedAt as Date).toISOString()
@@ -100,19 +89,11 @@ export const Route = createFileRoute("/api/kanban/$pid")({
 					(columns[card.status] ?? columns.pending).push(card);
 				}
 
-				const latestAcAt = acRows[0]?.createdAt ?? null;
-				const tasksGeneratedAt = taskRows[0]?.createdAt ?? null;
-				const acChanged = Boolean(
-					latestAcAt &&
-						tasksGeneratedAt &&
-						new Date(latestAcAt) > new Date(tasksGeneratedAt),
-				);
-
 				return Response.json({
 					columns,
 					staleness: "live",
 					lastUpdateAt: new Date().toISOString(),
-					acChanged,
+					acChanged: false,
 					taskStatus: project.taskStatus,
 				});
 			},
