@@ -244,31 +244,54 @@ export function VersionDiff({ v1, v2 }: { v1: PrdVersion; v2: PrdVersion }) {
 	);
 }
 
+// ponytail: LCS diff so an insertion mid-document doesn't flag every following
+// line as changed. O(n*m) DP fine at PRD scale (~300 lines → ~80k cells).
 function computeDiff(
 	oldLines: string[],
 	newLines: string[],
 ): Array<{ text: string; type: "added" | "removed" | "unchanged" }> {
+	const n = oldLines.length;
+	const m = newLines.length;
 	const result: Array<{
 		text: string;
 		type: "added" | "removed" | "unchanged";
 	}> = [];
-	const maxLen = Math.max(oldLines.length, newLines.length);
 
-	for (let i = 0; i < maxLen; i++) {
-		const oldLine = oldLines[i];
-		const newLine = newLines[i];
-
-		if (oldLine === undefined && newLine !== undefined) {
-			result.push({ text: newLine, type: "added" });
-		} else if (oldLine !== undefined && newLine === undefined) {
-			result.push({ text: oldLine, type: "removed" });
-		} else if (oldLine !== newLine) {
-			result.push({ text: oldLine, type: "removed" });
-			result.push({ text: newLine, type: "added" });
-		} else {
-			result.push({ text: oldLine, type: "unchanged" });
+	// lcs[i][j] = LCS length of oldLines[i..] vs newLines[j..]
+	const lcs: number[][] = Array.from({ length: n + 1 }, () =>
+		new Array<number>(m + 1).fill(0),
+	);
+	for (let i = n - 1; i >= 0; i--) {
+		for (let j = m - 1; j >= 0; j--) {
+			lcs[i][j] =
+				oldLines[i] === newLines[j]
+					? lcs[i + 1][j + 1] + 1
+					: Math.max(lcs[i + 1][j], lcs[i][j + 1]);
 		}
 	}
 
+	let i = 0;
+	let j = 0;
+	while (i < n && j < m) {
+		if (oldLines[i] === newLines[j]) {
+			result.push({ text: oldLines[i], type: "unchanged" });
+			i++;
+			j++;
+		} else if (lcs[i + 1][j] >= lcs[i][j + 1]) {
+			result.push({ text: oldLines[i], type: "removed" });
+			i++;
+		} else {
+			result.push({ text: newLines[j], type: "added" });
+			j++;
+		}
+	}
+	while (i < n) {
+		result.push({ text: oldLines[i], type: "removed" });
+		i++;
+	}
+	while (j < m) {
+		result.push({ text: newLines[j], type: "added" });
+		j++;
+	}
 	return result;
 }
