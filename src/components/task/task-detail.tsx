@@ -12,6 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { syncPaymentStatus } from "@/app/actions/payment";
 import { CreditExhaustedModal } from "@/components/chat/credit-exhausted-modal";
+import { GenerationProgress } from "@/components/shared/generation-progress";
 import {
 	consumeResumeIntent,
 	consumeSuppressAutoGen,
@@ -339,6 +340,12 @@ export function TaskDetail({
 					</details>
 				)}
 				<div className="relative flex-1 overflow-hidden">
+					{/* Waiting-for-first-token overlay: plain load → rotating steps */}
+					{isGenerating && !currentTaskTree && (
+						<div className="absolute inset-0 z-10 overflow-y-auto bg-onyx">
+							<GenerationProgress label="Task Tree" thinking />
+						</div>
+					)}
 					{/* Mobile: stacked accordion <md */}
 					{visibleTaskTree && hasContent && (
 						<div

@@ -11,6 +11,7 @@ import {
 	useTransition,
 } from "react";
 import { ChatPanel } from "@/components/chat";
+import { GenerationProgress } from "@/components/shared/generation-progress";
 import { usePanelResize } from "@/hooks/use-panel-resize";
 import { cn } from "@/lib/utils";
 import { useChatStore, useUIStore } from "@/store";
@@ -91,6 +92,18 @@ export function PrdDetail({
 	// stays whole, so the saved document is never truncated.
 	const [revealChars, setRevealChars] = useState<number | null>(null);
 	const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	// Waiting-for-first-token: plain loading first, rotating thinking steps
+	// after ~5s of model silence (reasoning models burst late).
+	const [prdThinking, setPrdThinking] = useState(false);
+	useEffect(() => {
+		if (!isGeneratingPRD || streamingPRDContent) {
+			setPrdThinking(false);
+			return;
+		}
+		const t = setTimeout(() => setPrdThinking(true), 5000);
+		return () => clearTimeout(t);
+	}, [isGeneratingPRD, streamingPRDContent]);
 
 	useEffect(() => {
 		if (!isGeneratingPRD) {
@@ -281,15 +294,12 @@ export function PrdDetail({
 						{/* Mobile-only spinner — keeps the full-page blocker for small screens
                 where the chat progress card isn't visible. Desktop users see the
                 empty PrdViewer + the section progress card in the chat panel. */}
+						{/* Pre-stream / waiting-for-first-token: plain load first
+						    (desktop+mobile), then rotating thinking steps once the model
+						    has been silent a few seconds. Real content replaces it. */}
 						{isGeneratingPRD && !streamingPRDContent && !latestVersion && (
-							<div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 md:hidden bg-onyx">
-								<div className="h-10 w-10 animate-spin rounded-full border-2 border-indigo border-t-transparent" />
-								<p className="mt-4 text-sm font-[510] text-snow">
-									Sedang membuat PRD...
-								</p>
-								<p className="mt-1 text-xs text-fog">
-									Model AI sedang menganalisis jawaban Anda
-								</p>
+							<div className="absolute inset-0 z-10 overflow-y-auto bg-onyx">
+								<GenerationProgress label="PRD" thinking={prdThinking} />
 							</div>
 						)}
 						<PrdViewer

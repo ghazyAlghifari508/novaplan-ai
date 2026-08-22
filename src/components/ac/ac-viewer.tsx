@@ -1,13 +1,15 @@
 "use client";
 
-import { memo, useEffect, useMemo, useRef } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
+import type { Components } from "react-markdown";
 import Markdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import remarkGfm from "remark-gfm";
+import { GenerationProgress } from "@/components/shared/generation-progress";
 import { cn } from "@/lib/utils";
 import type { Plan } from "@/types/database";
 
-const markdownComponents = {
+const markdownComponents: Components = {
 	h2: ({ children, ...props }) => {
 		const text = String(children).replace(/<[^>]*>/g, "");
 		const id = text.toLowerCase().replace(/[^\w]+/g, "-");
@@ -103,32 +105,22 @@ export const AcViewer = memo(function AcViewer({
 	const displayContent =
 		isStreaming && streamingContent ? streamingContent : cleanContent;
 
-	// Show typing placeholder while streaming but no content yet —
-	// the AI server may take 30-60s before the first token arrives.
-	// An empty article with a blinking cursor feels faster than a
-	// full-page spinner because the "document is ready" framing
-	// reassures the user that work is happening.
+	// Waiting-for-first-token placeholder: plain loading first, then the
+	// rotating "thinking" step list once the model has been silent ~4s.
+	const [thinking, setThinking] = useState(false);
+	useEffect(() => {
+		if (!isStreaming || streamingContent) {
+			setThinking(false);
+			return;
+		}
+		const t = setTimeout(() => setThinking(true), 4000);
+		return () => clearTimeout(t);
+	}, [isStreaming, streamingContent]);
+
 	if (isStreaming && !streamingContent) {
 		return (
 			<div ref={scrollRef} className={cn("h-full overflow-y-auto", className)}>
-				<article className="prd-content mx-auto max-w-3xl px-8 pb-16 pt-8 text-mist">
-					<div className="flex items-center gap-2 mb-6">
-						<div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo border-t-transparent shrink-0" />
-						<span className="text-sm font-[510] text-snow">
-							AI sedang menyusun Acceptance Criteria...
-						</span>
-					</div>
-					<div className="space-y-3">
-						<div className="h-4 w-2/3 rounded bg-steel/60 animate-pulse" />
-						<div className="h-3 w-full rounded bg-steel/60 animate-pulse" />
-						<div className="h-3 w-5/6 rounded bg-steel/60 animate-pulse" />
-						<div className="h-3 w-1/2 rounded bg-steel/60 animate-pulse" />
-						<div className="mt-6 h-4 w-1/2 rounded bg-steel/60 animate-pulse" />
-						<div className="h-3 w-full rounded bg-steel/60 animate-pulse" />
-						<div className="h-3 w-4/5 rounded bg-steel/60 animate-pulse" />
-					</div>
-					<span className="inline-block w-0.5 h-4 bg-indigo animate-pulse mt-4" />
-				</article>
+				<GenerationProgress label="Acceptance Criteria" thinking={thinking} />
 			</div>
 		);
 	}
@@ -157,13 +149,8 @@ export const AcViewer = memo(function AcViewer({
 
 	if (!displayContent) {
 		return (
-			<div className={cn("flex h-full items-center justify-center", className)}>
-				<div className="text-center">
-					<p className="text-fog">Belum ada Acceptance Criteria.</p>
-					<p className="text-sm text-fog/60">
-						AI sedang menyusun kriteria penerimaan...
-					</p>
-				</div>
+			<div className={cn("h-full overflow-y-auto", className)}>
+				<GenerationProgress label="Acceptance Criteria" thinking />
 			</div>
 		);
 	}
