@@ -12,7 +12,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { syncPaymentStatus } from "@/app/actions/payment";
 import { CreditExhaustedModal } from "@/components/chat/credit-exhausted-modal";
-import { GenerationProgress } from "@/components/shared/generation-progress";
 import { GUARD_WAIT_MS } from "@/lib/constants";
 import {
 	consumeResumeIntent,
@@ -32,13 +31,16 @@ interface TaskDetailProps {
 	taskStatus?: string | null;
 }
 
-// Cosmetic single-line status phrases shown in the header while generating
-// (user-requested). Not a step checklist — no progress is implied.
+// Cosmetic single-line status phrases rotated in the topbar title while
+// generating (user-requested): the board shows the skeleton diagram behind
+// them. Not a step checklist — no progress is implied.
 const GENERATING_PHRASES = [
 	"Menganalisis kebutuhan",
 	"Menyusun task tree",
 	"Memetakan dependensi",
 	"Menata urutan pengerjaan",
+	"Memecah fitur jadi task",
+	"Menambahkan detail subtask",
 ];
 
 // ponytail: module-level in-flight guard, mirrors ac-detail.tsx. StrictMode's
@@ -73,7 +75,6 @@ export function TaskDetail({
 
 	// Init true when no tasks yet, prevents flash of empty state before useEffect fires
 	const [isGenerating, setIsGenerating] = useState(() => !taskTree && hasAc);
-	const [thinkingText, setThinkingText] = useState("");
 	const [hasError, setHasError] = useState(false);
 	const [generatedTaskTree, setGeneratedTaskTree] = useState<TaskTree | null>(
 		null,
@@ -128,7 +129,6 @@ export function TaskDetail({
 		inFlightTaskProjects.add(projectId);
 		isGeneratingRef.current = true;
 		setIsGenerating(true);
-		setThinkingText("");
 		setHasError(false);
 
 		abortRef.current?.abort();
@@ -204,12 +204,10 @@ export function TaskDetail({
 					if (!line.startsWith("data: ")) continue;
 					try {
 						const data = JSON.parse(line.slice(6));
-						if (data.type === "thinking") {
-							setThinkingText((prev) => prev + data.content);
-						} else if (data.type === "delta") {
-							if (thinkingText) setThinkingText("");
-							// ponytail: delta content not displayed, skeleton shown instead
-						} else if (data.type === "done") {
+						// ponytail: "thinking"/"delta" SSE events are intentionally
+						// not rendered — the skeleton diagram stays on the board
+						// while the topbar title rotates status phrases.
+						if (data.type === "done") {
 							const tree = data.taskTree as TaskTree;
 							setGeneratedTaskTree(tree);
 							setRevealCount(0);
@@ -276,7 +274,6 @@ export function TaskDetail({
 		showToast,
 		setCreditsExhausted,
 		setTaskGenerated,
-		thinkingText,
 	]);
 
 	// Auto-generate on mount if no tasks yet.
@@ -384,29 +381,10 @@ export function TaskDetail({
 				</div>
 
 				{/* Canvas / generate */}
-				{isGenerating && thinkingText && !currentTaskTree && (
-					<details
-						className="text-xs text-fog/60 px-4 py-2 border-b border-graphite/40"
-						open
-					>
-						<summary className="cursor-pointer select-none">
-							AI sedang berpikir...
-						</summary>
-						<pre className="mt-1 whitespace-pre-wrap text-xs text-fog/40 max-h-40 overflow-y-auto custom-scrollbar">
-							{thinkingText}
-						</pre>
-					</details>
-				)}
+				{/* ponytail: no opaque overlay while generating — the board's
+				    skeleton diagram stays visible; progress lives in the
+				    topbar title (rotating phrases), distinct from PRD/AC. */}
 				<div className="relative flex-1 overflow-hidden">
-					{/* Waiting-for-first-token overlay: plain load → rotating steps */}
-					{isGenerating && !currentTaskTree && (
-						<div className="absolute inset-0 z-10 overflow-y-auto bg-onyx">
-							<GenerationProgress
-								label="Task Tree"
-								thinkingText={thinkingText}
-							/>
-						</div>
-					)}
 					{/* Mobile: stacked accordion <md */}
 					{visibleTaskTree && hasContent && (
 						<div
