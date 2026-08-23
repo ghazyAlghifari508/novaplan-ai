@@ -26,6 +26,7 @@ export async function tryStreamWithFallback(
 	let lastError = "";
 
 	for (let i = 0; i < models.length; i++) {
+		if (externalSignal?.aborted) break;
 		const modelToTry = models[i];
 		// Retry the upstream only while NO client-visible delta has been emitted
 		// yet. Once firstChunk is in hand the real stream has started, so we
@@ -70,6 +71,10 @@ export async function tryStreamWithFallback(
 				lastError = e instanceof Error ? e.message : String(e);
 				abortController.abort();
 				await gen.return().catch(() => {});
+				// ponytail: the caller is gone — releasing the server-side
+				// generation claim matters more than exhausting retries. Skip any
+				// remaining attempts the moment the external signal fires.
+				if (externalSignal?.aborted) break;
 				// Only loop if a retry is still available; otherwise fall through
 				// to the next model (or the final throw below).
 				if (attempt < attemptCeiling - 1) continue;
@@ -77,6 +82,9 @@ export async function tryStreamWithFallback(
 		}
 	}
 
+	if (externalSignal?.aborted) {
+		throw new Error("AI stream aborted");
+	}
 	throw new Error(
 		`Semua model AI sedang tidak tersedia. Coba lagi dalam beberapa menit. (${lastError})`,
 	);
