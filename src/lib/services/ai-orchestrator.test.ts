@@ -62,7 +62,6 @@ describe("tryStreamWithFallback abort fast-path", () => {
 
 		const promise = tryStreamWithFallback(["novaplan-combo"], [], ctrl.signal);
 		ctrl.abort(); // abort while first attempt is pending
-		vi.advanceTimersByTimeAsync; // ensure microtasks flush below
 
 		const expectation = expect(promise).rejects.toThrow(/aborted/i);
 		await vi.runAllTimersAsync();

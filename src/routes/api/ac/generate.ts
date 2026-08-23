@@ -151,6 +151,7 @@ export const Route = createFileRoute("/api/ac/generate")({
 								return;
 							}
 							eventDone = true;
+							let saved = false;
 							try {
 								// saveAcVersion also flips acStatus → "completed" + advances step
 								await saveAcVersion(
@@ -158,15 +159,36 @@ export const Route = createFileRoute("/api/ac/generate")({
 									fullResponse,
 									"Initial AC generation",
 								);
+								saved = true;
 								await consumeCredit(user.id);
 								emit({ type: "done" });
 							} catch (e) {
-								console.error("AC credit burn failed:", e);
-								emit({
-									type: "error",
-									error:
-										"AC tersimpan, namun terjadi kesalahan saat memotong kredit.",
-								});
+								if (!saved) {
+									// Save failed: release the claim BEFORE the terminal
+									// event, mirroring task/generate.ts — otherwise acStatus
+									// stays 'generating' and every retry answers 409 forever.
+									console.error("saveAcVersion failed:", e);
+									await db
+										.update(projects)
+										.set({ acStatus: "pending" })
+										.where(eq(projects.id, projectId))
+										.catch((err) =>
+											console.error("ac_status reset failed:", err),
+										);
+									emit({
+										type: "error",
+										error: "Gagal menyimpan AC. Coba generate ulang.",
+									});
+								} else {
+									// Save succeeded (acStatus is 'completed') — do NOT reset
+									// it here, only report the credit burn failure.
+									console.error("AC credit burn failed:", e);
+									emit({
+										type: "error",
+										error:
+											"AC tersimpan, namun terjadi kesalahan saat memotong kredit.",
+									});
+								}
 							}
 							try {
 								controller.close();

@@ -108,9 +108,10 @@ export const Route = createFileRoute("/api/task/generate")({
 
 				let claimed = await claimTask();
 				if (!claimed.length) {
-					// ponytail: mirrors ac/generate.ts — a just-aborted generation
-					// releases taskStatus asynchronously; give it one bounded window
-					// to free the claim before answering 409.
+					// ponytail: mirrors ac/generate.ts — abort unwind is instant and
+					// safeError awaits the claim release, so this window rarely
+					// matters; kept bounded as a safety net for StrictMode
+					// double-mount retries racing the teardown of a dead generation.
 					for (
 						let waited = 0;
 						waited < CLAIM_RETRY_MS;
@@ -177,6 +178,16 @@ export const Route = createFileRoute("/api/task/generate")({
 								}
 								const saveResult = await saveTaskTree(projectId, taskTree);
 								if (!saveResult.success) {
+									// Release the claim before the terminal event — same as the
+									// invalid-JSON branch above — or the project stays
+									// 'generating' and every retry answers 409 forever.
+									await db
+										.update(projects)
+										.set({ taskStatus: "pending" })
+										.where(eq(projects.id, projectId))
+										.catch((e) =>
+											console.error("task_status reset failed:", e),
+										);
 									emit({
 										type: "error",
 										error: saveResult.error || "Gagal menyimpan task tree",
@@ -199,6 +210,13 @@ export const Route = createFileRoute("/api/task/generate")({
 								}
 							} catch (err) {
 								console.error("saveTaskTree failed:", err);
+								// Nothing was saved — leaving taskStatus='generating' would
+								// 409-lock every retry forever. Release the claim.
+								await db
+									.update(projects)
+									.set({ taskStatus: "pending" })
+									.where(eq(projects.id, projectId))
+									.catch((e) => console.error("task_status reset failed:", e));
 								emit({ type: "error", error: "Failed to save task tree" });
 							}
 							try {

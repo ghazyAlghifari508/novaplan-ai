@@ -164,9 +164,12 @@ export function TaskDetail({
 					setTaskGenerated(false);
 					return;
 				}
-				// ponytail: a 409 means another generation is already in flight
-				// (double-mount / double-click). That request owns the result — this
-				// one must not paint a "Gagal" state the user then has to retry.
+				// ponytail: a 409 means the server saw taskStatus='generating'.
+				// Two cases below: the module-level guard still holds this project —
+				// a live sibling generation (double-mount / double-click) owns the
+				// result, so stay silent and let it paint the outcome. The guard is
+				// free — the claim is stale/dead with no live owner — surface a
+				// retryable error state instead of pretending anything is in flight.
 				if (response.status === 409) {
 					inFlightTaskProjects.delete(projectId);
 					if (!inFlightTaskProjects.has(projectId)) {
