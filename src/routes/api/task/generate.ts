@@ -8,10 +8,14 @@ import { isTruncatedGeneration } from "@/lib/flow-progress";
 import { getLanguageDirective, normalizeLanguage } from "@/lib/language";
 import { TASK_GENERATION_PROMPT } from "@/lib/prompts-task";
 import { checkRateLimit, recordRequest } from "@/lib/rate-limit";
-import { sanitizeModelOutput } from "@/lib/services/prd-service";
-import { selectModels, tryStreamWithFallback } from "@/lib/services/ai-orchestrator";
+import { getLatestAcMarkdown } from "@/lib/services/ac-service";
+import {
+	selectModels,
+	tryStreamWithFallback,
+} from "@/lib/services/ai-orchestrator";
 import { sanitizeErrorForClient } from "@/lib/services/error-sanitizer";
 import { extractJson } from "@/lib/services/json-extract";
+import { sanitizeModelOutput } from "@/lib/services/prd-service";
 import { parseTaskJson, saveTaskTree } from "@/lib/services/task-service";
 import { requireUser } from "@/lib/session";
 import type { Plan } from "@/types/database";
@@ -56,7 +60,8 @@ export const Route = createFileRoute("/api/task/generate")({
 				if (!creditCheck.allowed) {
 					return Response.json(
 						{
-							error: "Kredit kamu sudah habis. Beli kredit untuk generate Task.",
+							error:
+								"Kredit kamu sudah habis. Beli kredit untuk generate Task.",
 							code: "NO_CREDITS",
 							plan: creditCheck.plan,
 							remaining: creditCheck.remaining,
@@ -80,6 +85,13 @@ export const Route = createFileRoute("/api/task/generate")({
 					.limit(1);
 				if (!project)
 					return Response.json({ error: "Project not found" }, { status: 404 });
+
+				const acMarkdown = await getLatestAcMarkdown(projectId);
+				if (!acMarkdown)
+					return Response.json(
+						{ error: "AC not found. Generate AC first." },
+						{ status: 404 },
+					);
 
 				const claimed = await db
 					.update(projects)
@@ -205,12 +217,12 @@ export const Route = createFileRoute("/api/task/generate")({
 							let grounded = "";
 							try {
 								const { groundStack } = await import("@/lib/grounding");
-								grounded = await groundStack("");
+								grounded = await groundStack(acMarkdown);
 							} catch {
 								/* ponytail: optional grounding must never block generation */
 							}
 							const projectLanguage = normalizeLanguage(project.language);
-							const systemPrompt = `${TASK_GENERATION_PROMPT}\n${getLanguageDirective(projectLanguage, "task")}\n${grounded}`;
+							const systemPrompt = `${TASK_GENERATION_PROMPT}\n${getLanguageDirective(projectLanguage, "task")}\n${grounded}\n\n--- ACCEPTANCE CRITERIA ---\n${acMarkdown}`;
 							const messages: Array<{
 								role: "system" | "user" | "assistant";
 								content: string;
@@ -218,7 +230,7 @@ export const Route = createFileRoute("/api/task/generate")({
 								{ role: "system", content: systemPrompt },
 								{
 									role: "user",
-									content: "Generate the task tree JSON.",
+									content: "Generate the task tree JSON based on the AC above.",
 								},
 							];
 
