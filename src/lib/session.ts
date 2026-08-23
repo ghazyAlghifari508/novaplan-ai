@@ -1,5 +1,4 @@
-import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeaders } from "@tanstack/react-start/server";
+import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 import { desc, eq } from "drizzle-orm";
 import type { Plan } from "@/types/database";
 
@@ -9,22 +8,30 @@ import type { Plan } from "@/types/database";
 // inside handlers so the client graph stays clean.
 
 // Raw session (nullable). Use inside other server fns / loaders.
-export async function getSessionFromHeaders(headers: Headers) {
-	const { auth } = await import("@/lib/auth");
-	return auth.api.getSession({ headers });
-}
-
-export const getSession = createServerFn({ method: "GET" }).handler(() =>
-	getSessionFromHeaders(getRequestHeaders()),
+export const getSessionFromHeaders = createServerOnlyFn(
+	async (headers: Headers) => {
+		const { auth } = await import("@/lib/auth");
+		return auth.api.getSession({ headers });
+	},
 );
 
+const getRequestHeadersServer = createServerOnlyFn(async () => {
+	const { getRequestHeaders } = await import("@tanstack/react-start/server");
+	return getRequestHeaders();
+});
+
+export const getSession = createServerFn({ method: "GET" }).handler(async () => {
+	const h = await getRequestHeadersServer();
+	return getSessionFromHeaders(h);
+});
+
 // Throws Unauthorized when no session - for guarded server fns.
-export async function requireUser(headers?: Headers) {
-	const h = headers ?? getRequestHeaders();
+export const requireUser = createServerOnlyFn(async (headers?: Headers) => {
+	const h = headers ?? (await getRequestHeadersServer());
 	const session = await getSessionFromHeaders(h);
 	if (!session?.user) throw new Error("Unauthorized");
 	return session.user;
-}
+});
 
 /**
  * No-arg server fn guard for route beforeLoad/loader. Route files are
@@ -32,14 +39,16 @@ export async function requireUser(headers?: Headers) {
  */
 export const requireUserServer = createServerFn({ method: "GET" }).handler(
 	async () => {
-		return requireUser(getRequestHeaders());
+		const h = await getRequestHeadersServer();
+		return requireUser(h);
 	},
 );
 
 // Plan + quota in one call (mirrors old getUserPlanAndQuota).
 export const getUserPlanAndQuota = createServerFn({ method: "GET" }).handler(
 	async () => {
-		const session = await getSessionFromHeaders(getRequestHeaders());
+		const h = await getRequestHeadersServer();
+		const session = await getSessionFromHeaders(h);
 		if (!session?.user) return { plan: "free" as Plan, quota: null };
 
 		const { db } = await import("@/db");

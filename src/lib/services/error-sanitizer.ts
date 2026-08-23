@@ -18,6 +18,9 @@ export function sanitizeErrorForClient(error: unknown, context?: "ac"): string {
 		}
 	}
 
+	if (msg.includes("melebihi batas waktu") || msg.includes("tidak merespons dalam"))
+		return msg;
+
 	if (
 		msg.toLowerCase().includes("timed out") ||
 		msg.toLowerCase().includes("aborted")

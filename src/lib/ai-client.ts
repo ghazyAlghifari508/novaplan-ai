@@ -7,7 +7,11 @@
  */
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateText, streamText } from "ai";
-import { ROUTER_BASE_URL } from "@/lib/constants";
+import {
+	AI_STALL_TIMEOUT_MS,
+	AI_TOTAL_TIMEOUT_MS,
+	ROUTER_BASE_URL,
+} from "@/lib/constants";
 
 const provider = createOpenAI({
 	baseURL: ROUTER_BASE_URL,
@@ -74,41 +78,70 @@ export async function* streamChat(
 		},
 	});
 
+	// ponytail: single choke-point watchdog. Stall timer races each next() so a
+	// zero-chunk upstream (reasoning burst or hang) surfaces as an error instead
+	// of an infinite spinner. Total ceiling covers the whole stream.
+	let yieldedText = false;
+	let lastProgress = Date.now();
+	const totalDeadline = Date.now() + AI_TOTAL_TIMEOUT_MS;
+	const mkStallError = () => new Error("AI tidak merespons dalam 2 menit. Coba generate ulang.");
+	const mkTotalError = () => new Error("Generasi melebihi batas waktu. Coba lagi dengan prompt lebih ringkas.");
 	try {
-		let yieldedText = false;
-		for await (const chunk of result.fullStream) {
+		const iterator = result.fullStream[Symbol.asyncIterator]();
+		let done = false;
+		while (!done) {
+			const now = Date.now();
+			if (now >= totalDeadline) throw mkTotalError();
+			const remainingTotal = totalDeadline - now;
+			const stallMs = Math.min(AI_STALL_TIMEOUT_MS, remainingTotal);
+			let stallId: ReturnType<typeof setTimeout> | undefined;
+			let totalId: ReturnType<typeof setTimeout> | undefined;
+			const stallPromise = new Promise<never>((_, reject) => {
+				stallId = setTimeout(() => reject(mkStallError()), stallMs);
+			});
+			const totalPromise = new Promise<never>((_, reject) => {
+				if (remainingTotal < AI_STALL_TIMEOUT_MS) {
+					totalId = setTimeout(() => reject(mkTotalError()), remainingTotal);
+				}
+			});
+			let next: IteratorResult<(typeof result.fullStream extends AsyncIterable<infer U> ? U : never)>;
+			try {
+				next = await Promise.race([iterator.next(), stallPromise, totalPromise]);
+			} finally {
+				if (stallId !== undefined) clearTimeout(stallId);
+				if (totalId !== undefined) clearTimeout(totalId);
+			}
+			if (next.done) break;
+			const chunk = next.value as unknown as { type: string; text?: string; error?: unknown };
 			if (chunk.type === "reasoning-delta") {
-				onThinking?.(
-					(chunk as { type: "reasoning-delta"; text: string }).text ?? "",
-				);
+				lastProgress = Date.now();
+				onThinking?.((chunk as { type: "reasoning-delta"; text: string }).text ?? "");
 				continue;
 			}
 			if (chunk.type === "text-delta") {
 				if (!chunk.text) continue;
+				lastProgress = Date.now();
 				yieldedText = true;
 				yield chunk.text;
+				continue;
 			}
 			if (chunk.type === "error") {
 				if (outcome) outcome.finishReason = "error";
-				throw chunk.error;
+				throw (chunk as { error: unknown }).error;
 			}
-			// abort part = client disconnected; surface as error so the
-			// orchestrator doesn't treat it as an empty successful stream.
 			if (chunk.type === "abort") {
 				if (outcome) outcome.finishReason = "error";
 				throw new Error("AI stream aborted");
 			}
+			// Other part types (start, finish, etc.) don't count as progress — stall
+			// timer is NOT reset, so a stream that only emits non-progress stays bounded.
+			if (Date.now() - lastProgress >= AI_STALL_TIMEOUT_MS) throw mkStallError();
 		}
-		// Stream finished without producing any text (only reasoning/empty
-		// deltas, or an upstream that closed early). A silent success here is
-		// exactly the flaky "Respons kosong" path — treat it as a failure.
 		if (!yieldedText) {
 			if (outcome) outcome.finishReason = "error";
 			throw new Error("Respons kosong dari chunk model.");
 		}
 	} catch (err) {
-		// A dropped/aborted stream is exactly the case that used to persist a
-		// partial document as a new version. Mark it before rethrowing.
 		if (outcome) outcome.finishReason = "error";
 		throw err;
 	}

@@ -24,6 +24,13 @@ export const RATE_LIMIT_WINDOW_MS = 60_000;
 // Only safe because no client-visible delta has been emitted yet.
 export const AI_STREAM_RETRY_ATTEMPTS = 1;
 
+// No-progress watchdog: if upstream emits no text-delta AND no reasoning-delta
+// for this long, abort and surface an error instead of an infinite spinner.
+export const AI_STALL_TIMEOUT_MS = 120_000;
+
+// Hard ceiling per generation (covers full stream including burst + tokens).
+export const AI_TOTAL_TIMEOUT_MS = 300_000;
+
 // Bounded wait before a 409 when another generation still holds the claim —
 // an aborted request releases ac_status/task_status asynchronously, so an
 // immediate retry (StrictMode double-mount) must give it time to free up.
