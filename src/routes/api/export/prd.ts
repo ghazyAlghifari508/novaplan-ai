@@ -3,7 +3,12 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { projects } from "@/db/schema";
-import { formatPrdMarkdown, formatTasksJson } from "@/lib/services/export-service";
+import { getLatestAcMarkdown } from "@/lib/services/ac-service";
+import {
+	formatAcMarkdown,
+	formatPrdMarkdown,
+	formatTasksJson,
+} from "@/lib/services/export-service";
 import { getLatestPrdContent } from "@/lib/services/prd-service";
 import { getTaskTree } from "@/lib/services/task-service";
 import { requireUser } from "@/lib/session";
@@ -28,15 +33,16 @@ export const Route = createFileRoute("/api/export/prd")({
 				if (!project)
 					return Response.json({ error: "Project not found" }, { status: 404 });
 
-				const [prdContent, taskTree] = await Promise.all([
+				const [prdContent, acContent, taskTree] = await Promise.all([
 					getLatestPrdContent(projectId),
+					getLatestAcMarkdown(projectId),
 					getTaskTree(projectId),
 				]);
 
 				return Response.json({
 					projectName: project.name,
 					prd: prdContent ? formatPrdMarkdown(prdContent) : null,
-					ac: null,
+					ac: acContent ? formatAcMarkdown(acContent) : null,
 					tasks: formatTasksJson(taskTree),
 				});
 			},
