@@ -25,6 +25,7 @@ import {
 	deriveProjectNameSync,
 	getLatestPrdContent,
 	getPrdVersionContent,
+	hasExplicitProductName,
 	resolveProjectId,
 	savePrdVersion,
 } from "@/lib/services/prd-service";
@@ -446,6 +447,10 @@ export const Route = createFileRoute("/api/chat")({
 								void (async () => {
 									try {
 										if (mode !== "generate" || !projectIdToUse) return;
+										// User gave an explicit name (quoted/bernama/CamelCase) —
+										// the sync extractor already named the project from it;
+										// an AI rename of a compiled prompt would only clobber it.
+										if (hasExplicitProductName(message)) return;
 										const better = await deriveProjectName(message);
 										if (!better || better === "Project Baru") return;
 										await db

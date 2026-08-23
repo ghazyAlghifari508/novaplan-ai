@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { deriveProjectNameSync } from "./prd-service";
+import { deriveProjectNameSync, hasExplicitProductName } from "./prd-service";
 
 describe("deriveProjectNameSync", () => {
 	it("prefers a quoted product name", () => {
@@ -32,5 +32,43 @@ describe("deriveProjectNameSync", () => {
 
 	it("returns default for degenerate input", () => {
 		expect(deriveProjectNameSync("buat app")).toBe("Project Baru");
+	});
+});
+
+describe("hasExplicitProductName", () => {
+	it("detects a quoted name inside a compiled-prompt-like string", () => {
+		const compiledPrompt = [
+			"Generate PRD lengkap berdasarkan informasi berikut:",
+			'Ide produk: aplikasi dompet digital bernama "Dompet Kuotaku".',
+			"Target pengguna: mahasiswa.",
+			"[Platform: Web] Deployment: Biarkan AI memilih.",
+			"Gunakan section markers sesuai standar.",
+		].join("\n");
+		expect(hasExplicitProductName(compiledPrompt)).toBe(true);
+	});
+
+	it("detects bernama-X pattern", () => {
+		expect(
+			hasExplicitProductName(
+				"Buatkan habit tracker bernama HabitFlow untuk mahasiswa",
+			),
+		).toBe(true);
+	});
+
+	it("detects a CamelCase brand token", () => {
+		expect(hasExplicitProductName("Buatkan SaaS untuk NovaPay")).toBe(true);
+	});
+
+	it("rejects a vague prompt without any explicit pattern", () => {
+		expect(
+			hasExplicitProductName(
+				"platform manajemen proyek untuk tim remote dengan time tracking",
+			),
+		).toBe(false);
+	});
+
+	it("rejects empty and degenerate input", () => {
+		expect(hasExplicitProductName("")).toBe(false);
+		expect(hasExplicitProductName("buat app")).toBe(false);
 	});
 });

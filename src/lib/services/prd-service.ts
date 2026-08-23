@@ -39,11 +39,9 @@ export function generateShareToken(): string {
 }
 
 /**
- * Synchronous regex-only project name derivation.
- * Instant, no AI call. Used at project creation for speed.
- * AI-quality name comes later via deriveProjectName() in chat.ts SSE stream.
+ * Strip known PRD prompt boilerplate so name heuristics see only user content.
  */
-export function deriveProjectNameSync(message: string): string {
+function stripPrdBoilerplate(message: string): string {
 	let cleanMsg = message;
 	cleanMsg = cleanMsg.replace(
 		/Generate PRD lengkap berdasarkan informasi berikut:\s*/gi,
@@ -54,7 +52,19 @@ export function deriveProjectNameSync(message: string): string {
 		"",
 	);
 	cleanMsg = cleanMsg.replace(/\[Platform:.*?\]\s*/gi, "");
-	cleanMsg = cleanMsg.trim();
+	return cleanMsg.trim();
+}
+
+/**
+ * Single source of truth for explicit product-name patterns (quoted name,
+ * bernama/dinamakan/named/called X, CamelCase brand token). Shared by
+ * deriveProjectNameSync and hasExplicitProductName so both accept exactly the
+ * same captures.
+ */
+function findExplicitProductName(
+	message: string,
+): { explicit: string; isCamelToken: boolean } | null {
+	const cleanMsg = stripPrdBoilerplate(message);
 
 	// ponytail: explicit product-name beats word-salad heuristics.
 	// 1) "Quoted name" (straight or typographic quotes)
@@ -69,8 +79,31 @@ export function deriveProjectNameSync(message: string): string {
 	const camel = cleanMsg.match(/\b([A-Z][a-z0-9]+(?:[A-Z][a-z0-9]+)+)\b/);
 
 	const explicit = quoted?.[1]?.trim() ?? named?.[1] ?? camel?.[1];
-	if (explicit && explicit.replace(/\s/g, "").length >= 3) {
-		const isCamelToken = explicit === camel?.[1] && !/\s/.test(explicit);
+	if (!explicit || explicit.replace(/\s/g, "").length < 3) return null;
+	return {
+		explicit,
+		isCamelToken: explicit === camel?.[1] && !/\s/.test(explicit),
+	};
+}
+
+/**
+ * True iff the user's message contains an EXPLICIT product-name pattern
+ * (quoted name / bernama-X / CamelCase token). When true, the user gave an
+ * intentional name — the async AI rename must not override it.
+ */
+export function hasExplicitProductName(message: string): boolean {
+	return findExplicitProductName(message) !== null;
+}
+
+/**
+ * Synchronous regex-only project name derivation.
+ * Instant, no AI call. Used at project creation for speed.
+ * AI-quality name comes later via deriveProjectName() in chat.ts SSE stream.
+ */
+export function deriveProjectNameSync(message: string): string {
+	const match = findExplicitProductName(message);
+	if (match) {
+		const { explicit, isCamelToken } = match;
 		const titled = isCamelToken
 			? explicit
 			: explicit
@@ -79,6 +112,8 @@ export function deriveProjectNameSync(message: string): string {
 					.join(" ");
 		return titled.slice(0, 40).trim();
 	}
+
+	const cleanMsg = stripPrdBoilerplate(message);
 
 	const fillers = [
 		"tolong",
