@@ -145,7 +145,7 @@ export const Route = createFileRoute("/api/ac/generate")({
 						const safeDone = async (finishReason: string | undefined) => {
 							if (eventDone || eventErrored) return;
 							if (isTruncatedGeneration(fullResponse, finishReason)) {
-								safeError(
+								await safeError(
 									"Generasi AC terputus di tengah jalan dan tidak disimpan. Coba generate ulang.",
 								);
 								return;
@@ -173,13 +173,20 @@ export const Route = createFileRoute("/api/ac/generate")({
 							} catch {}
 						};
 
-						const safeError = (msg: string) => {
+						const safeError = async (msg: string) => {
 							if (eventDone || eventErrored) return;
 							eventErrored = true;
-							db.update(projects)
-								.set({ acStatus: "pending" })
-								.where(eq(projects.id, projectId))
-								.catch((e) => console.error("ac_status reset failed:", e));
+							// ponytail: release the claim BEFORE the terminal event reaches
+							// the client — an immediate StrictMode remount retry must see
+							// acStatus='pending', never inherit this dead generation's lock.
+							try {
+								await db
+									.update(projects)
+									.set({ acStatus: "pending" })
+									.where(eq(projects.id, projectId));
+							} catch (e) {
+								console.error("ac_status reset failed:", e);
+							}
 							emit({ type: "error", error: msg });
 							try {
 								controller.close();
@@ -240,7 +247,7 @@ export const Route = createFileRoute("/api/ac/generate")({
 							await safeDone(outcome.finishReason);
 						} catch (err: unknown) {
 							console.error("AC generate stream error:", err);
-							safeError(sanitizeErrorForClient(err, "ac"));
+							await safeError(sanitizeErrorForClient(err, "ac"));
 						}
 					},
 				});
