@@ -12,7 +12,7 @@ When the user asks a question about the app, codebase, features, bugs, errors, d
 
 1. **Do NOT answer from memory or training data.** Your memory of this codebase is unreliable.
 2. **Do NOT assume file contents, function signatures, or behavior.** Read the file first.
-3. **Do NOT assume "it probably works like X."** Verify with Grep/Read/Glob.
+3. **Do NOT assume "it probably works like X."** Verify with grep/read/glob.
 4. **If you don't know, say "I don't know, let me check."** Then use tools to find out.
 
 ### Red Flags in Your Own Responses
@@ -108,41 +108,40 @@ When implementing changes, ALWAYS check for and use relevant skills/agents:
 | Build | Vite 8, TypeScript 6 |
 | Package Manager | pnpm |
 
-### Skills & Agents Map — Match to Task
+### Skills & Tools Map — Match to Task (opencode)
 
-| Task Type | Skills / Agents | Notes |
+Available resources di opencode ini: **superpowers skills**, **personal skills** (`~/.claude/skills` & `~/.agents/skills`), dan **MCP servers** (context7, chrome-devtools). Gunakan native `skill` tool untuk memuat skill.
+
+| Task Type | Skill / Tool | Notes |
 |---|---|---|
-| **New feature** | `superpowers:brainstorming` → `ecc:planner` → `ecc:code-architect` | Always brainstorm first, then plan, then implement |
-| **React/TSX change** | `ecc:react-reviewer` agent | MUST USE for any .tsx/.jsx change |
-| **TypeScript change** | `ecc:typescript-reviewer` agent | MUST USE for any .ts change |
-| **Build error** | `ecc:build-error-resolver`, `ecc:react-build-resolver` | React-specific resolver for TSX compile/hydration errors |
-| **Bug fix** | `superpowers:systematic-debugging` → `ecc:code-explorer` | Systematic debugging skill first, then explore |
-| **UI/UX change** | `ecc:a11y-architect`, `ecc:frontend-design-direction`, `ui-design-system` skill, `ecc:react-patterns` | A11y check mandatory for UI changes |
-| **Database change** | `ecc:database-reviewer`, `ecc:postgres-patterns`, `ecc:database-migrations` | For Drizzle schema, queries, migrations |
-| **Security** | `ecc:security-reviewer`, `ecc:security-scan` skill, `better-auth-security-best-practices` skill | MUST USE after auth/API endpoint changes |
-| **Performance** | `ecc:performance-optimizer` | Bundle size, render perf, algorithmic |
-| **Code review** | `ecc:code-reviewer` skill / agent | After every code change |
-| **Testing** | `superpowers:test-driven-development`, `ecc:tdd-guide` skill | Vitest for unit, Playwright for e2e |
-| **E2E testing** | `ecc:e2e-runner` agent | Playwright-based |
-| **Docs update** | `ecc:doc-updater`, `ecc:update-codemaps`, `ecc:update-docs` | After feature changes |
-| **Library docs / package search** | `nia` skill (Nozomio Nia) | CLI doc search, package intelligence, deep research. Alternative to context7-mcp — use when need package comparison or web search too |
-| **TanStack/Router** | `context7-mcp` skill → `mcp__context7__resolve-library-id` + `mcp__context7__query-docs` | Fetch current TanStack docs, never guess API |
-| **Tailwind CSS** | `context7-mcp` skill | Fetch Tailwind v4 docs (class syntax changed from v3) |
-| **Drizzle ORM** | `context7-mcp` skill | Fetch current Drizzle docs |
-| **Better Auth** | `context7-mcp` skill + `better-auth-security-best-practices` skill | Fetch docs + security patterns |
-| **Vercel AI SDK** | `claude-api` skill + `context7-mcp` skill | For AI SDK usage, model config |
+| **New feature** | `brainstorming` → `writing-plans` (superpowers) | Always brainstorm first, then plan, then implement |
+| **React/TSX change** | `vercel-react-best-practices` skill | Performance patterns untuk React; verify dengan `pnpm lint` + tsc |
+| **TypeScript change** | `pnpm typecheck` / Biome | Verify types via command, bukan asumsi |
+| **Build error** | `systematic-debugging` (superpowers) | Root cause analysis sebelum fix |
+| **Bug fix** | `systematic-debugging` (superpowers) + `explore` agent | Systematic debugging skill first, then explore codebase |
+| **UI/UX change** | `ui-design-system`, `ui-ux-pro-max`, `shadcn-component-discovery` skills | A11y + component patterns untuk UI changes |
+| **Database change** | Drizzle docs via context7 MCP | Postgres 17 lokal + Drizzle (`drizzle-kit`), BUKAN Supabase — jangan pakai tool/pattern Supabase |
+| **Security** | `better-auth-security-best-practices` skill | MUST USE after auth/API endpoint changes |
+| **Performance** | `vercel-react-best-practices` skill | Bundle size, render perf |
+| **Code review** | `requesting-code-review` (superpowers) | After significant code changes |
+| **Testing** | `test-driven-development` (superpowers) | Vitest untuk unit, Playwright untuk e2e |
+| **E2E / QA testing** | `webapp-testing` skill atau chrome-devtools MCP | Playwright scripts atau live browser automation |
+| **Payment/Midtrans** | `integrate-midtrans-payments` skill | Snap, webhook, signature verification |
+| **Library docs** | context7 MCP (`resolve-library-id` + `query-docs`) atau `nia` skill | Fetch current docs, never guess API. `nia` untuk package comparison/deep research |
+| **TanStack Start/Router** | context7 MCP | Fetch current TanStack docs, never guess API |
+| **Tailwind CSS** | context7 MCP | Tailwind v4 (class syntax changed from v3) |
+| **Drizzle ORM** | context7 MCP | Fetch current Drizzle docs |
+| **Better Auth** | context7 MCP + `better-auth-security-best-practices` skill | Docs + security patterns |
+| **Vercel AI SDK** | context7 MCP | AI SDK usage, model config |
 | **Radix UI / shadcn** | `shadcn-component-discovery` skill | Component patterns and variants |
-| **Cleanup/refactor** | `ecc:refactor-cleaner`, `ecc:code-simplifier` | Dead code removal, simplification |
-| **Silent failures** | `ecc:silent-failure-hunter` | Swallowed errors, bad fallbacks |
-| **App run/verify** | `run` skill | Launch dev server to verify changes |
 
 ### How to Use Skills
 
 1. Before starting work, ask: "Is there a skill for this?"
-2. If yes, invoke it FIRST — before any code changes
+2. If yes, load it FIRST via native `skill` tool — before any code changes
 3. Follow the skill's workflow exactly
 4. If no skill exists, follow the manual audit process (Rule 3)
-5. For library/framework questions: use `context7-mcp` or `nia` skill to fetch current docs — never answer from training data. Use `nia` when also need package search/comparison or deep research
+5. For library/framework questions: use context7 MCP atau `nia` skill to fetch current docs — never answer from training data
 
 ---
 
@@ -152,12 +151,12 @@ Before stating ANY fact about the codebase, verify it:
 
 | You Want to Say | Verify With |
 |---|---|
-| "File X does Y" | `Read` the file |
-| "Function Z is called by..." | `Grep` for callers |
-| "This component uses..." | `Read` the component |
-| "The error comes from..." | `Grep` for the error message |
-| "This pattern is used in..." | `Grep` for the pattern |
-| "No files depend on this" | `Grep` for imports/references |
+| "File X does Y" | `read` the file |
+| "Function Z is called by..." | `grep` for callers |
+| "This component uses..." | `read` the component |
+| "The error comes from..." | `grep` for the error message |
+| "This pattern is used in..." | `grep` for the pattern |
+| "No files depend on this" | `grep` for imports/references |
 
 **If you cannot verify a claim, state the uncertainty explicitly.**
 
