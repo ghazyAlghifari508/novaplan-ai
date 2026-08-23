@@ -106,8 +106,13 @@ export const AcViewer = memo(function AcViewer({
 		return cleaned.trim();
 	}, [content]);
 
-	const displayContent =
-		isStreaming && streamingContent ? streamingContent : cleanContent;
+	const displayContent = (() => {
+		if (isStreaming && streamingContent) return streamingContent;
+		if (cleanContent) return cleanContent;
+		// Post-done window: loader belum balik tapi streamingContent sudah ada (optimistic)
+		if (streamingContent && !hasError) return streamingContent;
+		return cleanContent;
+	})();
 
 	if (isStreaming && !streamingContent) {
 		return (

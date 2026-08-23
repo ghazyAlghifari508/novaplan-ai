@@ -275,7 +275,14 @@ export const Route = createFileRoute("/api/ac/generate")({
 
 							await safeDone(outcome.finishReason);
 						} catch (err: unknown) {
-							console.error("AC generate stream error:", err);
+							const isAbort =
+								(err instanceof DOMException && err.name === "AbortError") ||
+								(err instanceof Error && err.name === "AbortError") ||
+								(err instanceof Error && err.message === "Request aborted") ||
+								(err instanceof Error && err.message === "AI stream aborted");
+							if (!isAbort) {
+								console.error("AC generate stream error:", err);
+							}
 							await safeError(sanitizeErrorForClient(err, "ac"));
 						}
 					},
