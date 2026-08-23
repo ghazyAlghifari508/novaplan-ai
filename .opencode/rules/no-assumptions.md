@@ -25,6 +25,8 @@ If you catch yourself saying any of these, STOP — you're guessing:
 - "The error is likely caused by..."
 - "I believe the issue is..."
 - "Most likely..."
+- "X tidak ada / doesn't exist / belum ada" (after only one or two searches)
+- "There's no CLI/test/endpoint for this" (without stating WHERE you searched)
 
 Replace with: "Let me verify" → then use tools.
 
@@ -160,6 +162,43 @@ Before stating ANY fact about the codebase, verify it:
 
 **If you cannot verify a claim, state the uncertainty explicitly.**
 
+### Rule 5A: Absence Claims Are The Highest-Risk Claims (Anti-Hallucination Hard Mode)
+
+Claiming **"X tidak ada / doesn't exist / belum diimplementasi"** is the single most dangerous sentence an AI can produce about a codebase. Two failed searches are NOT proof of absence — they only prove "not found in the exact paths and patterns I tried."
+
+**Real incident (2026-08-24):** AI claimed *"CLI tidak ada di repo ini"* after globbing `cli/**` at repo root once. The CLI lived in `packages/cli/` — a monorepo workspace the AI never listed, never checked, never knew existed. User had to correct it manually.
+
+#### Mandatory protocol before ANY absence claim
+
+```
+1. LIST repo root directories        — see what actually exists (packages/? apps/? tools/?)
+2. READ workspace config             — package.json#workspaces, pnpm-workspace.yaml,
+                                       turbo.json → map EVERY package root BEFORE searching
+3. GLOB each mapped root             — not just cwd
+4. GREP keyword repo-wide            — name, command name, bin entry, package.json#bin
+5. STATE your coverage               — "Saya cari di [paths], pattern [X], hasil nihil"
+```
+
+Only after all 5 steps may you report a negative result — and even then, phrase it as coverage, never as absolute fact:
+
+> ✅ "Tidak saya temukan di [packages/, src/, apps/] dengan pattern [X]. Kalau kamu yakin ada, tunjukkan lokasinya."
+>
+> ❌ ~~"CLI gak ada."~~ ❌ ~~"Belum ada implementasinya."~~ ❌ ~~"There is no test for this."~~
+
+#### Red flags you're about to hallucinate an absence
+
+- You searched ONCE and found nothing
+- Your search paths were only adjacent to what the conversation mentioned
+- You feel confident because "it would surely be in src/"
+- You're composing a sentence containing "tidak ada", "doesn't exist", "no such", "there is no"
+- You never listed the top-level directories of the repo this session
+
+#### When the user corrects you
+
+1. **Re-verify FIRST with broader scope** — run the searches before responding; the user can be wrong too, but assume they're right until tools say otherwise
+2. **Name your exact failure mode**: "glob saya cuma cover `cli/**` di root, tidak cover `packages/`" — bukan sekadar "maaf"
+3. **Fix the process gap**, don't just apologize — identify which step of the protocol you skipped
+
 ---
 
 ## Rule 6: No Hallucinated Code
@@ -210,6 +249,10 @@ No exceptions unless user explicitly says otherwise.
 | Implementing without skill check | Missing established workflows | Check skills first |
 | "This is a simple change" | Simple changes break things too | Still do impact assessment |
 | Claiming "no dependencies" without searching | May have hidden imports | Grep for references |
+| Empty glob/grep → "X doesn't exist" | Search miss ≠ proof of absence; coverage unknown | Run Rule 5A protocol, then hedge |
+| Searching only repo root in a monorepo | Code often lives in `packages/`, `apps/`, `tools/` | Map workspace roots FIRST (Rule 5A step 1–2) |
+| Absolute phrasing for negative results ("tidak ada", "no such") | Sounds authoritative, is unverified | Coverage phrasing: "not found in [paths × patterns]" |
+| Apologizing vaguely when corrected | Same failure recurs next session | Name exact search gap + re-verify with broader scope |
 | Using training data for library APIs | APIs change, training data is old | Use Context7 or docs |
 
 ---
@@ -236,6 +279,7 @@ Pattern: penjelasan → Bahasa Indonesia. Kode/teknis → English as-is.
 3. **Deep audit** — understand the codebase before changing it
 4. **Use skills** — leverage established workflows
 5. **Verify claims** — every fact needs evidence
-6. **No hallucinated code** — read before write
-7. **Explain before implement** — state findings and plan
-8. **Commit + push** — every task, no exceptions
+6. **Absence claims = highest risk** — full Rule 5A protocol (map roots → search all → state coverage) atau jangan klaim sama sekali
+7. **No hallucinated code** — read before write
+8. **Explain before implement** — state findings and plan
+9. **Commit + push** — every task, no exceptions
