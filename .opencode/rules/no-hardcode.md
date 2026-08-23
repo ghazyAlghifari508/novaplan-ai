@@ -4,6 +4,8 @@
 
 **NEVER hardcode values that should be configurable.** Every value that might change — API endpoints, service names, thresholds, limits, credentials, feature flags — must live in environment variables, config files, or constants modules. Hardcoded values create invisible coupling between documentation and code.
 
+**NEVER choose a hardcoded or fake shortcut because it is faster.** "The real signal is harder to wire" is not an excuse — it is the job. If the honest implementation takes longer, take longer.
+
 ---
 
 ## Rule 1: No Inline Magic Values
@@ -110,6 +112,31 @@ When the user reports a bug, error, or symptom, NEVER copy their literal problem
 
 ---
 
+## Rule 7: Never Fake Behavior — Indicators Must Be Wired to Real Signals
+
+When implementing ANY status, progress, loading, or "AI is working" indicator, the indicator MUST be driven by real system signals — actual events, actual streamed data, actual measured state. **NEVER fabricate the appearance of activity.**
+
+**The trap:** a fake indicator is EASIER to build than a real one. That ease is exactly why it is forbidden. If you catch yourself reaching for a hardcoded phrase list, fake progress bar, or simulated step sequence because "wiring the real signal is more work" — STOP. The real signal is the task.
+
+Real incident (2026-08-24): an AI kept a rotating fake-status list and even EXTENDED it with more invented phrases instead of questioning whether it reflected anything real. The user had to force the honest rewrite. If existing code already contains a fake indicator, flag it — do not preserve or grow it.
+
+| Forbidden | Why It's Wrong | Required Instead |
+|---|---|---|
+| Array of invented step/phase strings rotating on a timer (`"<step 1>"`, `"<step 2>"`, ...) not connected to actual pipeline stages | Implies observable work stages that do not exist; user sees through it as fake | Display the REAL signal (actual event/data stream), or ONE neutral static label |
+| Fake progress % or fake progress bar not derived from measurement | Lies about completion state | Indeterminate spinner, or elapsed-time counter (measured, real) |
+| Simulated typing/animation implying tokens when none have arrived | Masks the real connection/model state | Honest idle label until a real event arrives |
+
+**Decision procedure (mandatory before writing any indicator):**
+
+1. Enumerate the REAL signals available (event types, state transitions, measurable values).
+2. If a real signal can drive the indicator → wire it, however inconvenient.
+3. If NO real signal exists for a phase → show ONE honest neutral static label. Optionally add elapsed time. **Never invent a sequence.**
+4. A single honest static label is acceptable; a fabricated dynamic one is not.
+
+**Why:** Fake indicators are user-visible lies that erode trust in the product and in the AI that wrote them. They also rot: real signals change (new event types, new providers, new models), fake lists never keep up. The codebase must never contain UI whose only function is to *look* like the system is doing something it is not doing.
+
+---
+
 ## Summary
 
 1. **No magic numbers** — use constants
@@ -118,3 +145,4 @@ When the user reports a bug, error, or symptom, NEVER copy their literal problem
 4. **No scattered business rules** — use constants module
 5. **Verify before writing** — check existing config first
 6. **Never embed user's problem/symptom into code** — fix root cause generically, test with neutral placeholders
+7. **Never fake behavior** — indicators wired to real signals only; one honest static label beats a rotating lie; never pick a fake shortcut because it is faster
