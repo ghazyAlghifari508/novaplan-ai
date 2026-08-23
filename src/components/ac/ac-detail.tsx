@@ -441,6 +441,7 @@ export function AcDetail({
 								isStreaming={isStreaming}
 								hasError={hasError}
 								thinkingText={thinkingText}
+								onGenerate={handleGenerate}
 								projectName={projectName}
 								plan={plan}
 								className=""

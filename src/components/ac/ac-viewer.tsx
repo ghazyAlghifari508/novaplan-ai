@@ -45,6 +45,7 @@ interface AcViewerProps {
 	isStreaming?: boolean;
 	hasError?: boolean;
 	thinkingText?: string;
+	onGenerate?: () => void;
 	projectName: string;
 	plan?: Plan;
 	className?: string;
@@ -61,6 +62,7 @@ export const AcViewer = memo(function AcViewer({
 	isStreaming = false,
 	hasError = false,
 	thinkingText,
+	onGenerate,
 	projectName: _projectName,
 	plan: _plan = "free",
 	className,
@@ -142,6 +144,26 @@ export const AcViewer = memo(function AcViewer({
 	}
 
 	if (!displayContent) {
+		if (onGenerate) {
+			return (
+				<div className={cn("h-full overflow-y-auto", className)}>
+					<div className="flex h-full items-center justify-center">
+						<div className="text-center">
+							<p className="mb-2 text-(--text-primary)">
+								Acceptance Criteria belum digenerate untuk project ini.
+							</p>
+							<button
+								type="button"
+								onClick={onGenerate}
+								className="btn-primary inline-flex items-center gap-2 rounded-md px-4 py-2"
+							>
+								Generate AC
+							</button>
+						</div>
+					</div>
+				</div>
+			);
+		}
 		return (
 			<div className={cn("h-full overflow-y-auto", className)}>
 				<GenerationProgress
