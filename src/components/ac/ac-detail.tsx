@@ -140,10 +140,20 @@ export function AcDetail({
 					setGeneratingAC(false);
 					return;
 				}
-				// ponytail: a 409 means another generation is already in flight
-				// (double-mount / double-click). That request owns the result —
-				// this one must not paint a "Gagal" state the user then retries.
 				if (response.status === 409) {
+					// ponytail: drop OUR membership first — the finally-block would
+					// mask whether anyone else still owns the stream. Owner alive
+					// (double-click) → stay silent, their UI is streaming. No owner
+					// (StrictMode phantom aborted it) → the claim was stale; paint
+					// the retryable error state instead of a fake-loading dead end.
+					inFlightAcProjects.delete(projectId);
+					if (!inFlightAcProjects.has(projectId)) {
+						setHasError(true);
+						showToast(
+							"Sesi generate sebelumnya terputus. Klik Coba Lagi.",
+							"error",
+						);
+					}
 					setIsGenerating(false);
 					setGeneratingAC(false);
 					return;
