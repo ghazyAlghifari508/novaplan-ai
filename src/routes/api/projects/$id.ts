@@ -2,13 +2,26 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { conversations, messages, prdVersions, projects, tasks } from "@/db/schema";
+import {
+	acVersions,
+	conversations,
+	messages,
+	prdVersions,
+	projects,
+	tasks,
+} from "@/db/schema";
 import { requireUser } from "@/lib/session";
 
 export const Route = createFileRoute("/api/projects/$id")({
 	server: {
 		handlers: {
-			DELETE: async ({ request, params }: { request: Request; params: { id: string } }) => {
+			DELETE: async ({
+				request,
+				params,
+			}: {
+				request: Request;
+				params: { id: string };
+			}) => {
 				const user = await requireUser(request.headers);
 				const { id: projectId } = params;
 				if (!projectId)
@@ -34,7 +47,9 @@ export const Route = createFileRoute("/api/projects/$id")({
 				// (schema.ts), so skipping any leaves orphaned rows. Order matters:
 				// messages→conversations first (messages FK conversations), then the
 				// project-scoped tables, then projects last. All in one transaction so
-				// a mid-sequence failure leaves no partial orphans.
+				// a mid-sequence failure leaves no partial orphans. ac_versions is
+				// easy to miss: it is created by the AC stage, so every project past
+				// PRD-only carries rows that block the parent delete.
 				await db.transaction(async (tx) => {
 					const convRows = await tx
 						.select({ id: conversations.id })
@@ -52,6 +67,9 @@ export const Route = createFileRoute("/api/projects/$id")({
 					await tx
 						.delete(prdVersions)
 						.where(eq(prdVersions.projectId, projectId));
+					await tx
+						.delete(acVersions)
+						.where(eq(acVersions.projectId, projectId));
 					await tx.delete(tasks).where(eq(tasks.projectId, projectId));
 					await tx.delete(projects).where(eq(projects.id, projectId));
 				});

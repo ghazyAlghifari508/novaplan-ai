@@ -42,6 +42,9 @@ const _deleteAccount = createServerFn({ method: "POST" })
 		const user = await requireUser(getRequestHeaders());
 		const { db } = await import("@/db");
 		const {
+			acVersions,
+			conversations,
+			messages,
 			notificationPreferences,
 			payments,
 			prdVersions,
@@ -49,6 +52,7 @@ const _deleteAccount = createServerFn({ method: "POST" })
 			quotas,
 			rateLimits,
 			subscriptions,
+			tasks,
 			users,
 		} = await import("@/db/schema");
 		const { auth } = await import("@/lib/auth");
@@ -64,9 +68,26 @@ const _deleteAccount = createServerFn({ method: "POST" })
 			.where(eq(projects.userId, user.id));
 		const projectIds = userProjects.map((p) => p.id);
 		if (projectIds.length > 0) {
+			const convRows = await db
+				.select({ id: conversations.id })
+				.from(conversations)
+				.where(inArray(conversations.projectId, projectIds));
+			const convIds = convRows.map((c) => c.id);
+			if (convIds.length > 0) {
+				await db
+					.delete(messages)
+					.where(inArray(messages.conversationId, convIds));
+			}
+			await db
+				.delete(conversations)
+				.where(inArray(conversations.projectId, projectIds));
 			await db
 				.delete(prdVersions)
 				.where(inArray(prdVersions.projectId, projectIds));
+			await db
+				.delete(acVersions)
+				.where(inArray(acVersions.projectId, projectIds));
+			await db.delete(tasks).where(inArray(tasks.projectId, projectIds));
 		}
 		await db.delete(projects).where(eq(projects.userId, user.id));
 		await db.delete(payments).where(eq(payments.userId, user.id));
