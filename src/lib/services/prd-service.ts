@@ -56,6 +56,30 @@ export function deriveProjectNameSync(message: string): string {
 	cleanMsg = cleanMsg.replace(/\[Platform:.*?\]\s*/gi, "");
 	cleanMsg = cleanMsg.trim();
 
+	// ponytail: explicit product-name beats word-salad heuristics.
+	// 1) "Quoted name" (straight or typographic quotes)
+	const quoted = cleanMsg.match(
+		/["\u201C\u201D\u2018\u2019]([\w][\w .&-]{1,39})["\u201C\u201D\u2018\u2019]/,
+	);
+	// 2) bernama/dinamakan/named/called X
+	const named = cleanMsg.match(
+		/\b(?:bernama|dinamakan|dengan\s+nama|named|called)\s+([A-Za-z][\w-]{1,39})/i,
+	);
+	// 3) CamelCase brand token (HabitFlow, NovaPay) — min 2 humps
+	const camel = cleanMsg.match(/\b([A-Z][a-z0-9]+(?:[A-Z][a-z0-9]+)+)\b/);
+
+	const explicit = quoted?.[1]?.trim() ?? named?.[1] ?? camel?.[1];
+	if (explicit && explicit.replace(/\s/g, "").length >= 3) {
+		const isCamelToken = explicit === camel?.[1] && !/\s/.test(explicit);
+		const titled = isCamelToken
+			? explicit
+			: explicit
+					.split(/\s+/)
+					.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+					.join(" ");
+		return titled.slice(0, 40).trim();
+	}
+
 	const fillers = [
 		"tolong",
 		"coba",

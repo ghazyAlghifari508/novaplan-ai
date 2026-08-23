@@ -21,6 +21,7 @@ import {
 } from "@/lib/services/chat-service";
 import { sanitizeErrorForClient } from "@/lib/services/error-sanitizer";
 import {
+	deriveProjectName,
 	deriveProjectNameSync,
 	getLatestPrdContent,
 	getPrdVersionContent,
@@ -439,6 +440,22 @@ export const Route = createFileRoute("/api/chat")({
 									mode === "resume" ? "generate" : mode,
 									allowShare,
 								);
+
+								// ponytail: revive the documented-but-never-wired AI rename.
+								// Cosmetic only — must never delay or fail the done event.
+								void (async () => {
+									try {
+										if (mode !== "generate" || !projectIdToUse) return;
+										const better = await deriveProjectName(message);
+										if (!better || better === "Project Baru") return;
+										await db
+											.update(projects)
+											.set({ name: better })
+											.where(eq(projects.id, projectIdToUse));
+									} catch (e) {
+										console.warn("AI project rename skipped:", e);
+									}
+								})();
 
 								try {
 									// One credit per project, at generate only. Revisi is free.
