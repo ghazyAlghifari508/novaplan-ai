@@ -10,6 +10,9 @@ export const AI_MODELS = {
 	premium: COMBO_MODEL_ID,
 } as const;
 
+// Internal utility calls (project summary, etc.) reuse the combo model.
+export const SUMMARY_MODEL = COMBO_MODEL_ID;
+
 export const RATE_LIMITS = {
 	free: 5,
 	pro: 15,

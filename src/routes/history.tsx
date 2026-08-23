@@ -1,9 +1,9 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { desc, eq, inArray } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { HistoryPage } from "@/components/history/history-page";
 import { db } from "@/db";
-import { prdVersions, projects } from "@/db/schema";
+import { projects } from "@/db/schema";
 import { requireUserServer } from "@/lib/session";
 
 export interface HistoryItem {
@@ -29,55 +29,29 @@ const loadHistory = createServerFn({ method: "GET" }).handler(async () => {
 			updatedAt: projects.updatedAt,
 			acStatus: projects.acStatus,
 			taskStatus: projects.taskStatus,
+			description: projects.description,
 		})
 		.from(projects)
 		.where(eq(projects.userId, user.id))
 		.orderBy(desc(projects.updatedAt));
 
-	if (projectRows.length === 0) return { items: [] as HistoryItem[] };
-
-	const ids = projectRows.map((p) => p.id);
-	const prdRows = await db
-		.select({
-			projectId: prdVersions.projectId,
-			content: prdVersions.content,
-			version: prdVersions.version,
-		})
-		.from(prdVersions)
-		.where(inArray(prdVersions.projectId, ids))
-		.orderBy(desc(prdVersions.version));
-
-	const latestPrd = new Map<string, string>();
-	for (const r of prdRows) {
-		if (!latestPrd.has(r.projectId)) latestPrd.set(r.projectId, r.content);
-	}
-
-	const items: HistoryItem[] = projectRows.map((p) => {
-		const raw = latestPrd.get(p.id);
-		const preview = raw ? stripMarkdown(raw).slice(0, 160) : null;
-		return {
-			id: p.id,
-			name: p.name,
-			step: p.step,
-			lastUrl: p.lastUrl,
-			updatedAt: p.updatedAt ?? new Date(0),
-			preview,
-			acStatus: p.acStatus,
-			taskStatus: p.taskStatus,
-		};
-	});
+	// ponytail: preview is the AI-written project summary (projects.description,
+	// written fire-and-forget after PRD generate). Legacy rows pre-dating the
+	// summary feature have no description — card renders without a preview
+	// line rather than re-introducing the full prd_versions content fetch.
+	const items: HistoryItem[] = projectRows.map((p) => ({
+		id: p.id,
+		name: p.name,
+		step: p.step,
+		lastUrl: p.lastUrl,
+		updatedAt: p.updatedAt ?? new Date(0),
+		preview: p.description,
+		acStatus: p.acStatus,
+		taskStatus: p.taskStatus,
+	}));
 
 	return { items };
 });
-
-function stripMarkdown(raw: string): string {
-	return raw
-		.replace(/```[\s\S]*?```/g, " ")
-		.replace(/[#>*_`~]/g, " ")
-		.replace(/\[(.*?)\]\(.*?\)/g, "$1")
-		.replace(/\s+/g, " ")
-		.trim();
-}
 
 export const Route = createFileRoute("/history")({
 	loader: async () => {

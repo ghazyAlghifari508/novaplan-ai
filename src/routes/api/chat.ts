@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
@@ -165,7 +164,8 @@ export const Route = createFileRoute("/api/chat")({
 				const modelsToTry = selectModels();
 				// projectLanguage settled after the project lookup above; rebuild PRD
 				// prompt with localized sub-headings now that the value is known.
-				if (mode !== "revise") systemPrompt = PRD_SYSTEM_PROMPT(projectLanguage);
+				if (mode !== "revise")
+					systemPrompt = PRD_SYSTEM_PROMPT(projectLanguage);
 				systemPrompt += `\n${depthDirective("prd")}`;
 				systemPrompt += `\n${getLanguageDirective(projectLanguage, "prd")}`;
 
@@ -459,6 +459,35 @@ export const Route = createFileRoute("/api/chat")({
 											.where(eq(projects.id, projectIdToUse));
 									} catch (e) {
 										console.warn("AI project rename skipped:", e);
+									}
+								})();
+
+								// ponytail: AI one-liner for /history card preview. Same contract
+								// as the rename above: cosmetic, fire-and-forget, never delays
+								// or fails the done event. generate/resume only — revisions do
+								// not change what the project is about.
+								void (async () => {
+									try {
+										if (
+											(mode !== "generate" && mode !== "resume") ||
+											!projectIdToUse ||
+											!finalPrdToSave
+										)
+											return;
+										const { generateProjectSummary } = await import(
+											"@/lib/services/project-summary"
+										);
+										const summary = await generateProjectSummary({
+											prdContent: finalPrdToSave,
+											ideaPrompt: message,
+										});
+										if (!summary) return;
+										await db
+											.update(projects)
+											.set({ description: summary })
+											.where(eq(projects.id, projectIdToUse));
+									} catch (e) {
+										console.warn("AI project summary skipped:", e);
 									}
 								})();
 
