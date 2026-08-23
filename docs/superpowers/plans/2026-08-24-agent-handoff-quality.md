@@ -31,6 +31,8 @@
 
 ### Task 1: Commit fix pengiriman AC pada export endpoints
 
+> **✅ PRE-EXECUTED** — task ini sudah dikerjakan dan ter-push di commit `4cdb5f5` sebelum sesi eksekusi dimulai. Lewati semua step di bawah; gunakan hanya sebagai konteks (fix: `src/routes/api/export/prd.ts` + `src/routes/api/export/zip.ts` kini fetch `getLatestAcMarkdown`). Mulai eksekusi dari Task 2.
+
 **Files:**
 - Modify (sudah diedit, belum di-commit): `src/routes/api/export/prd.ts`
 - Modify (sudah diedit, belum di-commit): `src/routes/api/export/zip.ts`
