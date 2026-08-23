@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, desc, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
@@ -231,8 +230,16 @@ export const Route = createFileRoute("/api/ac/generate")({
 							let grounded = "";
 							try {
 								const { groundStack } = await import("@/lib/grounding");
-								grounded = await groundStack(prdContent);
-							} catch {
+								const { raceWithAbort } = await import("@/lib/abort-utils");
+								// Grounding is signal-deaf for up to its own 6s budget; racing
+								// it against the abort signal lets a disconnected client free
+								// the claim instantly instead of after the budget expires.
+								grounded = await raceWithAbort(
+									groundStack(prdContent),
+									request.signal,
+								);
+							} catch (e) {
+								if (e instanceof Error && e.name === "AbortError") throw e;
 								/* ponytail: optional grounding must never block generation */
 							}
 							const projectLanguage = normalizeLanguage(project.language);
