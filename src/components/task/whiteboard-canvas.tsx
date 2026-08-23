@@ -428,6 +428,17 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({
 		[openDetail, openTask, onWheel],
 	);
 
+	// Stable openers keep memoized node components from re-rendering while
+	// panning/zooming recreates this component's render output every frame.
+	const handleOpenDetail = useCallback(
+		(node: LayoutNode) => setOpenDetail(node),
+		[],
+	);
+	const handleOpenTask = useCallback(
+		(node: LayoutNode) => setOpenTask(node),
+		[],
+	);
+
 	return (
 		<div
 			ref={containerRef}
@@ -468,27 +479,7 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({
 						}}
 					>
 						{/* SVG edges */}
-						<svg
-							aria-hidden
-							className="pointer-events-none absolute left-0 top-0"
-							width={canvasWidth}
-							height={canvasHeight}
-							style={{ overflow: "visible" }}
-						>
-							{edges.map((e) => {
-								const midX = (e.x1 + e.x2) / 2;
-								return (
-									<path
-										key={`edge-${e.x1}-${e.y1}-${e.x2}-${e.y2}`}
-										d={`M ${e.x1} ${e.y1} C ${midX} ${e.y1}, ${midX} ${e.y2}, ${e.x2} ${e.y2}`}
-										fill="none"
-										stroke={e.color}
-										strokeWidth={1.5}
-										strokeOpacity={0.5}
-									/>
-								);
-							})}
-						</svg>
+						<Edges edges={edges} />
 
 						{/* Nodes */}
 						{nodes.map((node) => {
@@ -501,14 +492,14 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({
 									<DetailNode
 										key={node.id}
 										node={node}
-										onOpen={setOpenDetail}
+										onOpen={handleOpenDetail}
 									/>
 								);
 							return (
 								<TaskCard
 									key={node.id}
 									node={node}
-									onOpen={() => setOpenTask(node)}
+									onOpen={handleOpenTask}
 								/>
 							);
 						})}
@@ -632,7 +623,36 @@ function SkeletonDiagram() {
 
 /* ── Node components ── */
 
-function RootNode({ node }: { node: LayoutNode }) {
+// ponytail: memoized so per-frame pan/zoom renders of WhiteboardCanvas skip
+// re-rendering every node (props are stable: layoutGraph is useMemo'd and
+// openers are stable setState wrappers).
+const Edges = memo(function Edges({ edges }: { edges: LayoutEdge[] }) {
+	return (
+		<svg
+			aria-hidden
+			className="pointer-events-none absolute left-0 top-0"
+			width="100%"
+			height="100%"
+			style={{ overflow: "visible" }}
+		>
+			{edges.map((e) => {
+				const midX = (e.x1 + e.x2) / 2;
+				return (
+					<path
+						key={`edge-${e.x1}-${e.y1}-${e.x2}-${e.y2}`}
+						d={`M ${e.x1} ${e.y1} C ${midX} ${e.y1}, ${midX} ${e.y2}, ${e.x2} ${e.y2}`}
+						fill="none"
+						stroke={e.color}
+						strokeWidth={1.5}
+						strokeOpacity={0.5}
+					/>
+				);
+			})}
+		</svg>
+	);
+});
+
+const RootNode = memo(function RootNode({ node }: { node: LayoutNode }) {
 	return (
 		<div
 			className="absolute flex items-center justify-center rounded-xl border-2 border-indigo/60 bg-indigo/10 shadow-lg shadow-indigo/10 animate-fadeIn"
@@ -643,9 +663,9 @@ function RootNode({ node }: { node: LayoutNode }) {
 			</span>
 		</div>
 	);
-}
+});
 
-function FeatureNode({ node }: { node: LayoutNode }) {
+const FeatureNode = memo(function FeatureNode({ node }: { node: LayoutNode }) {
 	const color = COLORS[node.colorIdx];
 	return (
 		<div
@@ -670,9 +690,9 @@ function FeatureNode({ node }: { node: LayoutNode }) {
 			</div>
 		</div>
 	);
-}
+});
 
-function DetailNode({
+const DetailNode = memo(function DetailNode({
 	node,
 	onOpen,
 }: {
@@ -719,7 +739,7 @@ function DetailNode({
 			)}
 		</div>
 	);
-}
+});
 
 // Rendered via portal to document.body, must not live under the canvas's
 // panned/scaled wrapper, since `fixed` positioning is relative to the nearest
@@ -823,7 +843,13 @@ function TaskSubtasksModal({
 	);
 }
 
-function TaskCard({ node, onOpen }: { node: LayoutNode; onOpen: () => void }) {
+const TaskCard = memo(function TaskCard({
+	node,
+	onOpen,
+}: {
+	node: LayoutNode;
+	onOpen: (node: LayoutNode) => void;
+}) {
 	const color = COLORS[node.colorIdx];
 	const allSubtasks = node.subtasks ?? [];
 	const total = node.totalSubtasks ?? allSubtasks.length;
@@ -870,7 +896,7 @@ function TaskCard({ node, onOpen }: { node: LayoutNode; onOpen: () => void }) {
 						type="button"
 						onClick={(e) => {
 							e.stopPropagation();
-							onOpen();
+							onOpen(node);
 						}}
 						onPointerDown={(e) => e.stopPropagation()}
 						className="flex items-center gap-1 text-[10px] font-[510] text-indigo hover:text-indigo/80 transition-colors"
@@ -881,4 +907,4 @@ function TaskCard({ node, onOpen }: { node: LayoutNode; onOpen: () => void }) {
 			)}
 		</div>
 	);
-}
+});

@@ -190,10 +190,13 @@ export function PrdDetail({
 		return [];
 	}, [projectId]);
 
-	const handleVersionSelect = (content: string, version: number) => {
-		setCurrentContent(content);
-		setSelectedVersionNum(version);
-	};
+	const handleVersionSelect = useCallback(
+		(content: string, version: number) => {
+			setCurrentContent(content);
+			setSelectedVersionNum(version);
+		},
+		[],
+	);
 
 	// ponytail: after revision completes, update content, refresh versions list,
 	// and jump selectedVersionNum to the new version - otherwise the Version
@@ -209,13 +212,30 @@ export function PrdDetail({
 		[refreshVersions],
 	);
 
-	const handleProjectCreated = (newProjectId: string) => {
-		startTransition(() => {
-			router.push(`/prd/${newProjectId}`);
-		});
-	};
+	const handleProjectCreated = useCallback(
+		(newProjectId: string) => {
+			startTransition(() => {
+				router.push(`/prd/${newProjectId}`);
+			});
+		},
+		[router, startTransition],
+	);
 
 	const toggleChat = useUIStore((s) => s.toggleChatPanel);
+
+	// ponytail: stable identity so PrdViewer's memo isn't defeated by a fresh
+	// array on every parent render (e.g. during chat-panel width dragging).
+	const mappedVersions = useMemo(
+		() =>
+			versions?.map((v) => ({
+				id: v.id,
+				version: v.version,
+				content: v.content,
+				change_summary: v.change_summary,
+				created_at: v.created_at,
+			})),
+		[versions],
+	);
 
 	const _handleStepAc = async () => {
 		if (!projectId || isStepLoading) return;
@@ -294,13 +314,7 @@ export function PrdDetail({
 							content={streamingForView ? streamingForView : currentContent}
 							projectName={projectName || ""}
 							plan={plan}
-							versions={versions?.map((v) => ({
-								id: v.id,
-								version: v.version,
-								content: v.content,
-								change_summary: v.change_summary,
-								created_at: v.created_at,
-							}))}
+							versions={mappedVersions}
 							currentVersion={selectedVersionNum}
 							onSelectVersion={handleVersionSelect}
 							className="flex-1 overflow-hidden"

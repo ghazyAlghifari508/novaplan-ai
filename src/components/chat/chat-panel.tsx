@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import {
+	memo,
 	startTransition,
 	useCallback,
 	useEffect,
@@ -168,7 +169,9 @@ interface ChatPanelProps {
 // Component
 // ─────────────────────────────────────────────
 
-export function ChatPanel({
+// ponytail: memoized so parent re-renders that don't change chat props
+// (e.g. dragging the PRD panel width) skip this whole subtree.
+export const ChatPanel = memo(function ChatPanel({
 	projectId,
 	conversationId: initialConversationId,
 	className,
@@ -1139,4 +1142,4 @@ export function ChatPanel({
 			/>
 		</div>
 	);
-}
+});

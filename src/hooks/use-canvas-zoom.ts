@@ -1,9 +1,14 @@
 /**
  * Canvas zoom and pan hook.
  * Provides zoom level, pan position, and control functions.
+ *
+ * ponytail: pointermove/wheel can fire more often than the display refreshes.
+ * Gesture values are transient, so they live in refs and are committed via
+ * requestAnimationFrame - at most one React render per frame instead of one
+ * per input event (see vercel-react-best-practices rerender-use-ref-transient-values).
  */
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UseCanvasZoomOptions {
 	minZoom?: number;
@@ -19,7 +24,42 @@ export function useCanvasZoom({
 	const [zoom, setZoom] = useState(initialZoom);
 	const [pan, setPan] = useState({ x: 0, y: 0 });
 	const isPanningRef = useRef(false);
-	const lastPanRef = useRef({ x: 0, y: 0 });
+
+	// Latest pointer position not yet committed + baseline of last applied move.
+	const pendingPointerRef = useRef<{ x: number; y: number } | null>(null);
+	const lastAppliedRef = useRef({ x: 0, y: 0 });
+	// Multiplicative wheel factors accumulated since last commit.
+	const pendingZoomFactorRef = useRef(1);
+	const panRafRef = useRef<number | null>(null);
+	const zoomRafRef = useRef<number | null>(null);
+
+	useEffect(
+		() => () => {
+			if (panRafRef.current !== null) cancelAnimationFrame(panRafRef.current);
+			if (zoomRafRef.current !== null) cancelAnimationFrame(zoomRafRef.current);
+		},
+		[],
+	);
+
+	const flushPan = useCallback(() => {
+		panRafRef.current = null;
+		const pending = pendingPointerRef.current;
+		if (!pending) return;
+		pendingPointerRef.current = null;
+		const deltaX = pending.x - lastAppliedRef.current.x;
+		const deltaY = pending.y - lastAppliedRef.current.y;
+		if (deltaX === 0 && deltaY === 0) return;
+		lastAppliedRef.current = { x: pending.x, y: pending.y };
+		setPan((prev) => ({ x: prev.x + deltaX, y: prev.y + deltaY }));
+	}, []);
+
+	const flushZoom = useCallback(() => {
+		zoomRafRef.current = null;
+		const factor = pendingZoomFactorRef.current;
+		if (factor === 1) return;
+		pendingZoomFactorRef.current = 1;
+		setZoom((prev) => Math.min(maxZoom, Math.max(minZoom, prev * factor)));
+	}, [minZoom, maxZoom]);
 
 	const zoomIn = useCallback(() => {
 		setZoom((prev) => Math.min(prev * 1.2, maxZoom));
@@ -38,37 +78,44 @@ export function useCanvasZoom({
 		// Only react to primary button / touch / pen contact.
 		if (e.pointerType === "mouse" && e.buttons !== 1) return;
 		isPanningRef.current = true;
-		lastPanRef.current = { x: e.clientX, y: e.clientY };
+		// Deltas are measured against this baseline until the next commit.
+		lastAppliedRef.current = { x: e.clientX, y: e.clientY };
 		// ponytail: capture so we keep receiving move events outside the element.
 		(e.currentTarget as Element | null)?.setPointerCapture?.(e.pointerId);
 	}, []);
 
-	const updatePan = useCallback((e: React.PointerEvent) => {
-		if (!isPanningRef.current) return;
-
-		const deltaX = e.clientX - lastPanRef.current.x;
-		const deltaY = e.clientY - lastPanRef.current.y;
-
-		setPan((prev) => ({
-			x: prev.x + deltaX,
-			y: prev.y + deltaY,
-		}));
-
-		lastPanRef.current = { x: e.clientX, y: e.clientY };
-	}, []);
+	const updatePan = useCallback(
+		(e: React.PointerEvent) => {
+			if (!isPanningRef.current) return;
+			pendingPointerRef.current = { x: e.clientX, y: e.clientY };
+			if (panRafRef.current === null) {
+				panRafRef.current = requestAnimationFrame(flushPan);
+			}
+		},
+		[flushPan],
+	);
 
 	const endPan = useCallback(() => {
 		isPanningRef.current = false;
-	}, []);
+		// Commit any movement captured since the last frame so the board
+		// lands exactly under the pointer instead of snapping back a delta.
+		if (panRafRef.current !== null) {
+			cancelAnimationFrame(panRafRef.current);
+			panRafRef.current = null;
+		}
+		flushPan();
+	}, [flushPan]);
 
 	// ponytail: no e.preventDefault(), causes passive listener warning.
 	// Canvas div uses touch-action: none + overflow-hidden to block native scroll.
 	const onWheel = useCallback(
 		(e: React.WheelEvent) => {
-			const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
-			setZoom((prev) => Math.min(maxZoom, Math.max(minZoom, prev * factor)));
+			pendingZoomFactorRef.current *= e.deltaY < 0 ? 1.1 : 1 / 1.1;
+			if (zoomRafRef.current === null) {
+				zoomRafRef.current = requestAnimationFrame(flushZoom);
+			}
 		},
-		[minZoom, maxZoom],
+		[flushZoom],
 	);
 
 	/**
