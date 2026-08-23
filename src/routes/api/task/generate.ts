@@ -3,6 +3,7 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, desc, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
+import { CLAIM_POLL_MS, CLAIM_RETRY_MS } from "@/lib/constants";
 import { checkCredits, consumeCredit, hasFullWorkflow } from "@/lib/credits";
 import { isTruncatedGeneration } from "@/lib/flow-progress";
 import { getLanguageDirective, normalizeLanguage } from "@/lib/language";
@@ -93,21 +94,38 @@ export const Route = createFileRoute("/api/task/generate")({
 						{ status: 404 },
 					);
 
-				const claimed = await db
-					.update(projects)
-					.set({ taskStatus: "generating" })
-					.where(
-						and(
-							eq(projects.id, projectId),
-							ne(projects.taskStatus, "generating"),
-						),
-					)
-					.returning({ id: projects.id });
+				const claimTask = () =>
+					db
+						.update(projects)
+						.set({ taskStatus: "generating" })
+						.where(
+							and(
+								eq(projects.id, projectId),
+								ne(projects.taskStatus, "generating"),
+							),
+						)
+						.returning({ id: projects.id });
+
+				let claimed = await claimTask();
 				if (!claimed.length) {
-					return Response.json(
-						{ error: "Task sedang digenerate. Tunggu hingga selesai." },
-						{ status: 409 },
-					);
+					// ponytail: mirrors ac/generate.ts — a just-aborted generation
+					// releases taskStatus asynchronously; give it one bounded window
+					// to free the claim before answering 409.
+					for (
+						let waited = 0;
+						waited < CLAIM_RETRY_MS;
+						waited += CLAIM_POLL_MS
+					) {
+						await new Promise((r) => setTimeout(r, CLAIM_POLL_MS));
+						claimed = await claimTask();
+						if (claimed.length) break;
+					}
+					if (!claimed.length) {
+						return Response.json(
+							{ error: "Task sedang digenerate. Tunggu hingga selesai." },
+							{ status: 409 },
+						);
+					}
 				}
 
 				const modelsToTry = selectModels();

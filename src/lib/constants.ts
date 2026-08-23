@@ -34,8 +34,8 @@ export const AI_TOTAL_TIMEOUT_MS = 600_000;
 // Bounded wait before a 409 when another generation still holds the claim —
 // an aborted request releases ac_status/task_status asynchronously, so an
 // immediate retry (StrictMode double-mount) must give it time to free up.
-export const AC_CLAIM_POLL_MS = 500;
-export const AC_CLAIM_RETRY_MS = 2000;
+export const CLAIM_POLL_MS = 500;
+export const CLAIM_RETRY_MS = 2000;
 // Max time a second generate caller waits for an in-flight sibling attempt
 // to settle before giving up silently (prevents stacked duplicate requests).
 export const AC_GUARD_WAIT_MS = 3000;
