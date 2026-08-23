@@ -18,10 +18,8 @@ const loadAc = createServerFn({ method: "GET" })
 		const user = await requireUserServer();
 		const { plan } = await getUserPlanAndQuota();
 		const [project, prdContent, acContent] = await Promise.all([
-			// ponytail: select only needed cols — name only used downstream. Avoids
-			// pulling description/shareToken/lastUrl jsonb on every AC page load.
 			db
-				.select({ id: projects.id, name: projects.name })
+				.select({ id: projects.id, name: projects.name, acStatus: projects.acStatus })
 				.from(projects)
 				.where(and(eq(projects.id, id), eq(projects.userId, user.id)))
 				.limit(1),
@@ -36,6 +34,7 @@ const loadAc = createServerFn({ method: "GET" })
 			latestAcContent: acContent ?? undefined,
 			latestPrdContent: prdContent ?? undefined,
 			plan,
+			acStatus: (project[0] as { acStatus: string | null }).acStatus ?? "pending",
 		};
 	});
 
@@ -75,6 +74,7 @@ function AcDetailPage() {
 			latestAcContent={d.latestAcContent}
 			latestPrdContent={d.latestPrdContent}
 			plan={d.plan}
+			acStatus={(d as { acStatus?: string | null }).acStatus ?? null}
 		/>
 	);
 }

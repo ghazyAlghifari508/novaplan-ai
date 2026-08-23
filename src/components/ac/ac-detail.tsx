@@ -24,6 +24,7 @@ interface AcDetailProps {
 	latestAcContent?: string | null;
 	latestPrdContent?: string;
 	plan?: Plan;
+	acStatus?: string | null;
 }
 
 // ponytail: module-level in-flight guard. StrictMode's phantom
@@ -38,6 +39,7 @@ export function AcDetail({
 	latestAcContent,
 	latestPrdContent,
 	plan = "free",
+	acStatus,
 }: AcDetailProps) {
 	const router = useRouter();
 	const showToast = useUIStore((s) => s.showToast);
@@ -240,6 +242,11 @@ export function AcDetail({
 		setCreditsExhausted,
 		thinkingText,
 	]);
+
+	// Sync server acStatus into store so navbar "Generate Task" stays disabled on refresh (Zustand is in-memory only)
+	useEffect(() => {
+		setGeneratingAC(acStatus === "generating");
+	}, [acStatus, setGeneratingAC]);
 
 	// Auto-generate AC on first visit
 	useEffect(() => {
