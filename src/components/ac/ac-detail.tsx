@@ -8,7 +8,7 @@ import { syncPaymentStatus } from "@/app/actions/payment";
 import { CreditExhaustedModal } from "@/components/chat/credit-exhausted-modal";
 import { TableOfContents } from "@/components/prd/table-of-contents";
 import { usePanelResize } from "@/hooks/use-panel-resize";
-import { AC_GUARD_WAIT_MS } from "@/lib/constants";
+import { GUARD_WAIT_MS } from "@/lib/constants";
 import {
 	consumeResumeIntent,
 	consumeSuppressAutoGen,
@@ -95,7 +95,7 @@ export function AcDetail({
 		// the real retry proceeds; a genuine duplicate (double-click) times out
 		// silently instead of stacking a second request.
 		if (inFlightAcProjects.has(projectId)) {
-			const deadline = Date.now() + AC_GUARD_WAIT_MS;
+			const deadline = Date.now() + GUARD_WAIT_MS;
 			while (inFlightAcProjects.has(projectId) && Date.now() < deadline) {
 				await new Promise((r) => setTimeout(r, 50));
 			}

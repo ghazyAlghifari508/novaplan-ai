@@ -36,6 +36,7 @@ export const AI_TOTAL_TIMEOUT_MS = 600_000;
 // immediate retry (StrictMode double-mount) must give it time to free up.
 export const CLAIM_POLL_MS = 500;
 export const CLAIM_RETRY_MS = 2000;
-// Max time a second generate caller waits for an in-flight sibling attempt
-// to settle before giving up silently (prevents stacked duplicate requests).
-export const AC_GUARD_WAIT_MS = 3000;
+// Max time a second generate caller (AC or Task) waits for an in-flight
+// sibling attempt to settle before giving up silently (prevents stacked
+// duplicate requests).
+export const GUARD_WAIT_MS = 3000;
