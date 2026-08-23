@@ -119,8 +119,10 @@ const exportCmd = program
 exportCmd
 	.command("rules")
 	.argument("<projectId>", "Project UUID")
-	.description("Generate .claude/rules/project-spec.md with PRD stack + AC")
-	.option("--format <format>", "Output format (claude|cursor)")
+	.description(
+		"Generate agent rules file with PRD stack + AC (--format agents writes AGENTS.md)",
+	)
+	.option("--format <format>", "Output format (agents|claude|cursor)")
 	.action(exportRulesCommand);
 
 program.parse(process.argv);

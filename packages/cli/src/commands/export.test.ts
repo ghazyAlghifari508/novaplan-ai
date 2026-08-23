@@ -10,9 +10,9 @@ vi.mock("node:fs", () => ({
 	existsSync: vi.fn(() => true),
 }));
 
+import { writeFileSync } from "node:fs";
 import { apiGet } from "../lib/api-client.js";
 import { exportRulesCommand } from "./export.js";
-import { writeFileSync } from "node:fs";
 
 const PRD = `# PRD
 
@@ -53,7 +53,9 @@ describe("exportRulesCommand", () => {
 		expect(writeFileSync).toHaveBeenCalled();
 
 		const [path, content] = vi.mocked(writeFileSync).mock.calls[0];
-		expect(String(path).replace(/\\/g, "/")).toBe(".claude/rules/project-spec.md");
+		expect(String(path).replace(/\\/g, "/")).toBe(
+			".claude/rules/project-spec.md",
+		);
 		const md = content as string;
 		expect(md).toContain("# Project Rules");
 		expect(md).toContain("## Tech Stack & Architecture");
@@ -109,6 +111,23 @@ describe("exportRulesCommand", () => {
 		expect(md).toContain("# Project Rules");
 		expect(md).toContain("React 19");
 		expect(md).toContain("User bisa login via Google OAuth");
+	});
+
+	it("writes AGENTS.md when --format agents is passed", async () => {
+		vi.mocked(apiGet)
+			.mockResolvedValueOnce({ content: PRD, version: 1 })
+			.mockResolvedValueOnce({ content: AC, version: 1 });
+
+		vi.mocked(writeFileSync).mockClear();
+		await exportRulesCommand("proj-1", { format: "agents" });
+
+		const [path, content] = vi.mocked(writeFileSync).mock.calls[0];
+		expect(String(path).replace(/\\/g, "/")).toBe("AGENTS.md");
+		const md = content as string;
+		expect(md).toContain("# Project Rules");
+		expect(md).toContain("React 19");
+		expect(md).toContain("User bisa login via Google OAuth");
+		expect(md).toContain("ONLY implement features explicitly listed");
 	});
 
 	it("preserves ### sub-headings inside matched sections", async () => {

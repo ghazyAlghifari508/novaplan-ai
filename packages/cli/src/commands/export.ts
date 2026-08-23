@@ -2,9 +2,9 @@
  * novaplan export rules <projectId> — generate .claude/rules/project-spec.md
  */
 
-import { apiGet } from "../lib/api-client.js";
-import { writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { apiGet } from "../lib/api-client.js";
 
 interface PrdAcResponse {
 	content: string;
@@ -89,6 +89,9 @@ export async function exportRulesCommand(
 		if (format === "cursor") {
 			writeFileSync(".cursorrules", md);
 			console.log("✓ Written .cursorrules");
+		} else if (format === "agents") {
+			writeFileSync("AGENTS.md", md);
+			console.log("✓ Written AGENTS.md");
 		} else {
 			const dir = ".claude/rules";
 			if (!existsSync(dir)) {
@@ -98,9 +101,7 @@ export async function exportRulesCommand(
 			console.log(`✓ Written ${dir}/project-spec.md`);
 		}
 	} catch (err) {
-		console.error(
-			`Error: ${err instanceof Error ? err.message : err}`,
-		);
+		console.error(`Error: ${err instanceof Error ? err.message : err}`);
 		process.exit(1);
 	}
 }
