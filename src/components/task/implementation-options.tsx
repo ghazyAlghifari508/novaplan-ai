@@ -134,9 +134,9 @@ novaplan subtask update <taskId> --index <subtaskIndex> --status in_progress
 
 ### Alur per FASE (setiap feature group = 1 fase):
 0. SETUP PROJECT RULES (sekali di awal):
-   Jalankan \`novaplan export rules {projectId}\` untuk generate file .claude/rules/project-spec.md.
+   Jalankan \`novaplan export rules {projectId} --format agents\` untuk generate file AGENTS.md di root project.
    File ini berisi Tech Stack, Architecture, dan Acceptance Criteria yang WAJIB diikuti.
-   AI agent akan otomatis membaca file ini di setiap session.
+   BACA ULANG file AGENTS.md ini di awal SETIAP session baru sebelum mulai bekerja.
 1. BACA ULANG PRD: \`novaplan prd {projectId}\` — refresh konteks sebelum mulai fase baru
 2. BACA ULANG AC: \`novaplan ac {projectId}\` — pastikan tahu persis apa yang harus diimplementasi
 3. Baca tasks untuk fase ini: \`novaplan task list {projectId}\`
@@ -146,6 +146,11 @@ novaplan subtask update <taskId> --index <subtaskIndex> --status in_progress
    c. Update subtask: \`novaplan subtask update <taskId> --index <i> --status completed\`
    d. Setelah semua subtask selesai: \`novaplan task update <taskId> --status completed\`
 5. Ulangi dari langkah 1 untuk fase berikutnya
+
+### CHECKPOINT WAJIB ANTAR FASE:
+- Setelah SEMUA task dalam satu fase berstatus completed, BERHENTI. JANGAN langsung mulai fase berikutnya.
+- Sajikan ringkasan fase: task yang diselesaikan, poin AC yang tercakup (sebutkan nomor AC-X.Y), dan file yang dibuat/diubah.
+- TUNGGU user menulis "lanjut" sebelum memulai fase berikutnya.
 
 ### Aturan penting:
 - WAJIB baca ulang PRD + AC di awal SETIAP fase — jangan andalkan memori dari fase sebelumnya
