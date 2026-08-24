@@ -1,5 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { AI_MODELS, RATE_LIMIT_WINDOW_MS, RATE_LIMITS } from "./constants";
+import {
+	AI_MODELS,
+	BRIEF_MAX_BYTES,
+	BRIEF_MAX_CHARS,
+	HISTORY_PAGE_SIZE,
+	HOME_DRAFT_DEBOUNCE_MS,
+	MAX_PROMPT_LENGTH,
+	MIN_PROMPT_LENGTH,
+	PAYWALL_COPY,
+	PDF_STYLES,
+	RATE_LIMIT_WINDOW_MS,
+	RATE_LIMITS,
+} from "./constants";
 
 describe("AI_MODELS", () => {
 	it("has primary model", () => {
@@ -30,5 +42,38 @@ describe("RATE_LIMITS", () => {
 describe("constants", () => {
 	it("has valid RATE_LIMIT_WINDOW_MS", () => {
 		expect(RATE_LIMIT_WINDOW_MS).toBe(60_000);
+	});
+});
+
+describe("no-hardcode constants (Task 1)", () => {
+	it("constants exist and sane", () => {
+		expect(MIN_PROMPT_LENGTH).toBe(20);
+		expect(MAX_PROMPT_LENGTH).toBe(3000);
+		expect(HISTORY_PAGE_SIZE).toBe(12);
+	});
+
+	it("has debounce and brief limits", () => {
+		expect(HOME_DRAFT_DEBOUNCE_MS).toBe(300);
+		expect(BRIEF_MAX_CHARS).toBe(5000);
+		expect(BRIEF_MAX_BYTES).toBe(2 * 1024 * 1024);
+	});
+
+	it("has PAYWALL_COPY with ac and task entries", () => {
+		expect(PAYWALL_COPY.ac.title).toBe("Lanjut ke AC butuh Pro");
+		expect(PAYWALL_COPY.ac.desc).toBe(
+			"Generate Acceptance Criteria hanya untuk Pro/Hengker",
+		);
+		expect(PAYWALL_COPY.ac.cta).toBe("Lihat Paket");
+		expect(PAYWALL_COPY.task.title).toBe("Lanjut ke Task butuh Pro");
+		expect(PAYWALL_COPY.task.desc).toBe(
+			"Generate Task & Kanban hanya untuk Pro/Hengker",
+		);
+		expect(PAYWALL_COPY.task.cta).toBe("Lihat Paket");
+	});
+
+	it("has PDF_STYLES", () => {
+		expect(PDF_STYLES.font).toBe("Inter");
+		expect(PDF_STYLES.headerSize).toBe(14);
+		expect(PDF_STYLES.bodySize).toBe(11);
 	});
 });

@@ -23,9 +23,12 @@ import {
 	saveSetupPrompt,
 } from "@/lib/prompt-handoff";
 import { cn } from "@/lib/utils";
+import {
+	HOME_DRAFT_DEBOUNCE_MS,
+	MAX_PROMPT_LENGTH,
+	MIN_PROMPT_LENGTH,
+} from "@/lib/constants";
 import { PLAN_CREDITS } from "@/types/database";
-
-const MIN_PROMPT_LENGTH = 20;
 
 interface ChatInputProps {
 	className?: string;
@@ -52,10 +55,13 @@ export function ChatInput({ className }: ChatInputProps) {
 
 	const router = useRouter();
 
-	// ponytail: 300ms debounce keeps the home seed-prompt draft alive across
+	// ponytail: debounce keeps the home seed-prompt draft alive across
 	// refresh, so a long product description isn't lost before send.
 	useEffect(() => {
-		const t = setTimeout(() => saveHomeDraft(message), 300);
+		const t = setTimeout(
+			() => saveHomeDraft(message),
+			HOME_DRAFT_DEBOUNCE_MS,
+		);
 		return () => clearTimeout(t);
 	}, [message]);
 
@@ -275,7 +281,8 @@ export function ChatInput({ className }: ChatInputProps) {
 											: "text-fog",
 									)}
 								>
-									{message.length.toLocaleString()}/3,000
+									{message.length.toLocaleString()}/
+									{MAX_PROMPT_LENGTH.toLocaleString()}
 								</span>
 								<button
 									type="button"
