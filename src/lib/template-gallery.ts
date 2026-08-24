@@ -1,0 +1,8 @@
+export const TEMPLATE_GALLERY = [
+  { id:"saas-analytics", title:"SaaS Analytics Dashboard", icon:"BarChart", platform:"web" as const, prompt:"Saya ingin membuat SaaS Analytics Dashboard untuk UMKM yang menampilkan penjualan harian, stok, dan prediksi AI. Target user pemilik toko. Butuh role admin dan staff, integrasi Midtrans, dan laporan export PDF. Buatkan PRD lengkap." },
+  { id:"marketplace", title:"Marketplace UMKM", icon:"Store", platform:"web" as const, prompt:"Marketplace untuk produk UMKM lokal dengan fitur katalog, keranjang, checkout, chat penjual-pembeli, dan sistem review. Platform web, butuh admin panel dan kurir tracking." },
+  { id:"habit-mobile", title:"Habit Tracker Mobile", icon:"Smartphone", platform:"mobile" as const, prompt:"Aplikasi mobile habit tracker dengan streak, reminder notifikasi, statistik mingguan, dan social share. Target Gen Z, butuh onboarding gamified dan premium subscription." },
+  { id:"edu-lms", title:"LMS Edukasi", icon:"GraduationCap", platform:"web" as const, prompt:"Platform LMS untuk kursus online dengan video streaming, quiz, sertifikat otomatis, dan forum diskusi. Butuh role mentor dan student, payment gateway, dan progress tracking." },
+  { id:"crm", title:"CRM Penjualan", icon:"Users", platform:"web" as const, prompt:"CRM untuk tim sales dengan pipeline kanban, reminder follow-up, integrasi WhatsApp, dan laporan performa. Butuh role admin, sales, manager." },
+  { id:"pos", title:"POS Kasir", icon:"Receipt", platform:"mobile" as const, prompt:"Aplikasi POS kasir untuk warung dengan scan barcode, cetak struk Bluetooth, laporan harian, dan manajemen stok. Platform mobile Android, offline-first." },
+];
