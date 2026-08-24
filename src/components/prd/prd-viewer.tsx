@@ -7,11 +7,13 @@ import {
 	useEffect,
 	useMemo,
 	useRef,
+	useState,
 } from "react";
 import type { Components } from "react-markdown";
 import Markdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import remarkGfm from "remark-gfm";
+import { PrdDiffViewer } from "./prd-diff-viewer";
 import { TableOfContents } from "./table-of-contents";
 
 // ponytail: lazy-load Mermaid so the ~2-3MB mermaid library (layout engines,
@@ -91,6 +93,8 @@ export const PrdViewer = memo(function PrdViewer({
 }: PrdViewerProps) {
 	const { leftWidth, onStartDragLeft, isDraggingLeft } = usePanelResize();
 	const scrollRef = useRef<HTMLDivElement>(null);
+	const [activeTab, setActiveTab] = useState<"preview" | "diff">("preview");
+	const [oldVer, setOldVer] = useState<number | undefined>(undefined);
 
 	// Auto-scroll logic when new content arrives
 	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional re-scroll on content change
@@ -162,7 +166,7 @@ export const PrdViewer = memo(function PrdViewer({
 				/>
 			</aside>
 
-			{/* Content area: VersionHistory header + scrollable content */}
+			{/* Content area: VersionHistory header + tabs + scrollable content */}
 			<div className="flex-1 flex flex-col min-w-0">
 				{/* Version History header - only spans content area, not TOC */}
 				{versions && versions.length > 1 && (
@@ -178,19 +182,73 @@ export const PrdViewer = memo(function PrdViewer({
 					</div>
 				)}
 
+				{/* Tabs: Preview | Diff */}
+				<div className="shrink-0 flex items-center gap-2 border-b border-graphite bg-charcoal/20 px-4 py-2">
+					<button
+						type="button"
+						onClick={() => setActiveTab("preview")}
+						className={cn(
+							"rounded px-3 py-1 text-xs font-medium transition-colors",
+							activeTab === "preview"
+								? "bg-indigo text-white"
+								: "bg-white/5 text-fog hover:bg-white/10 hover:text-snow",
+						)}
+					>
+						Pratinjau
+					</button>
+					<button
+						type="button"
+						onClick={() => setActiveTab("diff")}
+						className={cn(
+							"rounded px-3 py-1 text-xs font-medium transition-colors",
+							activeTab === "diff"
+								? "bg-indigo text-white"
+								: "bg-white/5 text-fog hover:bg-white/10 hover:text-snow",
+						)}
+					>
+						Diff
+					</button>
+					{activeTab === "diff" && versions && versions.length > 1 && (
+						<select
+							value={oldVer ?? ""}
+							onChange={(e) => setOldVer(e.target.value ? Number(e.target.value) : undefined)}
+							className="ml-2 rounded border border-graphite bg-onyx px-2 py-1 text-xs text-snow"
+							aria-label="Pilih versi lama untuk compare"
+						>
+							<option value="">Pilih versi lama</option>
+							{versions
+								.filter((v) => v.version !== currentVersion)
+								.map((v) => (
+									<option key={v.id} value={v.version}>
+										v{v.version}
+									</option>
+								))}
+						</select>
+					)}
+				</div>
+
 				<div
 					ref={scrollRef}
 					className="flex-1 overflow-y-auto relative scroll-smooth"
 				>
-					<article className="prd-content mx-auto max-w-3xl px-8 pb-16 pt-8 text-mist">
-						<Markdown
-							remarkPlugins={[remarkGfm]}
-							rehypePlugins={[rehypeHighlight]}
-							components={markdownComponents}
-						>
-							{cleanContent}
-						</Markdown>
-					</article>
+					{activeTab === "diff" ? (
+						<div className="mx-auto max-w-3xl px-4 py-4">
+							<PrdDiffViewer
+								oldContent={versions?.find((v) => v.version === oldVer)?.content ?? ""}
+								newContent={content}
+							/>
+						</div>
+					) : (
+						<article className="prd-content mx-auto max-w-3xl px-8 pb-16 pt-8 text-mist">
+							<Markdown
+								remarkPlugins={[remarkGfm]}
+								rehypePlugins={[rehypeHighlight]}
+								components={markdownComponents}
+							>
+								{cleanContent}
+							</Markdown>
+						</article>
+					)}
 				</div>
 			</div>
 		</div>
