@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocation, useRouter } from "@tanstack/react-router";
+import { useLocation, useNavigate, useRouter } from "@tanstack/react-router";
 import {
 	memo,
 	startTransition,
@@ -220,6 +220,7 @@ export const ChatPanel = memo(function ChatPanel({
 	// ── Store ──
 	const showToast = useUIStore((s) => s.showToast);
 	const router = useRouter();
+	const navigate = useNavigate();
 	const searchStr = useLocation({ select: (l) => l.searchStr });
 	const searchParams = new URLSearchParams(searchStr);
 	const messages = useChatStore((s) => s.messages);
@@ -908,8 +909,8 @@ export const ChatPanel = memo(function ChatPanel({
 						);
 					}
 				}
-				// Strip query params from URL
-				window.history.replaceState({}, "", window.location.pathname);
+				// Strip Midtrans query params via TanStack Router to keep history in sync
+				navigate({ to: ".", search: {}, replace: true });
 			} catch (e) {
 				console.error("Auto-resume payment sync failed:", e);
 			}
@@ -917,6 +918,7 @@ export const ChatPanel = memo(function ChatPanel({
 	}, [
 		searchParams,
 		handleSendWithMessage,
+		navigate,
 		projectId,
 		router,
 		setGeneratingPRD,

@@ -81,6 +81,20 @@ const loadPrd = createServerFn({ method: "GET" })
 	});
 
 export const Route = createFileRoute("/prd/$id")({
+	validateSearch: (
+		search: Record<string, unknown>,
+	): { order_id?: string; payment?: string; transaction_status?: string } => {
+		const result: {
+			order_id?: string;
+			payment?: string;
+			transaction_status?: string;
+		} = {};
+		if (typeof search.order_id === "string") result.order_id = search.order_id;
+		if (typeof search.payment === "string") result.payment = search.payment;
+		if (typeof search.transaction_status === "string")
+			result.transaction_status = search.transaction_status;
+		return result;
+	},
 	loader: async ({ params }) => {
 		try {
 			return await loadPrd({ data: params.id });

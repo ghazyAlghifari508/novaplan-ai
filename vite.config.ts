@@ -11,7 +11,7 @@ const config = defineConfig({
     tsconfigPaths: true,
   },
   plugins: [
-    devtools({ eventBusConfig: { disableConsoleReplication: true } } as never),
+    devtools(),
     tailwindcss(),
     // ponytail: TS type for tanstackStart's router option is narrower than the
     // runtime schema (zod parse accepts autoCodeSplitting). Cast bypasses TS;

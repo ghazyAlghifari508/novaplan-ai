@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowRight, Trash2 } from "lucide-react";
-import { useNavigate, useRouter } from "@tanstack/react-router";
+import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { DeleteProjectModal } from "@/components/prd/delete-project-modal";
 import { useUserPlan } from "@/hooks/use-user-plan";
@@ -22,6 +22,27 @@ const STEP_BADGE: Record<string, { label: string; className: string }> = {
 	ac: { label: "AC", className: "bg-amber/15 text-amber" },
 	task: { label: "Task", className: "bg-violet/15 text-violet" },
 };
+
+// ponytail: parse concrete history href like "/ask/<uuid>" into typed TanStack route.
+// Link's `to` expects the pattern "/ask/$id" + params, not the concrete string.
+// Using `to={href as never}` would bypass typing and do a full reload; this keeps SPA.
+function parseHistoryHref(href: string):
+	| { to: "/ask/$id"; params: { id: string } }
+	| { to: "/prd/$id"; params: { id: string } }
+	| { to: "/ac/$id"; params: { id: string } }
+	| { to: "/task/$id"; params: { id: string } }
+	| { to: "/kanban/$id"; params: { id: string } }
+	| null {
+	const m = href.match(/^\/(ask|prd|ac|task|kanban)\/([^/]+)$/);
+	if (!m) return null;
+	const [, seg, id] = m;
+	if (seg === "ask") return { to: "/ask/$id", params: { id } };
+	if (seg === "prd") return { to: "/prd/$id", params: { id } };
+	if (seg === "ac") return { to: "/ac/$id", params: { id } };
+	if (seg === "task") return { to: "/task/$id", params: { id } };
+	if (seg === "kanban") return { to: "/kanban/$id", params: { id } };
+	return null;
+}
 
 export function HistoryPage({ items }: { items: HistoryItem[] }) {
 	// ponytail: shared TanStack Query hook — deduped across all components.
@@ -100,6 +121,7 @@ export function HistoryPage({ items }: { items: HistoryItem[] }) {
 						const badge = STEP_BADGE[item.step ?? "prd"] ?? STEP_BADGE.prd;
 						const href = resolveHistoryUrl(item);
 						const halted = isHaltedByCredits(item);
+						const link = parseHistoryHref(href);
 
 						const handleClick = async (e: React.MouseEvent) => {
 							if (!halted) return;
@@ -126,60 +148,80 @@ export function HistoryPage({ items }: { items: HistoryItem[] }) {
 								// proceed anyway; landing page will handle
 							}
 
-							window.location.href = href;
+							// SPA navigation via TanStack Router; preserve resolveHistoryUrl logic
+							if (link) navigate(link);
+							else window.location.href = href;
 						};
+
+						// ponytail: SPA via Link keeps navigation inside TanStack Router; fallback <a> only for unparseable href (should never happen).
+						const cardInner = (
+							<>
+								<div className="min-w-0 flex-1">
+									<div className="flex items-center gap-2">
+										<h2 className="truncate font-inter text-base font-[510] text-snow">
+											{item.name}
+										</h2>
+										<span
+											className={`rounded-full px-2 py-0.5 font-inter text-[11px] font-[510] ${badge.className}`}
+										>
+											{badge.label}
+										</span>
+										{halted && (
+											<span className="rounded-full px-2 py-0.5 font-inter text-[11px] font-[510] bg-crimson/15 text-crimson">
+												Terhenti
+											</span>
+										)}
+									</div>
+									{item.preview && (
+										<p className="mt-1 line-clamp-2 font-inter text-xs text-fog">
+											{item.preview}
+										</p>
+									)}
+									<p className="mt-1.5 font-inter text-[11px] text-slate">
+										Diperbarui {formatDate(item.updatedAt)}
+									</p>
+								</div>
+
+								<ArrowRight
+									size={16}
+									className="shrink-0 text-fog opacity-0 transition-opacity group-hover:opacity-100"
+									aria-hidden
+								/>
+								<button
+									type="button"
+									onClick={(e) => {
+										e.preventDefault();
+										e.stopPropagation();
+										openDelete(item.id);
+									}}
+									className="shrink-0 rounded-md p-1.5 text-crimson transition-colors hover:bg-crimson/10"
+									aria-label={`Hapus proyek ${item.name}`}
+								>
+									<Trash2 size={16} />
+								</button>
+							</>
+						);
 
 						return (
 							<li key={item.id}>
-								<a
-									href={href}
-									onClick={handleClick}
-									className="group flex items-center gap-4 rounded-xl border border-graphite bg-charcoal/60 p-4 transition-colors hover:border-fog/40 hover:bg-charcoal"
-								>
-									<div className="min-w-0 flex-1">
-										<div className="flex items-center gap-2">
-											<h2 className="truncate font-inter text-base font-[510] text-snow">
-												{item.name}
-											</h2>
-											<span
-												className={`rounded-full px-2 py-0.5 font-inter text-[11px] font-[510] ${badge.className}`}
-											>
-												{badge.label}
-											</span>
-											{halted && (
-												<span className="rounded-full px-2 py-0.5 font-inter text-[11px] font-[510] bg-crimson/15 text-crimson">
-													Terhenti
-												</span>
-											)}
-										</div>
-										{item.preview && (
-											<p className="mt-1 line-clamp-2 font-inter text-xs text-fog">
-												{item.preview}
-											</p>
-										)}
-										<p className="mt-1.5 font-inter text-[11px] text-slate">
-											Diperbarui {formatDate(item.updatedAt)}
-										</p>
-									</div>
-
-									<ArrowRight
-										size={16}
-										className="shrink-0 text-fog opacity-0 transition-opacity group-hover:opacity-100"
-										aria-hidden
-									/>
-									<button
-										type="button"
-										onClick={(e) => {
-											e.preventDefault();
-											e.stopPropagation();
-											openDelete(item.id);
-										}}
-										className="shrink-0 rounded-md p-1.5 text-crimson transition-colors hover:bg-crimson/10"
-										aria-label={`Hapus proyek ${item.name}`}
+								{link ? (
+									<Link
+										to={link.to}
+										params={link.params}
+										onClick={handleClick}
+										className="group flex items-center gap-4 rounded-xl border border-graphite bg-charcoal/60 p-4 transition-colors hover:border-fog/40 hover:bg-charcoal"
 									>
-										<Trash2 size={16} />
-									</button>
-								</a>
+										{cardInner}
+									</Link>
+								) : (
+									<a
+										href={href}
+										onClick={handleClick}
+										className="group flex items-center gap-4 rounded-xl border border-graphite bg-charcoal/60 p-4 transition-colors hover:border-fog/40 hover:bg-charcoal"
+									>
+										{cardInner}
+									</a>
+								)}
 							</li>
 						);
 					})}

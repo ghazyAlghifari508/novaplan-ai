@@ -2,7 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Suspense } from "react";
 import { LoginForm } from "@/components/auth/login-form";
 
-export const Route = createFileRoute("/login")({ component: LoginPage });
+export const Route = createFileRoute("/login")({
+	validateSearch: (search: Record<string, unknown>): { redirect?: string } => {
+		const redirect = search.redirect as string | undefined;
+		return redirect ? { redirect } : {};
+	},
+	component: LoginPage,
+});
 
 function LoginPage() {
 	return (

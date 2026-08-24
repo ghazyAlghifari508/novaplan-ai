@@ -345,7 +345,7 @@ export default function PricingWrapper() {
 
 			if (!res.ok) {
 				if (res.status === 401) {
-					navigate({ to: "/login", search: { redirect: "/pricing" } as never });
+					navigate({ to: "/login", search: { redirect: "/pricing" } });
 				} else {
 					showToast(
 						data.error || "Terjadi kesalahan saat memproses pembayaran.",

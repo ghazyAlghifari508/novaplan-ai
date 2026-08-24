@@ -25,7 +25,7 @@ const NAV_ITEMS = [
 	{ href: "/settings/notifications", label: "Notifikasi", icon: Bell },
 	{ href: "/settings/billing", label: "Billing", icon: CreditCard },
 	{ href: "/settings/feedback", label: "Feedback", icon: MessageSquare },
-];
+] as const;
 
 export const SettingsClient = memo(function SettingsClient({
 	children,
@@ -56,13 +56,11 @@ export const SettingsClient = memo(function SettingsClient({
 				<nav className="flex md:flex-1 md:flex-col flex-row gap-2 md:space-y-1.5 px-4 pb-4 md:pb-0 overflow-x-auto md:overflow-y-auto hide-scrollbar items-center md:items-stretch">
 					{NAV_ITEMS.map((item) => {
 						const Icon = item.icon;
-						const isActive =
-							pathname === item.href ||
-							(item.href === "/settings" && pathname === "/settings");
+						const isActive = pathname === item.href;
 						return (
 							<Link
 								key={item.href}
-								to={item.href as never}
+								to={item.href}
 								className={cn(
 									"flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-[13px] font-[510] transition-all duration-300 md:gap-3 md:px-4 md:py-3 md:text-[15px]",
 									isActive
