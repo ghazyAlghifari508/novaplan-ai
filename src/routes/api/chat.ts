@@ -28,6 +28,7 @@ import {
 	resolveProjectId,
 	savePrdVersion,
 } from "@/lib/services/prd-service";
+import { BRIEF_MAX_CHARS } from "@/lib/constants";
 import { requireUser } from "@/lib/session";
 import type { Plan } from "@/types/database";
 
@@ -55,6 +56,7 @@ export const Route = createFileRoute("/api/chat")({
 					partialContent,
 					preferences,
 					selectedVersionNum,
+					briefContext,
 				} = body as {
 					message: string;
 					displayMessage?: string;
@@ -64,6 +66,7 @@ export const Route = createFileRoute("/api/chat")({
 					partialContent?: string;
 					preferences?: Record<string, unknown>;
 					selectedVersionNum?: number;
+					briefContext?: string;
 				};
 
 				if (!message?.trim())
@@ -121,7 +124,11 @@ export const Route = createFileRoute("/api/chat")({
 				}
 
 				let systemPrompt = PRD_SYSTEM_PROMPT();
-				let groundingSource = message;
+				let groundingSource =
+					message +
+					(briefContext
+						? `\n\nBRIEF KONTEXT:\n${briefContext.slice(0, BRIEF_MAX_CHARS)}`
+						: "");
 				let projectLanguage: "id" | "en" = "id";
 
 				if (projectIdToUse) {
@@ -153,7 +160,11 @@ export const Route = createFileRoute("/api/chat")({
 								? await getPrdVersionContent(projectIdToUse, selectedVersionNum)
 								: await getLatestPrdContent(projectIdToUse);
 						if (activeContent) {
-							groundingSource = `${activeContent}\n\n${message}`;
+							groundingSource = `${activeContent}\n\n${message}${
+								briefContext
+									? `\n\nBRIEF KONTEXT:\n${briefContext.slice(0, BRIEF_MAX_CHARS)}`
+									: ""
+							}`;
 							if (mode === "revise") {
 								systemPrompt = `${PRD_REVISION_PROMPT}\n\nCURRENT PRD CONTENT:\n\n${activeContent}`;
 							}

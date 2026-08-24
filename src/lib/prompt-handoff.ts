@@ -1,3 +1,4 @@
+import { BRIEF_MAX_CHARS } from "@/lib/constants";
 import type { OutputLanguage } from "@/types/database";
 
 export type PendingPrdPromptMode = "auto" | "chat";
@@ -316,6 +317,21 @@ export function consumeResumeIntent(
 	} catch {
 		return null;
 	}
+}
+
+/* ---------- Brief context for AI grounding (session only) ---------- */
+const BRIEF_CONTEXT_KEY = "novaplan:brief-context";
+
+export function saveBriefContext(text: string) {
+	getStorage()?.setItem(BRIEF_CONTEXT_KEY, text.slice(0, BRIEF_MAX_CHARS));
+}
+
+export function getBriefContext(): string {
+	return getStorage()?.getItem(BRIEF_CONTEXT_KEY) ?? "";
+}
+
+export function clearBriefContext() {
+	getStorage()?.removeItem(BRIEF_CONTEXT_KEY);
 }
 
 /* ---------- Suppress auto-generate on history resume landing ---------- */

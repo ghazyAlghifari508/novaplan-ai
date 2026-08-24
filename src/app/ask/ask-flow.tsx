@@ -3,10 +3,12 @@
 import { useNavigate } from "@tanstack/react-router";
 import { Cloud, Database, Layers, Palette, Rocket } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { BRIEF_MAX_CHARS } from "@/lib/constants";
 import {
 	getAskLanguage,
 	getAskPlatform,
 	getAskState,
+	getBriefContext,
 	getSetupPrompt,
 	saveAskState,
 	savePendingPrdPrompt,
@@ -207,7 +209,7 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 		});
 
 		const platformLabel = platform === "mobile" ? "Mobile App" : "Web App";
-		const compiledPrompt = isEn
+		let compiledPrompt = isEn
 			? `Please generate a PRD with the following specifications:
 
 [Platform: ${platformLabel}]
@@ -236,6 +238,11 @@ Backend: ${tech.backend || defaultChoice}
 Fullstack Framework: ${tech.fullstackFramework || fullstackDefault}
 Database: ${tech.database || defaultChoice}
 Deployment: ${tech.deployment || defaultChoice}`;
+
+		const briefCtx = getBriefContext()?.trim();
+		if (briefCtx) {
+			compiledPrompt += `\n\nBRIEF KONTEXT:\n${briefCtx.slice(0, BRIEF_MAX_CHARS)}`;
+		}
 
 		savePendingPrdPrompt(compiledPrompt, "auto", projectName);
 		navigate({ to: "/prd/$id", params: { id: projectId } });

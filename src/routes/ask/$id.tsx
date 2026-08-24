@@ -1,10 +1,16 @@
 import { createFileRoute, redirect, useLocation } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { and, eq } from "drizzle-orm";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AskFlow } from "@/app/ask/ask-flow";
+import { ContextUpload } from "@/components/ask/context-upload";
 import { db } from "@/db";
 import { projects } from "@/db/schema";
+import {
+	clearBriefContext,
+	getBriefContext,
+	saveBriefContext,
+} from "@/lib/prompt-handoff";
 import { requireUserServer } from "@/lib/session";
 import { useLastRoute } from "@/lib/use-last-route";
 
@@ -60,9 +66,24 @@ function AskPage() {
 	const d = Route.useLoaderData();
 	const pathname = useLocation({ select: (l) => l.pathname });
 	const reportLastRoute = useLastRoute(d.projectId);
+	const [briefContext, setBriefContext] = useState(() => {
+		if (typeof window === "undefined") return "";
+		return getBriefContext();
+	});
 
 	useEffect(() => {
 		reportLastRoute(pathname);
 	}, [pathname, reportLastRoute]);
-	return <AskFlow projectId={d.projectId} projectName={d.projectName} />;
+
+	useEffect(() => {
+		if (briefContext) saveBriefContext(briefContext);
+		else clearBriefContext();
+	}, [briefContext]);
+
+	return (
+		<div className="flex flex-col gap-4 p-4 md:p-6">
+			<ContextUpload onContext={setBriefContext} />
+			<AskFlow projectId={d.projectId} projectName={d.projectName} />
+		</div>
+	);
 }
