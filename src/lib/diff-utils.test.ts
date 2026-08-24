@@ -8,3 +8,6 @@ test("detect removed", () => {
   const d = computeDiff("a\nb", "a");
   expect(d.some(x => x.type==="removed")).toBe(true);
 });
+test("empty inputs return empty diff", () => {
+  expect(computeDiff("", "")).toEqual([]);
+});

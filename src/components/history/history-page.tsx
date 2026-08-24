@@ -59,12 +59,21 @@ export function HistoryPage({ items }: { items: HistoryItem[] }) {
 	const [stepFilter, setStepFilter] = useState<string | null>(null);
 	const [page, setPage] = useState(1);
 	const filtered = filterHistory(localItems, query, stepFilter);
-	const paged = paginate(filtered, page, HISTORY_PAGE_SIZE);
 	const totalPages = Math.max(1, Math.ceil(filtered.length / HISTORY_PAGE_SIZE));
+	const clampedPage = Math.min(page, totalPages);
+	const paged = paginate(filtered, clampedPage, HISTORY_PAGE_SIZE);
+
+	useEffect(() => {
+		setLocalItems(items);
+	}, [items]);
 
 	useEffect(() => {
 		setPage(1);
 	}, [query, stepFilter]);
+
+	useEffect(() => {
+		if (page > totalPages) setPage(totalPages);
+	}, [page, totalPages]);
 
 	const openDelete = (id: string) => setDeleteId(id);
 	const closeDelete = () => setDeleteId(null);
@@ -293,18 +302,18 @@ export function HistoryPage({ items }: { items: HistoryItem[] }) {
 						<button
 							type="button"
 							onClick={() => setPage((p) => Math.max(1, p - 1))}
-							disabled={page <= 1}
+							disabled={clampedPage <= 1}
 							className="rounded-md border border-graphite bg-charcoal px-4 py-2 font-inter text-sm text-snow transition-colors hover:border-fog/40 disabled:opacity-40 disabled:cursor-not-allowed"
 						>
 							Sebelumnya
 						</button>
 						<span className="font-inter text-sm text-fog">
-							Halaman {page} dari {totalPages}
+							Halaman {clampedPage} dari {totalPages}
 						</span>
 						<button
 							type="button"
 							onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-							disabled={page >= totalPages}
+							disabled={clampedPage >= totalPages}
 							className="rounded-md border border-graphite bg-charcoal px-4 py-2 font-inter text-sm text-snow transition-colors hover:border-fog/40 disabled:opacity-40 disabled:cursor-not-allowed"
 						>
 							Selanjutnya

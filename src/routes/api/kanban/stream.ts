@@ -7,7 +7,14 @@ export const Route = createFileRoute("/api/kanban/stream")({
 	server: {
 		handlers: {
 			GET: async ({ request }: { request: Request }) => {
-				const user = await requireUser(request.headers);
+				let headers: Headers | undefined;
+				try {
+					const { getRequestHeaders } = await import(
+						"@tanstack/react-start/server"
+					);
+					headers = getRequestHeaders();
+				} catch {}
+				const user = await requireUser(headers ?? request.headers);
 
 				const url = new URL(request.url);
 				const projectId = url.searchParams.get("projectId");

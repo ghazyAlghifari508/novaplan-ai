@@ -32,9 +32,10 @@ import { PLAN_CREDITS } from "@/types/database";
 interface ChatInputProps {
 	className?: string;
 	initialValue?: string;
+	prefillKey?: number;
 }
 
-export function ChatInput({ className, initialValue }: ChatInputProps) {
+export function ChatInput({ className, initialValue, prefillKey }: ChatInputProps) {
 	const [message, setMessage] = useState(() => getHomeDraft());
 	const [focused, setFocused] = useState(false);
 	const [isMobileMode, setIsMobileMode] = useState(false);
@@ -59,7 +60,7 @@ export function ChatInput({ className, initialValue }: ChatInputProps) {
 		if (initialValue !== undefined) {
 			setMessage(initialValue);
 		}
-	}, [initialValue]);
+	}, [initialValue, prefillKey]);
 
 	// ponytail: debounce keeps the home seed-prompt draft alive across
 	// refresh, so a long product description isn't lost before send.

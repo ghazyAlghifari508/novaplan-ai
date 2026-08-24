@@ -1,6 +1,7 @@
 export type DiffLine = { type: "added"|"removed"|"unchanged", text: string };
 export function computeDiff(oldStr: string, newStr: string): DiffLine[] {
-  const a = oldStr.split("\n"), b = newStr.split("\n");
+  if (oldStr === "" && newStr === "") return [];
+  const a = oldStr ? oldStr.split("\n") : [], b = newStr ? newStr.split("\n") : [];
   const result: DiffLine[] = [];
   let i=0,j=0;
   while (i<a.length || j<b.length) {

@@ -6,6 +6,10 @@ import { TemplateGallery } from "./template-gallery";
 
 export function HeroContent() {
 	const [prefill, setPrefill] = useState<string | undefined>();
+	// ponytail: re-selecting the same template yields the same string, which
+	// React useState bails out on. The tick forces ChatInput's sync effect
+	// to re-run so the textarea re-prefills every click.
+	const [prefillTick, setPrefillTick] = useState(0);
 	return (
 		<div className="relative z-10 flex w-full flex-col items-center px-6 text-center animate-hero-fade-in">
 			<div className="flex w-full max-w-[1200px] flex-col items-center gap-8 pt-16 md:pt-20">
@@ -19,8 +23,13 @@ export function HeroContent() {
 				</p>
 
 				<div className="w-full animate-hero-chat">
-					<ChatInput initialValue={prefill} />
-					<TemplateGallery onSelect={(p) => setPrefill(p)} />
+					<ChatInput initialValue={prefill} prefillKey={prefillTick} />
+					<TemplateGallery
+						onSelect={(p) => {
+							setPrefill(p);
+							setPrefillTick((t) => t + 1);
+						}}
+					/>
 				</div>
 			</div>
 		</div>

@@ -126,7 +126,7 @@ export const Route = createFileRoute("/api/chat")({
 				let systemPrompt = PRD_SYSTEM_PROMPT();
 				let groundingSource =
 					message +
-					(briefContext
+					(briefContext && !message.includes("BRIEF KONTEXT")
 						? `\n\nBRIEF KONTEXT:\n${briefContext.slice(0, BRIEF_MAX_CHARS)}`
 						: "");
 				let projectLanguage: "id" | "en" = "id";
@@ -161,7 +161,7 @@ export const Route = createFileRoute("/api/chat")({
 								: await getLatestPrdContent(projectIdToUse);
 						if (activeContent) {
 							groundingSource = `${activeContent}\n\n${message}${
-								briefContext
+								briefContext && !message.includes("BRIEF KONTEXT")
 									? `\n\nBRIEF KONTEXT:\n${briefContext.slice(0, BRIEF_MAX_CHARS)}`
 									: ""
 							}`;

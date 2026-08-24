@@ -256,7 +256,9 @@ export const PrdViewer = memo(function PrdViewer({
 									const a = document.createElement("a");
 									a.href = url;
 									a.download = `${safeName}.pdf`;
+									document.body.appendChild(a);
 									a.click();
+									a.remove();
 									setTimeout(() => URL.revokeObjectURL(url), 1000);
 								} catch {
 									showToast("Gagal mengekspor PDF", "error");
