@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
@@ -29,7 +29,7 @@ export function Logo({
 	const style = { height: `${height}px`, width: "auto" };
 
 	return (
-		<Link href={href} className={`inline-flex items-center ${className}`}>
+		<Link to={href as never} className={`inline-flex items-center ${className}`}>
 			<img
 				src={isDark ? "/logo-novaplan-white.png" : "/logo-novaplan-black.png"}
 				alt="NovaPlan"

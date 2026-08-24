@@ -1,11 +1,11 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useLocation } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Navbar } from "./navbar";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
-	const pathname = usePathname();
+	const pathname = useLocation({ select: (l) => l.pathname });
 
 	// Hide navbar on auth pages and PRD index page (has its own back button)
 	// Show navbar everywhere except bare auth/minimal pages.

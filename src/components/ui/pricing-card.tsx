@@ -1,7 +1,7 @@
 "use client";
 
+import { useLocation, useNavigate } from "@tanstack/react-router";
 import { Check, X } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 import { syncPaymentStatus } from "@/app/actions/payment";
 import { Button } from "@/components/ui/button";
@@ -289,8 +289,9 @@ export const PricingComponent: React.FC<PricingComponentProps> = ({
 // --- Wrapper with state ---
 
 export default function PricingWrapper() {
-	const router = useRouter();
-	const searchParams = useSearchParams();
+	const navigate = useNavigate();
+	const searchStr = useLocation({ select: (l) => l.searchStr });
+	const searchParams = new URLSearchParams(searchStr);
 	const showToast = useUIStore((state) => state.showToast);
 	// ponytail: shared TanStack Query hook — deduped across all components.
 	// Previously raw fetch("/api/user/plan") in useEffect.
@@ -318,7 +319,7 @@ export default function PricingWrapper() {
 							`Berhasil beli kredit untuk paket ${res.plan.charAt(0).toUpperCase() + res.plan.slice(1)}!`,
 							"success",
 						);
-						router.replace("/pricing");
+						navigate({ to: "/pricing", replace: true });
 					}
 				} catch (e) {
 					console.error("Gagal sinkronisasi pembayaran:", e);
@@ -326,11 +327,11 @@ export default function PricingWrapper() {
 			};
 			sync();
 		}
-	}, [searchParams, showToast, router, refetchPlan]);
+	}, [searchParams, showToast, navigate, refetchPlan]);
 
 	const handlePlanSelect = async (planId: string) => {
 		if (planId === "free") {
-			router.push("/");
+			navigate({ to: "/" });
 			return;
 		}
 
@@ -344,7 +345,7 @@ export default function PricingWrapper() {
 
 			if (!res.ok) {
 				if (res.status === 401) {
-					router.push("/login?redirect=/pricing");
+					navigate({ to: "/login", search: { redirect: "/pricing" } as never });
 				} else {
 					showToast(
 						data.error || "Terjadi kesalahan saat memproses pembayaran.",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useLocation, useRouter } from "@tanstack/react-router";
 import {
 	memo,
 	startTransition,
@@ -220,7 +220,8 @@ export const ChatPanel = memo(function ChatPanel({
 	// ── Store ──
 	const showToast = useUIStore((s) => s.showToast);
 	const router = useRouter();
-	const searchParams = useSearchParams();
+	const searchStr = useLocation({ select: (l) => l.searchStr });
+	const searchParams = new URLSearchParams(searchStr);
 	const messages = useChatStore((s) => s.messages);
 	const isStreaming = useChatStore((s) => s.isStreaming);
 	const isGeneratingPRD = useChatStore((s) => s.isGeneratingPRD);
@@ -499,7 +500,7 @@ export const ChatPanel = memo(function ChatPanel({
 										onPrdRevised?.(parsed.content);
 									}
 									startTransition(() => {
-										router.refresh();
+										router.invalidate();
 									});
 								} else if (chatMode === "revise") {
 									setGeneratingPRD(false);
@@ -600,7 +601,7 @@ export const ChatPanel = memo(function ChatPanel({
 						chatMode === "resume")
 				) {
 					startTransition(() => {
-						router.refresh();
+						router.invalidate();
 					});
 					if (fullContent.trim().length === 0) {
 						showToast(
@@ -626,7 +627,7 @@ export const ChatPanel = memo(function ChatPanel({
 						if (chatMode === "resume") {
 							setGeneratingPRD(false);
 							startTransition(() => {
-								router.refresh();
+								router.invalidate();
 							});
 						}
 						// revise - not reached if done event handled it, but keep
@@ -908,7 +909,7 @@ export const ChatPanel = memo(function ChatPanel({
 					}
 				}
 				// Strip query params from URL
-				router.replace(window.location.pathname);
+				window.history.replaceState({}, "", window.location.pathname);
 			} catch (e) {
 				console.error("Auto-resume payment sync failed:", e);
 			}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,7 +49,7 @@ export function OnboardingForm() {
 	}, [step, fullName, role, tujuan]);
 	const [error, setError] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
-	const router = useRouter();
+	const navigate = useNavigate();
 	const setUser = useAuthStore((s) => s.setUser);
 
 	const toggleTujuan = (value: string) => {
@@ -96,7 +96,7 @@ export function OnboardingForm() {
 		const result = await response.json().catch(() => null);
 
 		if (response.status === 401) {
-			router.replace("/login");
+			navigate({ to: "/login", replace: true });
 			return;
 		}
 

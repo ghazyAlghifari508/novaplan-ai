@@ -1,6 +1,5 @@
 import { Check, ChevronDown, Monitor, Smartphone } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { CreditExhaustedModal } from "@/components/chat/credit-exhausted-modal";
 import {
@@ -53,7 +52,7 @@ export function ChatInput({ className }: ChatInputProps) {
 	// ponytail: reactive shared session via nanostore — deduped with Navbar.
 	const { data: session } = authClient.useSession();
 
-	const router = useRouter();
+	const navigate = useNavigate();
 
 	// ponytail: debounce keeps the home seed-prompt draft alive across
 	// refresh, so a long product description isn't lost before send.
@@ -95,7 +94,7 @@ export function ChatInput({ className }: ChatInputProps) {
 		if (!isAuthenticated) {
 			// ponytail: back to home, not /ask, the project doesn't exist yet at this
 			// point, so there is no /ask/$id to land on and no bare /ask route.
-			router.push(`/login?redirect=${encodeURIComponent("/")}`);
+			navigate({ to: "/login", search: { redirect: "/" } as never });
 			return;
 		}
 
@@ -126,7 +125,7 @@ export function ChatInput({ className }: ChatInputProps) {
 			if (!res.ok || !project.id)
 				throw new Error(project.error || "Gagal membuat proyek");
 			clearHomeDraft();
-			router.push(`/ask/${project.id}`);
+			navigate({ to: "/ask/$id", params: { id: project.id } });
 		} catch (err) {
 			console.error("Create project error:", err);
 			setPromptError("Gagal membuat proyek. Coba lagi.");
@@ -155,7 +154,7 @@ export function ChatInput({ className }: ChatInputProps) {
 							</span>
 							{(!planData?.authenticated || planData.plan !== "hengker") && (
 								<Link
-									href="/pricing"
+									to="/pricing"
 									className="cursor-pointer rounded-[2px] px-2 py-0.5 font-inter text-[10px] font-[510] uppercase text-fog shadow-[var(--shadow-inset)] transition-colors duration-300 hover:bg-steel/70"
 								>
 									Upgrade

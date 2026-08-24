@@ -20,7 +20,6 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AcIdRouteImport } from './routes/ac/$id'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiFeedbackRouteImport } from './routes/api/feedback'
-import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiReportErrorRouteImport } from './routes/api/report-error'
 import { Route as AskIdRouteImport } from './routes/ask/$id'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
@@ -118,11 +117,6 @@ const ApiChatRoute = ApiChatRouteImport.update({
 const ApiFeedbackRoute = ApiFeedbackRouteImport.update({
   id: '/api/feedback',
   path: '/api/feedback',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiHealthRoute = ApiHealthRouteImport.update({
-  id: '/api/health',
-  path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiReportErrorRoute = ApiReportErrorRouteImport.update({
@@ -353,7 +347,6 @@ export interface FileRoutesByFullPath {
   '/ac/$id': typeof AcIdRoute
   '/api/chat': typeof ApiChatRoute
   '/api/feedback': typeof ApiFeedbackRoute
-  '/api/health': typeof ApiHealthRoute
   '/api/report-error': typeof ApiReportErrorRoute
   '/ask/$id': typeof AskIdRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -409,7 +402,6 @@ export interface FileRoutesByTo {
   '/ac/$id': typeof AcIdRoute
   '/api/chat': typeof ApiChatRoute
   '/api/feedback': typeof ApiFeedbackRoute
-  '/api/health': typeof ApiHealthRoute
   '/api/report-error': typeof ApiReportErrorRoute
   '/ask/$id': typeof AskIdRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -467,7 +459,6 @@ export interface FileRoutesById {
   '/ac/$id': typeof AcIdRoute
   '/api/chat': typeof ApiChatRoute
   '/api/feedback': typeof ApiFeedbackRoute
-  '/api/health': typeof ApiHealthRoute
   '/api/report-error': typeof ApiReportErrorRoute
   '/ask/$id': typeof AskIdRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -526,7 +517,6 @@ export interface FileRouteTypes {
     | '/ac/$id'
     | '/api/chat'
     | '/api/feedback'
-    | '/api/health'
     | '/api/report-error'
     | '/ask/$id'
     | '/auth/callback'
@@ -582,7 +572,6 @@ export interface FileRouteTypes {
     | '/ac/$id'
     | '/api/chat'
     | '/api/feedback'
-    | '/api/health'
     | '/api/report-error'
     | '/ask/$id'
     | '/auth/callback'
@@ -639,7 +628,6 @@ export interface FileRouteTypes {
     | '/ac/$id'
     | '/api/chat'
     | '/api/feedback'
-    | '/api/health'
     | '/api/report-error'
     | '/ask/$id'
     | '/auth/callback'
@@ -697,7 +685,6 @@ export interface RootRouteChildren {
   AcIdRoute: typeof AcIdRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiFeedbackRoute: typeof ApiFeedbackRoute
-  ApiHealthRoute: typeof ApiHealthRoute
   ApiReportErrorRoute: typeof ApiReportErrorRoute
   AskIdRoute: typeof AskIdRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
@@ -806,13 +793,6 @@ declare module '@tanstack/react-router' {
       path: '/api/feedback'
       fullPath: '/api/feedback'
       preLoaderRoute: typeof ApiFeedbackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/health': {
-      id: '/api/health'
-      path: '/api/health'
-      fullPath: '/api/health'
-      preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/report-error': {
@@ -1189,7 +1169,6 @@ const rootRouteChildren: RootRouteChildren = {
   AcIdRoute: AcIdRoute,
   ApiChatRoute: ApiChatRoute,
   ApiFeedbackRoute: ApiFeedbackRoute,
-  ApiHealthRoute: ApiHealthRoute,
   ApiReportErrorRoute: ApiReportErrorRoute,
   AskIdRoute: AskIdRoute,
   AuthCallbackRoute: AuthCallbackRoute,

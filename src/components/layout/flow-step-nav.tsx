@@ -1,7 +1,7 @@
 "use client";
 
+import { useLocation } from "@tanstack/react-router";
 import { Check } from "lucide-react";
-import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useChatStore } from "@/store";
 
@@ -21,7 +21,7 @@ const STEPS: { key: FlowStep; label: string }[] = [
 ];
 
 export function FlowStepNav() {
-	const pathname = usePathname();
+	const pathname = useLocation({ select: (l) => l.pathname });
 	const current = routeToStep(pathname ?? "");
 	const currentIdx = STEPS.findIndex((s) => s.key === current);
 	const isTaskGenerated = useChatStore((s) => s.isTaskGenerated);

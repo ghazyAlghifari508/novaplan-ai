@@ -10,8 +10,7 @@ import {
 	User,
 	X,
 } from "lucide-react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { Link, useLocation, useNavigate, useRouter } from "@tanstack/react-router";
 import { useState, useTransition } from "react";
 import { Logo } from "@/components/ui/logo";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -32,7 +31,8 @@ export function Navbar() {
 	const hasStreamingPRDContent = useChatStore((s) => !!s.streamingPRDContent);
 	const isGeneratingAC = useChatStore((s) => s.isGeneratingAC);
 	const router = useRouter();
-	const pathname = usePathname();
+	const navigate = useNavigate();
+	const pathname = useLocation({ select: (l) => l.pathname });
 	const [, startTransition] = useTransition();
 	// Single source of truth: reuse routeToStep. Workspace = any non-PRD step.
 	const step = routeToStep(pathname);
@@ -61,7 +61,7 @@ export function Navbar() {
 			});
 			if (!res.ok) throw new Error("Gagal memperbarui tahap proyek");
 			startTransition(() => {
-				router.push(`/ac/${projectId}`);
+				navigate({ to: "/ac/$id", params: { id: projectId } });
 			});
 		} catch (err) {
 			console.error("Step to AC failed:", err);
@@ -82,7 +82,7 @@ export function Navbar() {
 			});
 			if (!res.ok) throw new Error("Gagal memperbarui tahap proyek");
 			startTransition(() => {
-				router.push(`/task/${projectId}`);
+				navigate({ to: "/task/$id", params: { id: projectId } });
 			});
 		} catch (err) {
 			console.error("Step to Task failed:", err);
@@ -95,8 +95,8 @@ export function Navbar() {
 	const handleLogout = async () => {
 		try {
 			await authClient.signOut();
-			router.push("/login");
-			router.refresh();
+			navigate({ to: "/login" });
+			router.invalidate();
 		} catch (err) {
 			console.error("[navbar] logout failed", err);
 			showToast("Gagal logout. Coba lagi.", "error");
@@ -125,7 +125,7 @@ export function Navbar() {
 					) : (
 						<div className="flex items-center gap-1">
 							<Link
-								href="/"
+								to="/"
 								className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
 									pathname === "/"
 										? "bg-white/10 text-snow"
@@ -135,7 +135,7 @@ export function Navbar() {
 								Home
 							</Link>
 							<Link
-								href="/pricing"
+								to="/pricing"
 								className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
 									pathname.startsWith("/pricing")
 										? "bg-white/10 text-snow"
@@ -145,7 +145,7 @@ export function Navbar() {
 								Pricing
 							</Link>
 							<Link
-								href="/history"
+								to="/history"
 								className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
 									pathname === "/history"
 										? "bg-white/10 text-snow"
@@ -240,7 +240,7 @@ export function Navbar() {
 									</div>
 								) : !user ? (
 									<Link
-										href="/login"
+										to="/login"
 										className="btn-primary flex h-8 items-center justify-center rounded-md px-4 font-inter text-sm font-[510] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:brightness-105 active:scale-[0.98]"
 									>
 										Log In
@@ -270,7 +270,7 @@ export function Navbar() {
 													</div>
 													<div className="mb-1 h-px w-full bg-graphite" />
 													<Link
-														href="/settings/profile"
+														to="/settings/profile"
 														onClick={() => setIsDropdownOpen(false)}
 														className="flex items-center gap-3 px-4 py-2.5 text-sm font-[510] text-mist transition-colors hover:bg-white/5 hover:text-snow"
 													>
@@ -278,7 +278,7 @@ export function Navbar() {
 														Profile / Setting
 													</Link>
 													<Link
-														href="/pricing"
+														to="/pricing"
 														onClick={() => setIsDropdownOpen(false)}
 														className="flex items-center gap-3 px-4 py-2.5 text-sm font-[510] text-mist transition-colors hover:bg-white/5 hover:text-snow"
 													>
@@ -315,28 +315,28 @@ export function Navbar() {
 						<ThemeToggle />
 					</div>
 					<Link
-						href="/"
+						to="/"
 						className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-[510] text-snow hover:bg-white/5"
 						onClick={() => setIsMobileMenuOpen(false)}
 					>
 						Home
 					</Link>
 					<Link
-						href="/pricing"
+						to="/pricing"
 						className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-[510] text-snow hover:bg-white/5"
 						onClick={() => setIsMobileMenuOpen(false)}
 					>
 						Pricing
 					</Link>
 					<Link
-						href="/history"
+						to="/history"
 						className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-[510] text-snow hover:bg-white/5"
 						onClick={() => setIsMobileMenuOpen(false)}
 					>
 						History
 					</Link>
 					<Link
-						href="/settings"
+						to="/settings"
 						className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-[510] text-snow hover:bg-white/5"
 						onClick={() => setIsMobileMenuOpen(false)}
 					>

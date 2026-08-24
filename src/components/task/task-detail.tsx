@@ -7,8 +7,7 @@ import {
 	Circle,
 	FileText,
 } from "lucide-react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Link, useLocation } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { syncPaymentStatus } from "@/app/actions/payment";
 import { CreditExhaustedModal } from "@/components/chat/credit-exhausted-modal";
@@ -53,12 +52,12 @@ export function TaskDetail({
 	hasAc,
 	taskStatus,
 }: TaskDetailProps) {
-	const _router = useRouter();
 	const showToast = useUIStore((s) => s.showToast);
 	const setTaskGenerated = useChatStore((s) => s.setTaskGenerated);
 	const creditsExhausted = useChatStore((s) => s.creditsExhausted);
 	const setCreditsExhausted = useChatStore((s) => s.setCreditsExhausted);
-	const searchParams = useSearchParams();
+	const searchStr = useLocation({ select: (l) => l.searchStr });
+	const searchParams = new URLSearchParams(searchStr);
 
 	// Sync store flag from server-loaded status on mount/project switch, avoids
 	// stale true/false leaking across different projects' Task pages.
@@ -308,7 +307,8 @@ export function TaskDetail({
 						Generate Acceptance Criteria terlebih dahulu.
 					</p>
 					<Link
-						href={`/ac/${projectId}`}
+						to="/ac/$id"
+						params={{ id: projectId }}
 						className="btn-primary inline-flex items-center gap-2 rounded-md px-4 py-2"
 					>
 						<ArrowRight size={16} />
@@ -358,7 +358,8 @@ export function TaskDetail({
 					</h1>
 					<div className="flex items-center gap-3">
 						<Link
-							href={`/kanban/${projectId}`}
+							to="/kanban/$id"
+							params={{ id: projectId }}
 							className="btn-primary px-3 py-1.5 rounded-md text-xs font-[510]"
 						>
 							Task

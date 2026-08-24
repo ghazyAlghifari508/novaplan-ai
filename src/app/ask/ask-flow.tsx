@@ -1,7 +1,7 @@
 "use client";
 
+import { useNavigate } from "@tanstack/react-router";
 import { Cloud, Database, Layers, Palette, Rocket } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
 	getAskLanguage,
@@ -45,7 +45,7 @@ interface AskFlowProps {
 }
 
 export function AskFlow({ projectId, projectName }: AskFlowProps) {
-	const router = useRouter();
+	const navigate = useNavigate();
 	const promptRef = useRef("");
 	const hasFetched = useRef(false);
 	const [session, setSession] = useState<1 | 2>(1);
@@ -71,12 +71,11 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 		});
 	};
 
-	// ponytail: deps kosong disengaja. `useRouter()` dari shim next-compat bikin
-	// objek baru tiap render, kalau masuk dep array, effect re-run terus dan
-	// cleanup abort membunuh fetch yang sedang jalan, sementara guard hasFetched
-	// memblokir fetch ulang → layar "Gagal memuat pertanyaan." padahal tidak ada
-	// error. Fetch cukup sekali per mount; hasFetched menjaga StrictMode
-	// double-invoke.
+	// ponytail: deps kosong disengaja. `useNavigate()` bikin objek baru tiap render,
+	// kalau masuk dep array, effect re-run terus dan cleanup abort membunuh fetch
+	// yang sedang jalan, sementara guard hasFetched memblokir fetch ulang → layar
+	// "Gagal memuat pertanyaan." padahal tidak ada error. Fetch cukup sekali per
+	// mount; hasFetched menjaga StrictMode double-invoke.
 	// biome-ignore lint/correctness/useExhaustiveDependencies: lihat catatan di atas
 	useEffect(() => {
 		if (hasFetched.current) return;
@@ -101,7 +100,7 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 		// final PRD prompt, and a refresh mid-flow must not lose it.
 		const prompt = getSetupPrompt();
 		if (!prompt) {
-			router.replace("/");
+			navigate({ to: "/", replace: true });
 			return;
 		}
 		promptRef.current = prompt;
@@ -239,7 +238,7 @@ Database: ${tech.database || defaultChoice}
 Deployment: ${tech.deployment || defaultChoice}`;
 
 		savePendingPrdPrompt(compiledPrompt, "auto", projectName);
-		router.push(`/prd/${projectId}`);
+		navigate({ to: "/prd/$id", params: { id: projectId } });
 	};
 
 	if (isLoadingQuestions) {
@@ -259,7 +258,7 @@ Deployment: ${tech.deployment || defaultChoice}`;
 				</p>
 				<button
 					type="button"
-					onClick={() => router.push("/")}
+					onClick={() => navigate({ to: "/" })}
 					className="btn-primary rounded-md px-4 py-2 min-h-[44px] inline-flex items-center justify-center font-inter text-sm"
 				>
 					Kembali ke Home

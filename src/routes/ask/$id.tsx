@@ -1,11 +1,10 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useLocation } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { and, eq } from "drizzle-orm";
 import { useEffect } from "react";
 import { AskFlow } from "@/app/ask/ask-flow";
 import { db } from "@/db";
 import { projects } from "@/db/schema";
-import { usePathname } from "@/lib/next-compat/navigation";
 import { requireUserServer } from "@/lib/session";
 import { useLastRoute } from "@/lib/use-last-route";
 
@@ -55,7 +54,7 @@ export const Route = createFileRoute("/ask/$id")({
 
 function AskPage() {
 	const d = Route.useLoaderData();
-	const pathname = usePathname();
+	const pathname = useLocation({ select: (l) => l.pathname });
 	const reportLastRoute = useLastRoute(d.projectId);
 
 	useEffect(() => {

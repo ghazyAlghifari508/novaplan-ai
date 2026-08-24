@@ -1,11 +1,10 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useLocation } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { and, eq } from "drizzle-orm";
 import { useEffect } from "react";
 import { KanbanBoard } from "@/components/kanban/kanban-board";
 import { db } from "@/db";
 import { projects } from "@/db/schema";
-import { usePathname } from "@/lib/next-compat/navigation";
 import { requireUserServer } from "@/lib/session";
 import { useLastRoute } from "@/lib/use-last-route";
 
@@ -44,7 +43,7 @@ export const Route = createFileRoute("/kanban/$id")({
 
 function KanbanPage() {
 	const { projectId, projectName } = Route.useLoaderData();
-	const pathname = usePathname();
+	const pathname = useLocation({ select: (l) => l.pathname });
 	const reportLastRoute = useLastRoute(projectId);
 
 	useEffect(() => {

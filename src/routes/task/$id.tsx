@@ -1,11 +1,10 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useLocation } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { and, eq } from "drizzle-orm";
 import { useEffect } from "react";
 import { TaskDetail } from "@/components/task/task-detail";
 import { db } from "@/db";
 import { projects } from "@/db/schema";
-import { usePathname } from "@/lib/next-compat/navigation";
 import { getLatestAcContent } from "@/lib/services/ac-service";
 import { getTaskTree } from "@/lib/services/task-service";
 import { requireUserServer } from "@/lib/session";
@@ -63,7 +62,7 @@ export const Route = createFileRoute("/task/$id")({
 
 function TaskPage() {
 	const d = Route.useLoaderData();
-	const pathname = usePathname();
+	const pathname = useLocation({ select: (l) => l.pathname });
 	const reportLastRoute = useLastRoute(d.projectId);
 
 	useEffect(() => {

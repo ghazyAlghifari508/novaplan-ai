@@ -1,8 +1,8 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { and, desc, eq, ne } from "drizzle-orm";
+import { Link } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
 import { db } from "@/db";
 import { payments, subscriptions } from "@/db/schema";
@@ -110,7 +110,7 @@ function BillingPage() {
 							</p>
 						</div>
 						<Link
-							href="/pricing"
+							to="/pricing"
 							className="rounded-lg border border-(--border-subtle) px-4 py-2 text-sm font-medium hover:bg-(--bg-surface)"
 						>
 							Beli Kredit

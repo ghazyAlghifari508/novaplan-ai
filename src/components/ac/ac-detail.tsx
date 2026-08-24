@@ -1,8 +1,7 @@
 "use client";
 
 import { ArrowRight, FileText } from "lucide-react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Link, useLocation, useRouter } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { syncPaymentStatus } from "@/app/actions/payment";
 import { CreditExhaustedModal } from "@/components/chat/credit-exhausted-modal";
@@ -42,12 +41,13 @@ export function AcDetail({
 	acStatus,
 }: AcDetailProps) {
 	const router = useRouter();
+	const searchStr = useLocation({ select: (l) => l.searchStr });
+	const searchParams = new URLSearchParams(searchStr);
 	const showToast = useUIStore((s) => s.showToast);
 	const setGeneratingAC = useChatStore((s) => s.setGeneratingAC);
 	const creditsExhausted = useChatStore((s) => s.creditsExhausted);
 	const setCreditsExhausted = useChatStore((s) => s.setCreditsExhausted);
 	const { leftWidth, onStartDragLeft, isDraggingLeft } = usePanelResize();
-	const searchParams = useSearchParams();
 
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [streamingContent, setStreamingContent] = useState<string>("");
@@ -87,7 +87,7 @@ export function AcDetail({
 			if (!response.ok) throw new Error(data.error || "Gagal menyimpan AC");
 			setSaveFailed(false);
 			setHasError(false);
-			router.refresh();
+			router.invalidate();
 			showToast("AC berhasil disimpan!", "success");
 		} catch (error: unknown) {
 			showToast(
@@ -199,7 +199,7 @@ export function AcDetail({
 								receivedTerminalEvent = true;
 								// Optimistic: tampilkan streamingContent langsung tanpa nunggu loader
 								setLocalAcContent(contentRef.current);
-								router.refresh();
+								router.invalidate();
 								showToast(
 									"Acceptance Criteria berhasil digenerate!",
 									"success",
@@ -370,7 +370,8 @@ export function AcDetail({
 						Generate PRD terlebih dahulu sebelum membuat Acceptance Criteria.
 					</p>
 					<Link
-						href={`/prd/${projectId}`}
+						to="/prd/$id"
+						params={{ id: projectId }}
 						className="btn-primary inline-flex items-center gap-2 rounded-md px-4 py-2"
 					>
 						<ArrowRight size={16} /> Ke PRD

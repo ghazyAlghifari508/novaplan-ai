@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useLocation } from "@tanstack/react-router";
 import { useState } from "react";
 import { Logo } from "@/components/ui/logo";
 import { authClient } from "@/lib/auth-client";
@@ -42,7 +42,8 @@ const GitHubIcon = () => (
 );
 
 export function LoginForm() {
-	const searchParams = useSearchParams();
+	const searchStr = useLocation({ select: (l) => l.searchStr });
+	const searchParams = new URLSearchParams(searchStr);
 	const redirectTo = searchParams.get("redirect") || "/";
 	const [loading, setLoading] = useState<"google" | "github" | null>(null);
 	const [error, setError] = useState<string | null>(null);

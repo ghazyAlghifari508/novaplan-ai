@@ -1,7 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { desc, eq } from "drizzle-orm";
-import Link from "next/link";
 import { PrdViewer } from "@/components/prd/prd-viewer";
 import { Logo } from "@/components/ui/logo";
 import { db } from "@/db";
@@ -51,7 +50,7 @@ export const Route = createFileRoute("/prd/share/$token")({
 		<div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-(--bg-card)">
 			<p className="text-fog">PRD tidak ditemukan atau belum dibagikan.</p>
 			<Link
-				href="/"
+				to="/"
 				className="rounded-lg border border-(--border-subtle) px-4 py-2 text-sm hover:bg-(--bg-surface)"
 			>
 				Kembali

@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowRight, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { DeleteProjectModal } from "@/components/prd/delete-project-modal";
 import { useUserPlan } from "@/hooks/use-user-plan";
@@ -27,6 +27,7 @@ export function HistoryPage({ items }: { items: HistoryItem[] }) {
 	// ponytail: shared TanStack Query hook — deduped across all components.
 	const { refetch: refetchPlan } = useUserPlan();
 	const router = useRouter();
+	const navigate = useNavigate();
 	const showToast = useUIStore((s) => s.showToast);
 	const [localItems, setLocalItems] = useState<HistoryItem[]>(items);
 	const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -52,7 +53,7 @@ export function HistoryPage({ items }: { items: HistoryItem[] }) {
 			showToast("Proyek dihapus.", "success");
 			closeDelete();
 			// Sync with server state (catches any drift, e.g. step changes).
-			router.refresh();
+			router.invalidate();
 		} catch (err) {
 			console.error("Delete project failed:", err);
 			setLocalItems(snapshot);
@@ -73,7 +74,7 @@ export function HistoryPage({ items }: { items: HistoryItem[] }) {
 				</p>
 				<button
 					type="button"
-					onClick={() => router.push("/")}
+					onClick={() => navigate({ to: "/" })}
 					className="btn-primary mt-6 rounded-md px-5 py-2.5 font-inter text-sm font-[510]"
 				>
 					Buat Proyek

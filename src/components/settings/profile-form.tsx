@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { memo, useState } from "react";
 import { updateProfile, uploadAvatar } from "@/app/actions/settings";
 import { Button } from "@/components/ui/button";
@@ -22,7 +21,7 @@ export const ProfileForm = memo(function ProfileForm({
 			<div className="flex items-center gap-4">
 				<div className="relative shrink-0">
 					{profile.avatar_url ? (
-						<Image
+						<img
 							src={profile.avatar_url}
 							alt="Avatar"
 							width={64}

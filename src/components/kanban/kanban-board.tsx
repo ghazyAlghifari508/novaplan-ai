@@ -6,7 +6,7 @@ import {
 	KanbanSquare,
 	Loader2,
 } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useKanbanTasks } from "@/hooks/use-kanban-polling";
@@ -166,13 +166,14 @@ export function KanbanBoard({ projectId, projectName }: KanbanBoardProps) {
 						</span>
 					)}
 					<Link
-						href={`/task/${projectId}`}
+						to="/task/$id"
+						params={{ id: projectId }}
 						className="btn-primary px-3 py-1.5 rounded-md text-xs font-[510]"
 					>
 						Roadmap
 					</Link>
 					<Link
-						href="/"
+						to="/"
 						className="px-3 py-1.5 rounded-md text-xs font-[510] flex items-center gap-1.5 border border-snow/40 text-snow hover:border-snow/70 transition-colors bg-transparent"
 					>
 						Kembali ke Beranda

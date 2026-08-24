@@ -1,7 +1,7 @@
 "use client";
 
+import { useNavigate } from "@tanstack/react-router";
 import { X } from "lucide-react";
-import { useRouter } from "next/navigation";
 import {
 	useCallback,
 	useEffect,
@@ -71,7 +71,7 @@ export function PrdDetail({
 
 	// ── Hooks ──
 	const { rightWidth, onStartDragRight, isDraggingRight } = usePanelResize();
-	const router = useRouter();
+	const navigate = useNavigate();
 	const [, startTransition] = useTransition();
 	const {
 		isGeneratingPRD,
@@ -215,10 +215,10 @@ export function PrdDetail({
 	const handleProjectCreated = useCallback(
 		(newProjectId: string) => {
 			startTransition(() => {
-				router.push(`/prd/${newProjectId}`);
+				navigate({ to: "/prd/$id", params: { id: newProjectId } });
 			});
 		},
-		[router, startTransition],
+		[navigate, startTransition],
 	);
 
 	const toggleChat = useUIStore((s) => s.toggleChatPanel);
@@ -248,7 +248,7 @@ export function PrdDetail({
 			});
 			if (!res.ok) throw new Error("Gagal memperbarui tahap proyek");
 			startTransition(() => {
-				router.push(`/ac/${projectId}`);
+				navigate({ to: "/ac/$id", params: { id: projectId } });
 			});
 		} catch (err) {
 			console.error("Step to AC failed:", err);

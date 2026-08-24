@@ -9,8 +9,7 @@ import {
 	Shield,
 	User,
 } from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, useLocation } from "@tanstack/react-router";
 import { memo } from "react";
 import { cn } from "@/lib/utils";
 
@@ -31,7 +30,7 @@ const NAV_ITEMS = [
 export const SettingsClient = memo(function SettingsClient({
 	children,
 }: SettingsClientProps) {
-	const pathname = usePathname();
+	const pathname = useLocation({ select: (l) => l.pathname });
 
 	return (
 		<div className="flex min-h-screen flex-col bg-onyx text-snow md:flex-row">
@@ -47,7 +46,7 @@ export const SettingsClient = memo(function SettingsClient({
 						</p>
 					</div>
 					<Link
-						href="/"
+						to="/"
 						className="flex items-center justify-center rounded-md bg-white/5 p-2 text-fog md:hidden"
 					>
 						<ArrowLeft size={20} />
@@ -63,7 +62,7 @@ export const SettingsClient = memo(function SettingsClient({
 						return (
 							<Link
 								key={item.href}
-								href={item.href}
+								to={item.href as never}
 								className={cn(
 									"flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-[13px] font-[510] transition-all duration-300 md:gap-3 md:px-4 md:py-3 md:text-[15px]",
 									isActive
@@ -83,7 +82,7 @@ export const SettingsClient = memo(function SettingsClient({
 					<div className="my-6 hidden h-px w-full bg-graphite md:block" />
 
 					<Link
-						href="/"
+						to="/"
 						className="hidden items-center gap-3 rounded-md px-4 py-3 text-[15px] font-[510] text-fog transition-all duration-300 hover:bg-white/5 hover:text-snow md:flex"
 					>
 						<ArrowLeft size={18} className="text-fog" />

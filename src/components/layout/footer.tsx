@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { Logo } from "@/components/ui/logo";
 
 export function Footer() {
@@ -16,7 +16,7 @@ export function Footer() {
 				<div className="flex flex-col items-center md:items-end gap-2">
 					<div className="flex gap-6">
 						<Link
-							href="/pricing"
+							to="/pricing"
 							className="font-inter text-[14px] text-fog transition-colors hover:text-snow"
 						>
 							Pricing
