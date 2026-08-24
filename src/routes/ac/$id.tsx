@@ -18,7 +18,12 @@ const loadAc = createServerFn({ method: "GET" })
 		const { plan } = await getUserPlanAndQuota();
 		const [project, prdContent, acContent] = await Promise.all([
 			db
-				.select({ id: projects.id, name: projects.name, acStatus: projects.acStatus })
+				.select({
+					id: projects.id,
+					name: projects.name,
+					acStatus: projects.acStatus,
+					step: projects.step,
+				})
 				.from(projects)
 				.where(and(eq(projects.id, id), eq(projects.userId, user.id)))
 				.limit(1),
@@ -30,6 +35,7 @@ const loadAc = createServerFn({ method: "GET" })
 		return {
 			projectId: id,
 			projectName: project[0].name,
+			step: (project[0] as { step?: string | null }).step ?? null,
 			latestAcContent: acContent ?? undefined,
 			latestPrdContent: prdContent ?? undefined,
 			plan,

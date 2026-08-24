@@ -23,6 +23,7 @@ const loadTask = createServerFn({ method: "GET" })
 					id: projects.id,
 					name: projects.name,
 					taskStatus: projects.taskStatus,
+					step: projects.step,
 				})
 				.from(projects)
 				.where(and(eq(projects.id, id), eq(projects.userId, user.id)))
@@ -35,6 +36,7 @@ const loadTask = createServerFn({ method: "GET" })
 		return {
 			projectId: id,
 			projectName: project[0].name,
+			step: (project[0] as { step?: string | null }).step ?? null,
 			taskTree,
 			hasAc: Boolean(acContent),
 			taskStatus: project[0].taskStatus,

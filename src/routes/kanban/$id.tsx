@@ -14,12 +14,16 @@ const loadKanban = createServerFn({ method: "GET" })
 	.handler(async ({ data: id }) => {
 		const user = await requireUserServer();
 		const [project] = await db
-			.select({ id: projects.id, name: projects.name })
+			.select({ id: projects.id, name: projects.name, step: projects.step })
 			.from(projects)
 			.where(and(eq(projects.id, id), eq(projects.userId, user.id)))
 			.limit(1);
 		if (!project) throw new Error("NOT_FOUND");
-		return { projectId: id, projectName: project.name };
+		return {
+			projectId: id,
+			projectName: project.name,
+			step: (project as { step?: string | null }).step ?? null,
+		};
 	});
 
 export const Route = createFileRoute("/kanban/$id")({

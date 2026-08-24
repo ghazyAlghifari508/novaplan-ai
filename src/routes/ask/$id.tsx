@@ -16,14 +16,18 @@ const loadAsk = createServerFn({ method: "GET" })
 		const user = await requireUserServer();
 
 		const [project] = await db
-			.select({ id: projects.id, name: projects.name })
+			.select({ id: projects.id, name: projects.name, step: projects.step })
 			.from(projects)
 			.where(and(eq(projects.id, id), eq(projects.userId, user.id)))
 			.limit(1);
 
 		if (!project) throw new Error("NOT_FOUND");
 
-		return { projectId: project.id, projectName: project.name };
+		return {
+			projectId: project.id,
+			projectName: project.name,
+			step: (project as { step?: string | null }).step ?? null,
+		};
 	});
 
 export const Route = createFileRoute("/ask/$id")({

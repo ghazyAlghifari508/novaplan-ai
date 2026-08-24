@@ -10,10 +10,17 @@ import {
 	User,
 	X,
 } from "lucide-react";
-import { Link, useLocation, useNavigate, useRouter } from "@tanstack/react-router";
+import {
+	Link,
+	useLocation,
+	useMatches,
+	useNavigate,
+	useRouter,
+} from "@tanstack/react-router";
 import { useState, useTransition } from "react";
 import { Logo } from "@/components/ui/logo";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { useUserPlan } from "@/hooks/use-user-plan";
 import { authClient } from "@/lib/auth-client";
 import { useChatStore, useUIStore } from "@/store";
 import { FlowStepNav, routeToStep } from "./flow-step-nav";
@@ -34,9 +41,25 @@ export function Navbar() {
 	const navigate = useNavigate();
 	const pathname = useLocation({ select: (l) => l.pathname });
 	const [, startTransition] = useTransition();
-	// Single source of truth: reuse routeToStep. Workspace = any non-PRD step.
-	const step = routeToStep(pathname);
-	const _isWorkspace = step !== "prd";
+	// Single source of truth: reuse routeToStep for route-based actions
+	const routeStep = routeToStep(pathname);
+	const _isWorkspace = routeStep !== "prd";
+	// Honest stepper: DB step via loader when available, fallback to route
+	const dbStep = useMatches({
+		select: (matches) => {
+			for (let i = matches.length - 1; i >= 0; i--) {
+				const data = matches[i].loaderData as
+					| { step?: string | null }
+					| undefined;
+				if (data && typeof data.step === "string") return data.step;
+				if (data && data.step === null) return null;
+			}
+			return null;
+		},
+	});
+	const { data: userPlanData } = useUserPlan();
+	const plan = userPlanData?.plan ?? "free";
+	const isFree = plan === "free";
 	// FlowStepNav pages = PRD/AC/Task/Kanban (workspace)
 	const isFlowStepRoute =
 		pathname.startsWith("/ask/") ||
@@ -114,14 +137,14 @@ export function Navbar() {
 				{/* Mobile: step dots (flow routes only) */}
 				{isFlowStepRoute && (
 					<div className="flex md:hidden flex-1 items-center justify-center">
-						<FlowStepNav />
+						<FlowStepNav step={dbStep} />
 					</div>
 				)}
 
 				{/* Center: navlinks - Desktop */}
 				<div className="hidden md:flex flex-1 items-center justify-center">
 					{isFlowStepRoute ? (
-						<FlowStepNav />
+						<FlowStepNav step={dbStep} />
 					) : (
 						<div className="flex items-center gap-1">
 							<Link
@@ -173,7 +196,7 @@ export function Navbar() {
 					{/* Workspace action buttons - visible all screens */}
 					{isFlowStepRoute ? (
 						<>
-							{step === "prd" && projectId && (
+							{routeStep === "prd" && projectId && (
 								<>
 									<button
 										onClick={() => useUIStore.getState().toggleChatPanel()}
@@ -183,47 +206,67 @@ export function Navbar() {
 										<MessageSquare size={14} />
 										<span>Chat</span>
 									</button>
+									{isFree ? (
+										<Link
+											to="/pricing"
+											className="btn-primary flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-[510] transition-all hover:brightness-105 active:scale-[0.98]"
+										>
+											<span>Upgrade ke Pro</span>
+											<ArrowRight size={12} />
+										</Link>
+									) : (
+										<button
+											onClick={handleStepAc}
+											disabled={
+												isStepLoading || isGeneratingPRD || hasStreamingPRDContent
+											}
+											className="btn-primary flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-[510] transition-all hover:brightness-105 active:scale-[0.98] disabled:opacity-40 disabled:bg-graphite/40 disabled:text-fog/50"
+										>
+											{isStepLoading ? (
+												"Memuat..."
+											) : (
+												<>
+													<span>Generate AC</span>
+													<ArrowRight size={12} />
+												</>
+											)}
+										</button>
+									)}
+								</>
+							)}
+							{routeStep === "ac" && projectId && (
+								isFree ? (
+									<Link
+										to="/pricing"
+										className="btn-primary flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-[510] transition-all hover:brightness-105 active:scale-[0.98]"
+									>
+										<span>Upgrade ke Pro</span>
+										<ArrowRight size={12} />
+									</Link>
+								) : (
 									<button
-										onClick={handleStepAc}
+										onClick={handleStepTask}
 										disabled={
-											isStepLoading || isGeneratingPRD || hasStreamingPRDContent
+											isStepLoading ||
+											isGeneratingAC ||
+											isGeneratingPRD ||
+											hasStreamingPRDContent
 										}
 										className="btn-primary flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-[510] transition-all hover:brightness-105 active:scale-[0.98] disabled:opacity-40 disabled:bg-graphite/40 disabled:text-fog/50"
 									>
-										{isStepLoading ? (
+										{isStepLoading ||
+										isGeneratingAC ||
+										isGeneratingPRD ||
+										hasStreamingPRDContent ? (
 											"Memuat..."
 										) : (
 											<>
-												<span>Generate AC</span>
+												<span>Generate Task</span>
 												<ArrowRight size={12} />
 											</>
 										)}
 									</button>
-								</>
-							)}
-							{step === "ac" && projectId && (
-								<button
-									onClick={handleStepTask}
-									disabled={
-										isStepLoading ||
-										isGeneratingAC ||
-										isGeneratingPRD ||
-										hasStreamingPRDContent
-									}
-									className="btn-primary flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-[510] transition-all hover:brightness-105 active:scale-[0.98] disabled:opacity-40 disabled:bg-graphite/40 disabled:text-fog/50"
-								>
-									{isStepLoading ||
-									isGeneratingAC ||
-									isGeneratingPRD ||
-									hasStreamingPRDContent ? (
-										"Memuat..."
-									) : (
-										<>
-											<span>Generate Task</span>
-											<ArrowRight size={12} />
-										</>
-									)}
-								</button>
+								)
 							)}
 						</>
 					) : null}
