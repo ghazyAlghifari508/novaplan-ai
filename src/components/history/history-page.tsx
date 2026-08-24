@@ -1,11 +1,13 @@
 "use client";
 
-import { ArrowRight, Trash2 } from "lucide-react";
+import { ArrowRight, Search, Trash2 } from "lucide-react";
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DeleteProjectModal } from "@/components/prd/delete-project-modal";
 import { useUserPlan } from "@/hooks/use-user-plan";
+import { HISTORY_PAGE_SIZE } from "@/lib/constants";
 import { resolveHistoryUrl } from "@/lib/flow-progress";
+import { filterHistory, paginate } from "@/lib/history-filter";
 import { saveSuppressAutoGen } from "@/lib/prompt-handoff";
 import type { HistoryItem } from "@/routes/history";
 import { useChatStore, useUIStore } from "@/store";
@@ -53,6 +55,16 @@ export function HistoryPage({ items }: { items: HistoryItem[] }) {
 	const [localItems, setLocalItems] = useState<HistoryItem[]>(items);
 	const [deleteId, setDeleteId] = useState<string | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
+	const [query, setQuery] = useState("");
+	const [stepFilter, setStepFilter] = useState<string | null>(null);
+	const [page, setPage] = useState(1);
+	const filtered = filterHistory(localItems, query, stepFilter);
+	const paged = paginate(filtered, page, HISTORY_PAGE_SIZE);
+	const totalPages = Math.max(1, Math.ceil(filtered.length / HISTORY_PAGE_SIZE));
+
+	useEffect(() => {
+		setPage(1);
+	}, [query, stepFilter]);
 
 	const openDelete = (id: string) => setDeleteId(id);
 	const closeDelete = () => setDeleteId(null);
@@ -116,8 +128,56 @@ export function HistoryPage({ items }: { items: HistoryItem[] }) {
 					</p>
 				</header>
 
-				<ul className="space-y-3">
-					{localItems.map((item) => {
+				<div className="mb-6 flex flex-col gap-4">
+					<div className="relative">
+						<Search
+							size={16}
+							className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-fog"
+							aria-hidden
+						/>
+						<input
+							type="text"
+							placeholder="Cari proyek..."
+							value={query}
+							onChange={(e) => setQuery(e.target.value)}
+							className="w-full rounded-lg border border-graphite bg-charcoal py-2.5 pl-10 pr-4 font-inter text-sm text-snow placeholder:text-fog/60 focus:border-fog/40 focus:outline-none"
+						/>
+					</div>
+					<div className="flex flex-wrap gap-2">
+						{(
+							[
+								{ id: null, label: "Semua" },
+								{ id: "prd", label: "PRD" },
+								{ id: "ac", label: "AC" },
+								{ id: "task", label: "Task" },
+							] as const
+						).map((chip) => {
+							const active = stepFilter === chip.id;
+							return (
+								<button
+									key={chip.label}
+									type="button"
+									onClick={() => setStepFilter(chip.id)}
+									className={`rounded-full px-3 py-1.5 font-inter text-xs font-[510] transition-colors ${
+										active
+											? "bg-snow text-onyx"
+											: "border border-graphite bg-charcoal text-fog hover:border-fog/40 hover:text-snow"
+									}`}
+								>
+									{chip.label}
+								</button>
+							);
+						})}
+					</div>
+				</div>
+
+				{filtered.length === 0 ? (
+					<p className="py-12 text-center font-inter text-sm text-fog">
+						Tidak ada proyek yang cocok dengan pencarian Anda.
+					</p>
+				) : (
+					<ul className="space-y-3">
+						{paged.map((item) => {
 						const badge = STEP_BADGE[item.step ?? "prd"] ?? STEP_BADGE.prd;
 						const href = resolveHistoryUrl(item);
 						const halted = isHaltedByCredits(item);
@@ -225,7 +285,32 @@ export function HistoryPage({ items }: { items: HistoryItem[] }) {
 							</li>
 						);
 					})}
-				</ul>
+					</ul>
+				)}
+
+				{filtered.length > HISTORY_PAGE_SIZE && (
+					<div className="mt-6 flex items-center justify-between">
+						<button
+							type="button"
+							onClick={() => setPage((p) => Math.max(1, p - 1))}
+							disabled={page <= 1}
+							className="rounded-md border border-graphite bg-charcoal px-4 py-2 font-inter text-sm text-snow transition-colors hover:border-fog/40 disabled:opacity-40 disabled:cursor-not-allowed"
+						>
+							Sebelumnya
+						</button>
+						<span className="font-inter text-sm text-fog">
+							Halaman {page} dari {totalPages}
+						</span>
+						<button
+							type="button"
+							onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+							disabled={page >= totalPages}
+							className="rounded-md border border-graphite bg-charcoal px-4 py-2 font-inter text-sm text-snow transition-colors hover:border-fog/40 disabled:opacity-40 disabled:cursor-not-allowed"
+						>
+							Selanjutnya
+						</button>
+					</div>
+				)}
 			</div>
 
 			<DeleteProjectModal
