@@ -38,6 +38,7 @@ import { Route as ApiAcGenerateRouteImport } from './routes/api/ac/generate'
 import { Route as ApiAcSaveRouteImport } from './routes/api/ac/save'
 import { Route as ApiAskOptionsRouteImport } from './routes/api/ask/options'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiExportPdfRouteImport } from './routes/api/export/pdf'
 import { Route as ApiExportPrdRouteImport } from './routes/api/export/prd'
 import { Route as ApiExportZipRouteImport } from './routes/api/export/zip'
 import { Route as ApiKanbanPidRouteImport } from './routes/api/kanban/$pid'
@@ -209,6 +210,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiExportPdfRoute = ApiExportPdfRouteImport.update({
+  id: '/api/export/pdf',
+  path: '/api/export/pdf',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiExportPrdRoute = ApiExportPrdRouteImport.update({
   id: '/api/export/prd',
   path: '/api/export/prd',
@@ -365,6 +371,7 @@ export interface FileRoutesByFullPath {
   '/api/ac/save': typeof ApiAcSaveRoute
   '/api/ask/options': typeof ApiAskOptionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/export/pdf': typeof ApiExportPdfRoute
   '/api/export/prd': typeof ApiExportPrdRoute
   '/api/export/zip': typeof ApiExportZipRoute
   '/api/kanban/$pid': typeof ApiKanbanPidRoute
@@ -420,6 +427,7 @@ export interface FileRoutesByTo {
   '/api/ac/save': typeof ApiAcSaveRoute
   '/api/ask/options': typeof ApiAskOptionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/export/pdf': typeof ApiExportPdfRoute
   '/api/export/prd': typeof ApiExportPrdRoute
   '/api/export/zip': typeof ApiExportZipRoute
   '/api/kanban/$pid': typeof ApiKanbanPidRoute
@@ -477,6 +485,7 @@ export interface FileRoutesById {
   '/api/ac/save': typeof ApiAcSaveRoute
   '/api/ask/options': typeof ApiAskOptionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/export/pdf': typeof ApiExportPdfRoute
   '/api/export/prd': typeof ApiExportPrdRoute
   '/api/export/zip': typeof ApiExportZipRoute
   '/api/kanban/$pid': typeof ApiKanbanPidRoute
@@ -535,6 +544,7 @@ export interface FileRouteTypes {
     | '/api/ac/save'
     | '/api/ask/options'
     | '/api/auth/$'
+    | '/api/export/pdf'
     | '/api/export/prd'
     | '/api/export/zip'
     | '/api/kanban/$pid'
@@ -590,6 +600,7 @@ export interface FileRouteTypes {
     | '/api/ac/save'
     | '/api/ask/options'
     | '/api/auth/$'
+    | '/api/export/pdf'
     | '/api/export/prd'
     | '/api/export/zip'
     | '/api/kanban/$pid'
@@ -646,6 +657,7 @@ export interface FileRouteTypes {
     | '/api/ac/save'
     | '/api/ask/options'
     | '/api/auth/$'
+    | '/api/export/pdf'
     | '/api/export/prd'
     | '/api/export/zip'
     | '/api/kanban/$pid'
@@ -696,6 +708,7 @@ export interface RootRouteChildren {
   ApiAcSaveRoute: typeof ApiAcSaveRoute
   ApiAskOptionsRoute: typeof ApiAskOptionsRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiExportPdfRoute: typeof ApiExportPdfRoute
   ApiExportPrdRoute: typeof ApiExportPrdRoute
   ApiExportZipRoute: typeof ApiExportZipRoute
   ApiKanbanPidRoute: typeof ApiKanbanPidRoute
@@ -919,6 +932,13 @@ declare module '@tanstack/react-router' {
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/export/pdf': {
+      id: '/api/export/pdf'
+      path: '/api/export/pdf'
+      fullPath: '/api/export/pdf'
+      preLoaderRoute: typeof ApiExportPdfRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/export/prd': {
@@ -1180,6 +1200,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAcSaveRoute: ApiAcSaveRoute,
   ApiAskOptionsRoute: ApiAskOptionsRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiExportPdfRoute: ApiExportPdfRoute,
   ApiExportPrdRoute: ApiExportPrdRoute,
   ApiExportZipRoute: ApiExportZipRoute,
   ApiKanbanPidRoute: ApiKanbanPidRoute,

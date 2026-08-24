@@ -318,6 +318,7 @@ export function PrdDetail({
 							versions={mappedVersions}
 							currentVersion={selectedVersionNum}
 							onSelectVersion={handleVersionSelect}
+							projectId={projectId}
 							className="flex-1 overflow-hidden"
 						/>
 						{plan === "free" && latestVersion && (

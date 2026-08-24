@@ -80,6 +80,7 @@ interface PrdViewerProps {
 	versions?: PrdVersion[];
 	currentVersion?: number;
 	onSelectVersion?: (content: string, version: number) => void;
+	projectId?: string;
 }
 
 export const PrdViewer = memo(function PrdViewer({
@@ -90,6 +91,7 @@ export const PrdViewer = memo(function PrdViewer({
 	versions,
 	currentVersion,
 	onSelectVersion,
+	projectId,
 }: PrdViewerProps) {
 	const { leftWidth, onStartDragLeft, isDraggingLeft } = usePanelResize();
 	const scrollRef = useRef<HTMLDivElement>(null);
@@ -224,6 +226,25 @@ export const PrdViewer = memo(function PrdViewer({
 									</option>
 								))}
 						</select>
+					)}
+					{projectId && (
+						<button
+							type="button"
+							onClick={async () => {
+								const res = await fetch("/api/export/pdf", {
+									method: "POST",
+									headers: { "Content-Type": "application/json" },
+									body: JSON.stringify({ projectId }),
+								});
+								if (!res.ok) return;
+								const blob = await res.blob();
+								const url = URL.createObjectURL(blob);
+								window.open(url);
+							}}
+							className="ml-auto rounded bg-indigo px-3 py-1 text-xs font-medium text-white hover:bg-indigo/90 transition-colors"
+						>
+							Export PDF
+						</button>
 					)}
 				</div>
 
