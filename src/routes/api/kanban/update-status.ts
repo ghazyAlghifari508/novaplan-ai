@@ -15,44 +15,58 @@ export const Route = createFileRoute("/api/kanban/update-status")({
 	server: {
 		handlers: {
 			POST: async ({ request }: { request: Request }) => {
-				const authHeader = request.headers.get("Authorization");
-				const apiKey = authHeader?.startsWith("Bearer ")
-					? authHeader.substring(7).trim()
+				// Dual auth: Bearer API key (CLI /api/v1 consumers) OR session cookie (kanban board drag).
+				// Keeps existing key-scope checks for CLI path; board path uses requireUser ownership.
+				let actingUserId: string | null = null;
+				let keyRecordId: string | null = null;
+
+				const authHeader = request.headers.get("Authorization") ?? "";
+				const bearer = authHeader.startsWith("Bearer ")
+					? authHeader.slice(7).trim()
 					: "";
-				if (!apiKey)
-					return Response.json({ error: "API Key required" }, { status: 401 });
+
+				if (bearer) {
+					const hashedKey = createHash("sha256").update(bearer).digest("hex");
+					const [keyRecord] = await db
+						.select({
+							id: apiKeys.id,
+							userId: apiKeys.userId,
+							scopes: apiKeys.scopes,
+							expiresAt: apiKeys.expiresAt,
+						})
+						.from(apiKeys)
+						.where(eq(apiKeys.key, hashedKey))
+						.limit(1);
+					if (!keyRecord)
+						return Response.json({ error: "Invalid API Key" }, { status: 401 });
+					if (keyRecord.expiresAt && new Date(keyRecord.expiresAt) < new Date())
+						return Response.json({ error: "API Key expired" }, { status: 401 });
+					const scopes = keyRecord.scopes ?? [];
+					if (
+						!scopes.includes("write:task:status") &&
+						!scopes.includes("admin") &&
+						!scopes.includes("*")
+					) {
+						return Response.json(
+							{ error: "Insufficient scopes for this action" },
+							{ status: 403 },
+						);
+					}
+					actingUserId = keyRecord.userId;
+					keyRecordId = keyRecord.id;
+				} else {
+					try {
+						const { requireUser } = await import("@/lib/session");
+						const sessionUser = await requireUser(request.headers);
+						actingUserId = sessionUser.id;
+					} catch {
+						return Response.json({ error: "Unauthorized" }, { status: 401 });
+					}
+				}
 
 				const body = await request.json().catch(() => null);
 				if (!body)
 					return Response.json({ error: "Invalid JSON body" }, { status: 400 });
-
-				const hashedKey = createHash("sha256").update(apiKey).digest("hex");
-				const [keyRecord] = await db
-					.select({
-						id: apiKeys.id,
-						userId: apiKeys.userId,
-						scopes: apiKeys.scopes,
-						expiresAt: apiKeys.expiresAt,
-					})
-					.from(apiKeys)
-					.where(eq(apiKeys.key, hashedKey))
-					.limit(1);
-				if (!keyRecord)
-					return Response.json({ error: "Invalid API Key" }, { status: 401 });
-				if (keyRecord.expiresAt && new Date(keyRecord.expiresAt) < new Date())
-					return Response.json({ error: "API Key expired" }, { status: 401 });
-
-				const scopes = keyRecord.scopes ?? [];
-				if (
-					!scopes.includes("write:task:status") &&
-					!scopes.includes("admin") &&
-					!scopes.includes("*")
-				) {
-					return Response.json(
-						{ error: "Insufficient scopes for this action" },
-						{ status: 403 },
-					);
-				}
 
 				const { projectId, taskId, status } = body;
 				if (!projectId || !taskId || !status)
@@ -72,7 +86,7 @@ export const Route = createFileRoute("/api/kanban/update-status")({
 					.where(
 						and(
 							eq(projects.id, projectId),
-							eq(projects.userId, keyRecord.userId),
+							eq(projects.userId, actingUserId!),
 						),
 					)
 					.limit(1);
@@ -93,18 +107,33 @@ export const Route = createFileRoute("/api/kanban/update-status")({
 					.update(tasks)
 					.set(updateData)
 					.where(and(eq(tasks.id, taskId), eq(tasks.projectId, projectId)))
-					.returning({ id: tasks.id });
+					.returning({
+						id: tasks.id,
+						status: tasks.status,
+						updatedAt: tasks.updatedAt,
+						startedAt: tasks.startedAt,
+						completedAt: tasks.completedAt,
+					});
 				if (!updated.length)
 					return Response.json(
 						{ error: "task not found in this project" },
 						{ status: 404 },
 					);
 
-				db.update(apiKeys)
-					.set({ lastUsedAt: new Date() })
-					.where(eq(apiKeys.id, keyRecord.id))
-					.catch(() => {});
-				return Response.json({ success: true, taskId, status });
+				if (keyRecordId) {
+					db.update(apiKeys)
+						.set({ lastUsedAt: new Date() })
+						.where(eq(apiKeys.id, keyRecordId))
+						.catch(() => {});
+				}
+				// Return updated task JSON for optimistic setQueryData on the kanban board.
+				return Response.json({
+					success: true,
+					taskId: updated[0].id,
+					status: updated[0].status,
+					projectId,
+					task: updated[0],
+				});
 			},
 		},
 	},

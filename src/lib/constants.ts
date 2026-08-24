@@ -63,3 +63,6 @@ export const PAYWALL_COPY = {
 	},
 } as const;
 export const PDF_STYLES = { font: "Inter", headerSize: 14, bodySize: 11 } as const;
+
+export const KANBAN_SSE_INTERVAL_MS = 3_000;
+export const KANBAN_POLL_INTERVAL_MS = 10_000;

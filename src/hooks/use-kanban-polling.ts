@@ -1,6 +1,8 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { KANBAN_POLL_INTERVAL_MS } from "@/lib/constants";
 
 export interface TaskCard {
 	id: string;
@@ -28,7 +30,7 @@ export interface KanbanData {
 	staleness: "live" | "stale" | "disconnected";
 	lastUpdateAt: string;
 	acChanged?: boolean;
-	taskStatus?: string;
+	taskStatus?: string | null;
 }
 
 interface UseKanbanTasksOptions {
@@ -39,9 +41,50 @@ interface UseKanbanTasksOptions {
 
 export function useKanbanTasks({
 	projectId,
-	intervalMs = 10_000,
+	intervalMs = KANBAN_POLL_INTERVAL_MS,
 	enabled = true,
 }: UseKanbanTasksOptions) {
+	const queryClient = useQueryClient();
+	const [sseData, setSseData] = useState<KanbanData | null>(null);
+	const [sseFailed, setSseFailed] = useState(false);
+	const [sseLoading, setSseLoading] = useState(true);
+
+	useEffect(() => {
+		if (!enabled || !projectId) return;
+
+		// Reset on project change / re-enable so a fresh project doesn't show stale SSE data.
+		setSseData(null);
+		setSseFailed(false);
+		setSseLoading(true);
+
+		const es = new EventSource(
+			`/api/kanban/stream?projectId=${encodeURIComponent(projectId)}`,
+		);
+
+		es.onmessage = (e) => {
+			try {
+				const parsed = JSON.parse(e.data) as KanbanData;
+				setSseData(parsed);
+				setSseFailed(false);
+				setSseLoading(false);
+				// Sync SSE payload into the query cache so optimistic
+				// `setQueryData(["kanban-tasks", projectId], ...)` mutations
+				// stay visible even while SSE is the primary source.
+				queryClient.setQueryData(["kanban-tasks", projectId], parsed);
+			} catch {}
+		};
+
+		es.onerror = () => {
+			setSseFailed(true);
+			setSseLoading(false);
+			es.close();
+		};
+
+		return () => es.close();
+	}, [projectId, enabled, queryClient]);
+
+	// Fallback polling — only active after SSE has failed. Keeps the same
+	// 10s cadence the board used pre-SSE, preserving staleness semantics.
 	const query = useQuery<KanbanData>({
 		queryKey: ["kanban-tasks", projectId],
 		queryFn: async () => {
@@ -49,35 +92,58 @@ export function useKanbanTasks({
 			if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 			return res.json() as Promise<KanbanData>;
 		},
-		refetchInterval: intervalMs,
-		refetchOnWindowFocus: true,
+		refetchInterval: sseFailed ? intervalMs : false,
+		refetchOnWindowFocus: sseFailed ? true : false,
 		staleTime: 5_000,
-		enabled: enabled && !!projectId,
+		enabled: enabled && !!projectId && sseFailed,
 	});
 
-	// ponytail: server always responds staleness:"live" — the degraded-state
-	// signal lives client-side. failureCount = consecutive failed polls,
-	// resets on success (same semantics as the old errorCountRef).
-	const staleness: "live" | "stale" | "disconnected" =
-		query.failureCount >= 10
+	const data = sseFailed ? (query.data ?? null) : sseData;
+
+	const isLoading = sseFailed
+		? query.isLoading
+		: sseLoading && sseData === null;
+
+	// Staleness stays pure and honest: when SSE is live, server always says
+	// "live" — degraded signal lives client-side via failureCount, same as
+	// the pre-SSE polling contract. No fake rotating strings.
+	const staleness: KanbanData["staleness"] = sseFailed
+		? query.failureCount >= 10
 			? "disconnected"
 			: query.failureCount >= 3
 				? "stale"
-				: (query.data?.staleness ?? "live");
+				: (query.data?.staleness ?? "live")
+		: (sseData?.staleness ?? "live");
 
 	return {
-		data: query.data ?? null,
-		isLoading: query.isLoading,
-		isError: query.isError,
+		data,
+		isLoading,
+		isError: sseFailed ? query.isError : false,
 		error:
-			query.error instanceof Error
-				? query.error
-				: query.error
-					? new Error(String(query.error))
-					: null,
+			sseFailed
+				? query.error instanceof Error
+					? query.error
+					: query.error
+						? new Error(String(query.error))
+						: null
+				: null,
 		staleness,
 		refetch: async () => {
-			await query.refetch();
+			if (sseFailed) {
+				await query.refetch();
+			} else {
+				// SSE live: one-off fetch to refresh after a user-initiated retry
+				// (pull-to-refresh, banner retry). Keeps SSE as primary source
+				// but lets the retry button feel instant.
+				try {
+					const res = await fetch(`/api/kanban/${projectId}`);
+					if (res.ok) {
+						const json = (await res.json()) as KanbanData;
+						setSseData(json);
+						queryClient.setQueryData(["kanban-tasks", projectId], json);
+					}
+				} catch {}
+			}
 		},
 	};
 }

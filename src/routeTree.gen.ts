@@ -42,6 +42,7 @@ import { Route as ApiExportPdfRouteImport } from './routes/api/export/pdf'
 import { Route as ApiExportPrdRouteImport } from './routes/api/export/prd'
 import { Route as ApiExportZipRouteImport } from './routes/api/export/zip'
 import { Route as ApiKanbanPidRouteImport } from './routes/api/kanban/$pid'
+import { Route as ApiKanbanStreamRouteImport } from './routes/api/kanban/stream'
 import { Route as ApiKanbanUpdateStatusRouteImport } from './routes/api/kanban/update-status'
 import { Route as ApiPaymentsCreateRouteImport } from './routes/api/payments/create'
 import { Route as ApiPaymentsWebhookRouteImport } from './routes/api/payments/webhook'
@@ -230,6 +231,11 @@ const ApiKanbanPidRoute = ApiKanbanPidRouteImport.update({
   path: '/api/kanban/$pid',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiKanbanStreamRoute = ApiKanbanStreamRouteImport.update({
+  id: '/api/kanban/stream',
+  path: '/api/kanban/stream',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiKanbanUpdateStatusRoute = ApiKanbanUpdateStatusRouteImport.update({
   id: '/api/kanban/update-status',
   path: '/api/kanban/update-status',
@@ -375,6 +381,7 @@ export interface FileRoutesByFullPath {
   '/api/export/prd': typeof ApiExportPrdRoute
   '/api/export/zip': typeof ApiExportZipRoute
   '/api/kanban/$pid': typeof ApiKanbanPidRoute
+  '/api/kanban/stream': typeof ApiKanbanStreamRoute
   '/api/kanban/update-status': typeof ApiKanbanUpdateStatusRoute
   '/api/payments/create': typeof ApiPaymentsCreateRoute
   '/api/payments/webhook': typeof ApiPaymentsWebhookRoute
@@ -431,6 +438,7 @@ export interface FileRoutesByTo {
   '/api/export/prd': typeof ApiExportPrdRoute
   '/api/export/zip': typeof ApiExportZipRoute
   '/api/kanban/$pid': typeof ApiKanbanPidRoute
+  '/api/kanban/stream': typeof ApiKanbanStreamRoute
   '/api/kanban/update-status': typeof ApiKanbanUpdateStatusRoute
   '/api/payments/create': typeof ApiPaymentsCreateRoute
   '/api/payments/webhook': typeof ApiPaymentsWebhookRoute
@@ -489,6 +497,7 @@ export interface FileRoutesById {
   '/api/export/prd': typeof ApiExportPrdRoute
   '/api/export/zip': typeof ApiExportZipRoute
   '/api/kanban/$pid': typeof ApiKanbanPidRoute
+  '/api/kanban/stream': typeof ApiKanbanStreamRoute
   '/api/kanban/update-status': typeof ApiKanbanUpdateStatusRoute
   '/api/payments/create': typeof ApiPaymentsCreateRoute
   '/api/payments/webhook': typeof ApiPaymentsWebhookRoute
@@ -548,6 +557,7 @@ export interface FileRouteTypes {
     | '/api/export/prd'
     | '/api/export/zip'
     | '/api/kanban/$pid'
+    | '/api/kanban/stream'
     | '/api/kanban/update-status'
     | '/api/payments/create'
     | '/api/payments/webhook'
@@ -604,6 +614,7 @@ export interface FileRouteTypes {
     | '/api/export/prd'
     | '/api/export/zip'
     | '/api/kanban/$pid'
+    | '/api/kanban/stream'
     | '/api/kanban/update-status'
     | '/api/payments/create'
     | '/api/payments/webhook'
@@ -661,6 +672,7 @@ export interface FileRouteTypes {
     | '/api/export/prd'
     | '/api/export/zip'
     | '/api/kanban/$pid'
+    | '/api/kanban/stream'
     | '/api/kanban/update-status'
     | '/api/payments/create'
     | '/api/payments/webhook'
@@ -712,6 +724,7 @@ export interface RootRouteChildren {
   ApiExportPrdRoute: typeof ApiExportPrdRoute
   ApiExportZipRoute: typeof ApiExportZipRoute
   ApiKanbanPidRoute: typeof ApiKanbanPidRoute
+  ApiKanbanStreamRoute: typeof ApiKanbanStreamRoute
   ApiKanbanUpdateStatusRoute: typeof ApiKanbanUpdateStatusRoute
   ApiPaymentsCreateRoute: typeof ApiPaymentsCreateRoute
   ApiPaymentsWebhookRoute: typeof ApiPaymentsWebhookRoute
@@ -962,6 +975,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiKanbanPidRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/kanban/stream': {
+      id: '/api/kanban/stream'
+      path: '/api/kanban/stream'
+      fullPath: '/api/kanban/stream'
+      preLoaderRoute: typeof ApiKanbanStreamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/kanban/update-status': {
       id: '/api/kanban/update-status'
       path: '/api/kanban/update-status'
@@ -1204,6 +1224,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiExportPrdRoute: ApiExportPrdRoute,
   ApiExportZipRoute: ApiExportZipRoute,
   ApiKanbanPidRoute: ApiKanbanPidRoute,
+  ApiKanbanStreamRoute: ApiKanbanStreamRoute,
   ApiKanbanUpdateStatusRoute: ApiKanbanUpdateStatusRoute,
   ApiPaymentsCreateRoute: ApiPaymentsCreateRoute,
   ApiPaymentsWebhookRoute: ApiPaymentsWebhookRoute,
@@ -1223,12 +1244,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

@@ -11,9 +11,9 @@
  * If feature-level grouping matters, add a `feature` text col to tasks and
  * group by it on read. Sufficient for export (JSON) today.
  */
-import { asc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { projects, tasks } from "@/db/schema";
+import { acVersions, projects, tasks } from "@/db/schema";
 import { advanceStep } from "@/lib/flow-progress";
 
 export interface TaskTree {
@@ -175,4 +175,123 @@ export async function getTaskTree(projectId: string): Promise<TaskTree | null> {
 		console.error("getTaskTree error:", error);
 		throw error;
 	}
+}
+
+/**
+ * Kanban board data — shared between polling GET (`/api/kanban/$pid`)
+ * and SSE push (`/api/kanban/stream`). Single DB source so both transports
+ * stay in sync. Returns the same shape the hook expects.
+ */
+export async function getKanbanData(projectId: string): Promise<{
+	columns: Record<string, Array<{
+		id: string;
+		type: "task";
+		featureName: string;
+		name: string;
+		description: string;
+		status: "pending" | "in_progress" | "completed" | "failed";
+		subtaskCount: number;
+		subtaskCompleted: number;
+		dependencies: string[];
+		startedAt: string | null;
+		completedAt: string | null;
+		subtasks: Array<{ name: string; status: string }>;
+	}>>;
+	staleness: "live";
+	lastUpdateAt: string;
+	acChanged: boolean;
+	taskStatus: string | null;
+}> {
+	const [project] = await db
+		.select({ taskStatus: projects.taskStatus })
+		.from(projects)
+		.where(eq(projects.id, projectId))
+		.limit(1);
+
+	const taskRows = await db
+		.select({
+			id: tasks.id,
+			title: tasks.title,
+			description: tasks.description,
+			status: tasks.status,
+			featureName: tasks.featureName,
+			dependencies: tasks.dependencies,
+			subtasks: tasks.subtasks,
+			startedAt: tasks.startedAt,
+			completedAt: tasks.completedAt,
+			createdAt: tasks.createdAt,
+		})
+		.from(tasks)
+		.where(eq(tasks.projectId, projectId))
+		.orderBy(asc(tasks.order));
+
+	// acChanged: whether an AC version is newer than the oldest task creation.
+	// Mirrors /api/v1/projects/$id/kanban.ts logic; polling route currently
+	// returned false statically but SSE deserves the real signal.
+	const [acRow] = await db
+		.select({ createdAt: acVersions.createdAt })
+		.from(acVersions)
+		.where(eq(acVersions.projectId, projectId))
+		.orderBy(desc(acVersions.version))
+		.limit(1);
+
+	const columns: Record<string, Array<{
+		id: string;
+		type: "task";
+		featureName: string;
+		name: string;
+		description: string;
+		status: "pending" | "in_progress" | "completed" | "failed";
+		subtaskCount: number;
+		subtaskCompleted: number;
+		dependencies: string[];
+		startedAt: string | null;
+		completedAt: string | null;
+		subtasks: Array<{ name: string; status: string }>;
+	}>> = {
+		pending: [],
+		in_progress: [],
+		completed: [],
+		failed: [],
+	};
+
+	for (const t of taskRows) {
+		const sub = Array.isArray(t.subtasks)
+			? (t.subtasks as Array<Record<string, unknown>>)
+			: [];
+		const card = {
+			id: t.id,
+			type: "task" as const,
+			featureName: t.featureName || "Umum",
+			name: t.title,
+			description: t.description ?? "",
+			status: (t.status ?? "pending") as "pending" | "in_progress" | "completed" | "failed",
+			subtaskCount: sub.length,
+			subtaskCompleted: sub.filter((s) => s.status === "completed").length,
+			dependencies: Array.isArray(t.dependencies) ? (t.dependencies as string[]) : [],
+			startedAt: t.startedAt ? (t.startedAt as Date).toISOString() : null,
+			completedAt: t.completedAt ? (t.completedAt as Date).toISOString() : null,
+			subtasks: sub.map((s) => ({
+				name: s.name as string,
+				status: (s.status as string) ?? "pending",
+			})),
+		};
+		(columns[card.status] ?? columns.pending).push(card);
+	}
+
+	const latestAcAt = acRow?.createdAt ?? null;
+	const tasksCreatedAt = taskRows[0]?.createdAt ?? null;
+	const acChanged = Boolean(
+		latestAcAt &&
+		tasksCreatedAt &&
+		new Date(latestAcAt as Date) > new Date(tasksCreatedAt as Date),
+	);
+
+	return {
+		columns,
+		staleness: "live",
+		lastUpdateAt: new Date().toISOString(),
+		acChanged,
+		taskStatus: project?.taskStatus ?? null,
+	};
 }
