@@ -12,6 +12,7 @@ import {
 } from "react";
 import { ChatPanel } from "@/components/chat";
 import { GenerationProgress } from "@/components/shared/generation-progress";
+import { PaywallCard } from "@/components/shared/paywall-card";
 import { usePanelResize } from "@/hooks/use-panel-resize";
 import { cn } from "@/lib/utils";
 import { useChatStore, useUIStore } from "@/store";
@@ -319,6 +320,13 @@ export function PrdDetail({
 							onSelectVersion={handleVersionSelect}
 							className="flex-1 overflow-hidden"
 						/>
+						{plan === "free" && latestVersion && (
+							<div className="shrink-0 border-t border-graphite bg-charcoal/40 p-4">
+								<div className="mx-auto max-w-3xl">
+									<PaywallCard type="ac" />
+								</div>
+							</div>
+						)}
 					</div>
 				</div>
 

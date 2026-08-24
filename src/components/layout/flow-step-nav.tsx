@@ -3,7 +3,7 @@
 import { useLocation } from "@tanstack/react-router";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useChatStore } from "@/store";
+import { stepRank } from "@/lib/flow-progress";
 
 // ponytail: pure step<->route logic extracted to @/lib/flow-step so server
 // code + tests can use it without next/navigation. Re-export keeps existing
@@ -13,29 +13,38 @@ export { type FlowStep, routeToStep } from "@/lib/flow-step";
 import type { FlowStep } from "@/lib/flow-step";
 import { routeToStep } from "@/lib/flow-step";
 
-const STEPS: { key: FlowStep; label: string }[] = [
-	{ key: "question", label: "Question" },
-	{ key: "prd", label: "PRD" },
-	{ key: "ac", label: "AC" },
-	{ key: "task", label: "Task" },
+const steps: Array<{ id: FlowStep; label: string; route: string }> = [
+	{ id: "prd", label: "PRD", route: "/prd/$id" },
+	{ id: "ac", label: "AC", route: "/ac/$id" },
+	{ id: "task", label: "Task", route: "/task/$id" },
+	{ id: "kanban" as unknown as FlowStep, label: "Kanban", route: "/kanban/$id" },
 ];
 
-export function FlowStepNav() {
+function rankOf(id: FlowStep): number {
+	// Kanban is view of task stage — same DB rank as task
+	if ((id as string) === "kanban") return stepRank("task");
+	return stepRank(id);
+}
+
+export function FlowStepNav(props?: { step?: FlowStep | string | null }) {
 	const pathname = useLocation({ select: (l) => l.pathname });
-	const current = routeToStep(pathname ?? "");
-	const currentIdx = STEPS.findIndex((s) => s.key === current);
-	const isTaskGenerated = useChatStore((s) => s.isTaskGenerated);
+	// Honest: prefer real DB step when provided via prop, fallback to route-derived
+	const currentStep = (props?.step as FlowStep) ?? routeToStep(pathname ?? "");
+	const rank = stepRank(currentStep);
 
 	return (
 		<ol aria-label="Flow step" className="flex items-center gap-2 md:gap-2">
-			{STEPS.map((step, idx) => {
-				const isCompleted =
-					idx < currentIdx || (step.key === "task" && isTaskGenerated);
-				const isActive = idx === currentIdx && !isCompleted;
+			{steps.map((s, idx) => {
+				const sRank = rankOf(s.id);
+				const state =
+					sRank < rank ? "done" : sRank === rank ? "current" : "locked";
+				const isCompleted = state === "done";
+				const isActive = state === "current";
+				const isLocked = state === "locked";
 
 				return (
 					<li
-						key={step.key}
+						key={`${s.id}-${s.route}`}
 						className="flex items-center gap-1.5"
 						aria-current={isActive ? "step" : undefined}
 					>
@@ -44,7 +53,7 @@ export function FlowStepNav() {
 								aria-hidden
 								className={cn(
 									"hidden h-px w-4 transition-colors duration-300 md:block",
-									idx <= currentIdx ? "bg-indigo/60" : "bg-graphite",
+									sRank <= rank ? "bg-indigo/60" : "bg-graphite",
 								)}
 							/>
 						)}
@@ -53,7 +62,7 @@ export function FlowStepNav() {
 								"flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-[510] transition-colors duration-300",
 								isCompleted && "bg-emerald text-charcoal",
 								isActive && "bg-indigo text-white",
-								!isCompleted && !isActive && "border border-graphite text-fog",
+								isLocked && "border border-graphite text-fog",
 							)}
 						>
 							{isCompleted ? <Check size={12} strokeWidth={3} /> : idx + 1}
@@ -64,7 +73,7 @@ export function FlowStepNav() {
 								isActive ? "font-[510] text-snow" : "text-fog",
 							)}
 						>
-							{step.label}
+							{s.label}
 						</span>
 					</li>
 				);

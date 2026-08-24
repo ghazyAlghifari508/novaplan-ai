@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { syncPaymentStatus } from "@/app/actions/payment";
 import { CreditExhaustedModal } from "@/components/chat/credit-exhausted-modal";
 import { TableOfContents } from "@/components/prd/table-of-contents";
+import { PaywallCard } from "@/components/shared/paywall-card";
 import { usePanelResize } from "@/hooks/use-panel-resize";
 import { GUARD_WAIT_MS } from "@/lib/constants";
 import {
@@ -289,6 +290,7 @@ export function AcDetail({
 
 	// Auto-generate AC on first visit
 	useEffect(() => {
+		if (plan === "free") return; // jangan auto-generate, tampilkan paywall
 		if (
 			!latestPrdContent ||
 			latestAcContent ||
@@ -307,6 +309,7 @@ export function AcDetail({
 		handleGenerate,
 		projectId,
 		isGenerating,
+		plan,
 	]);
 
 	// Auto-resume AC generation after payment return
@@ -460,6 +463,11 @@ export function AcDetail({
 							</div>
 						)}
 
+						{plan === "free" && !acContent && !isGenerating && (
+							<div className="shrink-0 p-4">
+								<PaywallCard type="ac" />
+							</div>
+						)}
 						{/* AC Viewer */}
 						<div className="flex-1 overflow-hidden">
 							{isGenerating && thinkingText && !streamingContent && (

@@ -17,9 +17,8 @@ const loadPrd = createServerFn({ method: "GET" })
 		const { plan, quota } = await getUserPlanAndQuota();
 
 		const [projectRows, versionRows, convRows] = await Promise.all([
-			// ponytail: select only name — only field used downstream (line 42).
 			db
-				.select({ id: projects.id, name: projects.name })
+				.select({ id: projects.id, name: projects.name, step: projects.step })
 				.from(projects)
 				.where(and(eq(projects.id, id), eq(projects.userId, user.id)))
 				.limit(1),
@@ -71,6 +70,7 @@ const loadPrd = createServerFn({ method: "GET" })
 		return {
 			projectId: id,
 			projectName: project.name,
+			step: (project as { step?: string | null }).step ?? null,
 			latestVersion: versionRows[0],
 			allVersions: versionRows,
 			conversationId: conv?.id,
