@@ -26,6 +26,7 @@ const Mermaid = lazy(() =>
 
 import { usePanelResize } from "@/hooks/use-panel-resize";
 import { cn } from "@/lib/utils";
+import { useUIStore } from "@/store";
 import type { Plan } from "@/types/database";
 import { VersionHistory } from "./version-history";
 
@@ -85,7 +86,7 @@ interface PrdViewerProps {
 
 export const PrdViewer = memo(function PrdViewer({
 	content,
-	projectName: _projectName,
+	projectName,
 	className,
 	plan = "free",
 	versions,
@@ -97,6 +98,8 @@ export const PrdViewer = memo(function PrdViewer({
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const [activeTab, setActiveTab] = useState<"preview" | "diff">("preview");
 	const [oldVer, setOldVer] = useState<number | undefined>(undefined);
+	const [isExporting, setIsExporting] = useState(false);
+	const showToast = useUIStore((s) => s.showToast);
 
 	// Auto-scroll logic when new content arrives
 	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional re-scroll on content change
@@ -230,20 +233,40 @@ export const PrdViewer = memo(function PrdViewer({
 					{projectId && (
 						<button
 							type="button"
+							disabled={isExporting}
 							onClick={async () => {
-								const res = await fetch("/api/export/pdf", {
-									method: "POST",
-									headers: { "Content-Type": "application/json" },
-									body: JSON.stringify({ projectId }),
-								});
-								if (!res.ok) return;
-								const blob = await res.blob();
-								const url = URL.createObjectURL(blob);
-								window.open(url);
+								if (isExporting) return;
+								setIsExporting(true);
+								try {
+									const res = await fetch("/api/export/pdf", {
+										method: "POST",
+										headers: { "Content-Type": "application/json" },
+										body: JSON.stringify({ projectId }),
+									});
+									if (!res.ok) {
+										showToast("Gagal mengekspor PDF", "error");
+										return;
+									}
+									const blob = await res.blob();
+									const url = URL.createObjectURL(blob);
+									const safeName = (projectName || "project")
+										.replace(/[^a-zA-Z0-9_-]/g, "-")
+										.replace(/-+/g, "-")
+										.toLowerCase();
+									const a = document.createElement("a");
+									a.href = url;
+									a.download = `${safeName}.pdf`;
+									a.click();
+									setTimeout(() => URL.revokeObjectURL(url), 1000);
+								} catch {
+									showToast("Gagal mengekspor PDF", "error");
+								} finally {
+									setIsExporting(false);
+								}
 							}}
-							className="ml-auto rounded bg-indigo px-3 py-1 text-xs font-medium text-white hover:bg-indigo/90 transition-colors"
+							className="ml-auto rounded bg-indigo px-3 py-1 text-xs font-medium text-white hover:bg-indigo/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 						>
-							Export PDF
+							{isExporting ? "Mengekspor..." : "Export PDF"}
 						</button>
 					)}
 				</div>

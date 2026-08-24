@@ -13,8 +13,29 @@ export async function generatePdfBuffer({
   doc.setFontSize(PDF_STYLES.headerSize);
   doc.text(projectName, 10, 10);
   doc.setFontSize(PDF_STYLES.bodySize);
-  const lines = doc.splitTextToSize(content.slice(0, 8000), 180);
-  doc.text(lines, 10, 20);
+  const lines = doc.splitTextToSize(content, 180) as string[];
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const lineHeight = 7;
+  const bottomMargin = 10;
+  const firstPageAvailable = pageHeight - 20 - bottomMargin;
+  const otherPageAvailable = pageHeight - 10 - bottomMargin;
+  const firstPageLines = Math.floor(firstPageAvailable / lineHeight);
+  const otherPageLines = Math.floor(otherPageAvailable / lineHeight);
+  let remaining = lines;
+  let isFirstPage = true;
+  let y = 20;
+  while (remaining.length > 0) {
+    const chunkSize = isFirstPage ? firstPageLines : otherPageLines;
+    const chunk = remaining.slice(0, chunkSize);
+    doc.text(chunk, 10, y);
+    remaining = remaining.slice(chunkSize);
+    if (remaining.length > 0) {
+      doc.addPage();
+      doc.setFontSize(PDF_STYLES.bodySize);
+      y = 10;
+      isFirstPage = false;
+    }
+  }
   const out = doc.output("arraybuffer");
   return Buffer.from(out);
 }
