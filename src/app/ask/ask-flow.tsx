@@ -3,14 +3,17 @@
 import { useNavigate } from "@tanstack/react-router";
 import { Cloud, Database, Layers, Palette, Rocket } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { ContextUpload } from "@/components/ask/context-upload";
 import { BRIEF_MAX_CHARS } from "@/lib/constants";
 import {
+	clearBriefContext,
 	getAskLanguage,
 	getAskPlatform,
 	getAskState,
 	getBriefContext,
 	getSetupPrompt,
 	saveAskState,
+	saveBriefContext,
 	savePendingPrdPrompt,
 } from "@/lib/prompt-handoff";
 import {
@@ -50,7 +53,15 @@ export function AskFlow({ projectId, projectName }: AskFlowProps) {
 	const navigate = useNavigate();
 	const promptRef = useRef("");
 	const hasFetched = useRef(false);
-	const [session, setSession] = useState<1 | 2>(1);
+	const [session, setSession] = useState<1 | 2 | 3>(1);
+	const [briefContext, setBriefContext] = useState<string>(() =>
+		typeof window === "undefined" ? "" : getBriefContext(),
+	);
+
+	useEffect(() => {
+		if (briefContext) saveBriefContext(briefContext);
+		else clearBriefContext();
+	}, [briefContext]);
 	const [isLoadingQuestions, setIsLoadingQuestions] = useState(true);
 	const [loadError, setLoadError] = useState("");
 	const [questions, setQuestions] = useState<AskQuestion[]>([]);
@@ -280,13 +291,17 @@ Deployment: ${tech.deployment || defaultChoice}`;
 				<div className="mb-8 flex items-center justify-between">
 					<div>
 						<p className="font-inter text-xs uppercase tracking-wide text-fog">
-							Sesi {session} dari 2
+							Sesi {session} dari 3
 						</p>
 						<h1
 							className="font-inter text-2xl font-[510]"
 							style={{ color: "var(--text-primary)" }}
 						>
-							{session === 1 ? "Ceritakan lebih lanjut" : "Preferensi Teknis"}
+							{session === 1
+								? "Ceritakan lebih lanjut"
+								: session === 2
+									? "Preferensi Teknis"
+									: "Tambah Konteks (opsional)"}
 						</h1>
 					</div>
 					{session === 1 && (
@@ -325,7 +340,7 @@ Deployment: ${tech.deployment || defaultChoice}`;
 							</button>
 						</div>
 					</div>
-				) : (
+				) : session === 2 ? (
 					<div className="space-y-6 pb-8">
 						<p className="font-inter text-xs text-fog italic">
 							Pilih &ldquo;Lewati&rdquo; jika tidak yakin, AI akan memilih stack
@@ -434,8 +449,39 @@ Deployment: ${tech.deployment || defaultChoice}`;
 							<button
 								type="button"
 								disabled={!allTechAnswered}
-								onClick={() => submit(techAnswers)}
+								onClick={() => setSession(3)}
 								className="btn-primary rounded-md px-6 py-2.5 font-inter text-sm font-[510] disabled:opacity-40 disabled:cursor-not-allowed"
+							>
+								Lanjut
+							</button>
+						</div>
+					</div>
+				) : (
+					<div className="space-y-6 pb-8">
+						<p className="font-inter text-xs text-fog italic">
+							Tambahkan brief, dokumen, atau URL kompetitor untuk memperkaya
+							konteks AI. Boleh dilewati — AI akan tetap generate PRD dari
+							jawaban sebelumnya.
+						</p>
+						<div className="rounded-lg border border-graphite bg-charcoal p-4">
+							<ContextUpload
+								onContext={setBriefContext}
+								onSkip={() => submit(techAnswers)}
+							/>
+						</div>
+
+						<div className="flex flex-wrap items-center justify-between gap-3 border-t border-(--border-subtle) pt-6">
+							<button
+								type="button"
+								onClick={() => setSession(2)}
+								className="font-inter text-sm text-fog hover:text-snow"
+							>
+								Kembali
+							</button>
+							<button
+								type="button"
+								onClick={() => submit(techAnswers)}
+								className="btn-primary rounded-md px-6 py-2.5 font-inter text-sm font-[510]"
 							>
 								Generate PRD
 							</button>

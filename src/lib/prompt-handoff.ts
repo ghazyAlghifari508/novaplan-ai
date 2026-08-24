@@ -135,7 +135,7 @@ export interface AskState {
 	prompt: string;
 	platform: "web" | "mobile";
 	language?: OutputLanguage;
-	session: 1 | 2;
+	session: 1 | 2 | 3;
 	questions: {
 		id: string;
 		question: string;
