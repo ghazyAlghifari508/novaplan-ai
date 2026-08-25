@@ -1,9 +1,9 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { and, desc, eq, ne } from "drizzle-orm";
-import { Link } from "@tanstack/react-router";
-import { Trash2 } from "lucide-react";
+import { AlertTriangle, CalendarClock, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { cancelSubscription } from "@/app/actions/payment";
 import { db } from "@/db";
 import { payments, subscriptions } from "@/db/schema";
 import { requireUserServer } from "@/lib/session";
@@ -36,6 +36,8 @@ const loadBilling = createServerFn({ method: "GET" }).handler(async () => {
 				...subRows[0],
 				createdAt: subRows[0].createdAt?.toISOString() ?? null,
 				updatedAt: subRows[0].updatedAt?.toISOString() ?? null,
+				currentPeriodEnd: subRows[0].currentPeriodEnd?.toISOString() ?? null,
+				cancelledAt: subRows[0].cancelledAt?.toISOString() ?? null,
 			}
 		: undefined;
 	const paymentsList = paymentRows.map((p) => ({
@@ -74,6 +76,40 @@ function BillingPage() {
 	const { subscription, payments: initialPayments } = Route.useLoaderData();
 	const [paymentsList, setPaymentsList] = useState(initialPayments);
 	const [deleteId, setDeleteId] = useState<string | null>(null);
+	const [cancelOpen, setCancelOpen] = useState(false);
+	const [cancelling, setCancelling] = useState(false);
+
+	const handleCancel = async () => {
+		setCancelling(true);
+		try {
+			const res = await cancelSubscription();
+			showToast(res.message, res.success ? "success" : "error");
+			if (res.success) window.location.reload();
+		} catch {
+			showToast("Gagal membatalkan langganan. Coba lagi.", "error");
+		} finally {
+			setCancelling(false);
+			setCancelOpen(false);
+		}
+	};
+
+	// Derived subscription display state (server truth via loader dates).
+	const planLabel = (subscription?.plan as string) || "free";
+	const isPaidPlan = planLabel === "pro" || planLabel === "hengker";
+	const periodEndDate = subscription?.currentPeriodEnd
+		? new Date(subscription.currentPeriodEnd)
+		: null;
+	const isPaused =
+		isPaidPlan &&
+		periodEndDate !== null &&
+		periodEndDate.getTime() < Date.now();
+	const statusText = isPaidPlan
+		? isPaused
+			? "Pause — masa aktif habis"
+			: periodEndDate
+				? `Aktif s.d. ${formatDate(periodEndDate.toISOString())}`
+				: "Aktif (paket lama, tanpa masa aktif)"
+		: "Gratis";
 	const showToast = useUIStore((s) => s.showToast);
 	const credits =
 		((subscription as Record<string, unknown>)?.credits as number) ?? 0;
@@ -103,18 +139,45 @@ function BillingPage() {
 					<div className="flex items-center justify-between">
 						<div>
 							<span className="text-3xl font-bold capitalize">
-								{subscription?.plan || "free"}
+								{planLabel}
+								{isPaidPlan && !periodEndDate ? (
+									<span className="ml-2 align-middle rounded-full bg-(--bg-surface) px-2 py-0.5 text-xs font-medium text-(--text-secondary)">
+										legacy
+									</span>
+								) : null}
 							</span>
-							<p className="mt-1 text-sm text-(--text-secondary)">
-								{subscription?.status === "active" ? "Aktif" : "Tidak aktif"}
+							<p
+								className={`mt-1 flex items-center gap-1.5 text-sm ${
+									isPaused
+										? "text-amber-600 dark:text-amber-400"
+										: "text-(--text-secondary)"
+								}`}
+							>
+								{isPaused ? (
+									<AlertTriangle size={14} />
+								) : (
+									<CalendarClock size={14} />
+								)}
+								{statusText}
 							</p>
 						</div>
-						<Link
-							to="/pricing"
-							className="rounded-lg border border-(--border-subtle) px-4 py-2 text-sm font-medium hover:bg-(--bg-surface)"
-						>
-							Beli Kredit
-						</Link>
+						<div className="flex items-center gap-2">
+							{isPaidPlan && !isPaused && (
+								<button
+									type="button"
+									onClick={() => setCancelOpen(true)}
+									className="rounded-lg border border-(--border-subtle) px-4 py-2 text-sm font-medium text-red-500 hover:bg-red-500/10"
+								>
+									Cancel Langganan
+								</button>
+							)}
+							<Link
+								to="/pricing"
+								className="rounded-lg border border-(--border-subtle) px-4 py-2 text-sm font-medium hover:bg-(--bg-surface)"
+							>
+								{isPaused ? "Perpanjang" : "Beli Paket"}
+							</Link>
+						</div>
 					</div>
 
 					<div className="mt-6 rounded-lg bg-(--bg-surface) p-4">
@@ -133,9 +196,11 @@ function BillingPage() {
 							/>
 						</div>
 						<p className="mt-2 text-xs text-(--text-secondary)">
-							{remaining > 0
-								? `Sisa ${remaining} kredit. Kredit tidak pernah hangus.`
-								: "Kredit habis. Beli kredit untuk melanjutkan."}
+							{isPaused
+								? "Masa aktif habis — sisa kredit periode lama hangus. Perpanjang untuk dapat kredit segar."
+								: remaining > 0
+									? `Sisa ${remaining} kredit periode ini. Kredit reset setiap 30 hari.`
+									: "Kredit periode ini habis. Perpanjang atau tunggu reset berikutnya."}
 						</p>
 					</div>
 				</div>
@@ -188,6 +253,39 @@ function BillingPage() {
 					)}
 				</div>
 			</div>
+
+			{/* Cancel subscription confirmation */}
+			{cancelOpen && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+					<div className="w-full mx-4 max-w-sm rounded-xl border border-(--border-subtle) bg-(--bg-card) p-6">
+						<h3 className="mb-2 font-inter font-[510] text-lg">
+							Batalkan Langganan?
+						</h3>
+						<p className="mb-6 text-sm text-(--text-secondary)">
+							Akunmu akan kembali ke paket Free (2 kredit PRD per bulan) dan
+							sisa kredit {planLabel} kamu hangus. Riwayat pembayaran tetap
+							tersimpan. Tindakan ini langsung berlaku.
+						</p>
+						<div className="flex justify-end gap-3">
+							<button
+								type="button"
+								onClick={() => setCancelOpen(false)}
+								className="rounded-lg px-4 py-2 text-sm font-medium hover:bg-(--bg-surface)"
+							>
+								Kembali
+							</button>
+							<button
+								type="button"
+								disabled={cancelling}
+								onClick={handleCancel}
+								className="rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50"
+							>
+								{cancelling ? "Memproses..." : "Ya, Batalkan"}
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 
 			{/* Delete confirmation dialog */}
 			{deleteId && (
