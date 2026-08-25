@@ -23,3 +23,13 @@ describe("creditsForPlan", () => {
 		expect(creditsForPlan("hengker")).toBe(105);
 	});
 });
+
+describe("monthly model price mapping (regression)", () => {
+	it("still maps sandbox amounts to plans after the monthly rewrite", () => {
+		expect(planFromAmount(49000)).toBe("pro");
+		expect(planFromAmount(149000)).toBe("hengker");
+		expect(creditsForPlan("pro")).toBe(30);
+		expect(creditsForPlan("hengker")).toBe(105);
+		expect(creditsForPlan("free")).toBe(2);
+	});
+});

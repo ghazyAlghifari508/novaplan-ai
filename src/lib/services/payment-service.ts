@@ -6,15 +6,15 @@
  * helpers here import `db` (→ pg → Buffer) which crashes the browser bundle.
  * Keep all db/Buffer-touching code out of any module a client component imports.
  *
- * Credit model: one-time purchase, credits are additive and never expire, so
- * there are no period columns and nothing writes to the legacy quotas table.
+ * Credit model: monthly subscription. A purchase SETS the plan's credit
+ * allocation and (re)writes the billing period via computePurchaseGrant
+ * (lib/billing.ts). Rows whose current_period_end stays NULL are legacy
+ * one-time purchases honored until their credits run out.
  */
-import { desc, eq, sql } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
+import { computePurchaseGrant } from "@/lib/billing";
 import { novaPlanPlans } from "@/lib/pricing-data";
 import type { Plan } from "@/types/database";
-
-/** Higher wins. Buying a cheaper pack must never downgrade an existing tier. */
-const PLAN_RANK: Record<Plan, number> = { free: 0, pro: 1, hengker: 2 };
 
 export function planFromAmount(amount: number): Plan {
 	const tier = novaPlanPlans.find((p) => p.id !== "free" && p.price === amount);
@@ -50,28 +50,39 @@ export async function applyPaymentSuccess(orderId: string) {
 		if (payment.status === "success") return { plan: payment.plan as Plan };
 
 		const plan = planFromAmount(payment.amount ?? 0);
-		const credits = creditsForPlan(plan);
 		const now = new Date();
 
+		// Re-read the CURRENT period end so an early renewal extends from the
+		// still-active period instead of overlapping it (spec §6.1).
 		const [existingSub] = await tx
-			.select({ id: subscriptions.id, plan: subscriptions.plan })
+			.select({
+				id: subscriptions.id,
+				currentPeriodEnd: subscriptions.currentPeriodEnd,
+			})
 			.from(subscriptions)
 			.where(eq(subscriptions.userId, payment.userId))
 			.orderBy(desc(subscriptions.createdAt))
 			.limit(1);
 
+		const grant = computePurchaseGrant({
+			plan,
+			now,
+			activePeriodEnd: existingSub?.currentPeriodEnd ?? null,
+		});
+
 		if (existingSub) {
-			const current = (existingSub.plan ?? "free") as Plan;
-			const nextPlan =
-				PLAN_RANK[plan] >= (PLAN_RANK[current] ?? 0) ? plan : current;
 			await tx
 				.update(subscriptions)
 				.set({
-					plan: nextPlan,
+					plan,
 					status: "active",
 					midtransOrderId: orderId,
-					// Additive: a Pro user buying Pro again gets 10 more, not a reset to 10.
-					credits: sql`${subscriptions.credits} + ${credits}`,
+					credits: grant.credits,
+					creditsUsed: 0,
+					currentPeriodStart: grant.periodStart,
+					currentPeriodEnd: grant.periodEnd,
+					cancelledAt: null,
+					reminderCount: 0,
 					updatedAt: now,
 				})
 				.where(eq(subscriptions.id, existingSub.id));
@@ -82,8 +93,11 @@ export async function applyPaymentSuccess(orderId: string) {
 				plan,
 				status: "active",
 				midtransOrderId: orderId,
-				credits,
+				credits: grant.credits,
 				creditsUsed: 0,
+				currentPeriodStart: grant.periodStart,
+				currentPeriodEnd: grant.periodEnd,
+				reminderCount: 0,
 			});
 		}
 
