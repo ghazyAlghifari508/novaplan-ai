@@ -90,7 +90,16 @@ export const subscriptions = pgTable(
 		plan: text("plan").notNull().default("free"), // free, pro, hengker
 		status: text("status").notNull().default("active"),
 		midtransOrderId: text("midtrans_order_id"),
-		// Credits never expire - no period columns.
+		// Monthly model (spec §4): credits reset every period; leftover credits
+		// are forfeited at period end. NULL period on a PAID row = legacy
+		// one-time purchase (grandfathered, never expires). NULL on a FREE row
+		// is initialized lazily by the write-on-read rollover in credits.ts.
+		currentPeriodStart: timestamp("current_period_start"),
+		currentPeriodEnd: timestamp("current_period_end"),
+		cancelledAt: timestamp("cancelled_at"),
+		// Email notification progress: 0 none, 1 = pre-expiry notice,
+		// 2..4 = paused reminders D+1/D+7/D+14 (see billing-emails.ts).
+		reminderCount: integer("reminder_count").notNull().default(0),
 		credits: integer("credits").notNull().default(0),
 		creditsUsed: integer("credits_used").notNull().default(0),
 		createdAt: timestamp("created_at").defaultNow(),

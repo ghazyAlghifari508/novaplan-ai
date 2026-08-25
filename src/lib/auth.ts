@@ -26,6 +26,9 @@ export const auth = betterAuth({
 		user: {
 			create: {
 				after: async (user) => {
+					const { addDays } = await import("@/lib/billing");
+					const { BILLING_PERIOD_DAYS } = await import("@/lib/constants");
+					const now = new Date();
 					await db.insert(subscriptions).values({
 						id: crypto.randomUUID(),
 						userId: user.id,
@@ -33,6 +36,9 @@ export const auth = betterAuth({
 						status: "active",
 						credits: PLAN_CREDITS.free,
 						creditsUsed: 0,
+						currentPeriodStart: now,
+						currentPeriodEnd: addDays(now, BILLING_PERIOD_DAYS),
+						reminderCount: 0,
 					});
 				},
 			},
