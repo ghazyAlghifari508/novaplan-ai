@@ -76,7 +76,7 @@ export function pausedReminderEmail(
 			`Langganan ${planName} sedang pause`,
 			`<p>Sudah <b>${daysLate} hari</b> sejak masa aktif ${planName} berakhir. Selama pause kamu masih bisa melihat semua proyek, tapi generate terkunci.</p>
 <p>Pilih salah satu: <b>perpanjang</b> untuk lanjut full workflow, atau <b>batalkan</b> untuk kembali ke paket Free.</p>
-<p><a href="${process.env.APP_URL || ""}/settings/billing" style="display:inline-block;background:#4f46e5;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;text-decoration:none">Kelola langganan</a></p>`,
+<p><a href="${process.env.APP_URL || ""}/settings/billing" style="display:inline-block;background:#4f46e5;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none">Kelola langganan</a></p>`,
 		),
 	};
 }
