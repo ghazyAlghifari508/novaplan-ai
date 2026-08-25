@@ -13,6 +13,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { TopUpCard } from "@/components/ui/top-up-card";
 import { useUserPlan } from "@/hooks/use-user-plan";
 import {
 	type Feature,
@@ -370,10 +371,17 @@ export default function PricingWrapper() {
 	};
 
 	return (
-		<PricingComponent
-			plans={novaPlanPlans}
-			onPlanSelect={handlePlanSelect}
-			currentPlan={currentPlan}
-		/>
+		<>
+			<PricingComponent
+				plans={novaPlanPlans}
+				onPlanSelect={handlePlanSelect}
+				currentPlan={currentPlan}
+			/>
+			{/* Mid-period top-up: only meaningful for ACTIVE paid subscribers
+			    (spec §7). Free/paused/legacy users see nothing extra. */}
+			{planData?.subscriptionState === "active_paid" && (
+				<TopUpCard className="mt-6" />
+			)}
+		</>
 	);
 }

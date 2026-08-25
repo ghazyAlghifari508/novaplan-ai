@@ -2,6 +2,7 @@
 
 import { AlertCircle, X } from "lucide-react";
 import { PricingComponent } from "@/components/ui/pricing-card";
+import { TopUpCard } from "@/components/ui/top-up-card";
 import { useUserPlan } from "@/hooks/use-user-plan";
 import { novaPlanPlans, type PriceTier } from "@/lib/pricing-data";
 import { saveResumeIntent } from "@/lib/prompt-handoff";
@@ -94,6 +95,11 @@ export function CreditExhaustedModal({
 
 				{/* Embedded pricing cards */}
 				<div className="px-2 pb-3">
+					{/* Credits gone but period still running = ideal top-up case
+					    (spec §7). Paused users get the renewal cards instead. */}
+					{planData?.subscriptionState === "active_paid" && (
+						<TopUpCard className="mx-2 mb-2" />
+					)}
 					<PricingComponent
 						plans={novaPlanPlans as [PriceTier, PriceTier, PriceTier]}
 						onPlanSelect={handlePlanSelect}
