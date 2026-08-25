@@ -4,9 +4,14 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, eq, lt } from "drizzle-orm";
 import { db } from "@/db";
 import { payments } from "@/db/schema";
+import { canPurchaseTopUp, remainingTopUpQuota } from "@/lib/billing";
+import { TOPUP_SKU } from "@/lib/constants";
+import { getCreditBalance } from "@/lib/credits";
 import { isValidHistoryUrl } from "@/lib/flow-progress";
 import { novaPlanPlans } from "@/lib/pricing-data";
+import { getTopUpCreditsUsedThisPeriod } from "@/lib/services/payment-service";
 import { requireUser } from "@/lib/session";
+import { PLAN_CREDITS } from "@/types/database";
 
 const ALLOWED_ORIGINS = [
 	"https://novaplanai.vercel.app",
@@ -25,21 +30,71 @@ export const Route = createFileRoute("/api/payments/create")({
 					projectId?: string;
 				};
 
-				const plan = novaPlanPlans.find((p) => p.id === planId);
-				if (!plan)
-					return Response.json(
-						{ error: "Plan tidak ditemukan." },
-						{ status: 404 },
-					);
-				const price = plan.price;
-				if (price === 0)
-					return Response.json(
-						{ error: "Plan gratis tidak memerlukan pembayaran." },
-						{ status: 400 },
-					);
+				// Two product kinds share this endpoint (spec §6.1): a monthly plan
+				// subscription (SET semantics) and a mid-period credit top-up
+				// (additive credits, period untouched). Gates differ accordingly.
+				const isTopUp = planId === TOPUP_SKU.id;
 
-				// ponytail: no plan-hierarchy guard - credits are additive, so buying the
-				// same or a lower tier again is a legitimate top-up.
+				let amount: number;
+				let planCredits: number;
+				let itemLabel: string;
+
+				if (isTopUp) {
+					// STRICT gates at checkout time (spec §5.3 point 4): eligibility
+					// and quota are enforced HERE; grant time stays tolerant.
+					const balance = await getCreditBalance(user.id);
+					// CreditBalance and EffectiveSubscription carry the same facts under
+					// different field names (subscriptionState/state, plan/effectivePlan);
+					// this adapter keeps canPurchaseTopUp pure over its own shape.
+					const eff = {
+						state: balance.subscriptionState,
+						effectivePlan: balance.plan,
+						remaining: balance.remaining,
+						currentPeriodEnd: balance.currentPeriodEnd,
+					};
+					if (!canPurchaseTopUp(eff)) {
+						return Response.json(
+							{
+								error:
+									"Top up hanya tersedia untuk langganan Pro/Hengker yang sedang aktif.",
+							},
+							{ status: 403 },
+						);
+					}
+					const used = await getTopUpCreditsUsedThisPeriod(user.id);
+					if (
+						remainingTopUpQuota({ plan: balance.plan, usedThisPeriod: used }) <
+						TOPUP_SKU.credits
+					) {
+						return Response.json(
+							{
+								error: `Kuota top-up periode ini sudah habis (maksimal ${PLAN_CREDITS[balance.plan]} kredit). Kuota reset saat periode berikutnya.`,
+							},
+							{ status: 400 },
+						);
+					}
+					amount = TOPUP_SKU.priceIdr;
+					planCredits = TOPUP_SKU.credits;
+					itemLabel = `Top Up ${TOPUP_SKU.credits} Kredit NovaPlan`;
+				} else {
+					const plan = novaPlanPlans.find((p) => p.id === planId);
+					if (!plan)
+						return Response.json(
+							{ error: "Plan tidak ditemukan." },
+							{ status: 404 },
+						);
+					if (plan.price === 0)
+						return Response.json(
+							{ error: "Plan gratis tidak memerlukan pembayaran." },
+							{ status: 400 },
+						);
+
+					// ponytail: no plan-hierarchy guard - buying the same or a lower
+					// tier again is a legitimate renewal/switch (SET semantics).
+					amount = plan.price;
+					planCredits = plan.credits;
+					itemLabel = `Paket ${plan.name} - ${plan.credits} kredit/bulan`;
+				}
 
 				// Clean up stale pending payments for this user (>5 min) before
 				// creating a new one. Prevents stacking abandoned checkouts.
@@ -55,13 +110,15 @@ export const Route = createFileRoute("/api/payments/create")({
 						),
 					);
 
-				const orderId = `ORDER-${Date.now()}-${randomBytes(4).toString("hex")}`;
+				const orderId = `${isTopUp ? "TOPUP" : "ORDER"}-${Date.now()}-${randomBytes(4).toString("hex")}`;
 				await db.insert(payments).values({
 					id: crypto.randomUUID(),
 					userId: user.id,
 					orderId,
-					plan: planId,
-					amount: price,
+					// Stored SKU doubles as the completion router (see
+					// applyOrderSuccess) and the per-period cap counter input.
+					plan: isTopUp ? TOPUP_SKU.id : planId,
+					amount,
 					status: "pending",
 				});
 
@@ -73,7 +130,7 @@ export const Route = createFileRoute("/api/payments/create")({
 				const authString = Buffer.from(`${serverKey}:`).toString("base64");
 
 				const parameters = {
-					transaction_details: { order_id: orderId, gross_amount: price },
+					transaction_details: { order_id: orderId, gross_amount: amount },
 					customer_details: {
 						first_name: user.name || "Customer",
 						email: user.email,
@@ -81,13 +138,13 @@ export const Route = createFileRoute("/api/payments/create")({
 					item_details: [
 						{
 							id: planId,
-							price,
+							price: amount,
 							quantity: 1,
-							name: `Paket ${plan.name} - ${plan.credits} kredit/bulan`,
+							name: itemLabel,
 						},
 					],
 					custom_field1: planId,
-					custom_field2: String(plan.credits),
+					custom_field2: String(planCredits),
 					custom_field3: user.id,
 					callbacks: {
 						finish: (() => {
