@@ -392,36 +392,41 @@ export function AcDetail({
 		<>
 			<div className="flex h-dvh flex-col overflow-hidden bg-onyx text-(--text-primary)">
 				<div className="flex flex-1 overflow-hidden">
-					{/* Left: TOC */}
-					<aside
+				{/* Left: TOC — width/handle live on this wrapper: the aside below
+				    scrolls (overflow-y-auto), and a scrolling ancestor clips
+				    absolutely positioned children at its padding edge, which
+				    shifts the resize hitbox left of the divider. */}
+					<div
 						style={{ width: `${leftWidth}px`, background: "var(--bg-page)" }}
 						className={cn(
-							"relative hidden h-full shrink-0 overflow-y-auto overflow-x-hidden border-r border-(--color-graphite) bg-onyx p-4 md:block",
+							"relative hidden h-full shrink-0 md:block",
 							!isDraggingLeft && "transition-[width] duration-300",
 						)}
 					>
-						{isStreaming && !streamingContent ? (
-							<div className="space-y-2.5">
-								{[1, 2, 3, 4, 5, 6].map((i) => (
-									<div
-										key={i}
-										className="h-3.5 rounded bg-steel/60 animate-pulse"
-										style={{ width: `${55 + (i % 3) * 15}%` }}
-									/>
-								))}
-							</div>
-						) : (
-							<TableOfContents
-								content={isStreaming ? streamingContent : acContent || ""}
-								maxLevel={2}
-							/>
-						)}
+						<aside className="h-full w-full overflow-y-auto overflow-x-hidden border-r border-(--color-graphite) bg-onyx p-4">
+							{isStreaming && !streamingContent ? (
+								<div className="space-y-2.5">
+									{[1, 2, 3, 4, 5, 6].map((i) => (
+										<div
+											key={i}
+											className="h-3.5 rounded bg-steel/60 animate-pulse"
+											style={{ width: `${55 + (i % 3) * 15}%` }}
+										/>
+									))}
+								</div>
+							) : (
+								<TableOfContents
+									content={isStreaming ? streamingContent : acContent || ""}
+									maxLevel={2}
+								/>
+							)}
+						</aside>
 						<div
 							aria-hidden="true"
 							className="absolute right-[-4px] top-0 z-10 h-full w-2 cursor-col-resize transition-colors hover:bg-indigo/20"
 							onMouseDown={onStartDragLeft}
 						/>
-					</aside>
+					</div>
 
 					{/* Center Document View */}
 					<div

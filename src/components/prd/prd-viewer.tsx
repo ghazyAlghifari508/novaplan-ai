@@ -65,6 +65,30 @@ const markdownComponents: Components = {
 	},
 };
 
+// ponytail: module-scope stable identities. Inline arrays like
+// `[remarkGfm]` create a new reference every render, defeating react-markdown's
+// internal memoization and forcing a full document re-parse.
+const remarkPlugins = [remarkGfm];
+const rehypePlugins = [rehypeHighlight];
+
+// ponytail: extracted + memoized so TOC width dragging (leftWidth state lives
+// inside this file and re-renders it every animation frame) never re-parses or
+// re-renders the markdown document. Mirrors how chat-panel resizing stays
+// smooth: the heavy subtree is memoized away from the width state owner.
+const PrdPreview = memo(function PrdPreview({ content }: { content: string }) {
+	return (
+		<article className="prd-content mx-auto max-w-3xl px-8 pb-16 pt-8 text-mist">
+			<Markdown
+				remarkPlugins={remarkPlugins}
+				rehypePlugins={rehypePlugins}
+				components={markdownComponents}
+			>
+				{content}
+			</Markdown>
+		</article>
+	);
+});
+
 interface PrdVersion {
 	id: string;
 	version: number;
@@ -167,20 +191,27 @@ export const PrdViewer = memo(function PrdViewer({
 
 	return (
 		<div className={cn("flex h-full", className)}>
-			<aside
+			{/* Width/handle live on this wrapper: the aside below scrolls
+			    (overflow-y-auto), and a scrolling ancestor clips absolutely
+			    positioned children at its padding edge — a handle inside the
+			    aside would lose its outboard half, leaving the grab area
+			    shifted left of the divider. */}
+			<div
 				style={{ width: `${leftWidth}px`, background: "var(--bg-page)" }}
 				className={cn(
-					"relative hidden h-full shrink-0 overflow-y-auto overflow-x-hidden border-r border-graphite bg-onyx p-4 md:block",
+					"relative hidden h-full shrink-0 md:block",
 					!isDraggingLeft && "transition-[width] duration-300",
 				)}
 			>
-				<TableOfContents content={content} />
-				{/* Drag handle */}
+				<aside className="h-full w-full overflow-y-auto overflow-x-hidden border-r border-graphite bg-onyx p-4">
+					<TableOfContents content={content} />
+				</aside>
+				{/* Drag handle — 8px strip centered across the divider */}
 				<div
 					className="absolute right-[-4px] top-0 z-10 h-full w-2 cursor-col-resize transition-colors hover:bg-indigo/20"
 					onMouseDown={onStartDragLeft}
 				/>
-			</aside>
+			</div>
 
 			{/* Content area: single toolbar header + scrollable content */}
 			<div className="flex-1 flex flex-col min-w-0">
@@ -277,15 +308,7 @@ export const PrdViewer = memo(function PrdViewer({
 							/>
 						</div>
 					) : (
-						<article className="prd-content mx-auto max-w-3xl px-8 pb-16 pt-8 text-mist">
-							<Markdown
-								remarkPlugins={[remarkGfm]}
-								rehypePlugins={[rehypeHighlight]}
-								components={markdownComponents}
-							>
-								{cleanContent}
-							</Markdown>
-						</article>
+						<PrdPreview content={cleanContent} />
 					)}
 				</div>
 			</div>
