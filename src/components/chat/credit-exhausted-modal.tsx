@@ -14,6 +14,9 @@ interface CreditExhaustedModalProps {
 	projectId: string;
 	stage: "prd" | "ac" | "task";
 	currentPlan?: string;
+	// ponytail: plan-gate paywalls reuse this modal with a stage-specific title
+	// ("Lanjut ke AC butuh Pro") instead of the credit-depletion default.
+	title?: string;
 }
 
 export function CreditExhaustedModal({
@@ -23,6 +26,7 @@ export function CreditExhaustedModal({
 	projectId,
 	stage,
 	currentPlan = "free",
+	title = "Kredit Habis",
 }: CreditExhaustedModalProps) {
 	// ponytail: shared TanStack Query hook — deduped across all components.
 	// Previously raw fetch("/api/user/plan") in useEffect.
@@ -82,9 +86,9 @@ export function CreditExhaustedModal({
 					<div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-crimson/10 text-crimson">
 						<AlertCircle size={20} strokeWidth={2} />
 					</div>
-					<h3 className="font-inter text-xl font-[510] text-snow">
-						Kredit Habis
-					</h3>
+				<h3 className="font-inter text-xl font-[510] text-snow">
+					{title}
+				</h3>
 					<p className="mt-2 font-inter text-sm text-fog">{errorMessage}</p>
 				</div>
 

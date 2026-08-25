@@ -6,7 +6,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { syncPaymentStatus } from "@/app/actions/payment";
 import { CreditExhaustedModal } from "@/components/chat/credit-exhausted-modal";
 import { TableOfContents } from "@/components/prd/table-of-contents";
-import { PaywallCard } from "@/components/shared/paywall-card";
 import { usePanelResize } from "@/hooks/use-panel-resize";
 import { GUARD_WAIT_MS } from "@/lib/constants";
 import {
@@ -52,6 +51,7 @@ export function AcDetail({
 	const { leftWidth, onStartDragLeft, isDraggingLeft } = usePanelResize();
 
 	const [isGenerating, setIsGenerating] = useState(false);
+	const [paywallOpen, setPaywallOpen] = useState(false);
 	const [streamingContent, setStreamingContent] = useState<string>("");
 	const [thinkingText, setThinkingText] = useState("");
 	const [hasError, setHasError] = useState(false);
@@ -463,11 +463,24 @@ export function AcDetail({
 							</div>
 						)}
 
-						{plan === "free" && !acContent && !isGenerating && (
-							<div className="shrink-0 p-4">
-								<PaywallCard type="ac" />
+					{plan === "free" && !acContent && !isGenerating && (
+						<div className="shrink-0 border-t border-graphite px-4 py-3">
+							<div className="flex flex-wrap items-center justify-between gap-3">
+								<p className="text-sm text-fog">
+									Generate Acceptance Criteria hanya untuk paket
+									Pro/Hengker.
+								</p>
+								<button
+									type="button"
+									onClick={() => setPaywallOpen(true)}
+									className="btn-primary flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-[510] transition-all hover:brightness-105 active:scale-[0.98]"
+								>
+									<span className="whitespace-nowrap">Upgrade ke Pro</span>
+									<ArrowRight size={12} />
+								</button>
 							</div>
-						)}
+						</div>
+					)}
 						{/* AC Viewer */}
 						<div className="flex-1 overflow-hidden">
 							{isGenerating && thinkingText && !streamingContent && (
@@ -497,9 +510,21 @@ export function AcDetail({
 			</div>
 
 			<CreditExhaustedModal
-				isOpen={creditsExhausted?.stage === "ac"}
-				onClose={() => setCreditsExhausted(null)}
-				errorMessage={creditsExhausted?.message || ""}
+				isOpen={creditsExhausted?.stage === "ac" || paywallOpen}
+				onClose={() => {
+					setCreditsExhausted(null);
+					setPaywallOpen(false);
+				}}
+				errorMessage={
+					paywallOpen && creditsExhausted?.stage !== "ac"
+						? "Upgrade ke Pro untuk generate Acceptance Criteria dan lanjut ke tahap berikutnya."
+						: creditsExhausted?.message || ""
+				}
+				title={
+					paywallOpen && creditsExhausted?.stage !== "ac"
+						? "Lanjut ke AC butuh Pro"
+						: undefined
+				}
 				projectId={projectId}
 				stage="ac"
 				currentPlan={plan}

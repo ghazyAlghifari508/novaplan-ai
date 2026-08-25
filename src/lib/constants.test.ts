@@ -7,7 +7,6 @@ import {
 	HOME_DRAFT_DEBOUNCE_MS,
 	MAX_PROMPT_LENGTH,
 	MIN_PROMPT_LENGTH,
-	PAYWALL_COPY,
 	PDF_STYLES,
 	RATE_LIMIT_WINDOW_MS,
 	RATE_LIMITS,
@@ -56,19 +55,6 @@ describe("no-hardcode constants (Task 1)", () => {
 		expect(HOME_DRAFT_DEBOUNCE_MS).toBe(300);
 		expect(BRIEF_MAX_CHARS).toBe(5000);
 		expect(BRIEF_MAX_BYTES).toBe(2 * 1024 * 1024);
-	});
-
-	it("has PAYWALL_COPY with ac and task entries", () => {
-		expect(PAYWALL_COPY.ac.title).toBe("Lanjut ke AC butuh Pro");
-		expect(PAYWALL_COPY.ac.desc).toBe(
-			"Generate Acceptance Criteria hanya untuk Pro/Hengker",
-		);
-		expect(PAYWALL_COPY.ac.cta).toBe("Lihat Paket");
-		expect(PAYWALL_COPY.task.title).toBe("Lanjut ke Task butuh Pro");
-		expect(PAYWALL_COPY.task.desc).toBe(
-			"Generate Task & Kanban hanya untuk Pro/Hengker",
-		);
-		expect(PAYWALL_COPY.task.cta).toBe("Lihat Paket");
 	});
 
 	it("has PDF_STYLES", () => {

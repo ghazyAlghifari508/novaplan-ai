@@ -50,18 +50,6 @@ export const HOME_DRAFT_DEBOUNCE_MS = 300;
 export const HISTORY_PAGE_SIZE = 12;
 export const BRIEF_MAX_CHARS = 5000;
 export const BRIEF_MAX_BYTES = 2 * 1024 * 1024;
-export const PAYWALL_COPY = {
-	ac: {
-		title: "Lanjut ke AC butuh Pro",
-		desc: "Generate Acceptance Criteria hanya untuk Pro/Hengker",
-		cta: "Lihat Paket",
-	},
-	task: {
-		title: "Lanjut ke Task butuh Pro",
-		desc: "Generate Task & Kanban hanya untuk Pro/Hengker",
-		cta: "Lihat Paket",
-	},
-} as const;
 export const PDF_STYLES = { font: "Inter", headerSize: 14, bodySize: 11 } as const;
 
 export const KANBAN_SSE_INTERVAL_MS = 3_000;

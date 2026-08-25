@@ -1,7 +1,7 @@
 "use client";
 
 import { useNavigate } from "@tanstack/react-router";
-import { X } from "lucide-react";
+import { ArrowRight, X } from "lucide-react";
 import {
 	useCallback,
 	useEffect,
@@ -11,8 +11,8 @@ import {
 	useTransition,
 } from "react";
 import { ChatPanel } from "@/components/chat";
+import { CreditExhaustedModal } from "@/components/chat/credit-exhausted-modal";
 import { GenerationProgress } from "@/components/shared/generation-progress";
-import { PaywallCard } from "@/components/shared/paywall-card";
 import { usePanelResize } from "@/hooks/use-panel-resize";
 import { cn } from "@/lib/utils";
 import { useChatStore, useUIStore } from "@/store";
@@ -69,6 +69,7 @@ export function PrdDetail({
 	const [versions, setVersions] = useState(allVersions);
 	const isChatOpen = useUIStore((s) => s.isChatPanelOpen);
 	const [isStepLoading, setIsStepLoading] = useState(false);
+	const [paywallOpen, setPaywallOpen] = useState(false);
 
 	// ── Hooks ──
 	const { rightWidth, onStartDragRight, isDraggingRight } = usePanelResize();
@@ -321,13 +322,24 @@ export function PrdDetail({
 							projectId={projectId}
 							className="flex-1 overflow-hidden"
 						/>
-						{plan === "free" && latestVersion && (
-							<div className="shrink-0 border-t border-graphite bg-charcoal/40 p-4">
-								<div className="mx-auto max-w-3xl">
-									<PaywallCard type="ac" />
-								</div>
+					{plan === "free" && latestVersion && (
+						<div className="shrink-0 border-t border-graphite bg-charcoal/40 px-4 py-3">
+							<div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3">
+								<p className="text-sm text-fog">
+									Lanjut ke AC butuh Pro — Generate Acceptance Criteria
+									hanya untuk paket Pro/Hengker.
+								</p>
+								<button
+									type="button"
+									onClick={() => setPaywallOpen(true)}
+									className="btn-primary flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-[510] transition-all hover:brightness-105 active:scale-[0.98]"
+								>
+									<span className="whitespace-nowrap">Upgrade ke Pro</span>
+									<ArrowRight size={12} />
+								</button>
 							</div>
-						)}
+						</div>
+					)}
 					</div>
 				</div>
 
@@ -425,6 +437,16 @@ export function PrdDetail({
 					)}
 				</div>
 			</div>
+
+			<CreditExhaustedModal
+				isOpen={paywallOpen}
+				onClose={() => setPaywallOpen(false)}
+				errorMessage="Upgrade ke Pro untuk generate Acceptance Criteria dan lanjut ke tahap berikutnya."
+				title="Lanjut ke AC butuh Pro"
+				projectId={projectId || ""}
+				stage="ac"
+				currentPlan={plan}
+			/>
 		</div>
 	);
 }
