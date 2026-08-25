@@ -55,6 +55,8 @@ interface PricingComponentProps extends React.HTMLAttributes<HTMLDivElement> {
 	showComparison?: boolean;
 	/** Smaller header + spacing for modal embedding */
 	compact?: boolean;
+	/** Hide the "Pilih Paket yang Sesuai" header (modal embedding) */
+	showHeader?: boolean;
 }
 
 export const PricingComponent: React.FC<PricingComponentProps> = ({
@@ -63,6 +65,7 @@ export const PricingComponent: React.FC<PricingComponentProps> = ({
 	currentPlan = "free",
 	showComparison = true,
 	compact = false,
+	showHeader = true,
 	className,
 	...props
 }) => {
@@ -251,26 +254,28 @@ export const PricingComponent: React.FC<PricingComponentProps> = ({
 			)}
 			{...props}
 		>
-			<header className={cn("text-center", compact ? "mb-2" : "mb-10")}>
-				<h2
-					className={cn(
-						"font-inter font-light leading-tight text-snow",
-						compact
-							? "text-xl"
-							: "text-[40px] max-md:text-[36px] md:text-[48px]",
-					)}
-				>
-					Pilih Paket yang Sesuai
-				</h2>
-				<p
-					className={cn(
-						"mx-auto max-w-2xl font-inter leading-relaxed text-fog",
-						compact ? "mt-1 text-xs" : "mt-3 text-[17px]",
-					)}
-				>
-					1 kredit = 1 tahap (PRD, AC, atau Task). Kredit tidak pernah hangus.
-				</p>
-			</header>
+			{showHeader && (
+				<header className={cn("text-center", compact ? "mb-2" : "mb-10")}>
+					<h2
+						className={cn(
+							"font-inter font-light leading-tight text-snow",
+							compact
+								? "text-xl"
+								: "text-[40px] max-md:text-[36px] md:text-[48px]",
+						)}
+					>
+						Pilih Paket yang Sesuai
+					</h2>
+					<p
+						className={cn(
+							"mx-auto max-w-2xl font-inter leading-relaxed text-fog",
+							compact ? "mt-1 text-xs" : "mt-3 text-[17px]",
+						)}
+					>
+						1 kredit = 1 tahap (PRD, AC, atau Task). Kredit tidak pernah hangus.
+					</p>
+				</header>
+			)}
 
 			<section aria-labelledby="pricing-plans">{PricingCards}</section>
 

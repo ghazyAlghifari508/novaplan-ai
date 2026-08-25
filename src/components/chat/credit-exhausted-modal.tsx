@@ -72,7 +72,7 @@ export function CreditExhaustedModal({
 			onClick={onClose}
 		>
 			<div
-				className="relative w-full max-w-3xl overflow-y-auto max-h-[75vh] rounded-xl bg-obsidian shadow-[var(--shadow-overlay)] animate-in zoom-in-95 duration-200 my-4"
+				className="relative w-full max-w-5xl overflow-y-auto max-h-[80vh] rounded-xl bg-obsidian shadow-[var(--shadow-overlay)] animate-in zoom-in-95 duration-200 my-4"
 				onClick={(e) => e.stopPropagation()}
 			>
 				{/* Header */}
@@ -99,6 +99,7 @@ export function CreditExhaustedModal({
 						onPlanSelect={handlePlanSelect}
 						currentPlan={plan}
 						showComparison={false}
+						showHeader={false}
 						compact
 						className="!py-3 md:!py-3"
 					/>
