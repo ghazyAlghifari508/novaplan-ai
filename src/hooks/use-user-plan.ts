@@ -7,12 +7,22 @@
 import { useQuery } from "@tanstack/react-query";
 import type { Plan } from "@/types/database";
 
+export type SubscriptionUiState =
+	| "free_active"
+	| "legacy_grandfathered"
+	| "active_paid"
+	| "paused";
+
 export interface UserPlan {
 	authenticated: boolean;
 	plan: Plan;
 	credits: number;
 	creditsUsed: number;
 	remaining: number | "unlimited";
+	/** Present from the authenticated branch of /api/user/plan. */
+	subscriptionState?: SubscriptionUiState;
+	/** ISO string of the current billing period end, if any. */
+	currentPeriodEnd?: string | null;
 }
 
 export function useUserPlan() {
@@ -27,6 +37,7 @@ export function useUserPlan() {
 					credits: 0,
 					creditsUsed: 0,
 					remaining: 0,
+					subscriptionState: "free_active" as const,
 				};
 			}
 			return (await res.json()) as UserPlan;

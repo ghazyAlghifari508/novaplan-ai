@@ -15,6 +15,8 @@ export const Route = createFileRoute("/api/user/plan")({
 						credits: 0,
 						creditsUsed: 0,
 						remaining: 0,
+						subscriptionState: "free_active",
+						currentPeriodEnd: null,
 					});
 
 				const balance = await getCreditBalance(session.user.id);
