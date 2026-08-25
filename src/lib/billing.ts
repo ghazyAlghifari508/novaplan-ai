@@ -135,3 +135,20 @@ export function computePurchaseGrant(params: {
 		credits: PLAN_CREDITS[params.plan],
 	};
 }
+
+/** Top-up purchase is exclusive to an ACTIVE paid subscription (spec §1). */
+export function canPurchaseTopUp(eff: EffectiveSubscription): boolean {
+	return eff.state === "active_paid";
+}
+
+/**
+ * Remaining top-up allowance for the CURRENT period (anti-undercut cap):
+ * plan allocation minus successful top-up credits this period. Clamps to 0
+ * so over-cap histories can never enable another buy (spec §4).
+ */
+export function remainingTopUpQuota(params: {
+	plan: Plan;
+	usedThisPeriod: number;
+}): number {
+	return Math.max(0, PLAN_CREDITS[params.plan] - params.usedThisPeriod);
+}

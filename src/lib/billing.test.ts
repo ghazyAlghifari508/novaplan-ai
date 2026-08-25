@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
 	addDays,
+	canPurchaseTopUp,
 	computeFreeRolloverPeriod,
 	computePurchaseGrant,
 	isFreeRolloverDue,
+	remainingTopUpQuota,
 	resolveSubscriptionState,
 	type SubscriptionRowLike,
 } from "./billing";
@@ -166,5 +168,55 @@ describe("addDays", () => {
 		expect(addDays(new Date("2026-01-01T00:00:00Z"), 2).toISOString()).toBe(
 			"2026-01-03T00:00:00.000Z",
 		);
+	});
+});
+
+describe("canPurchaseTopUp", () => {
+	it("true only for active_paid", () => {
+		expect(canPurchaseTopUp(resolveSubscriptionState(row(), NOW))).toBe(true);
+	});
+
+	it("false for paused (expired period)", () => {
+		const eff = resolveSubscriptionState(
+			row({ currentPeriodEnd: addDays(NOW, -3) }),
+			NOW,
+		);
+		expect(canPurchaseTopUp(eff)).toBe(false);
+	});
+
+	it("false for legacy_grandfathered (no running period)", () => {
+		const eff = resolveSubscriptionState(row({ currentPeriodEnd: null }), NOW);
+		expect(canPurchaseTopUp(eff)).toBe(false);
+	});
+
+	it("false for free_active, including cancelled paid rows", () => {
+		expect(
+			canPurchaseTopUp(resolveSubscriptionState(row({ plan: "free" }), NOW)),
+		).toBe(false);
+		expect(
+			canPurchaseTopUp(
+				resolveSubscriptionState(row({ cancelledAt: NOW }), NOW),
+			),
+		).toBe(false);
+	});
+});
+
+describe("remainingTopUpQuota", () => {
+	it("returns full allocation when nothing used this period", () => {
+		expect(remainingTopUpQuota({ plan: "pro", usedThisPeriod: 0 })).toBe(30);
+	});
+
+	it("subtracts partial usage (hengker)", () => {
+		expect(remainingTopUpQuota({ plan: "hengker", usedThisPeriod: 45 })).toBe(
+			60,
+		);
+	});
+
+	it("returns 0 when cap reached exactly", () => {
+		expect(remainingTopUpQuota({ plan: "pro", usedThisPeriod: 30 })).toBe(0);
+	});
+
+	it("clamps over-cap history to 0, never negative", () => {
+		expect(remainingTopUpQuota({ plan: "pro", usedThisPeriod: 45 })).toBe(0);
 	});
 });

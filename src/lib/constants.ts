@@ -63,3 +63,16 @@ export const PRE_EXPIRY_NOTICE_DAYS = 3;
 // Post-expiry pause reminder schedule, in days after the period ended.
 // reminder_count tracks how many of these have been sent (see lib/services/billing-emails.ts).
 export const REMINDER_SCHEDULE_DAYS = [1, 7, 14] as const;
+
+// === Credit top-up (mid-period purchase) ===
+// Single universal SKU: bought by ACTIVE Pro/Hengker subscribers only
+// (state active_paid). Credits join the SAME pool as the monthly allocation
+// (shared credits/creditsUsed) and are forfeited together at period end.
+// Buying NEVER extends the current period. Anti-undercut cap per period =
+// PLAN_CREDITS[plan]; tracked from successful topup payments within
+// [current_period_start, current_period_end] (spec topup-design §4).
+export const TOPUP_SKU = {
+	id: "topup-15",
+	credits: 15,
+	priceIdr: 20000,
+} as const;
