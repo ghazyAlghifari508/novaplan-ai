@@ -64,3 +64,48 @@ export const syncPaymentStatus = createServerFn({ method: "POST" })
 		}
 		return { success: false, status: statusData.transaction_status as string };
 	});
+
+/**
+ * Cancel flow (spec §6.2): downgrades the latest subscription row to a normal
+ * Free account with a fresh monthly period. Payment history stays intact in
+ * the payments table. Idempotent: cancelling a free account is a no-op reset.
+ */
+export const cancelSubscription = createServerFn({ method: "POST" }).handler(
+	async () => {
+		const user = await requireUser(getRequestHeaders());
+		const { db } = await import("@/db");
+		const { subscriptions } = await import("@/db/schema");
+		const { computeFreeRolloverPeriod } = await import("@/lib/billing");
+		const { PLAN_CREDITS } = await import("@/types/database");
+
+		const now = new Date();
+		const period = computeFreeRolloverPeriod(now);
+
+		const [row] = await db
+			.select({ id: subscriptions.id })
+			.from(subscriptions)
+			.where(eq(subscriptions.userId, user.id))
+			.orderBy(desc(subscriptions.createdAt))
+			.limit(1);
+		if (!row) return { success: false, message: "Langganan tidak ditemukan." };
+
+		await db
+			.update(subscriptions)
+			.set({
+				plan: "free",
+				status: "active",
+				cancelledAt: now,
+				currentPeriodStart: period.start,
+				currentPeriodEnd: period.end,
+				credits: PLAN_CREDITS.free,
+				creditsUsed: 0,
+				updatedAt: now,
+			})
+			.where(eq(subscriptions.id, row.id));
+
+		return {
+			success: true,
+			message: "Langganan dibatalkan. Akunmu kembali ke paket Free.",
+		};
+	},
+);
