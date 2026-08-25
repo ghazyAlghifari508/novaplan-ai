@@ -1,7 +1,7 @@
 "use client";
 import { computeDiff } from "@/lib/diff-utils";
 export function PrdDiffViewer({ oldContent, newContent }: { oldContent: string; newContent: string }) {
-  if (!oldContent || !newContent) return <div className="p-4 text-sm text-fog">Pilih dua versi untuk compare.</div>;
+  if (!oldContent || !newContent) return <div className="p-4 text-sm text-fog">Pilih versi lama untuk dibandingkan dengan versi saat ini.</div>;
   if (oldContent===newContent) return <div className="p-4 text-sm text-fog">Tidak ada perubahan.</div>;
   const diff = computeDiff(oldContent, newContent);
   return (

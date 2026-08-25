@@ -97,9 +97,20 @@ export const PrdViewer = memo(function PrdViewer({
 	const { leftWidth, onStartDragLeft, isDraggingLeft } = usePanelResize();
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const [activeTab, setActiveTab] = useState<"preview" | "diff">("preview");
-	const [oldVer, setOldVer] = useState<number | undefined>(undefined);
 	const [isExporting, setIsExporting] = useState(false);
 	const showToast = useUIStore((s) => s.showToast);
+
+	// Diff always compares the previous version against the current one —
+	// clicking the Diff tab shows the latest changes immediately. Version
+	// switching lives in Version History; no extra picker here.
+	const hasDiff = !!versions && versions.length > 1;
+	const previousVersion = useMemo(() => {
+		if (!versions || versions.length <= 1) return undefined;
+		const candidates = versions
+			.filter((v) => v.version !== currentVersion)
+			.sort((a, b) => b.version - a.version);
+		return candidates[0]?.version;
+	}, [versions, currentVersion]);
 
 	// Auto-scroll logic when new content arrives
 	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional re-scroll on content change
@@ -187,34 +198,19 @@ export const PrdViewer = memo(function PrdViewer({
 					>
 						Pratinjau
 					</button>
-					<button
-						type="button"
-						onClick={() => setActiveTab("diff")}
-						className={cn(
-							"rounded px-3 py-1 text-xs font-medium transition-colors",
-							activeTab === "diff"
-								? "bg-indigo text-white"
-								: "bg-white/5 text-fog hover:bg-white/10 hover:text-snow",
-						)}
-					>
-						Diff
-					</button>
-					{activeTab === "diff" && versions && versions.length > 1 && (
-						<select
-							value={oldVer ?? ""}
-							onChange={(e) => setOldVer(e.target.value ? Number(e.target.value) : undefined)}
-							className="rounded border border-graphite bg-onyx px-2 py-1 text-xs text-snow"
-							aria-label="Pilih versi lama untuk compare"
+					{hasDiff && (
+						<button
+							type="button"
+							onClick={() => setActiveTab("diff")}
+							className={cn(
+								"rounded px-3 py-1 text-xs font-medium transition-colors",
+								activeTab === "diff"
+									? "bg-indigo text-white"
+									: "bg-white/5 text-fog hover:bg-white/10 hover:text-snow",
+							)}
 						>
-							<option value="">Pilih versi lama</option>
-							{versions
-								.filter((v) => v.version !== currentVersion)
-								.map((v) => (
-									<option key={v.id} value={v.version}>
-										v{v.version}
-									</option>
-								))}
-						</select>
+							Diff
+						</button>
 					)}
 					<div className="ml-auto flex items-center gap-2">
 						{versions && versions.length > 1 && (
@@ -276,7 +272,7 @@ export const PrdViewer = memo(function PrdViewer({
 					{activeTab === "diff" ? (
 						<div className="mx-auto max-w-3xl px-4 py-4">
 							<PrdDiffViewer
-								oldContent={versions?.find((v) => v.version === oldVer)?.content ?? ""}
+								oldContent={versions?.find((v) => v.version === previousVersion)?.content ?? ""}
 								newContent={content}
 							/>
 						</div>

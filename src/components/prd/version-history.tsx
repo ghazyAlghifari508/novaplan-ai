@@ -115,11 +115,6 @@ export function VersionHistory({
 											{new Date(v.created_at).toLocaleDateString("id-ID")}
 										</span>
 									</div>
-									{v.change_summary && (
-										<p className="mt-0.5 text-xs opacity-70 line-clamp-2 leading-relaxed">
-											{v.change_summary}
-										</p>
-									)}
 								</button>
 							</div>
 						))
