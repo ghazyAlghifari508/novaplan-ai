@@ -38,6 +38,7 @@ import { Route as ApiAcGenerateRouteImport } from './routes/api/ac/generate'
 import { Route as ApiAcSaveRouteImport } from './routes/api/ac/save'
 import { Route as ApiAskOptionsRouteImport } from './routes/api/ask/options'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiCronBillingRouteImport } from './routes/api/cron/billing'
 import { Route as ApiExportPdfRouteImport } from './routes/api/export/pdf'
 import { Route as ApiExportPrdRouteImport } from './routes/api/export/prd'
 import { Route as ApiExportZipRouteImport } from './routes/api/export/zip'
@@ -211,6 +212,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCronBillingRoute = ApiCronBillingRouteImport.update({
+  id: '/api/cron/billing',
+  path: '/api/cron/billing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiExportPdfRoute = ApiExportPdfRouteImport.update({
   id: '/api/export/pdf',
   path: '/api/export/pdf',
@@ -377,6 +383,7 @@ export interface FileRoutesByFullPath {
   '/api/ac/save': typeof ApiAcSaveRoute
   '/api/ask/options': typeof ApiAskOptionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/billing': typeof ApiCronBillingRoute
   '/api/export/pdf': typeof ApiExportPdfRoute
   '/api/export/prd': typeof ApiExportPrdRoute
   '/api/export/zip': typeof ApiExportZipRoute
@@ -434,6 +441,7 @@ export interface FileRoutesByTo {
   '/api/ac/save': typeof ApiAcSaveRoute
   '/api/ask/options': typeof ApiAskOptionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/billing': typeof ApiCronBillingRoute
   '/api/export/pdf': typeof ApiExportPdfRoute
   '/api/export/prd': typeof ApiExportPrdRoute
   '/api/export/zip': typeof ApiExportZipRoute
@@ -493,6 +501,7 @@ export interface FileRoutesById {
   '/api/ac/save': typeof ApiAcSaveRoute
   '/api/ask/options': typeof ApiAskOptionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/billing': typeof ApiCronBillingRoute
   '/api/export/pdf': typeof ApiExportPdfRoute
   '/api/export/prd': typeof ApiExportPrdRoute
   '/api/export/zip': typeof ApiExportZipRoute
@@ -553,6 +562,7 @@ export interface FileRouteTypes {
     | '/api/ac/save'
     | '/api/ask/options'
     | '/api/auth/$'
+    | '/api/cron/billing'
     | '/api/export/pdf'
     | '/api/export/prd'
     | '/api/export/zip'
@@ -610,6 +620,7 @@ export interface FileRouteTypes {
     | '/api/ac/save'
     | '/api/ask/options'
     | '/api/auth/$'
+    | '/api/cron/billing'
     | '/api/export/pdf'
     | '/api/export/prd'
     | '/api/export/zip'
@@ -668,6 +679,7 @@ export interface FileRouteTypes {
     | '/api/ac/save'
     | '/api/ask/options'
     | '/api/auth/$'
+    | '/api/cron/billing'
     | '/api/export/pdf'
     | '/api/export/prd'
     | '/api/export/zip'
@@ -720,6 +732,7 @@ export interface RootRouteChildren {
   ApiAcSaveRoute: typeof ApiAcSaveRoute
   ApiAskOptionsRoute: typeof ApiAskOptionsRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiCronBillingRoute: typeof ApiCronBillingRoute
   ApiExportPdfRoute: typeof ApiExportPdfRoute
   ApiExportPrdRoute: typeof ApiExportPrdRoute
   ApiExportZipRoute: typeof ApiExportZipRoute
@@ -945,6 +958,13 @@ declare module '@tanstack/react-router' {
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cron/billing': {
+      id: '/api/cron/billing'
+      path: '/api/cron/billing'
+      fullPath: '/api/cron/billing'
+      preLoaderRoute: typeof ApiCronBillingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/export/pdf': {
@@ -1220,6 +1240,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAcSaveRoute: ApiAcSaveRoute,
   ApiAskOptionsRoute: ApiAskOptionsRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiCronBillingRoute: ApiCronBillingRoute,
   ApiExportPdfRoute: ApiExportPdfRoute,
   ApiExportPrdRoute: ApiExportPrdRoute,
   ApiExportZipRoute: ApiExportZipRoute,
