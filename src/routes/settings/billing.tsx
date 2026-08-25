@@ -6,6 +6,7 @@ import { useState } from "react";
 import { cancelSubscription } from "@/app/actions/payment";
 import { db } from "@/db";
 import { payments, subscriptions } from "@/db/schema";
+import { TOPUP_SKU } from "@/lib/constants";
 import { requireUserServer } from "@/lib/session";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useUIStore } from "@/store";
@@ -202,6 +203,22 @@ function BillingPage() {
 									? `Sisa ${remaining} kredit periode ini. Kredit reset setiap 30 hari.`
 									: "Kredit periode ini habis. Perpanjang atau tunggu reset berikutnya."}
 						</p>
+						{!isPaused &&
+							remaining === 0 &&
+							isPaidPlan &&
+							periodEndDate != null && (
+								<p className="mt-1 text-xs text-(--text-secondary)">
+									<Link
+										to="/pricing"
+										hash="topup"
+										className="font-medium underline underline-offset-2"
+									>
+										Atau top up {TOPUP_SKU.credits} kredit (Rp{" "}
+										{(TOPUP_SKU.priceIdr as number).toLocaleString("id-ID")})
+										tanpa menambah masa aktif
+									</Link>
+								</p>
+							)}
 					</div>
 				</div>
 
