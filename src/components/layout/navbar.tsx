@@ -1,6 +1,13 @@
 "use client";
 
 import {
+	Link,
+	useLocation,
+	useMatches,
+	useNavigate,
+	useRouter,
+} from "@tanstack/react-router";
+import {
 	ArrowRight,
 	CreditCard,
 	LogOut,
@@ -10,13 +17,6 @@ import {
 	User,
 	X,
 } from "lucide-react";
-import {
-	Link,
-	useLocation,
-	useMatches,
-	useNavigate,
-	useRouter,
-} from "@tanstack/react-router";
 import { useState, useTransition } from "react";
 import { Logo } from "@/components/ui/logo";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -130,7 +130,7 @@ export function Navbar() {
 		<nav className="fixed left-0 right-0 top-0 z-40 h-14 border-b border-graphite bg-charcoal/95">
 			<div className="mx-auto flex h-full max-w-[1200px] items-center px-6">
 				{/* Left: logo */}
-				<div className="flex shrink-0 md:w-[200px]">
+				<div className="flex shrink-0 md:w-[220px]">
 					<Logo height={28} />
 				</div>
 
@@ -182,7 +182,7 @@ export function Navbar() {
 				</div>
 
 				{/* Right: actions */}
-				<div className="flex md:w-[200px] shrink-0 items-center justify-end gap-2 ml-auto md:ml-0">
+				<div className="flex md:w-[220px] shrink-0 items-center justify-end gap-2 ml-auto md:ml-0">
 					{/* Mobile hamburger */}
 					{!isFlowStepRoute && (
 						<button
@@ -211,14 +211,16 @@ export function Navbar() {
 											to="/pricing"
 											className="btn-primary flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-[510] transition-all hover:brightness-105 active:scale-[0.98]"
 										>
-											<span>Upgrade ke Pro</span>
+											<span className="whitespace-nowrap">Upgrade ke Pro</span>
 											<ArrowRight size={12} />
 										</Link>
 									) : (
 										<button
 											onClick={handleStepAc}
 											disabled={
-												isStepLoading || isGeneratingPRD || hasStreamingPRDContent
+												isStepLoading ||
+												isGeneratingPRD ||
+												hasStreamingPRDContent
 											}
 											className="btn-primary flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-[510] transition-all hover:brightness-105 active:scale-[0.98] disabled:opacity-40 disabled:bg-graphite/40 disabled:text-fog/50"
 										>
@@ -234,13 +236,14 @@ export function Navbar() {
 									)}
 								</>
 							)}
-							{routeStep === "ac" && projectId && (
-								isFree ? (
+							{routeStep === "ac" &&
+								projectId &&
+								(isFree ? (
 									<Link
 										to="/pricing"
 										className="btn-primary flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-[510] transition-all hover:brightness-105 active:scale-[0.98]"
 									>
-										<span>Upgrade ke Pro</span>
+										<span className="whitespace-nowrap">Upgrade ke Pro</span>
 										<ArrowRight size={12} />
 									</Link>
 								) : (
@@ -266,8 +269,7 @@ export function Navbar() {
 											</>
 										)}
 									</button>
-								)
-							)}
+								))}
 						</>
 					) : null}
 

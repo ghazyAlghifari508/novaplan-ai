@@ -171,23 +171,9 @@ export const PrdViewer = memo(function PrdViewer({
 				/>
 			</aside>
 
-			{/* Content area: VersionHistory header + tabs + scrollable content */}
+			{/* Content area: single toolbar header + scrollable content */}
 			<div className="flex-1 flex flex-col min-w-0">
-				{/* Version History header - only spans content area, not TOC */}
-				{versions && versions.length > 1 && (
-					<div className="shrink-0 border-b border-graphite bg-charcoal/40 px-4 py-2">
-						<div className="mx-auto max-w-3xl flex justify-end">
-							<VersionHistory
-								versions={versions}
-								currentVersion={currentVersion || 1}
-								onSelectVersion={onSelectVersion || (() => {})}
-								plan={plan}
-							/>
-						</div>
-					</div>
-				)}
-
-				{/* Tabs: Preview | Diff */}
+				{/* Toolbar: tabs (left) · version history + export (right) */}
 				<div className="shrink-0 flex items-center gap-2 border-b border-graphite bg-charcoal/20 px-4 py-2">
 					<button
 						type="button"
@@ -217,7 +203,7 @@ export const PrdViewer = memo(function PrdViewer({
 						<select
 							value={oldVer ?? ""}
 							onChange={(e) => setOldVer(e.target.value ? Number(e.target.value) : undefined)}
-							className="ml-2 rounded border border-graphite bg-onyx px-2 py-1 text-xs text-snow"
+							className="rounded border border-graphite bg-onyx px-2 py-1 text-xs text-snow"
 							aria-label="Pilih versi lama untuk compare"
 						>
 							<option value="">Pilih versi lama</option>
@@ -230,7 +216,16 @@ export const PrdViewer = memo(function PrdViewer({
 								))}
 						</select>
 					)}
-					{projectId && (
+					<div className="ml-auto flex items-center gap-2">
+						{versions && versions.length > 1 && (
+							<VersionHistory
+								versions={versions}
+								currentVersion={currentVersion || 1}
+								onSelectVersion={onSelectVersion || (() => {})}
+								plan={plan}
+							/>
+						)}
+						{projectId && (
 						<button
 							type="button"
 							disabled={isExporting}
@@ -266,11 +261,12 @@ export const PrdViewer = memo(function PrdViewer({
 									setIsExporting(false);
 								}
 							}}
-							className="ml-auto rounded bg-indigo px-3 py-1 text-xs font-medium text-white hover:bg-indigo/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+							className="rounded bg-indigo px-3 py-1 text-xs font-medium text-white hover:bg-indigo/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 						>
 							{isExporting ? "Mengekspor..." : "Export PDF"}
 						</button>
 					)}
+					</div>
 				</div>
 
 				<div

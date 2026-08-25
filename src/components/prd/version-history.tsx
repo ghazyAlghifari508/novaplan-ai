@@ -30,10 +30,6 @@ export function VersionHistory({
 }: VersionHistoryProps) {
 	const [selected, setSelected] = useState(currentVersion);
 	const [expanded, setExpanded] = useState(false);
-	const [diffMode, setDiffMode] = useState(false);
-	const [diffVersions, setDiffVersions] = useState<
-		[PrdVersion, PrdVersion] | null
-	>(null);
 
 	const hasHistoryAccess = FEATURES[plan].versionHistory !== false;
 
@@ -72,12 +68,6 @@ export function VersionHistory({
 	const handleSelect = (version: PrdVersion) => {
 		setSelected(version.version);
 		onSelectVersion(version.content, version.version);
-		setDiffMode(false);
-	};
-
-	const handleDiff = (v1: PrdVersion, v2: PrdVersion) => {
-		setDiffVersions([v1, v2]);
-		setDiffMode(true);
 	};
 
 	return (
@@ -131,13 +121,6 @@ export function VersionHistory({
 										</p>
 									)}
 								</button>
-								{selected === v.version && versions.length > 1 && (
-									<VersionCompareLinks
-										versions={versions}
-										selectedVersion={v.version}
-										onDiff={handleDiff}
-									/>
-								)}
 							</div>
 						))
 					) : (
@@ -149,149 +132,6 @@ export function VersionHistory({
 					)}
 				</div>
 			)}
-
-			{diffMode && diffVersions && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-					<div className="flex max-h-[80vh] w-full max-w-3xl flex-col rounded-xl bg-(--bg-card) p-6">
-						<div className="mb-4 flex shrink-0 items-center justify-between">
-							<h3 className="font-inter font-[510] text-lg font-bold">
-								Diff: v{diffVersions[0].version} vs v{diffVersions[1].version}
-							</h3>
-							<button
-								onClick={() => setDiffMode(false)}
-								className="text-(--text-secondary) hover:text-(--text-primary)"
-							>
-								Tutup
-							</button>
-						</div>
-						<div className="flex-1 overflow-auto">
-							<VersionDiff v1={diffVersions[0]} v2={diffVersions[1]} />
-						</div>
-					</div>
-				</div>
-			)}
 		</div>
 	);
-}
-
-function VersionCompareLinks({
-	versions,
-	selectedVersion,
-	onDiff,
-}: {
-	versions: PrdVersion[];
-	selectedVersion: number;
-	onDiff: (v1: PrdVersion, v2: PrdVersion) => void;
-}) {
-	return (
-		<div className="px-3 pb-3 pt-1">
-			<div className="h-px w-full bg-white/10 dark:bg-black/10 mb-2" />
-			<p className="mb-1.5 text-[10px] font-medium uppercase tracking-wide opacity-80">
-				Bandingkan dengan
-			</p>
-			<div className="flex flex-wrap gap-1.5">
-				{versions
-					.filter((v) => v.version !== selectedVersion)
-					.slice(0, 3)
-					.map((v) => (
-						<button
-							key={v.id}
-							onClick={() => {
-								const currentV = versions.find(
-									(vv) => vv.version === selectedVersion,
-								);
-								if (currentV) onDiff(currentV, v);
-							}}
-							className="rounded bg-white/20 dark:bg-black/20 px-2 py-0.5 text-[10px] transition-colors hover:bg-white/30 dark:hover:bg-black/30"
-						>
-							v{v.version}
-						</button>
-					))}
-			</div>
-		</div>
-	);
-}
-
-export function VersionDiff({ v1, v2 }: { v1: PrdVersion; v2: PrdVersion }) {
-	const lines1 = v1.content.split("\n");
-	const lines2 = v2.content.split("\n");
-
-	const diff = computeDiff(lines1, lines2);
-
-	return (
-		<div className="space-y-0.5 font-mono text-xs">
-			{/* ponytail: diff parts have no unique id; index as tiebreaker */}
-			{diff.map((part, i) => (
-				<div
-					// biome-ignore lint/suspicious/noArrayIndexKey: diff parts have no unique id; index as tiebreaker
-					key={`${part.type}-${part.text.substring(0, 20)}-${i}`}
-					className={cn(
-						"rounded px-2 py-1",
-						part.type === "removed" &&
-							"bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400",
-						part.type === "added" &&
-							"bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400",
-						part.type === "unchanged" && "text-(--text-secondary)",
-					)}
-				>
-					{part.type === "removed" && "- "}
-					{part.type === "added" && "+ "}
-					{part.type === "unchanged" && "  "}
-					{part.text}
-				</div>
-			))}
-		</div>
-	);
-}
-
-// ponytail: LCS diff so an insertion mid-document doesn't flag every following
-// line as changed. O(n*m) DP fine at PRD scale (~300 lines → ~80k cells).
-function computeDiff(
-	oldLines: string[],
-	newLines: string[],
-): Array<{ text: string; type: "added" | "removed" | "unchanged" }> {
-	const n = oldLines.length;
-	const m = newLines.length;
-	const result: Array<{
-		text: string;
-		type: "added" | "removed" | "unchanged";
-	}> = [];
-
-	// lcs[i][j] = LCS length of oldLines[i..] vs newLines[j..]
-	const lcs: number[][] = Array.from({ length: n + 1 }, () =>
-		new Array<number>(m + 1).fill(0),
-	);
-	for (let i = n - 1; i >= 0; i--) {
-		for (let j = m - 1; j >= 0; j--) {
-			lcs[i][j] =
-				oldLines[i] === newLines[j]
-					? lcs[i + 1][j + 1] + 1
-					: Math.max(lcs[i + 1][j], lcs[i][j + 1]);
-		}
-	}
-
-	let i = 0;
-	let j = 0;
-	while (i < n && j < m) {
-		if (oldLines[i] === newLines[j]) {
-			result.push({ text: oldLines[i], type: "unchanged" });
-			i++;
-			j++;
-		} else if (lcs[i + 1][j] >= lcs[i][j + 1]) {
-			result.push({ text: oldLines[i], type: "removed" });
-			i++;
-		} else {
-			result.push({ text: newLines[j], type: "added" });
-			j++;
-		}
-	}
-	while (i < n) {
-		result.push({ text: oldLines[i], type: "removed" });
-		i++;
-	}
-	while (j < m) {
-		result.push({ text: newLines[j], type: "added" });
-		j++;
-	}
-	return result;
 }
