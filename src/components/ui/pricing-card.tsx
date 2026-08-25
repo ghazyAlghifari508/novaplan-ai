@@ -115,8 +115,8 @@ export const PricingComponent: React.FC<PricingComponentProps> = ({
 								</p>
 								{plan.credits > 0 && (
 									<p className="mt-1 text-xs font-[510] text-fog">
-										{plan.credits} kredit
-										{plan.price > 0 ? " (sekali bayar)" : " (lifetime)"}
+									{plan.credits} kredit
+									{plan.price > 0 ? " /bulan" : ""}
 									</p>
 								)}
 							</div>
