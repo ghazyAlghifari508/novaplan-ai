@@ -3,6 +3,7 @@
 import { useLocation } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Navbar } from "./navbar";
+import { SubscriptionBanner } from "./subscription-banner";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
 	const pathname = useLocation({ select: (l) => l.pathname });
@@ -44,7 +45,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
 	return (
 		<>
-			{!hideNavbar && <Navbar />}
+			{!hideNavbar && (
+				<>
+					<Navbar />
+					<SubscriptionBanner />
+				</>
+			)}
 			<div
 				className={
 					hideNavbar
