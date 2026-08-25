@@ -9,7 +9,7 @@ export interface PriceTier {
 	id: "free" | "pro" | "hengker";
 	name: string;
 	description: string;
-	/** One-time price in IDR. Credits never expire, no billing cycle. */
+	/** Monthly price in IDR. Credits reset every BILLING_PERIOD_DAYS. */
 	price: number;
 	credits: number;
 	isPopular: boolean;
@@ -24,6 +24,7 @@ export interface PriceTier {
  * (src/lib/model-config.ts) with no user-facing picker.
  */
 const FEATURE_ROWS = [
+	{ key: "monthly-reset", name: "Kredit reset tiap bulan" },
 	{ key: "prd", name: "Generate PRD" },
 	{ key: "revisi", name: "Revisi tanpa batas" },
 	{ key: "export-md", name: "Export ke Markdown" },
@@ -46,22 +47,23 @@ export const novaPlanPlans: [PriceTier, PriceTier, PriceTier] = [
 	{
 		id: "free",
 		name: "Free",
-		description: "Coba NovaPlan dengan 2 kredit PRD sekali pakai.",
+		description: "2 kredit PRD per bulan. Gratis selamanya.",
 		price: 0,
 		credits: 2,
 		isPopular: false,
 		buttonLabel: "Mulai Gratis",
-		features: buildFeatures(["prd", "revisi", "export-md"]),
+		features: buildFeatures(["monthly-reset", "prd", "revisi", "export-md"]),
 	},
 	{
 		id: "pro",
 		name: "Pro",
-		description: "30 kredit, full workflow dari PRD sampai Kanban.",
+		description: "30 kredit/bulan, full workflow dari PRD sampai Kanban.",
 		price: 49000,
 		credits: 30,
 		isPopular: true,
-		buttonLabel: "Beli Pro",
+		buttonLabel: "Berlangganan Pro",
 		features: buildFeatures([
+			"monthly-reset",
 			"prd",
 			"revisi",
 			"export-md",
@@ -73,11 +75,11 @@ export const novaPlanPlans: [PriceTier, PriceTier, PriceTier] = [
 	{
 		id: "hengker",
 		name: "Hengker",
-		description: "105 kredit, model premium, dan antrean prioritas.",
+		description: "105 kredit/bulan, model premium, dan antrean prioritas.",
 		price: 149000,
 		credits: 105,
 		isPopular: false,
-		buttonLabel: "Beli Hengker",
+		buttonLabel: "Berlangganan Hengker",
 		features: buildFeatures(FEATURE_ROWS.map((row) => row.key)),
 	},
 ];

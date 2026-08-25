@@ -83,7 +83,7 @@ export const Route = createFileRoute("/api/payments/create")({
 							id: planId,
 							price,
 							quantity: 1,
-							name: `Paket ${plan.name} - ${plan.credits} kredit`,
+							name: `Paket ${plan.name} - ${plan.credits} kredit/bulan`,
 						},
 					],
 					custom_field1: planId,

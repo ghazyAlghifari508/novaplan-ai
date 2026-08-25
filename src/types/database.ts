@@ -70,14 +70,14 @@ export interface Payment {
 	updatedAt: string;
 }
 
-/** Credits granted per tier. 1 credit = 1 stage (PRD, AC, or Task). Never expires. */
+/** Credits granted per billing period. 1 credit = 1 stage (PRD, AC, or Task). Leftovers expire at period end. */
 export const PLAN_CREDITS: Record<Plan, number> = {
 	free: 2,
 	pro: 30,
 	hengker: 105,
 };
 
-/** One-time price in IDR. No billing cycle. */
+/** Monthly subscription price in IDR. */
 export const PLAN_PRICES: Record<Plan, number> = {
 	free: 0,
 	pro: 49000,
