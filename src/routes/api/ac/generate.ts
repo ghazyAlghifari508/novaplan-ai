@@ -17,7 +17,6 @@ import {
 import { sanitizeErrorForClient } from "@/lib/services/error-sanitizer";
 import { getLatestPrdContent } from "@/lib/services/prd-service";
 import { requireUser } from "@/lib/session";
-import type { Plan } from "@/types/database";
 
 export const Route = createFileRoute("/api/ac/generate")({
 	server: {
@@ -34,20 +33,40 @@ export const Route = createFileRoute("/api/ac/generate")({
 						{ status: 400 },
 					);
 
+				const { resolveSubscriptionState } = await import("@/lib/billing");
 				const [sub] = await db
-					.select({ plan: subscriptions.plan })
+					.select({
+						plan: subscriptions.plan,
+						status: subscriptions.status,
+						credits: subscriptions.credits,
+						creditsUsed: subscriptions.creditsUsed,
+						currentPeriodStart: subscriptions.currentPeriodStart,
+						currentPeriodEnd: subscriptions.currentPeriodEnd,
+						cancelledAt: subscriptions.cancelledAt,
+					})
 					.from(subscriptions)
 					.where(eq(subscriptions.userId, user.id))
 					.orderBy(desc(subscriptions.createdAt))
 					.limit(1);
-				const plan = (sub?.plan || "free") as Plan;
+				const eff = resolveSubscriptionState(sub, new Date());
 
-				if (!hasFullWorkflow(plan)) {
+				if (eff.state === "paused") {
+					return Response.json(
+						{
+							error:
+								"Masa aktif langgananmu sudah habis. Perpanjang di halaman Pricing untuk generate AC.",
+							code: "SUBSCRIPTION_PAUSED",
+						},
+						{ status: 403 },
+					);
+				}
+
+				if (!hasFullWorkflow(eff.effectivePlan)) {
 					return Response.json(
 						{
 							error: "Generate AC hanya tersedia di paket Pro dan Hengker.",
 							code: "UPGRADE_REQUIRED",
-							plan,
+							plan: eff.effectivePlan,
 						},
 						{ status: 403 },
 					);
@@ -66,7 +85,11 @@ export const Route = createFileRoute("/api/ac/generate")({
 					);
 				}
 
-				const rateCheck = await checkRateLimit(user.id, plan, "api_call");
+				const rateCheck = await checkRateLimit(
+					user.id,
+					eff.effectivePlan,
+					"api_call",
+				);
 				if (!rateCheck.allowed)
 					return Response.json(
 						{ error: "Too many requests", retryAfter: 60 },

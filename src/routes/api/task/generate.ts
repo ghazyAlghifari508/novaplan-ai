@@ -18,7 +18,6 @@ import { extractJson } from "@/lib/services/json-extract";
 import { sanitizeModelOutput } from "@/lib/services/prd-service";
 import { parseTaskJson, saveTaskTree } from "@/lib/services/task-service";
 import { requireUser } from "@/lib/session";
-import type { Plan } from "@/types/database";
 
 export const Route = createFileRoute("/api/task/generate")({
 	server: {
@@ -34,23 +33,40 @@ export const Route = createFileRoute("/api/task/generate")({
 						{ status: 400 },
 					);
 
+				const { resolveSubscriptionState } = await import("@/lib/billing");
 				const [sub] = await db
-					.select({ plan: subscriptions.plan })
+					.select({
+						plan: subscriptions.plan,
+						status: subscriptions.status,
+						credits: subscriptions.credits,
+						creditsUsed: subscriptions.creditsUsed,
+						currentPeriodStart: subscriptions.currentPeriodStart,
+						currentPeriodEnd: subscriptions.currentPeriodEnd,
+						cancelledAt: subscriptions.cancelledAt,
+					})
 					.from(subscriptions)
 					.where(eq(subscriptions.userId, user.id))
 					.orderBy(desc(subscriptions.createdAt))
 					.limit(1);
-				const rawPlan = sub?.plan || "free";
-				const plan: Plan = ["free", "pro", "hengker"].includes(rawPlan)
-					? (rawPlan as Plan)
-					: "free";
+				const eff = resolveSubscriptionState(sub, new Date());
 
-				if (!hasFullWorkflow(plan)) {
+				if (eff.state === "paused") {
+					return Response.json(
+						{
+							error:
+								"Masa aktif langgananmu sudah habis. Perpanjang di halaman Pricing untuk generate Task.",
+							code: "SUBSCRIPTION_PAUSED",
+						},
+						{ status: 403 },
+					);
+				}
+
+				if (!hasFullWorkflow(eff.effectivePlan)) {
 					return Response.json(
 						{
 							error: "Generate Task hanya tersedia di paket Pro dan Hengker.",
 							code: "UPGRADE_REQUIRED",
-							plan,
+							plan: eff.effectivePlan,
 						},
 						{ status: 403 },
 					);
@@ -70,7 +86,11 @@ export const Route = createFileRoute("/api/task/generate")({
 					);
 				}
 
-				const rateCheck = await checkRateLimit(user.id, plan, "api_call");
+				const rateCheck = await checkRateLimit(
+					user.id,
+					eff.effectivePlan,
+					"api_call",
+				);
 				if (!rateCheck.allowed)
 					return Response.json(
 						{ error: "Too many requests", retryAfter: 60 },

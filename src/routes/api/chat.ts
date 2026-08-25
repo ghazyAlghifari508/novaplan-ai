@@ -90,11 +90,13 @@ export const Route = createFileRoute("/api/chat")({
 				if (mode === "generate") {
 					const creditCheck = await checkCredits(user.id);
 					if (!creditCheck.allowed) {
+						const paused = creditCheck.subscriptionState === "paused";
 						return Response.json(
 							{
-								error:
-									"Kredit kamu sudah habis. Beli kredit untuk membuat proyek baru.",
-								code: "NO_CREDITS",
+								error: paused
+									? "Masa aktif langgananmu sudah habis. Perpanjang di halaman Pricing untuk membuat proyek baru."
+									: "Kredit kamu sudah habis. Beli kredit untuk membuat proyek baru.",
+								code: paused ? "SUBSCRIPTION_PAUSED" : "NO_CREDITS",
 								plan: creditCheck.plan,
 								remaining: creditCheck.remaining,
 							},
