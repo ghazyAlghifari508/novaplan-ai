@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { and, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { payments } from "@/db/schema";
-import { applyPaymentSuccess } from "@/lib/services/payment-service";
+import { applyOrderSuccess } from "@/lib/services/payment-service";
 
 export const Route = createFileRoute("/api/payments/webhook")({
 	server: {
@@ -45,7 +45,7 @@ export const Route = createFileRoute("/api/payments/webhook")({
 					}
 
 					try {
-						await applyPaymentSuccess(order_id);
+						await applyOrderSuccess(order_id);
 					} catch (err) {
 						console.error("Webhook processing error:", err);
 						return Response.json(

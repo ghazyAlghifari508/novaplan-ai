@@ -18,7 +18,7 @@ export const syncPaymentStatus = createServerFn({ method: "POST" })
 		const user = await requireUser(getRequestHeaders());
 		const { db } = await import("@/db");
 		const { payments, subscriptions } = await import("@/db/schema");
-		const { applyPaymentSuccess } = await import(
+		const { applyOrderSuccess } = await import(
 			"@/lib/services/payment-service"
 		);
 
@@ -59,7 +59,7 @@ export const syncPaymentStatus = createServerFn({ method: "POST" })
 
 		const statusData = await response.json();
 		if (["settlement", "capture"].includes(statusData.transaction_status)) {
-			const result = await applyPaymentSuccess(orderId);
+			const result = await applyOrderSuccess(orderId);
 			return { success: true, updated: true, plan: result?.plan };
 		}
 		return { success: false, status: statusData.transaction_status as string };
