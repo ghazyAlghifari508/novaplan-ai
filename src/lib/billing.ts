@@ -1,0 +1,137 @@
+/**
+ * Pure billing-period logic for the monthly subscription model.
+ *
+ * ponytail: zero `@/db` imports here — this module runs in vitest without a
+ * database and may be imported by any server module that needs to classify a
+ * subscription row. DB access stays in credits.ts / payment-service.ts /
+ * billing-emails.ts.
+ *
+ * Core rule (spec §5): access is a pure function of `now` vs
+ * `current_period_end`. A NULL period on a paid row means legacy
+ * grandfathering (one-time purchase, credits never expire). A NULL period on
+ * a free row is rolled forward lazily by getCreditBalance.
+ */
+import { BILLING_PERIOD_DAYS } from "@/lib/constants";
+import { PLAN_CREDITS, type Plan } from "@/types/database";
+
+/** Minimal shape any caller's Drizzle select must provide. */
+export interface SubscriptionRowLike {
+	plan: string | null;
+	status: string | null;
+	credits: number | null;
+	creditsUsed: number | null;
+	currentPeriodStart: Date | null;
+	currentPeriodEnd: Date | null;
+	cancelledAt?: Date | null;
+}
+
+export type SubscriptionStateKind =
+	| "free_active"
+	| "legacy_grandfathered"
+	| "active_paid"
+	| "paused";
+
+export interface EffectiveSubscription {
+	state: SubscriptionStateKind;
+	/** What FEATURES / rate-limit tiers should consult. */
+	effectivePlan: Plan;
+	/** Burnable credits right now. Forced 0 while paused (leftovers are forfeited). */
+	remaining: number;
+	currentPeriodEnd: Date | null;
+}
+
+export function normalizePlan(raw: string | null | undefined): Plan {
+	return raw === "pro" || raw === "hengker" ? raw : "free";
+}
+
+/** Plain UTC-ms day math — periods are server-side UTC boundaries (spec §9). */
+export function addDays(date: Date, days: number): Date {
+	return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
+}
+
+export function resolveSubscriptionState(
+	sub: SubscriptionRowLike | undefined,
+	now: Date,
+): EffectiveSubscription {
+	const plan = normalizePlan(sub?.plan);
+	const credits = sub?.credits ?? 0;
+	const creditsUsed = sub?.creditsUsed ?? 0;
+	const periodEnd = sub?.currentPeriodEnd ?? null;
+	const leftover = Math.max(0, credits - creditsUsed);
+
+	if (!sub || plan === "free" || sub.cancelledAt != null) {
+		return {
+			state: "free_active",
+			effectivePlan: "free",
+			remaining: leftover,
+			currentPeriodEnd: periodEnd,
+		};
+	}
+
+	// Legacy one-time purchase: no period columns ever written.
+	if (periodEnd == null) {
+		return {
+			state: "legacy_grandfathered",
+			effectivePlan: plan,
+			remaining: leftover,
+			currentPeriodEnd: null,
+		};
+	}
+
+	if (now.getTime() <= periodEnd.getTime()) {
+		return {
+			state: "active_paid",
+			effectivePlan: plan,
+			remaining: leftover,
+			currentPeriodEnd: periodEnd,
+		};
+	}
+
+	// Expired without renewal: leftovers forfeited, generation blocked.
+	return {
+		state: "paused",
+		effectivePlan: "free",
+		remaining: 0,
+		currentPeriodEnd: periodEnd,
+	};
+}
+
+/** True when a free row needs its monthly allocation refreshed (write-on-read). */
+export function isFreeRolloverDue(
+	sub: SubscriptionRowLike | undefined,
+	now: Date,
+): boolean {
+	if (!sub || normalizePlan(sub.plan) !== "free") return false;
+	const end = sub.currentPeriodEnd;
+	return end == null || end.getTime() < now.getTime();
+}
+
+export function computeFreeRolloverPeriod(now: Date): {
+	start: Date;
+	end: Date;
+} {
+	return { start: now, end: addDays(now, BILLING_PERIOD_DAYS) };
+}
+
+/**
+ * Grant produced by a purchase/renewal (spec §6.1):
+ * - fresh/paused purchase -> period starts now;
+ * - early renewal         -> extends from the still-active period end;
+ * - credits are SET, never additive (monthly model).
+ */
+export function computePurchaseGrant(params: {
+	plan: Plan;
+	now: Date;
+	activePeriodEnd: Date | null;
+}): { periodStart: Date; periodEnd: Date; credits: number } {
+	const anchor =
+		params.activePeriodEnd &&
+		params.activePeriodEnd.getTime() > params.now.getTime()
+			? params.activePeriodEnd
+			: params.now;
+	return {
+		periodStart: params.now,
+		periodEnd: addDays(anchor, BILLING_PERIOD_DAYS),
+		credits: PLAN_CREDITS[params.plan],
+	};
+}

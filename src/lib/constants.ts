@@ -54,3 +54,12 @@ export const PDF_STYLES = { font: "Inter", headerSize: 14, bodySize: 11 } as con
 
 export const KANBAN_SSE_INTERVAL_MS = 3_000;
 export const KANBAN_POLL_INTERVAL_MS = 10_000;
+
+// === Billing (monthly subscription) ===
+// Length of one paid/free billing period. All period math lives in lib/billing.ts.
+export const BILLING_PERIOD_DAYS = 30;
+// Days before period end when the pre-expiry notice email fires (cron job).
+export const PRE_EXPIRY_NOTICE_DAYS = 3;
+// Post-expiry pause reminder schedule, in days after the period ended.
+// reminder_count tracks how many of these have been sent (see lib/services/billing-emails.ts).
+export const REMINDER_SCHEDULE_DAYS = [1, 7, 14] as const;
