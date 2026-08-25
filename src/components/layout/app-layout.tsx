@@ -45,12 +45,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
 	return (
 		<>
-			{!hideNavbar && (
-				<>
-					<Navbar />
-					<SubscriptionBanner />
-				</>
-			)}
+			{!hideNavbar && <Navbar />}
 			<div
 				className={
 					hideNavbar
@@ -60,6 +55,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 							: "pt-14 flex flex-col min-h-screen"
 				}
 			>
+				{!hideNavbar && <SubscriptionBanner />}
 				{children}
 			</div>
 		</>
