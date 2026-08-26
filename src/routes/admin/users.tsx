@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { listUsers, updateUserPlan, setUserBanned, resetUserCredit, setUserAdmin } from "@/lib/services/admin-service";
 
 export const Route = createFileRoute("/admin/users")({
-  loader: async () => ({ rows: await listUsers() }),
+  loader: async () => ({ rows: await listUsers({ data: {} }) }),
   component: UsersPage,
 });
 
@@ -19,11 +19,11 @@ function UsersPage() {
               <td>{sub?.plan ?? "free"}</td>
               <td>{user.isAdmin ? "Ya" : "Tidak"}</td>
               <td className="flex gap-2">
-                <button onClick={() => updateUserPlan(user.id, "pro")}>Pro</button>
-                <button onClick={() => updateUserPlan(user.id, "hengker")}>Hengker</button>
-                <button onClick={() => setUserBanned(user.id, !user.bannedAt)}>{user.bannedAt ? "Aktifkan" : "Ban"}</button>
-                <button onClick={() => resetUserCredit(user.id)}>Reset Credit</button>
-                <button onClick={() => setUserAdmin(user.id, !user.isAdmin)}>Toggle Admin</button>
+                <button onClick={async () => { await updateUserPlan({ data: { userId: user.id, plan: "pro" } }); window.location.reload(); }}>Pro</button>
+                <button onClick={async () => { await updateUserPlan({ data: { userId: user.id, plan: "hengker" } }); window.location.reload(); }}>Hengker</button>
+                <button onClick={async () => { await setUserBanned({ data: { userId: user.id, banned: !user.bannedAt } }); window.location.reload(); }}>{user.bannedAt ? "Aktifkan" : "Ban"}</button>
+                <button onClick={async () => { await resetUserCredit({ data: { userId: user.id } }); window.location.reload(); }}>Reset Credit</button>
+                <button onClick={async () => { await setUserAdmin({ data: { userId: user.id, isAdmin: !user.isAdmin } }); window.location.reload(); }}>Toggle Admin</button>
               </td>
             </tr>
           ))}

@@ -3,7 +3,7 @@ import { countUsers, listFeedback, listErrorReports } from "@/lib/services/admin
 
 export const Route = createFileRoute("/admin/")({
   loader: async () => {
-    const [userCount, feedback, errors] = await Promise.all([countUsers(), listFeedback(), listErrorReports()]);
+    const [userCount, feedback, errors] = await Promise.all([countUsers(), listFeedback({ data: {} }), listErrorReports()]);
     return { userCount, feedbackCount: feedback.length, errorCount: errors.length };
   },
   component: Dashboard,

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { listFeedback, listErrorReports } from "@/lib/services/admin-service";
 
 export const Route = createFileRoute("/admin/feedback")({
-  loader: async () => ({ feedback: await listFeedback(), errors: await listErrorReports() }),
+  loader: async () => ({ feedback: await listFeedback({ data: {} }), errors: await listErrorReports() }),
   component: FeedbackPage,
 });
 
