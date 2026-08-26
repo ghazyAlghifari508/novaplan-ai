@@ -177,8 +177,8 @@ The table below documents every variable the app reads. Sensitive values must be
 ### Quick start
 
 ```bash
-git clone https://github.com/ghazyAlghifari508/novaplan-ai.git
-cd novaplan-ai
+git clone https://github.com/ghazyAlghifari508/prdfy.git
+cd prdfy
 cp .env.example .env   # fill DATABASE_URL, BETTER_AUTH_SECRET, NINE_ROUTER_URL
 pnpm install
 pnpm db:push

@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { COMBO_MODEL_ID } from "./model-config";
 
 describe("model-config", () => {
-	it("exports COMBO_MODEL_ID as novaplan-combo", () => {
-		expect(COMBO_MODEL_ID).toBe("novaplan-combo");
+	it("exports COMBO_MODEL_ID as prdfy-combo", () => {
+		expect(COMBO_MODEL_ID).toBe("prdfy-combo");
 	});
 
 	it("does not export ALL_MODELS", async () => {

@@ -14,8 +14,8 @@ import { requireUser } from "@/lib/session";
 import { PLAN_CREDITS } from "@/types/database";
 
 const ALLOWED_ORIGINS = [
-	"https://novaplanai.vercel.app",
-	"https://novaplanai-git-main-ghazy-alghifaris-projects.vercel.app",
+	"https://prdfy.vercel.app",
+	"https://prdfy-git-main-ghazy-alghifaris-projects.vercel.app",
 	"http://localhost:3000",
 ];
 

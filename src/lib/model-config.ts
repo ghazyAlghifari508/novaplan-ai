@@ -6,4 +6,4 @@
  */
 
 /** 9Router combo ID — routes to best available model via Fallback strategy */
-export const COMBO_MODEL_ID = "novaplan-combo";
+export const COMBO_MODEL_ID = "prdfy-combo";

@@ -24,9 +24,9 @@ describe("AI_MODELS", () => {
 	});
 
 	it("all point to combo model", () => {
-		expect(AI_MODELS.primary).toBe("novaplan-combo");
-		expect(AI_MODELS.fallback).toBe("novaplan-combo");
-		expect(AI_MODELS.premium).toBe("novaplan-combo");
+		expect(AI_MODELS.primary).toBe("prdfy-combo");
+		expect(AI_MODELS.fallback).toBe("prdfy-combo");
+		expect(AI_MODELS.premium).toBe("prdfy-combo");
 	});
 });
 

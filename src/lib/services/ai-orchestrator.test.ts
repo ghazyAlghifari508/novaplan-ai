@@ -12,7 +12,7 @@ vi.mock("@/lib/ai-client", () => ({
 describe("selectModels", () => {
 	it("returns array with single combo ID", () => {
 		const models = selectModels();
-		expect(models).toEqual(["novaplan-combo"]);
+		expect(models).toEqual(["prdfy-combo"]);
 	});
 
 	it("accepts no parameters", () => {
@@ -47,7 +47,7 @@ describe("tryStreamWithFallback abort fast-path", () => {
 
 		const start = Date.now();
 		await expect(
-			tryStreamWithFallback(["novaplan-combo"], [], ctrl.signal),
+			tryStreamWithFallback(["prdfy-combo"], [], ctrl.signal),
 		).rejects.toThrow(/aborted/i);
 		expect(Date.now() - start).toBeLessThan(250);
 		expect(streamChatMock).not.toHaveBeenCalled();
@@ -60,7 +60,7 @@ describe("tryStreamWithFallback abort fast-path", () => {
 			(_m: unknown, _model: unknown, signal: AbortSignal) => hangingGen(signal),
 		);
 
-		const promise = tryStreamWithFallback(["novaplan-combo"], [], ctrl.signal);
+		const promise = tryStreamWithFallback(["prdfy-combo"], [], ctrl.signal);
 		ctrl.abort(); // abort while first attempt is pending
 
 		const expectation = expect(promise).rejects.toThrow(/aborted/i);

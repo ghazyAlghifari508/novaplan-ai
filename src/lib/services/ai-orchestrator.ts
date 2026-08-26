@@ -1,6 +1,6 @@
 /**
  * AI streaming orchestration — simplified for combo routing.
- * 9Router handles model selection + fallback via novaplan-combo.
+ * 9Router handles model selection + fallback via prdfy-combo.
  */
 import { type StreamOutcome, streamChat } from "@/lib/ai-client";
 import { AI_STREAM_RETRY_ATTEMPTS } from "@/lib/constants";
