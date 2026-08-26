@@ -16,11 +16,11 @@
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { computePurchaseGrant, resolveSubscriptionState } from "@/lib/billing";
 import { TOPUP_SKU } from "@/lib/constants";
-import { novaPlanPlans } from "@/lib/pricing-data";
+import { prdFyPlans } from "@/lib/pricing-data";
 import type { Plan } from "@/types/database";
 
 export function planFromAmount(amount: number): Plan {
-	const tier = novaPlanPlans.find((p) => p.id !== "free" && p.price === amount);
+	const tier = prdFyPlans.find((p) => p.id !== "free" && p.price === amount);
 	// ponytail: fail loudly on unknown amount rather than misclassify the plan.
 	if (!tier)
 		throw new Error(`Payment amount ${amount} does not match any plan price`);
@@ -28,7 +28,7 @@ export function planFromAmount(amount: number): Plan {
 }
 
 export function creditsForPlan(plan: Plan): number {
-	return novaPlanPlans.find((p) => p.id === plan)?.credits ?? 0;
+	return prdFyPlans.find((p) => p.id === plan)?.credits ?? 0;
 }
 
 /** Routing discriminator (spec §3): key off the stored SKU, not order prefixes. */

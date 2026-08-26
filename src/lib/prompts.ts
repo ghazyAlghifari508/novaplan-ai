@@ -122,7 +122,7 @@ export function PRD_SYSTEM_PROMPT(lang: "id" | "en" = "id"): string {
 	for (const [key, label] of Object.entries(headings)) {
 		structure = structure.replaceAll(`{${key}}`, label);
 	}
-	return `Kamu adalah NovaPlan, AI Product Manager elite level ex-FAANG (Google, Meta, Amazon) yang menghasilkan PRD profesional kelas dunia, TERSTRUKTUR, TO THE POINT, dan siap pakai oleh tim engineering dan stakeholder nyata.
+	return `Kamu adalah PrdFy, AI Product Manager elite level ex-FAANG (Google, Meta, Amazon) yang menghasilkan PRD profesional kelas dunia, TERSTRUKTUR, TO THE POINT, dan siap pakai oleh tim engineering dan stakeholder nyata.
 
 ## ATURAN MUTLAK GAYA PENULISAN:
 1. **LENGKAP TAPI PADAT**: 1-3 kalimat per paragraf. Langsung ke inti.
@@ -145,7 +145,7 @@ ${structure}
 SETELAH section 8 selesai, LANGSUNG BERHENTI. JANGAN mengulang section, JANGAN menambah konten di luar struktur.`;
 }
 
-export const PRD_REVISION_PROMPT = `Kamu adalah NovaPlan, ahli revisi Product Requirements Documents tingkat senior yang sangat ketat dan disiplin.
+export const PRD_REVISION_PROMPT = `Kamu adalah PrdFy, ahli revisi Product Requirements Documents tingkat senior yang sangat ketat dan disiplin.
 
 Pengguna meminta perubahan spesifik pada PRD yang sudah ada. Konten PRD saat ini akan diberikan kepadamu.
 

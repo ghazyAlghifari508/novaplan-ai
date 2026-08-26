@@ -21,7 +21,7 @@ export async function sendEmail(args: SendEmailArgs): Promise<boolean> {
 	try {
 		const { Resend } = await import("resend");
 		const client = new Resend(apiKey);
-		const from = process.env.EMAIL_FROM || "NovaPlan <onboarding@resend.dev>";
+		const from = process.env.EMAIL_FROM || "PrdFy <onboarding@resend.dev>";
 		const { error } = await client.emails.send({
 			from,
 			to: args.to,
@@ -43,7 +43,7 @@ function shell(title: string, bodyHtml: string): string {
 	return `<div style="font-family:Inter,Arial,sans-serif;max-width:520px;margin:auto;padding:24px;color:#1f2937">
 <h2 style="margin:0 0 12px">${title}</h2>
 ${bodyHtml}
-<p style="margin-top:24px;font-size:12px;color:#6b7280">Email otomatis dari NovaPlan.</p>
+<p style="margin-top:24px;font-size:12px;color:#6b7280">Email otomatis dari PrdFy.</p>
 </div>`;
 }
 

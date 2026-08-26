@@ -4,7 +4,7 @@ import { AlertCircle, X } from "lucide-react";
 import { PricingComponent } from "@/components/ui/pricing-card";
 import { TopUpCard } from "@/components/ui/top-up-card";
 import { useUserPlan } from "@/hooks/use-user-plan";
-import { novaPlanPlans, type PriceTier } from "@/lib/pricing-data";
+import { prdFyPlans, type PriceTier } from "@/lib/pricing-data";
 import { saveResumeIntent } from "@/lib/prompt-handoff";
 import { useUIStore } from "@/store";
 
@@ -101,7 +101,7 @@ export function CreditExhaustedModal({
 						<TopUpCard className="mx-2 mb-2" />
 					)}
 					<PricingComponent
-						plans={novaPlanPlans as [PriceTier, PriceTier, PriceTier]}
+						plans={prdFyPlans as [PriceTier, PriceTier, PriceTier]}
 						onPlanSelect={handlePlanSelect}
 						currentPlan={plan}
 						showComparison={false}

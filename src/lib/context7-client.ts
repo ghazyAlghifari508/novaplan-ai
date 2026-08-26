@@ -198,7 +198,7 @@ export async function resolveLibraryId(
 		{
 			protocolVersion: PROTOCOL_VERSION,
 			capabilities: {},
-			clientInfo: { name: "novaplan-grounding", version: "0.0.1" },
+			clientInfo: { name: "prdfy-grounding", version: "0.0.1" },
 		},
 		ms,
 	);
@@ -236,7 +236,7 @@ export async function queryDocs(
 		{
 			protocolVersion: PROTOCOL_VERSION,
 			capabilities: {},
-			clientInfo: { name: "novaplan-grounding", version: "0.0.1" },
+			clientInfo: { name: "prdfy-grounding", version: "0.0.1" },
 		},
 		ms,
 	);

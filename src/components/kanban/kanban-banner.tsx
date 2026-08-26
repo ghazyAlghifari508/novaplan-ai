@@ -97,7 +97,7 @@ export function KanbanBanner({
 					<div className="flex items-center gap-2">
 						<Info size={16} className="shrink-0" />
 						<span>
-							Belum ada update status. Jalankan NovaPlan CLI untuk update
+							Belum ada update status. Jalankan PrdFy CLI untuk update
 							otomatis.
 						</span>
 					</div>

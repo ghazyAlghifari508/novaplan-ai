@@ -189,7 +189,7 @@ User paused melihat banner/CTA di app (dan halaman billing): "Perpanjang" → ar
 Belum ada integrasi email di repo (terverifikasi). Wrapper minimal:
 
 - Dynamic import SDK di dalam fungsi (server-only).
-- Env: `RESEND_API_KEY`, `EMAIL_FROM` (mis. `NovaPlan <billing@novaplan.id>`).
+- Env: `RESEND_API_KEY`, `EMAIL_FROM` (mis. `PrdFy <billing@prdfy.id>`).
 - API: `sendEmail({ to, subject, html })` + template builder untuk 2 jenis email (copy Bahasa Indonesia):
   - **Pre-expiry (H-3):** "Masa aktif {plan} kamu berakhir {tanggal}. Perpanjang untuk keep full workflow."
   - **Paused reminder:** "Akun {plan} kamu sedang pause sejak {tanggal}. Perpanjang atau cancel."

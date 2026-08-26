@@ -1,8 +1,8 @@
-// Task generation prompts for NovaPlan.
+// Task generation prompts for PrdFy.
 // Strict: AI must derive tasks ONLY from AC features. No hallucination.
 // Output format: JSON array of features with tasks and subtasks.
 
-export const TASK_GENERATION_PROMPT = `Kamu adalah NovaPlan AI, ahli task breakdown. Generate task tree dalam format JSON.
+export const TASK_GENERATION_PROMPT = `Kamu adalah PrdFy AI, ahli task breakdown. Generate task tree dalam format JSON.
 
 FORMAT:
 {

@@ -16,7 +16,7 @@ printilan printilan yang harus diperbaiki :
 -menyusun diagram... (Jika tidak tampil, AI melakukan kesalahan syntax)
 -==DONE== di prd
 
- ada beberapa kejanggalan yang harus lu verifikasi kenapa ini bisa terjadi pada aplikasi novaplan ini
+ ada beberapa kejanggalan yang harus lu verifikasi kenapa ini bisa terjadi pada aplikasi prdfy ini
 
   1. mengapa setiap kali gw bikin projek, pertanyaan yang digenerate selalu 6 pertanyaan? padahal yang gw inginkan adalah pertanyaan itu
   WAJIB DIBIKIN FLEXIBEL sesuai kompleksitas aplikasi yang ingin dibuat. pertanyaan yang di generate gaboleh hardcode selalu 6 atau apapun
@@ -29,7 +29,7 @@ printilan printilan yang harus diperbaiki :
   3. apakah task task yang digenerate oleh ai sudah lengkap, detail dan sangat sesuai dengan prd dan ac? karena yang saat ini gw alami
   adalah ketika ai coding agent mulai mengerjakan implementasi sesuai task task yang digenerate entah kenapa aplikasinya itu terlalu
   simple banget kamu bisa lihat ini C:\Coding\Web Development\React\padelkuy dan C:\Coding\Web Development\Next\padelskuy kedua aplikasi
-  tersebut itu gw bikin pake ai berdasarkan projek dan task  yang ada di aplikasi novaplan ini yaitu projek 'padel booking'. kamu lihat
+  tersebut itu gw bikin pake ai berdasarkan projek dan task  yang ada di aplikasi prdfy ini yaitu projek 'padel booking'. kamu lihat
   sedniri kedua aplikasi tersebut jadinya tuh sangat simple dan jelek serta ga detail. aplikasinya tuh ga sesuai sama yang gw inginkan. yang dimana kedua aplikasi tersebut cuma nampilin beberapa ui aja seperti jadwal booking, dll seharusnya itu kan aplikasinya itu dibikin
   lebih matang gitu, seperti ada landing pagenya, untuk role user berarti ada halaman pilih lapangan, profile, riwayat booking dll. untuk
   halaman adminnya berarti akan ada dashboard, dll. jadi bisa dibilang sepertinya ini ada masalah di bagian task yang digenerate karena

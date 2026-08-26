@@ -1,4 +1,4 @@
-# Novaplan AI
+# PrdFy AI
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=fff)](#tech-stack)
 [![React](https://img.shields.io/badge/React_19-149ECA?logo=react&logoColor=fff)](#tech-stack)
@@ -9,7 +9,7 @@
 [![Better Auth](https://img.shields.io/badge/Better_Auth-0F766E?logo=auth0&logoColor=fff)](#authentication)
 [![Biome](https://img.shields.io/badge/Biome-60A5FA?logo=biome&logoColor=fff)](#development)
 
-AI-powered product development planner. Answer a guided flow of questions and Novaplan turns your idea into a full PRD, a set of acceptance criteria (AC), and an executable task kanban board.
+AI-powered product development planner. Answer a guided flow of questions and PrdFy turns your idea into a full PRD, a set of acceptance criteria (AC), and an executable task kanban board.
 
 ## Table of Contents
 
@@ -34,15 +34,15 @@ AI-powered product development planner. Answer a guided flow of questions and No
 
 Built with TanStack Start, React 19, and Vite, backed by Postgres (Drizzle ORM) and a local AI router.
 
-## Why Novaplan
+## Why PrdFy
 
-Writing a product spec from scratch is slow and the blank page is hostile. Most ideas die before the first sentence gets written. Novaplan inverts the process: instead of staring at an empty document, you answer a short, guided flow of questions and let the AI assemble the artifact for you.
+Writing a product spec from scratch is slow and the blank page is hostile. Most ideas die before the first sentence gets written. PrdFy inverts the process: instead of staring at an empty document, you answer a short, guided flow of questions and let the AI assemble the artifact for you.
 
 The output is structured, editable, and versioned, so a one-line idea becomes a reviewable spec in minutes.
 
 ## Overview
 
-Novaplan removes the blank page problem. Instead of writing specs from scratch, you answer focused questions about your product, stack, and audience. The AI generates each artifact from the answers, and you can keep revising it in the same flow.
+PrdFy removes the blank page problem. Instead of writing specs from scratch, you answer focused questions about your product, stack, and audience. The AI generates each artifact from the answers, and you can keep revising it in the same flow.
 
 The product pipeline has four stages:
 
@@ -56,9 +56,9 @@ Every stage keeps a revision history, so you can compare versions and re-generat
 ## How it works
 
 1. **Answer the flow.** Pick a stack (frontend, backend, database, hosting) and toggle between web and mobile. The question count scales to your app's complexity.
-2. **Review the PRD.** Novaplan drafts a complete product requirements document with a table of contents and architecture diagrams. Regenerate any section or revise the whole doc.
+2. **Review the PRD.** PrdFy drafts a complete product requirements document with a table of contents and architecture diagrams. Regenerate any section or revise the whole doc.
 3. **Approve the AC.** Each feature gets acceptance criteria plus an implementation-options picker, so the team knows both *what* to build and *how* to build it.
-4. **Execute on the board.** Novaplan breaks the scope into a kanban board of complexity-scaled tasks. Track status, open task details, and sketch on the whiteboard canvas.
+4. **Execute on the board.** PrdFy breaks the scope into a kanban board of complexity-scaled tasks. Track status, open task details, and sketch on the whiteboard canvas.
 
 If anything misses the mark, go back a stage. Every revision is saved to version history.
 
@@ -84,7 +84,7 @@ If anything misses the mark, go back a stage. Every revision is saved to version
 
 ## Tech Stack
 
-Novaplan is a full-stack TypeScript app. The same codebase serves both the interactive planner and a public REST API.
+PrdFy is a full-stack TypeScript app. The same codebase serves both the interactive planner and a public REST API.
 
 | Layer | Choice |
 | --- | --- |
@@ -102,11 +102,11 @@ Novaplan is a full-stack TypeScript app. The same codebase serves both the inter
 
 ## Architecture
 
-Novaplan is a full-stack app where a single TanStack Start server handles both the browser UI and the server-side work:
+PrdFy is a full-stack app where a single TanStack Start server handles both the browser UI and the server-side work:
 
 - **File-based routes** under `src/routes/` drive the ask flow, PRD, AC, kanban, settings, auth, and pricing pages.
 - **Server functions and API routes** wrap the AI calls, persistence, and business logic. Generation happens server-side; the client only streams the result.
-- **A local 9router** exposes an OpenAI-compatible endpoint that Novaplan calls for all AI completions. Models are split into free and premium tiers with automatic fallback to the next available model.
+- **A local 9router** exposes an OpenAI-compatible endpoint that PrdFy calls for all AI completions. Models are split into free and premium tiers with automatic fallback to the next available model.
 - **Drizzle ORM + Postgres** store users, projects, PRD versions, AC, tasks, and kanban state. Migrations are managed with `drizzle-kit`.
 - **Better Auth** handles session management server-side with email/password plus OAuth providers, and hashing with a server-only secret.
 - **A public REST API** under `/api/v1` mirrors the core workflows so the same engine can be driven programmatically.
@@ -115,7 +115,7 @@ The four-stage pipeline is stateless at each step: you answer questions, get an 
 
 ## Authentication
 
-Authentication is handled by [Better Auth](https://better-auth.com), a server-side auth library for TypeScript. Novaplan supports:
+Authentication is handled by [Better Auth](https://better-auth.com), a server-side auth library for TypeScript. PrdFy supports:
 
 - Email and password sign-up with server-side session cookies
 - Social login via Google and GitHub OAuth
@@ -138,7 +138,7 @@ Report a vulnerability by opening a private issue or contacting the maintainer d
 
 ## Billing
 
-Novaplan uses [Midtrans](https://midtrans.com) for payments. The flow is web-standard:
+PrdFy uses [Midtrans](https://midtrans.com) for payments. The flow is web-standard:
 
 1. The client requests a payment on the server via `POST /api/payments/create`, which returns a Midtrans redirect URL.
 2. The user completes the payment on Midtrans's hosted page.
@@ -221,15 +221,15 @@ The Postgres schema is defined in `src/db/schema.ts` with Drizzle. There are two
 
 ### Local AI router
 
-Novaplan does not call a hosted model API directly. It talks to a local [9router](https://9router.com)-style OpenAI-compatible server at `NINE_ROUTER_URL`. Point it at any server exposing `/v1/chat/completions` and the app works unchanged.
+PrdFy does not call a hosted model API directly. It talks to a local [9router](https://9router.com)-style OpenAI-compatible server at `NINE_ROUTER_URL`. Point it at any server exposing `/v1/chat/completions` and the app works unchanged.
 
 ### Start the database
 
 Install PostgreSQL 17 natively. Create the user and database:
 
 ```sql
-CREATE USER novaplan WITH PASSWORD 'novaplan_local';
-CREATE DATABASE novaplan OWNER novaplan;
+CREATE USER prdfy WITH PASSWORD 'prdfy_local';
+CREATE DATABASE prdfy OWNER prdfy;
 ```
 
 ### Push the schema and run
@@ -286,7 +286,7 @@ src/
 
 ## API
 
-Novaplan exposes a public REST API under `/api/v1`. All endpoints are JSON and session-authenticated where the action mutates data. Endpoints cover:
+PrdFy exposes a public REST API under `/api/v1`. All endpoints are JSON and session-authenticated where the action mutates data. Endpoints cover:
 
 - Projects: `GET/POST /api/v1/projects`, `GET /api/v1/projects/:id`
 - Tasks: `GET /api/v1/projects/:id/tasks`
@@ -309,7 +309,7 @@ pnpm exec playwright test
 
 ## Deployment
 
-Novaplan is a standard Node server that builds to a production bundle:
+PrdFy is a standard Node server that builds to a production bundle:
 
 ```bash
 pnpm build
@@ -348,16 +348,16 @@ Ideas that are likely to land next:
 ## FAQ
 
 **Do I need an OpenAI API key?**
-No. Novaplan calls your local AI router, so no hosted API key is required.
+No. PrdFy calls your local AI router, so no hosted API key is required.
 
 **Which stack should I pick?**
 Any. The ask flow lets you mix frontend, backend, database, and hosting choices. Toggle web or mobile and the available stacks update.
 
 **Is my data stored on my machine?**
-Yes, in the Postgres database you configure. Novaplan is self-hosted; there is no Novaplan cloud.
+Yes, in the Postgres database you configure. PrdFy is self-hosted; there is no PrdFy cloud.
 
 **How is the task count decided?**
-Novaplan scales subtask counts and non-tech question counts to your app's complexity, so a small idea stays small and a large product gets the coverage it needs.
+PrdFy scales subtask counts and non-tech question counts to your app's complexity, so a small idea stays small and a large product gets the coverage it needs.
 
 **How do I start over on a stage?**
 Open the project, pick the stage, and re-generate. Every version is kept in history.

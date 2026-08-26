@@ -1,7 +1,7 @@
 /**
  * AI Model Configuration
  *
- * NovaPlan uses a single 9Router combo that handles model selection
+ * PrdFy uses a single 9Router combo that handles model selection
  * and fallback internally. No user-facing model picker.
  */
 

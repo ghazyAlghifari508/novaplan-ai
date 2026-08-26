@@ -63,7 +63,7 @@ export const Route = createFileRoute("/history")({
 			throw e;
 		}
 	},
-	head: () => ({ meta: [{ title: "History | NovaPlan" }] }),
+	head: () => ({ meta: [{ title: "History | PrdFy" }] }),
 	component: HistoryRoutePage,
 });
 

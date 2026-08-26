@@ -1,18 +1,18 @@
-# PROMPT TUGAS BERIKUTNYA — Agent Penulis Spec: Fitur Top-up Novaplan
+# PROMPT TUGAS BERIKUTNYA — Agent Penulis Spec: Fitur Top-up PrdFy
 
 > Salin seluruh isi file ini (mulai dari baris di bawah) sebagai prompt untuk agent berikutnya.
 
 ---
 
-Kamu adalah agent yang akan menulis **design spec** untuk fitur baru di Novaplan. Kamu TIDAK mengimplementasi — deliverable-mu HANYA satu file spec yang matang, lalu berhenti untuk direview owner.
+Kamu adalah agent yang akan menulis **design spec** untuk fitur baru di PrdFy. Kamu TIDAK mengimplementasi — deliverable-mu HANYA satu file spec yang matang, lalu berhenti untuk direview owner.
 
 ## Konteks Proyek
 
-Repo: TanStack Start app bernama **Novaplan** (AI-powered product development planner, Bahasa Indonesia UI). Working directory: `C:\Coding\Web Development\Tanstack-start\novaplan`. Package manager pnpm, DB PostgreSQL 17 lokal via Docker, Drizzle ORM, Midtrans Snap untuk pembayaran, deploy Vercel.
+Repo: TanStack Start app bernama **PrdFy** (AI-powered product development planner, Bahasa Indonesia UI). Working directory: `C:\Coding\Web Development\Tanstack-start\prdfy`. Package manager pnpm, DB PostgreSQL 17 lokal via Docker, Drizzle ORM, Midtrans Snap untuk pembayaran, deploy Vercel.
 
 Baru saja selesai dimigrasikan: model pricing **langganan bulanan** (spec: `docs/superpowers/specs/2026-08-25-monthly-pricing-design.md`, plan: `docs/superpowers/plans/2026-08-25-monthly-pricing.md`). Baca KEDUA dokumen itu dulu — mereka sumber kebenaran model billing saat ini dan gaya penulisan spec di repo ini (bandingkan juga dengan spec lain di folder yang sama).
 
-**WAJIB baca juga sebelum menulis:** `AGENTS.md`, semua file di `.opencode/rules/` (no-assumptions, no-hardcode, novaplan-context), lalu verifikasi sendiri kode aktual:
+**WAJIB baca juga sebelum menulis:** `AGENTS.md`, semua file di `.opencode/rules/` (no-assumptions, no-hardcode, prdfy-context), lalu verifikasi sendiri kode aktual:
 
 - `src/db/schema.ts` — tabel `subscriptions` (kolom: plan, status, credits, creditsUsed, currentPeriodStart, currentPeriodEnd, cancelledAt, reminderCount) dan `payments`
 - `src/lib/billing.ts` — pure core: `resolveSubscriptionState` (state: free_active | legacy_grandfathered | active_paid | paused), `computePurchaseGrant`
@@ -20,7 +20,7 @@ Baru saja selesai dimigrasikan: model pricing **langganan bulanan** (spec: `docs
 - `src/lib/services/payment-service.ts` — `applyPaymentSuccess` (semantik SET: set plan+kredit+periode; `planFromAmount(amount)` THROW untuk nominal tak dikenal)
 - `src/routes/api/payments/create.ts` — generate order_id `ORDER-*`, Snap request, custom_field1-3, ALLOWED_ORIGINS
 - `src/routes/api/payments/webhook.ts` — signature sha512, validasi nominal, guard idempoten via status payment
-- `src/lib/pricing-data.ts` — struktur `novaPlanPlans` / `FEATURE_ROWS` yang drive halaman /pricing
+- `src/lib/pricing-data.ts` — struktur `prdFyPlans` / `FEATURE_ROWS` yang drive halaman /pricing
 - `src/hooks/use-user-plan.ts` + `src/routes/api/user/plan.ts` — client membaca `subscriptionState`
 
 ## Fitur yang Di-spec-kan: TOP-UP Kredit Mid-Period

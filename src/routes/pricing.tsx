@@ -7,7 +7,7 @@ export const Route = createFileRoute("/pricing")({
 	component: PricingPage,
 	head: () => ({
 		meta: [
-			{ title: "Pricing | NovaPlan" },
+			{ title: "Pricing | PrdFy" },
 			{
 				name: "description",
 				content:

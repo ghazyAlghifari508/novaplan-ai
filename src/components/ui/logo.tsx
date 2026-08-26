@@ -32,8 +32,8 @@ export function Logo({
 	return (
 		<Link to={href} className={`inline-flex items-center ${className}`}>
 			<img
-				src={isDark ? "/logo-novaplan-white.png" : "/logo-novaplan-black.png"}
-				alt="NovaPlan"
+				src={isDark ? "/logo-prdfy-white.png" : "/logo-prdfy-black.png"}
+				alt="PrdFy"
 				style={style}
 			/>
 		</Link>

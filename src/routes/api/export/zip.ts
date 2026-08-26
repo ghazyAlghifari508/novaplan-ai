@@ -54,7 +54,7 @@ export const Route = createFileRoute("/api/export/zip")({
 				return new Response(new Uint8Array(zipBuffer), {
 					headers: {
 						"Content-Type": "application/zip",
-						"Content-Disposition": `attachment; filename="novaplan-${safeName}.zip"`,
+						"Content-Disposition": `attachment; filename="prdfy-${safeName}.zip"`,
 						"Content-Length": String(zipBuffer.length),
 					},
 				});

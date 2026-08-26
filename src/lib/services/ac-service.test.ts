@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { extractFeatureSection } from "./ac-service";
 
 describe("extractFeatureSection", () => {
-	const md = `# Acceptance Criteria - Novaplan
+	const md = `# Acceptance Criteria - PrdFy
 
 ## Glossary / Konvensi
 Some conventions here.

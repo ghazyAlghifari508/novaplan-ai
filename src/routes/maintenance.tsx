@@ -32,7 +32,7 @@ function MaintenancePage() {
 					color: "#ffffff",
 				}}
 			>
-				NovaPlan Sedang Dalam Perbaikan
+				PrdFy Sedang Dalam Perbaikan
 			</h1>
 			<p
 				style={{

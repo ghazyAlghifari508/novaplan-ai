@@ -3,7 +3,7 @@
   "instructions": [
     ".opencode/rules/no-assumptions.md",
     ".opencode/rules/no-hardcode.md",
-    ".opencode/rules/novaplan-context.md"
+    ".opencode/rules/prdfy-context.md"
   ],
   "mcp": {
     "supabase": {

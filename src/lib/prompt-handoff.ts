@@ -3,10 +3,10 @@ import type { OutputLanguage } from "@/types/database";
 
 export type PendingPrdPromptMode = "auto" | "chat";
 
-const SETUP_PROMPT_KEY = "novaplan:setup-prompt";
-const PRD_PROMPT_KEY = "novaplan:prd-prompt";
-const ASK_PLATFORM_KEY = "novaplan:ask-platform";
-const ASK_LANGUAGE_KEY = "novaplan:ask-language";
+const SETUP_PROMPT_KEY = "prdfy:setup-prompt";
+const PRD_PROMPT_KEY = "prdfy:prd-prompt";
+const ASK_PLATFORM_KEY = "prdfy:ask-platform";
+const ASK_LANGUAGE_KEY = "prdfy:ask-language";
 
 /** Setup prompt expires after 5 minutes to prevent stale prompts */
 const SETUP_PROMPT_MAX_AGE_MS = 5 * 60 * 1000;
@@ -128,7 +128,7 @@ export function getAskLanguage(): OutputLanguage {
 }
 
 /* ---------- /ask flow persistence (survives refresh) ---------- */
-const ASK_STATE_KEY = "novaplan:ask-state";
+const ASK_STATE_KEY = "prdfy:ask-state";
 
 export interface AskState {
 	projectId: string;
@@ -178,7 +178,7 @@ export function getAskState(projectId: string): AskState | null {
 }
 
 /* ---------- PRD chat follow-up draft (survives refresh) ---------- */
-const PRD_DRAFT_MAP_KEY = "novaplan:prd-drafts";
+const PRD_DRAFT_MAP_KEY = "prdfy:prd-drafts";
 
 function readPrdDraftMap(): Record<string, string> {
 	const storage = getStorage();
@@ -218,7 +218,7 @@ export function clearPrdDraft() {
 }
 
 /* ---------- Home seed-prompt draft (survives refresh before send) ---------- */
-const HOME_DRAFT_KEY = "novaplan:home-draft";
+const HOME_DRAFT_KEY = "prdfy:home-draft";
 
 /** Persist the home textarea draft before the user presses send. Tab-scoped.
  *  Distinct from saveSetupPrompt (which fires on send with the enriched payload). */
@@ -241,7 +241,7 @@ export function clearHomeDraft() {
 }
 
 /* ---------- Onboarding multi-step state (survives refresh) ---------- */
-const ONBOARDING_STATE_KEY = "novaplan:onboarding-state";
+const ONBOARDING_STATE_KEY = "prdfy:onboarding-state";
 
 export interface OnboardingState {
 	step: number;
@@ -276,7 +276,7 @@ export function clearOnboardingState() {
 }
 
 /* ---------- Resume intent (credit-exhaustion → payment → auto-resume) ---------- */
-const RESUME_INTENT_KEY = "novaplan:resume-intent";
+const RESUME_INTENT_KEY = "prdfy:resume-intent";
 const RESUME_INTENT_MAX_AGE_MS = 15 * 60 * 1000;
 
 interface ResumeIntentPayload {
@@ -320,7 +320,7 @@ export function consumeResumeIntent(
 }
 
 /* ---------- Brief context for AI grounding (session only) ---------- */
-const BRIEF_CONTEXT_KEY = "novaplan:brief-context";
+const BRIEF_CONTEXT_KEY = "prdfy:brief-context";
 
 export function saveBriefContext(text: string) {
 	getStorage()?.setItem(BRIEF_CONTEXT_KEY, text.slice(0, BRIEF_MAX_CHARS));
@@ -335,7 +335,7 @@ export function clearBriefContext() {
 }
 
 /* ---------- Suppress auto-generate on history resume landing ---------- */
-const SUPPRESS_AUTOGEN_KEY = "novaplan:suppress-autogen";
+const SUPPRESS_AUTOGEN_KEY = "prdfy:suppress-autogen";
 
 export function saveSuppressAutoGen(projectId: string) {
 	getStorage()?.setItem(SUPPRESS_AUTOGEN_KEY, projectId);

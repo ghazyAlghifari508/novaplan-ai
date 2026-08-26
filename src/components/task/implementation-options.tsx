@@ -27,7 +27,7 @@ interface ImplementationOptionsProps {
 	hasContent: boolean; // true if PRD or tasks exist
 }
 
-const AI_AGENT_PROMPT_TEMPLATE = `Kamu adalah NovaPlan Coding Agent.
+const AI_AGENT_PROMPT_TEMPLATE = `Kamu adalah PrdFy Coding Agent.
 
 Tugasmu: implementasikan aplikasi berdasarkan dokumen perencanaan berikut.
 Dokumen ini adalah KONTRAK — semua yang ada di PRD, AC, dan Tasks WAJIB diimplementasikan.
@@ -44,55 +44,55 @@ Semua yang TIDAK ada di dokumen TIDAK BOLEH ditambahkan.
 ### Features & Tasks
 {tasksContent}
 
-## Setup NovaPlan CLI
+## Setup PrdFy CLI
 
-Pertama, install dan konfigurasi NovaPlan CLI:
+Pertama, install dan konfigurasi PrdFy CLI:
 
 \`\`\`bash
-npm install -g novaplan
-novaplan login --api-key {apiKey} --api-url http://localhost:3000
+npm install -g prdfy
+prdfy login --api-key {apiKey} --api-url http://localhost:3000
 \`\`\`
 
 ## Perintah CLI
 
 ### Baca PRD (Product Requirements Document):
 \`\`\`bash
-novaplan prd {projectId}
+prdfy prd {projectId}
 \`\`\`
 
 ### Baca Acceptance Criteria:
 \`\`\`bash
-novaplan ac {projectId}
+prdfy ac {projectId}
 \`\`\`
 
 ### Lihat task berikutnya yang harus dikerjakan:
 \`\`\`bash
-novaplan task next {projectId}
+prdfy task next {projectId}
 \`\`\`
 
 ### Lihat semua task:
 \`\`\`bash
-novaplan task list {projectId}
+prdfy task list {projectId}
 \`\`\`
 
 ### Mulai mengerjakan task:
 \`\`\`bash
-novaplan task update <taskId> --status in_progress
+prdfy task update <taskId> --status in_progress
 \`\`\`
 
 ### Tandai task selesai:
 \`\`\`bash
-novaplan task update <taskId> --status completed
+prdfy task update <taskId> --status completed
 \`\`\`
 
 ### Tandai task gagal:
 \`\`\`bash
-novaplan task update <taskId> --status failed
+prdfy task update <taskId> --status failed
 \`\`\`
 
 ### Update status subtask:
 \`\`\`bash
-novaplan subtask update <taskId> --index <subtaskIndex> --status in_progress
+prdfy subtask update <taskId> --index <subtaskIndex> --status in_progress
 \`\`\`
 
 ## ATURAN KETAT (WAJIB DIIKUTI — PELANGGARAN = GAGAL)
@@ -126,7 +126,7 @@ novaplan subtask update <taskId> --index <subtaskIndex> --status in_progress
 
 ### 6. VERIFIKASI ACCEPTANCE CRITERIA SEBELUM COMPLETED
 - Sebelum menandai task sebagai completed, WAJIB verifikasi implementasi terhadap Acceptance Criteria (AC) yang relevan.
-- Baca AC via CLI: \`novaplan ac {projectId}\` atau lihat output \`novaplan task next {projectId}\` yang sudah menyertakan AC context.
+- Baca AC via CLI: \`prdfy ac {projectId}\` atau lihat output \`prdfy task next {projectId}\` yang sudah menyertakan AC context.
 - Jika implementasi TIDAK memenuhi semua poin AC untuk fitur tersebut, DILARANG mengubah status ke completed.
 - Perbaiki implementasi sampai memenuhi AC, baru tandai completed.
 
@@ -134,17 +134,17 @@ novaplan subtask update <taskId> --index <subtaskIndex> --status in_progress
 
 ### Alur per FASE (setiap feature group = 1 fase):
 0. SETUP PROJECT RULES (sekali di awal):
-   Jalankan \`novaplan export rules {projectId} --format agents\` untuk generate file AGENTS.md di root project.
+   Jalankan \`prdfy export rules {projectId} --format agents\` untuk generate file AGENTS.md di root project.
    File ini berisi Tech Stack, Architecture, dan Acceptance Criteria yang WAJIB diikuti.
    BACA ULANG file AGENTS.md ini di awal SETIAP session baru sebelum mulai bekerja.
-1. BACA ULANG PRD: \`novaplan prd {projectId}\` — refresh konteks sebelum mulai fase baru
-2. BACA ULANG AC: \`novaplan ac {projectId}\` — pastikan tahu persis apa yang harus diimplementasi
-3. Baca tasks untuk fase ini: \`novaplan task list {projectId}\`
+1. BACA ULANG PRD: \`prdfy prd {projectId}\` — refresh konteks sebelum mulai fase baru
+2. BACA ULANG AC: \`prdfy ac {projectId}\` — pastikan tahu persis apa yang harus diimplementasi
+3. Baca tasks untuk fase ini: \`prdfy task list {projectId}\`
 4. Kerjakan setiap task dalam fase:
-   a. \`novaplan task update <taskId> --status in_progress\`
+   a. \`prdfy task update <taskId> --status in_progress\`
    b. Kerjakan subtask sesuai field "details"
-   c. Update subtask: \`novaplan subtask update <taskId> --index <i> --status completed\`
-   d. Setelah semua subtask selesai: \`novaplan task update <taskId> --status completed\`
+   c. Update subtask: \`prdfy subtask update <taskId> --index <i> --status completed\`
+   d. Setelah semua subtask selesai: \`prdfy task update <taskId> --status completed\`
 5. Ulangi dari langkah 1 untuk fase berikutnya
 
 ### CHECKPOINT WAJIB ANTAR FASE:
@@ -156,7 +156,7 @@ novaplan subtask update <taskId> --index <subtaskIndex> --status in_progress
 - WAJIB baca ulang PRD + AC di awal SETIAP fase — jangan andalkan memori dari fase sebelumnya
 - JANGAN skip task. Jika error, perbaiki dan retry.
 - Jika dependency eksternal benar-benar tidak tersedia: tandai failed DAN jelaskan alasannya
-- Setelah semua task selesai: \`novaplan task list {projectId}\` untuk verifikasi SEMUA completed`;
+- Setelah semua task selesai: \`prdfy task list {projectId}\` untuk verifikasi SEMUA completed`;
 
 /**
  * PRD-07: Implementation Options dropdown + modal.
@@ -177,7 +177,7 @@ export function ImplementationOptions({
 
 	// Restore choice from sessionStorage on mount (per-project)
 	useEffect(() => {
-		const stored = sessionStorage.getItem(`novaplan:impl-choice:${projectId}`);
+		const stored = sessionStorage.getItem(`prdfy:impl-choice:${projectId}`);
 		if (
 			stored === "copy_prd" ||
 			stored === "download_zip" ||
@@ -190,7 +190,7 @@ export function ImplementationOptions({
 	const setAndPersistChoice = useCallback(
 		(c: ImplementationChoice) => {
 			setChoice(c);
-			if (c) sessionStorage.setItem(`novaplan:impl-choice:${projectId}`, c);
+			if (c) sessionStorage.setItem(`prdfy:impl-choice:${projectId}`, c);
 		},
 		[projectId],
 	);
@@ -241,7 +241,7 @@ export function ImplementationOptions({
 			// Extract filename from Content-Disposition or use fallback
 			const cd = res.headers.get("Content-Disposition");
 			const match = cd?.match(/filename="?([^"]+)"?/);
-			a.download = match?.[1] || `novaplan-${projectId}.zip`;
+			a.download = match?.[1] || `prdfy-${projectId}.zip`;
 			document.body.appendChild(a);
 			a.click();
 			document.body.removeChild(a);

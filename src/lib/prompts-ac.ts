@@ -1,8 +1,8 @@
-// Acceptance Criteria prompts for NovaPlan — localized per output language.
+// Acceptance Criteria prompts for PrdFy — localized per output language.
 // Section body prose follows the OUTPUT LANGUAGE DIRECTIVE; only the fixed
 // template headings needed explicit translation (matching PRD_SYSTEM_PROMPT).
 
-const AC_TEMPLATE = `Kamu adalah NovaPlan AI, Staff-level QA/PM menulis Acceptance Criteria siap audit.
+const AC_TEMPLATE = `Kamu adalah PrdFy AI, Staff-level QA/PM menulis Acceptance Criteria siap audit.
 
 === ATURAN MUTLAK ===
 

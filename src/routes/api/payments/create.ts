@@ -8,7 +8,7 @@ import { canPurchaseTopUp, remainingTopUpQuota } from "@/lib/billing";
 import { TOPUP_SKU } from "@/lib/constants";
 import { getCreditBalance } from "@/lib/credits";
 import { isValidHistoryUrl } from "@/lib/flow-progress";
-import { novaPlanPlans } from "@/lib/pricing-data";
+import { prdFyPlans } from "@/lib/pricing-data";
 import { getTopUpCreditsUsedThisPeriod } from "@/lib/services/payment-service";
 import { requireUser } from "@/lib/session";
 import { PLAN_CREDITS } from "@/types/database";
@@ -75,9 +75,9 @@ export const Route = createFileRoute("/api/payments/create")({
 					}
 					amount = TOPUP_SKU.priceIdr;
 					planCredits = TOPUP_SKU.credits;
-					itemLabel = `Top Up ${TOPUP_SKU.credits} Kredit NovaPlan`;
+					itemLabel = `Top Up ${TOPUP_SKU.credits} Kredit PrdFy`;
 				} else {
-					const plan = novaPlanPlans.find((p) => p.id === planId);
+					const plan = prdFyPlans.find((p) => p.id === planId);
 					if (!plan)
 						return Response.json(
 							{ error: "Plan tidak ditemukan." },

@@ -95,7 +95,7 @@ export function ChatInput({ className, initialValue, initialMobile, prefillKey }
 		saveAskPlatform(isMobileMode ? "mobile" : "web");
 		saveAskLanguage(language);
 		// Save original message for display in chat bubble (without platform tags)
-		sessionStorage.setItem("novaplan:original-message", originalMessage);
+		sessionStorage.setItem("prdfy:original-message", originalMessage);
 
 		// ponytail: use reactive session (shared nanostore with Navbar) instead
 		// of a manual getSession() round-trip per send attempt.

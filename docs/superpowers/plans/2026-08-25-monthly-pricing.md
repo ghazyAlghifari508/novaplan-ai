@@ -695,7 +695,7 @@ Update docstring atas file (bagian `Credit model:`):
  * one-time purchases honored until their credits run out.
 ```
 
-Tambahkan import di bagian atas (setelah import `novaPlanPlans`):
+Tambahkan import di bagian atas (setelah import `prdFyPlans`):
 
 ```ts
 import { computePurchaseGrant } from "@/lib/billing";
@@ -1270,7 +1270,7 @@ git commit -m "feat(billing-ui): subscription status, pause notice, cancel flow 
 - Modify: `src/routes/api/payments/create.ts:86` (nama item Midtrans)
 
 **Interfaces:**
-- Produces: `FEATURE_ROWS` punya row baru `key: "monthly-reset"`; deskripsi & label tombol baru. Tidak ada perubahan bentuk data (konsumen `novaPlanPlans` aman).
+- Produces: `FEATURE_ROWS` punya row baru `key: "monthly-reset"`; deskripsi & label tombol baru. Tidak ada perubahan bentuk data (konsumen `prdFyPlans` aman).
 
 - [ ] **Step 1: `pricing-data.ts` — feature rows, deskripsi, tombol**
 
@@ -1290,7 +1290,7 @@ const FEATURE_ROWS = [
 ] as const;
 ```
 
-Perbarui ketiga tier di `novaPlanPlans`:
+Perbarui ketiga tier di `prdFyPlans`:
 
 - free: `description: "2 kredit PRD per bulan. Gratis selamanya."`, features: `buildFeatures(["monthly-reset", "prd", "revisi", "export-md"])`
 - pro: `description: "30 kredit/bulan, full workflow dari PRD sampai Kanban."`, `buttonLabel: "Berlangganan Pro"`, features: `buildFeatures(["monthly-reset", "prd", "revisi", "export-md", "workflow", "share", "version-30"])`
@@ -1437,7 +1437,7 @@ git commit -m "feat(layout): global paused-subscription banner driven by server 
   - `sendEmail(args: { to: string; subject: string; html: string }): Promise<boolean>` — selalu resolve, tidak pernah throw; `false` = gagal/skip (best-effort, spec §7.1).
   - `preExpiryNoticeEmail(planName: string, endDate: Date): { subject: string; html: string }`
   - `pausedReminderEmail(planName: string, daysLate: number): { subject: string; html: string }`
-- Env: `RESEND_API_KEY` (sudah ada di .env.example), `EMAIL_FROM` (baru), fallback `NovaPlan <onboarding@resend.dev>`.
+- Env: `RESEND_API_KEY` (sudah ada di .env.example), `EMAIL_FROM` (baru), fallback `PrdFy <onboarding@resend.dev>`.
 
 - [ ] **Step 1: Install dependency**
 
@@ -1470,7 +1470,7 @@ export async function sendEmail(args: SendEmailArgs): Promise<boolean> {
 	try {
 		const { Resend } = await import("resend");
 		const client = new Resend(apiKey);
-		const from = process.env.EMAIL_FROM || "NovaPlan <onboarding@resend.dev>";
+		const from = process.env.EMAIL_FROM || "PrdFy <onboarding@resend.dev>";
 		const { error } = await client.emails.send({
 			from,
 			to: args.to,
@@ -1492,7 +1492,7 @@ function shell(title: string, bodyHtml: string): string {
 	return `<div style="font-family:Inter,Arial,sans-serif;max-width:520px;margin:auto;padding:24px;color:#1f2937">
 <h2 style="margin:0 0 12px">${title}</h2>
 ${bodyHtml}
-<p style="margin-top:24px;font-size:12px;color:#6b7280">Email otomatis dari NovaPlan.</p>
+<p style="margin-top:24px;font-size:12px;color:#6b7280">Email otomatis dari PrdFy.</p>
 </div>`;
 }
 
@@ -1539,7 +1539,7 @@ Di bawah blok `# === Email (Resend) ===` ubah menjadi:
 # === Email (Resend) ===
 RESEND_API_KEY=""
 FEEDBACK_EMAIL=""
-# Sender identity for billing emails, e.g. "NovaPlan <billing@yourdomain.com>"
+# Sender identity for billing emails, e.g. "PrdFy <billing@yourdomain.com>"
 EMAIL_FROM=""
 # Shared secret for GET /api/cron/billing (Vercel Cron sends "Authorization: Bearer $CRON_SECRET"
 # automatically when this env name exists on the project; either name works).

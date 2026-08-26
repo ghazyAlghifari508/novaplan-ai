@@ -1,9 +1,9 @@
-// Ask-flow question generation prompt for NovaPlan.
+// Ask-flow question generation prompt for PrdFy.
 // Generates non-technical clarifying questions with VARIED answer types
 // (select / text / multiselect), tailored to the user's initial prompt.
 // Strict JSON output.
 
-export const ASK_OPTIONS_GENERATION_PROMPT = `Kamu adalah NovaPlan AI. Susun pertanyaan klarifikasi NON-TEKNIS untuk memahami kebutuhan produk sebelum PRD digenerate.
+export const ASK_OPTIONS_GENERATION_PROMPT = `Kamu adalah PrdFy AI. Susun pertanyaan klarifikasi NON-TEKNIS untuk memahami kebutuhan produk sebelum PRD digenerate.
 
 FORMAT JSON (output HANYA JSON, tanpa teks lain):
 {

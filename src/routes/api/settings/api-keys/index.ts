@@ -55,7 +55,7 @@ export const Route = createFileRoute("/api/settings/api-keys/")({
 				if (scopes.some((s: string) => !ALLOWED_SCOPES.includes(s)))
 					return Response.json({ error: "Scope tidak valid" }, { status: 400 });
 
-				const rawKey = `novaplan_${randomBytes(32).toString("hex")}`;
+				const rawKey = `prdfy_${randomBytes(32).toString("hex")}`;
 				const keyHash = createHash("sha256").update(rawKey).digest("hex");
 				const keyPrefix = rawKey.slice(0, 10);
 

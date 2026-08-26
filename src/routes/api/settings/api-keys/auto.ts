@@ -21,7 +21,7 @@ export const Route = createFileRoute("/api/settings/api-keys/auto")({
 				// return an old one; keeping previous keys avoids 401 for in-flight agents.
 				// ponytail: auto-keys accumulate per click; cleanup by expiry if this grows.
 
-				const rawKey = `novaplan_${randomBytes(32).toString("hex")}`;
+				const rawKey = `prdfy_${randomBytes(32).toString("hex")}`;
 				const keyHash = createHash("sha256").update(rawKey).digest("hex");
 				const keyPrefix = rawKey.slice(0, 10);
 

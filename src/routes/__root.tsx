@@ -25,7 +25,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 			{ charSet: "utf-8" },
 			{ name: "viewport", content: "width=device-width, initial-scale=1" },
 			{
-				title: "NovaPlan - AI PRD Generator",
+				title: "PrdFy - AI PRD Generator",
 			},
 			{
 				name: "description",
@@ -36,7 +36,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 		links: [
 			{ rel: "stylesheet", href: appCss },
 			{ rel: "stylesheet", href: appLayoutCss },
-			{ rel: "icon", type: "image/png", href: "/favicon-novaplan.png" },
+			{ rel: "icon", type: "image/png", href: "/favicon-prdfy.png" },
 		],
 	}),
 	shellComponent: RootDocument,

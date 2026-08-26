@@ -17,7 +17,7 @@ import { TopUpCard } from "@/components/ui/top-up-card";
 import { useUserPlan } from "@/hooks/use-user-plan";
 import {
 	type Feature,
-	novaPlanPlans,
+	prdFyPlans,
 	type PriceTier,
 } from "@/lib/pricing-data";
 import { cn } from "@/lib/utils";
@@ -373,7 +373,7 @@ export default function PricingWrapper() {
 	return (
 		<>
 			<PricingComponent
-				plans={novaPlanPlans}
+				plans={prdFyPlans}
 				onPlanSelect={handlePlanSelect}
 				currentPlan={currentPlan}
 			/>

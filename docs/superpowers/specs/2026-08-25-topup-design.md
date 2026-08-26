@@ -183,7 +183,7 @@ Dua pemanggil lama diganti: `webhook.ts:48` dan `syncPaymentStatus` (`payment.ts
 
 ### 6.1 Membuat order top-up (`POST /api/payments/create`, body `{ planId: "topup-15" }`)
 
-Di handler existing, sebelum blok lookup `novaPlanPlans`, tambahkan cabang top-up:
+Di handler existing, sebelum blok lookup `prdFyPlans`, tambahkan cabang top-up:
 
 1. `planId !== TOPUP_SKU.id` → jalur existing apa adanya.
 2. Jalur top-up:
@@ -191,7 +191,7 @@ Di handler existing, sebelum blok lookup `novaPlanPlans`, tambahkan cabang top-u
    - Hitung `usedThisPeriod` (query §4) dan `remainingTopUpQuota({ plan: eff.effectivePlan, usedThisPeriod })`; jika `< TOPUP_SKU.credits` → **400** `{ error: "Kuota top-up periode ini sudah habis (maksimal {PLAN_CREDITS[plan]} kredit). Kuota reset saat periode berikutnya." }`.
    - Cleanup stale pending (>5 menit → failed): reuse blok existing.
    - Insert payments: `orderId = TOPUP-{Date.now()}-{randomBytes(4).hex}`, `plan = TOPUP_SKU.id`, `amount = TOPUP_SKU.priceIdr`, `status = 'pending'`.
-   - Parameter Snap: `gross_amount = TOPUP_SKU.priceIdr`; `item_details[0] = { id: TOPUP_SKU.id, price, quantity: 1, name: "Top Up 15 Kredit NovaPlan" }`; `custom_field1 = TOPUP_SKU.id`, `custom_field2 = String(TOPUP_SKU.credits)`, `custom_field3 = user.id`; callback finish & `X-Override-Notification` identik existing (webhook URL sama).
+   - Parameter Snap: `gross_amount = TOPUP_SKU.priceIdr`; `item_details[0] = { id: TOPUP_SKU.id, price, quantity: 1, name: "Top Up 15 Kredit PrdFy" }`; `custom_field1 = TOPUP_SKU.id`, `custom_field2 = String(TOPUP_SKU.credits)`, `custom_field3 = user.id`; callback finish & `X-Override-Notification` identik existing (webhook URL sama).
 3. Respons sukses: `{ redirect_url, token }` sama seperti existing → client membuka Snap popup.
 
 ### 6.2 Penyelesaian pembayaran

@@ -20,7 +20,7 @@ export interface PriceTier {
 /**
  * Shared row order so the comparison table lines up across tiers.
  * Reflects the current feature set in src/types/database.ts (FEATURES).
- * Model selection was removed — NovaPlan uses a single 9Router combo
+ * Model selection was removed — PrdFy uses a single 9Router combo
  * (src/lib/model-config.ts) with no user-facing picker.
  */
 const FEATURE_ROWS = [
@@ -43,7 +43,7 @@ function buildFeatures(included: readonly string[]): Feature[] {
 	}));
 }
 
-export const novaPlanPlans: [PriceTier, PriceTier, PriceTier] = [
+export const prdFyPlans: [PriceTier, PriceTier, PriceTier] = [
 	{
 		id: "free",
 		name: "Free",
