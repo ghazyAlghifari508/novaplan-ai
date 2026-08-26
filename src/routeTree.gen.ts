@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as LoginRouteImport } from './routes/login'
@@ -19,6 +20,9 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AcIdRouteImport } from './routes/ac/$id'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminFeedbackRouteImport } from './routes/admin/feedback'
+import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiFeedbackRouteImport } from './routes/api/feedback'
 import { Route as ApiReportErrorRouteImport } from './routes/api/report-error'
@@ -78,6 +82,11 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FaqRoute = FaqRouteImport.update({
   id: '/faq',
   path: '/faq',
@@ -117,6 +126,21 @@ const AcIdRoute = AcIdRouteImport.update({
   id: '/ac/$id',
   path: '/ac/$id',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminFeedbackRoute = AdminFeedbackRouteImport.update({
+  id: '/feedback',
+  path: '/feedback',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRoute,
 } as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
@@ -362,6 +386,7 @@ const ApiV1TasksIdStatusRoute = ApiV1TasksIdStatusRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/faq': typeof FaqRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
@@ -370,6 +395,8 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/settings': typeof SettingsRouteWithChildren
   '/ac/$id': typeof AcIdRoute
+  '/admin/feedback': typeof AdminFeedbackRoute
+  '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/report-error': typeof ApiReportErrorRoute
@@ -385,6 +412,7 @@ export interface FileRoutesByFullPath {
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/task/$id': typeof TaskIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/api/ac/generate': typeof ApiAcGenerateRoute
   '/api/ac/save': typeof ApiAcSaveRoute
@@ -429,6 +457,8 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/pricing': typeof PricingRoute
   '/ac/$id': typeof AcIdRoute
+  '/admin/feedback': typeof AdminFeedbackRoute
+  '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/report-error': typeof ApiReportErrorRoute
@@ -444,6 +474,7 @@ export interface FileRoutesByTo {
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/task/$id': typeof TaskIdRoute
+  '/admin': typeof AdminIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/api/ac/generate': typeof ApiAcGenerateRoute
   '/api/ac/save': typeof ApiAcSaveRoute
@@ -482,6 +513,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/faq': typeof FaqRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
@@ -490,6 +522,8 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/settings': typeof SettingsRouteWithChildren
   '/ac/$id': typeof AcIdRoute
+  '/admin/feedback': typeof AdminFeedbackRoute
+  '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/report-error': typeof ApiReportErrorRoute
@@ -505,6 +539,7 @@ export interface FileRoutesById {
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/task/$id': typeof TaskIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/api/ac/generate': typeof ApiAcGenerateRoute
   '/api/ac/save': typeof ApiAcSaveRoute
@@ -544,6 +579,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/admin'
     | '/faq'
     | '/history'
     | '/login'
@@ -552,6 +588,8 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/settings'
     | '/ac/$id'
+    | '/admin/feedback'
+    | '/admin/users'
     | '/api/chat'
     | '/api/feedback'
     | '/api/report-error'
@@ -567,6 +605,7 @@ export interface FileRouteTypes {
     | '/settings/notifications'
     | '/settings/profile'
     | '/task/$id'
+    | '/admin/'
     | '/settings/'
     | '/api/ac/generate'
     | '/api/ac/save'
@@ -611,6 +650,8 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/pricing'
     | '/ac/$id'
+    | '/admin/feedback'
+    | '/admin/users'
     | '/api/chat'
     | '/api/feedback'
     | '/api/report-error'
@@ -626,6 +667,7 @@ export interface FileRouteTypes {
     | '/settings/notifications'
     | '/settings/profile'
     | '/task/$id'
+    | '/admin'
     | '/settings'
     | '/api/ac/generate'
     | '/api/ac/save'
@@ -663,6 +705,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/admin'
     | '/faq'
     | '/history'
     | '/login'
@@ -671,6 +714,8 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/settings'
     | '/ac/$id'
+    | '/admin/feedback'
+    | '/admin/users'
     | '/api/chat'
     | '/api/feedback'
     | '/api/report-error'
@@ -686,6 +731,7 @@ export interface FileRouteTypes {
     | '/settings/notifications'
     | '/settings/profile'
     | '/task/$id'
+    | '/admin/'
     | '/settings/'
     | '/api/ac/generate'
     | '/api/ac/save'
@@ -724,6 +770,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AdminRoute: typeof AdminRouteWithChildren
   FaqRoute: typeof FaqRoute
   HistoryRoute: typeof HistoryRoute
   LoginRoute: typeof LoginRoute
@@ -784,6 +831,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/faq': {
       id: '/faq'
       path: '/faq'
@@ -839,6 +893,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/ac/$id'
       preLoaderRoute: typeof AcIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/feedback': {
+      id: '/admin/feedback'
+      path: '/feedback'
+      fullPath: '/admin/feedback'
+      preLoaderRoute: typeof AdminFeedbackRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/api/chat': {
       id: '/api/chat'
@@ -1179,6 +1254,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminFeedbackRoute: typeof AdminFeedbackRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminFeedbackRoute: AdminFeedbackRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 interface SettingsRouteChildren {
   SettingsAccountRoute: typeof SettingsAccountRoute
   SettingsApiKeysRoute: typeof SettingsApiKeysRoute
@@ -1240,6 +1329,7 @@ const ApiV1ProjectsIdRouteWithChildren = ApiV1ProjectsIdRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AdminRoute: AdminRouteWithChildren,
   FaqRoute: FaqRoute,
   HistoryRoute: HistoryRoute,
   LoginRoute: LoginRoute,
@@ -1286,12 +1376,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
