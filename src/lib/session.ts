@@ -25,13 +25,15 @@ export const getSession = createServerFn({ method: "GET" }).handler(async () => 
 	return getSessionFromHeaders(h);
 });
 
-// Pure helpers for guard logic (snake_case Better Auth fields). Exported for unit tests.
+// Pure helpers for guard logic. Exported for unit tests.
 export function isBanned(user: unknown): boolean {
-	return Boolean((user as { banned_at?: string | Date | null } | null | undefined)?.banned_at);
+	const u = user as { bannedAt?: string | Date | null; banned_at?: string | Date | null } | null | undefined;
+	return Boolean(u?.bannedAt || u?.banned_at);
 }
 
 export function isAdmin(user: unknown): boolean {
-	return Boolean((user as { is_admin?: boolean } | null | undefined)?.is_admin);
+	const u = user as { isAdmin?: boolean; is_admin?: boolean } | null | undefined;
+	return Boolean(u?.isAdmin || u?.is_admin);
 }
 
 // Throws Unauthorized when no session - for guarded server fns.
@@ -39,7 +41,7 @@ export const requireUser = createServerOnlyFn(async (headers?: Headers) => {
 	const h = headers ?? (await getRequestHeadersServer());
 	const session = await getSessionFromHeaders(h);
 	if (!session?.user) throw new Error("Unauthorized");
-	if ((session.user as { banned_at?: string | Date }).banned_at) throw new Error("Forbidden");
+	if (isBanned(session.user)) throw new Error("Forbidden");
 	return session.user;
 });
 
@@ -58,8 +60,8 @@ export const requireAdmin = createServerOnlyFn(async (headers?: Headers) => {
 	const h = headers ?? (await getRequestHeadersServer());
 	const session = await getSessionFromHeaders(h);
 	if (!session?.user) throw new Error("Unauthorized");
-	if ((session.user as { banned_at?: string | Date }).banned_at) throw new Error("Forbidden");
-	if (!(session.user as { is_admin?: boolean }).is_admin) throw new Error("Forbidden");
+	if (isBanned(session.user)) throw new Error("Forbidden");
+	if (!isAdmin(session.user)) throw new Error("Forbidden");
 	return session.user;
 });
 

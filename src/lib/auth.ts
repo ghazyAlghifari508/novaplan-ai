@@ -103,8 +103,8 @@ export const auth = betterAuth({
 			fullName: { type: "string", required: false, input: true },
 			company: { type: "string", required: false, input: true },
 			role: { type: "string", required: false, input: false },
-			is_admin: { type: "boolean", required: false, input: false, defaultValue: false },
-			banned_at: { type: "date", required: false, input: false },
+			isAdmin: { type: "boolean", required: false, input: false, defaultValue: false },
+			bannedAt: { type: "date", required: false, input: false },
 		},
 	},
 	session: {

@@ -342,8 +342,12 @@ export function Navbar() {
 														Pricing
 													</Link>
 													{session?.user &&
-														(session.user as { is_admin?: boolean })
-															.is_admin && (
+														Boolean(
+															(session.user as { isAdmin?: boolean; is_admin?: boolean })
+																.isAdmin ||
+																(session.user as { isAdmin?: boolean; is_admin?: boolean })
+																	.is_admin,
+														) && (
 															<Link
 																to="/admin"
 																onClick={() => setIsDropdownOpen(false)}

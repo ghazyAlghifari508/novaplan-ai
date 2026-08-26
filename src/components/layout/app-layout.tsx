@@ -17,9 +17,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 		"/prd",
 		"/onboarding",
 		"/settings",
+		"/admin",
 	];
 	const hideNavbar =
-		hideNavbarRoutes.includes(pathname) || pathname.startsWith("/settings/");
+		hideNavbarRoutes.includes(pathname) ||
+		pathname.startsWith("/settings/") ||
+		pathname.startsWith("/admin/");
 
 	// Lock body scroll on workspace pages (Ask, PRD, AC, Task, Kanban)
 	const isWorkspace =
