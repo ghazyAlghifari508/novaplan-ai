@@ -21,6 +21,12 @@ export function Footer() {
 						>
 							Pricing
 						</Link>
+						<Link
+							to="/faq"
+							className="font-inter text-[14px] text-fog transition-colors hover:text-snow"
+						>
+							FAQ
+						</Link>
 					</div>
 					<p className="font-inter text-[14px] text-slate">
 						&copy; {new Date().getFullYear()} PrdFy. All rights reserved.

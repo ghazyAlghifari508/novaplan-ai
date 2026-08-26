@@ -381,6 +381,13 @@ export function Navbar() {
 						History
 					</Link>
 					<Link
+						to="/faq"
+						className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-[510] text-snow hover:bg-white/5"
+						onClick={() => setIsMobileMenuOpen(false)}
+					>
+						FAQ
+					</Link>
+					<Link
 						to="/settings"
 						className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-[510] text-snow hover:bg-white/5"
 						onClick={() => setIsMobileMenuOpen(false)}
