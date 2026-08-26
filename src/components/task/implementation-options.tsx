@@ -49,7 +49,7 @@ Semua yang TIDAK ada di dokumen TIDAK BOLEH ditambahkan.
 Pertama, install dan konfigurasi PrdFy CLI:
 
 \`\`\`bash
-npm install -g prdfy
+npm install -g @ghazynabiel/prdfy
 prdfy login --api-key {apiKey} --api-url http://localhost:3000
 \`\`\`
 
