@@ -1,5 +1,5 @@
 /**
- * novaplan project get — print project data as JSON
+ * prdfy project get — print project data as JSON
  */
 
 import chalk from "chalk";

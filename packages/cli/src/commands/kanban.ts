@@ -1,5 +1,5 @@
 /**
- * novaplan kanban — show kanban table
+ * prdfy kanban — show kanban table
  */
 
 import chalk from "chalk";

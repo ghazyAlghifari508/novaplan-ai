@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 
 /**
- * novaplan-cli — CLI tool for NovaPlan
+ * prdfy-cli — CLI tool for PrdFy
  *
  * Usage:
- *   novaplan login [--api-key <key>] [--api-url <url>]
- *   novaplan project get <id>
- *   novaplan task list <projectId> [--status <status>]
- *   novaplan task next <projectId>
- *   novaplan task update <taskId> --status <status>
- *   novaplan subtask update <taskId> --index <subtaskIndex> --status <status>
- *   novaplan kanban <projectId>
+ *   prdfy login [--api-key <key>] [--api-url <url>]
+ *   prdfy project get <id>
+ *   prdfy task list <projectId> [--status <status>]
+ *   prdfy task next <projectId>
+ *   prdfy task update <taskId> --status <status>
+ *   prdfy subtask update <taskId> --index <subtaskIndex> --status <status>
+ *   prdfy kanban <projectId>
  */
 
 import { Command } from "commander";
@@ -30,21 +30,21 @@ import {
 const program = new Command();
 
 program
-	.name("novaplan")
+	.name("prdfy")
 	.description(
-		"CLI tool for NovaPlan — manage projects and tasks from terminal",
+		"CLI tool for PrdFy — manage projects and tasks from terminal",
 	)
-	.version("1.0.0");
+	.version("2.0.0");
 
-// novaplan login
+// prdfy login
 program
 	.command("login")
 	.description("Save API key to local config (interactive if no flag)")
-	.option("--api-key <key>", "NovaPlan API key")
+	.option("--api-key <key>", "PrdFy API key")
 	.option("--api-url <url>", "API base URL (default: http://localhost:3000)")
 	.action(loginCommand);
 
-// novaplan project
+// prdfy project
 const projectCmd = program.command("project").description("Project commands");
 projectCmd
 	.command("get")
@@ -52,21 +52,21 @@ projectCmd
 	.description("Get project data as JSON")
 	.action(projectGetCommand);
 
-// novaplan prd
+// prdfy prd
 program
 	.command("prd")
 	.argument("<projectId>", "Project UUID")
 	.description("Fetch and print PRD content")
 	.action(prdCommand);
 
-// novaplan ac
+// prdfy ac
 program
 	.command("ac")
 	.argument("<projectId>", "Project UUID")
 	.description("Fetch and print Acceptance Criteria content")
 	.action(acCommand);
 
-// novaplan task
+// prdfy task
 const taskCmd = program.command("task").description("Task commands");
 taskCmd
 	.command("list")
@@ -92,7 +92,7 @@ taskCmd
 	)
 	.action(taskUpdateCommand);
 
-// novaplan subtask
+// prdfy subtask
 const subtaskCmd = program.command("subtask").description("Subtask commands");
 subtaskCmd
 	.command("update")
@@ -105,14 +105,14 @@ subtaskCmd
 	)
 	.action(subtaskUpdateCommand);
 
-// novaplan kanban
+// prdfy kanban
 program
 	.command("kanban")
 	.argument("<projectId>", "Project UUID")
 	.description("Show kanban board in terminal")
 	.action(kanbanCommand);
 
-// novaplan export
+// prdfy export
 const exportCmd = program
 	.command("export")
 	.description("Export project artifacts");

@@ -1,5 +1,5 @@
 /**
- * novaplan login — save API key to config (interactive if no --api-key flag)
+ * prdfy login — save API key to config (interactive if no --api-key flag)
  */
 
 import { createInterface } from "node:readline";
@@ -62,7 +62,7 @@ export async function loginCommand(options: {
 
 		saveConfig({ apiKey: apiKey.trim(), apiUrl });
 		console.log(chalk.green("✓ API key berhasil disimpan."));
-		console.log(chalk.dim(`Config: ~/.novaplan/config.json`));
+		console.log(chalk.dim(`Config: ~/.prdfy/config.json`));
 		console.log(chalk.dim(`API URL: ${apiUrl}`));
 	} catch (err) {
 		console.error(

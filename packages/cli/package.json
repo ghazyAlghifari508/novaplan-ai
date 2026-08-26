@@ -1,11 +1,11 @@
 {
-  "name": "novaplan",
-  "version": "1.2.0",
-  "description": "CLI tool for NovaPlan — manage projects and tasks from terminal",
+  "name": "prdfy",
+  "version": "2.0.0",
+  "description": "CLI tool for PrdFy — manage projects and tasks from terminal",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "novaplan": "dist/index.js"
+    "prdfy": "dist/index.js"
   },
   "files": [
     "dist"
@@ -24,7 +24,7 @@
     "@types/node": "^20.0.0"
   },
   "keywords": [
-    "novaplan",
+    "prdfy",
     "cli",
     "kanban"
   ],

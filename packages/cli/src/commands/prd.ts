@@ -1,5 +1,5 @@
 /**
- * novaplan prd <projectId> — fetch and print PRD content
+ * prdfy prd <projectId> — fetch and print PRD content
  */
 
 import chalk from "chalk";

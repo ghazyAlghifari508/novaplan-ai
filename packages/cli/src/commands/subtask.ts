@@ -1,5 +1,5 @@
 /**
- * novaplan subtask update
+ * prdfy subtask update
  */
 
 import chalk from "chalk";

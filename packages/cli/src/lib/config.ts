@@ -1,13 +1,15 @@
 /**
- * Config reader/writer for ~/.novaplan/config
+ * Config reader/writer for ~/.prdfy/config
+ * Falls back to legacy ~/.novaplan/config for existing installs.
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-const CONFIG_DIR = join(homedir(), ".novaplan");
+const CONFIG_DIR = join(homedir(), ".prdfy");
 const CONFIG_FILE = join(CONFIG_DIR, "config.json");
+const LEGACY_CONFIG_FILE = join(homedir(), ".novaplan", "config.json");
 
 interface CliConfig {
 	apiKey?: string;
@@ -15,9 +17,10 @@ interface CliConfig {
 }
 
 export function getConfig(): CliConfig {
-	if (!existsSync(CONFIG_FILE)) return {};
+	const file = existsSync(CONFIG_FILE) ? CONFIG_FILE : LEGACY_CONFIG_FILE;
+	if (!existsSync(file)) return {};
 	try {
-		return JSON.parse(readFileSync(CONFIG_FILE, "utf-8"));
+		return JSON.parse(readFileSync(file, "utf-8"));
 	} catch {
 		return {};
 	}
@@ -36,7 +39,7 @@ export function saveConfig(config: CliConfig): void {
 export function getApiKey(): string {
 	const config = getConfig();
 	if (!config.apiKey) {
-		throw new Error("API key not configured. Run: novaplan login");
+		throw new Error("API key not configured. Run: prdfy login");
 	}
 	return config.apiKey;
 }

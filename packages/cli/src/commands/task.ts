@@ -1,5 +1,5 @@
 /**
- * novaplan task list / novaplan task update / novaplan task next
+ * prdfy task list / prdfy task update / prdfy task next
  */
 
 import chalk from "chalk";
@@ -139,7 +139,7 @@ export async function taskNextCommand(projectId: string) {
 		console.log();
 		console.log(
 			chalk.dim(
-				`  Mulai: novaplan task update ${task.id} --status in_progress`,
+				`  Mulai: prdfy task update ${task.id} --status in_progress`,
 			),
 		);
 		console.log();

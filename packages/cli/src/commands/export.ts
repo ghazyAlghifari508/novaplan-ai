@@ -1,5 +1,5 @@
 /**
- * novaplan export rules <projectId> — generate .claude/rules/project-spec.md
+ * prdfy export rules <projectId> — generate .claude/rules/project-spec.md
  */
 
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
@@ -82,7 +82,7 @@ export async function exportRulesCommand(
 			`- ONLY implement features explicitly listed in Acceptance Criteria above`,
 			`- DO NOT add features, pages, endpoints, or roles not mentioned in AC`,
 			`- Follow the Tech Stack and folder structure exactly as specified`,
-			`- All tasks must be tracked via novaplan CLI commands`,
+			`- All tasks must be tracked via prdfy CLI commands`,
 			``,
 		].join("\n");
 

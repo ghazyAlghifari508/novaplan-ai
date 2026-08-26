@@ -1,5 +1,5 @@
 /**
- * HTTP client for NovaPlan API v1.
+ * HTTP client for PrdFy API v1.
  */
 
 import { getApiKey, getApiUrl } from "./config.js";

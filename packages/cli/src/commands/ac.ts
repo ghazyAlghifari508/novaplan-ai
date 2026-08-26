@@ -1,5 +1,5 @@
 /**
- * novaplan ac <projectId> — fetch and print Acceptance Criteria content
+ * prdfy ac <projectId> — fetch and print Acceptance Criteria content
  */
 
 import chalk from "chalk";
