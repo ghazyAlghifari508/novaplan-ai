@@ -14,6 +14,7 @@ import {
 	Menu,
 	MessageSquare,
 	Settings,
+	Shield,
 	User,
 	X,
 } from "lucide-react";
@@ -330,6 +331,18 @@ export function Navbar() {
 														<CreditCard size={16} className="text-fog" />
 														Pricing
 													</Link>
+													{session?.user &&
+														(session.user as { is_admin?: boolean })
+															.is_admin && (
+															<Link
+																to="/admin"
+																onClick={() => setIsDropdownOpen(false)}
+																className="flex items-center gap-3 px-4 py-2.5 text-sm font-[510] text-mist transition-colors hover:bg-white/5 hover:text-snow"
+															>
+																<Shield size={16} className="text-fog" />
+																Admin
+															</Link>
+														)}
 													<div className="my-1 h-px w-full bg-graphite" />
 													<button
 														onClick={() => {
