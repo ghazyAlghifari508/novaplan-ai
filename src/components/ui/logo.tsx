@@ -1,19 +1,31 @@
 "use client";
 
 import { Link } from "@tanstack/react-router";
-import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
 import type { FileRouteTypes } from "@/routeTree.gen";
 
-// ponytail: single theme-aware logo.
-// All app surfaces use CSS-variable colors that flip with the theme class
-// (charcoal is dark in dark mode, light in light mode), so there is NO surface
-// that stays dark in both modes, every logo must follow the theme.
-// Tailwind's `dark:` variant can't be used: the @custom-variant lives in
-// globals.css, which loads as a ?url stylesheet Tailwind can't see, so `dark:`
-// falls back to the OS media query and mismatches the app theme. useTheme()
-// tracks the app theme directly.
-// Images cropped to content bbox (black 389x121, white 285x81).
+// PrdFy mark: document outline with terminal cursor block.
+// viewBox is cropped tight to the glyph bbox (content: x 14-47, y 10-48)
+// so the mark fills its box — no dead padding baked into the canvas.
+// fill="currentColor" follows the theme's text color automatically.
+function PrdFyMark({ size }: { size: number }) {
+	return (
+		<svg
+			width={size}
+			height={size}
+			viewBox="10.5 9 40 40"
+			fill="currentColor"
+			aria-hidden="true"
+			className="shrink-0"
+		>
+			<path
+				fillRule="evenodd"
+				d="M14 10H35L44 19V37H38V42H35V48H14V10ZM20 16V42H29V39H32V33H38V24H34V16H20Z"
+			/>
+			<rect x="39" y="39" width="8" height="9" />
+		</svg>
+	);
+}
+
 export function Logo({
 	href = "/",
 	className = "",
@@ -23,19 +35,23 @@ export function Logo({
 	className?: string;
 	height?: number;
 }) {
-	const { resolvedTheme } = useTheme();
-	const [mounted, setMounted] = useState(false);
-	useEffect(() => setMounted(true), []);
-	const isDark = mounted && resolvedTheme === "dark";
-	const style = { height: `${height}px`, width: "auto" };
-
 	return (
-		<Link to={href} className={`inline-flex items-center ${className}`}>
-			<img
-				src={isDark ? "/logo-prdfy-white.png" : "/logo-prdfy-black.png"}
-				alt="PrdFy"
-				style={style}
-			/>
+		<Link
+			to={href}
+			className={`inline-flex items-center ${className}`}
+			style={{ gap: `${Math.round(height * 0.34)}px` }}
+		>
+			<PrdFyMark size={height} />
+			<span
+				className="font-medium leading-none select-none"
+				style={{
+					fontFamily: "var(--font-inter)",
+					fontSize: `${Math.round(height * 0.70)}px`,
+					letterSpacing: "-0.03em",
+				}}
+			>
+				PrdFy
+			</span>
 		</Link>
 	);
 }
