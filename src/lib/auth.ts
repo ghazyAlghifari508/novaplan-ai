@@ -43,6 +43,21 @@ export const auth = betterAuth({
 				},
 			},
 		},
+		session: {
+			create: {
+				after: async (session: any) => {
+					const adminEmails = (process.env.ADMIN_EMAILS ?? "")
+						.split(",")
+						.map((e) => e.trim().toLowerCase())
+						.filter(Boolean);
+					if (!adminEmails.includes(session.user.email.toLowerCase())) return;
+					const { db } = await import("@/db");
+					const { users } = await import("@/db/schema");
+					const { eq } = await import("drizzle-orm");
+					await db.update(users).set({ isAdmin: true }).where(eq(users.id, session.user.id));
+				},
+			},
+		},
 	},
 	emailAndPassword: {
 		enabled: false,
@@ -64,6 +79,8 @@ export const auth = betterAuth({
 			fullName: { type: "string", required: false, input: true },
 			company: { type: "string", required: false, input: true },
 			role: { type: "string", required: false, input: false },
+			is_admin: { type: "boolean", required: false, input: false, defaultValue: false },
+			banned_at: { type: "date", required: false, input: false },
 		},
 	},
 	session: {

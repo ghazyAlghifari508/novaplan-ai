@@ -25,6 +25,8 @@ export const users = pgTable("users", {
 	fullName: text("full_name"),
 	company: text("company"),
 	role: text("role"),
+	isAdmin: boolean("is_admin").notNull().default(false),
+	bannedAt: timestamp("banned_at"),
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 	updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
