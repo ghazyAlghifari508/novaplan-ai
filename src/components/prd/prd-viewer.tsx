@@ -36,32 +36,48 @@ const markdownComponents: Components = {
 	h2: ({ children, ...props }) => {
 		const text = String(children).replace(/<[^>]*>/g, "");
 		const id = text.toLowerCase().replace(/[^\w]+/g, "-");
-		return <h2 id={id} {...props}>{children}</h2>;
+		return (
+			<h2 id={id} {...props}>
+				{children}
+			</h2>
+		);
 	},
 	h3: ({ children, ...props }) => {
 		const text = String(children).replace(/<[^>]*>/g, "");
 		const id = text.toLowerCase().replace(/[^\w]+/g, "-");
-		return <h3 id={id} {...props}>{children}</h3>;
+		return (
+			<h3 id={id} {...props}>
+				{children}
+			</h3>
+		);
 	},
 	h4: ({ children, ...props }) => {
 		const text = String(children).replace(/<[^>]*>/g, "");
 		const id = text.toLowerCase().replace(/[^\w]+/g, "-");
-		return <h4 id={id} {...props}>{children}</h4>;
+		return (
+			<h4 id={id} {...props}>
+				{children}
+			</h4>
+		);
 	},
-	code: ({
-		className,
-		children,
-		...props
-	}) => {
+	code: ({ className, children, ...props }) => {
 		const match = /language-(\w+)/.exec(className || "");
 		if (match && match[1] === "mermaid") {
 			return (
-				<Suspense fallback={<div className="animate-pulse bg-black/5 dark:bg-white/5 h-32 rounded-lg my-6" />}>
+				<Suspense
+					fallback={
+						<div className="animate-pulse bg-black/5 dark:bg-white/5 h-32 rounded-lg my-6" />
+					}
+				>
 					<Mermaid chart={String(children).replace(/\n$/, "")} />
 				</Suspense>
 			);
 		}
-		return <code className={className} {...props}>{children}</code>;
+		return (
+			<code className={className} {...props}>
+				{children}
+			</code>
+		);
 	},
 };
 
@@ -253,46 +269,46 @@ export const PrdViewer = memo(function PrdViewer({
 							/>
 						)}
 						{projectId && (
-						<button
-							type="button"
-							disabled={isExporting}
-							onClick={async () => {
-								if (isExporting) return;
-								setIsExporting(true);
-								try {
-									const res = await fetch("/api/export/pdf", {
-										method: "POST",
-										headers: { "Content-Type": "application/json" },
-										body: JSON.stringify({ projectId }),
-									});
-									if (!res.ok) {
+							<button
+								type="button"
+								disabled={isExporting}
+								onClick={async () => {
+									if (isExporting) return;
+									setIsExporting(true);
+									try {
+										const res = await fetch("/api/export/pdf", {
+											method: "POST",
+											headers: { "Content-Type": "application/json" },
+											body: JSON.stringify({ projectId }),
+										});
+										if (!res.ok) {
+											showToast("Gagal mengekspor PDF", "error");
+											return;
+										}
+										const blob = await res.blob();
+										const url = URL.createObjectURL(blob);
+										const safeName = (projectName || "project")
+											.replace(/[^a-zA-Z0-9_-]/g, "-")
+											.replace(/-+/g, "-")
+											.toLowerCase();
+										const a = document.createElement("a");
+										a.href = url;
+										a.download = `${safeName}.pdf`;
+										document.body.appendChild(a);
+										a.click();
+										a.remove();
+										setTimeout(() => URL.revokeObjectURL(url), 1000);
+									} catch {
 										showToast("Gagal mengekspor PDF", "error");
-										return;
+									} finally {
+										setIsExporting(false);
 									}
-									const blob = await res.blob();
-									const url = URL.createObjectURL(blob);
-									const safeName = (projectName || "project")
-										.replace(/[^a-zA-Z0-9_-]/g, "-")
-										.replace(/-+/g, "-")
-										.toLowerCase();
-									const a = document.createElement("a");
-									a.href = url;
-									a.download = `${safeName}.pdf`;
-									document.body.appendChild(a);
-									a.click();
-									a.remove();
-									setTimeout(() => URL.revokeObjectURL(url), 1000);
-								} catch {
-									showToast("Gagal mengekspor PDF", "error");
-								} finally {
-									setIsExporting(false);
-								}
-							}}
-							className="rounded bg-indigo px-3 py-1 text-xs font-medium text-white hover:bg-indigo/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-						>
-							{isExporting ? "Mengekspor..." : "Export PDF"}
-						</button>
-					)}
+								}}
+								className="rounded bg-indigo px-3 py-1 text-xs font-medium text-white hover:bg-indigo/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+							>
+								{isExporting ? "Mengekspor..." : "Export PDF"}
+							</button>
+						)}
 					</div>
 				</div>
 
@@ -303,7 +319,10 @@ export const PrdViewer = memo(function PrdViewer({
 					{activeTab === "diff" ? (
 						<div className="mx-auto max-w-3xl px-4 py-4">
 							<PrdDiffViewer
-								oldContent={versions?.find((v) => v.version === previousVersion)?.content ?? ""}
+								oldContent={
+									versions?.find((v) => v.version === previousVersion)
+										?.content ?? ""
+								}
 								newContent={content}
 							/>
 						</div>

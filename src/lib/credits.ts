@@ -5,8 +5,8 @@ import {
 	computeFreeRolloverPeriod,
 	isFreeRolloverDue,
 	resolveSubscriptionState,
-	type SubscriptionStateKind,
 	type SubscriptionRowLike,
+	type SubscriptionStateKind,
 } from "@/lib/billing";
 import { FEATURES, PLAN_CREDITS, type Plan } from "@/types/database";
 
@@ -111,16 +111,13 @@ export async function getCreditBalance(userId: string): Promise<CreditBalance> {
 	};
 }
 
-export async function checkCredits(
-	userId: string,
-): Promise<{
+export async function checkCredits(userId: string): Promise<{
 	allowed: boolean;
 	remaining: number;
 	plan: Plan;
 	subscriptionState: SubscriptionStateKind;
 }> {
-	const { plan, remaining, subscriptionState } =
-		await getCreditBalance(userId);
+	const { plan, remaining, subscriptionState } = await getCreditBalance(userId);
 	return { allowed: remaining > 0, remaining, plan, subscriptionState };
 }
 

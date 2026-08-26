@@ -119,14 +119,13 @@ export function useKanbanTasks({
 		data,
 		isLoading,
 		isError: sseFailed ? query.isError : false,
-		error:
-			sseFailed
-				? query.error instanceof Error
-					? query.error
-					: query.error
-						? new Error(String(query.error))
-						: null
-				: null,
+		error: sseFailed
+			? query.error instanceof Error
+				? query.error
+				: query.error
+					? new Error(String(query.error))
+					: null
+			: null,
 		staleness,
 		refetch: async () => {
 			if (sseFailed) {

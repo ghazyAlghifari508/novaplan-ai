@@ -12,9 +12,9 @@ import {
 	tryStreamWithFallback,
 } from "@/lib/services/ai-orchestrator";
 import { parseAskOptionsJson } from "@/lib/services/ask-service";
-import { sanitizeModelOutput } from "@/lib/services/prd-service";
 import { sanitizeErrorForClient } from "@/lib/services/error-sanitizer";
 import { extractJson } from "@/lib/services/json-extract";
+import { sanitizeModelOutput } from "@/lib/services/prd-service";
 import { requireUser } from "@/lib/session";
 import type { Plan } from "@/types/database";
 

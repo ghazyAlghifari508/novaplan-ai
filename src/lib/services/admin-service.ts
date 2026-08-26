@@ -253,9 +253,7 @@ export const countUsers = createServerFn({ method: "GET" }).handler(
 	async () => {
 		await requireAdmin(await getRequestHeaders());
 		const { db, users } = await adminDb();
-		const [row] = await db
-			.select({ count: sql<number>`count(*)` })
-			.from(users);
+		const [row] = await db.select({ count: sql<number>`count(*)` }).from(users);
 		return Number(row?.count ?? 0);
 	},
 );

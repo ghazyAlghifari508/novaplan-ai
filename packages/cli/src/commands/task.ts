@@ -138,9 +138,7 @@ export async function taskNextCommand(projectId: string) {
 		}
 		console.log();
 		console.log(
-			chalk.dim(
-				`  Mulai: prdfy task update ${task.id} --status in_progress`,
-			),
+			chalk.dim(`  Mulai: prdfy task update ${task.id} --status in_progress`),
 		);
 		console.log();
 	} catch (err) {

@@ -183,20 +183,23 @@ export async function getTaskTree(projectId: string): Promise<TaskTree | null> {
  * stay in sync. Returns the same shape the hook expects.
  */
 export async function getKanbanData(projectId: string): Promise<{
-	columns: Record<string, Array<{
-		id: string;
-		type: "task";
-		featureName: string;
-		name: string;
-		description: string;
-		status: "pending" | "in_progress" | "completed" | "failed";
-		subtaskCount: number;
-		subtaskCompleted: number;
-		dependencies: string[];
-		startedAt: string | null;
-		completedAt: string | null;
-		subtasks: Array<{ name: string; status: string }>;
-	}>>;
+	columns: Record<
+		string,
+		Array<{
+			id: string;
+			type: "task";
+			featureName: string;
+			name: string;
+			description: string;
+			status: "pending" | "in_progress" | "completed" | "failed";
+			subtaskCount: number;
+			subtaskCompleted: number;
+			dependencies: string[];
+			startedAt: string | null;
+			completedAt: string | null;
+			subtasks: Array<{ name: string; status: string }>;
+		}>
+	>;
 	staleness: "live";
 	lastUpdateAt: string;
 	acChanged: boolean;
@@ -235,20 +238,23 @@ export async function getKanbanData(projectId: string): Promise<{
 		.orderBy(desc(acVersions.version))
 		.limit(1);
 
-	const columns: Record<string, Array<{
-		id: string;
-		type: "task";
-		featureName: string;
-		name: string;
-		description: string;
-		status: "pending" | "in_progress" | "completed" | "failed";
-		subtaskCount: number;
-		subtaskCompleted: number;
-		dependencies: string[];
-		startedAt: string | null;
-		completedAt: string | null;
-		subtasks: Array<{ name: string; status: string }>;
-	}>> = {
+	const columns: Record<
+		string,
+		Array<{
+			id: string;
+			type: "task";
+			featureName: string;
+			name: string;
+			description: string;
+			status: "pending" | "in_progress" | "completed" | "failed";
+			subtaskCount: number;
+			subtaskCompleted: number;
+			dependencies: string[];
+			startedAt: string | null;
+			completedAt: string | null;
+			subtasks: Array<{ name: string; status: string }>;
+		}>
+	> = {
 		pending: [],
 		in_progress: [],
 		completed: [],
@@ -265,10 +271,16 @@ export async function getKanbanData(projectId: string): Promise<{
 			featureName: t.featureName || "Umum",
 			name: t.title,
 			description: t.description ?? "",
-			status: (t.status ?? "pending") as "pending" | "in_progress" | "completed" | "failed",
+			status: (t.status ?? "pending") as
+				| "pending"
+				| "in_progress"
+				| "completed"
+				| "failed",
 			subtaskCount: sub.length,
 			subtaskCompleted: sub.filter((s) => s.status === "completed").length,
-			dependencies: Array.isArray(t.dependencies) ? (t.dependencies as string[]) : [],
+			dependencies: Array.isArray(t.dependencies)
+				? (t.dependencies as string[])
+				: [],
 			startedAt: t.startedAt ? (t.startedAt as Date).toISOString() : null,
 			completedAt: t.completedAt ? (t.completedAt as Date).toISOString() : null,
 			subtasks: sub.map((s) => ({
@@ -283,8 +295,8 @@ export async function getKanbanData(projectId: string): Promise<{
 	const tasksCreatedAt = taskRows[0]?.createdAt ?? null;
 	const acChanged = Boolean(
 		latestAcAt &&
-		tasksCreatedAt &&
-		new Date(latestAcAt as Date) > new Date(tasksCreatedAt as Date),
+			tasksCreatedAt &&
+			new Date(latestAcAt as Date) > new Date(tasksCreatedAt as Date),
 	);
 
 	return {

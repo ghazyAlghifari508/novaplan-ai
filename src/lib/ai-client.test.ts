@@ -25,9 +25,7 @@ function mockStreamText(parts: Array<Record<string, unknown>>) {
 
 describe("streamChat", () => {
 	it("throws when SDK emits an error part (root-cause fix)", async () => {
-		mockStreamText([
-			{ type: "error", error: new Error("upstream 503") },
-		]);
+		mockStreamText([{ type: "error", error: new Error("upstream 503") }]);
 		const outcome: StreamOutcome = {};
 		const it = streamChat(
 			[{ role: "user", content: "hi" }],

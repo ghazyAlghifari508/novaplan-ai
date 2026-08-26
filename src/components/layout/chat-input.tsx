@@ -1,5 +1,5 @@
-import { Check, ChevronDown, Monitor, Smartphone } from "lucide-react";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { Check, ChevronDown, Monitor, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { CreditExhaustedModal } from "@/components/chat/credit-exhausted-modal";
 import {
@@ -11,6 +11,11 @@ import {
 import { useTypingPlaceholder } from "@/hooks/use-typing-placeholder";
 import { useUserPlan } from "@/hooks/use-user-plan";
 import { authClient } from "@/lib/auth-client";
+import {
+	HOME_DRAFT_DEBOUNCE_MS,
+	MAX_PROMPT_LENGTH,
+	MIN_PROMPT_LENGTH,
+} from "@/lib/constants";
 import { type OutputLanguage, SUPPORTED_LANGUAGES } from "@/lib/language";
 import {
 	clearHomeDraft,
@@ -22,11 +27,6 @@ import {
 	saveSetupPrompt,
 } from "@/lib/prompt-handoff";
 import { cn } from "@/lib/utils";
-import {
-	HOME_DRAFT_DEBOUNCE_MS,
-	MAX_PROMPT_LENGTH,
-	MIN_PROMPT_LENGTH,
-} from "@/lib/constants";
 import { PLAN_CREDITS } from "@/types/database";
 
 interface ChatInputProps {
@@ -36,7 +36,12 @@ interface ChatInputProps {
 	prefillKey?: number;
 }
 
-export function ChatInput({ className, initialValue, initialMobile, prefillKey }: ChatInputProps) {
+export function ChatInput({
+	className,
+	initialValue,
+	initialMobile,
+	prefillKey,
+}: ChatInputProps) {
 	const [message, setMessage] = useState(() => getHomeDraft());
 	const [focused, setFocused] = useState(false);
 	const [isMobileMode, setIsMobileMode] = useState(false);
@@ -67,10 +72,7 @@ export function ChatInput({ className, initialValue, initialMobile, prefillKey }
 	// ponytail: debounce keeps the home seed-prompt draft alive across
 	// refresh, so a long product description isn't lost before send.
 	useEffect(() => {
-		const t = setTimeout(
-			() => saveHomeDraft(message),
-			HOME_DRAFT_DEBOUNCE_MS,
-		);
+		const t = setTimeout(() => saveHomeDraft(message), HOME_DRAFT_DEBOUNCE_MS);
 		return () => clearTimeout(t);
 	}, [message]);
 

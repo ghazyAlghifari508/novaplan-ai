@@ -46,7 +46,7 @@ export function Logo({
 				className="font-medium leading-none select-none"
 				style={{
 					fontFamily: "var(--font-inter)",
-					fontSize: `${Math.round(height * 0.70)}px`,
+					fontSize: `${Math.round(height * 0.7)}px`,
 					letterSpacing: "-0.03em",
 				}}
 			>

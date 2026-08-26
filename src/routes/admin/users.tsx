@@ -130,7 +130,9 @@ function AdminUsersPage() {
 								const plan = sub?.plan ?? "free";
 								const isBanned = Boolean(user.bannedAt);
 								const isAdmin = Boolean(user.isAdmin);
-								const initial = (user.name || user.email || "?")[0].toUpperCase();
+								const initial = (user.name ||
+									user.email ||
+									"?")[0].toUpperCase();
 
 								return (
 									<tr

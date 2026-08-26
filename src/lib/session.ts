@@ -20,19 +20,27 @@ const getRequestHeadersServer = createServerOnlyFn(async () => {
 	return getRequestHeaders();
 });
 
-export const getSession = createServerFn({ method: "GET" }).handler(async () => {
-	const h = await getRequestHeadersServer();
-	return getSessionFromHeaders(h);
-});
+export const getSession = createServerFn({ method: "GET" }).handler(
+	async () => {
+		const h = await getRequestHeadersServer();
+		return getSessionFromHeaders(h);
+	},
+);
 
 // Pure helpers for guard logic. Exported for unit tests.
 export function isBanned(user: unknown): boolean {
-	const u = user as { bannedAt?: string | Date | null; banned_at?: string | Date | null } | null | undefined;
+	const u = user as
+		| { bannedAt?: string | Date | null; banned_at?: string | Date | null }
+		| null
+		| undefined;
 	return Boolean(u?.bannedAt || u?.banned_at);
 }
 
 export function isAdmin(user: unknown): boolean {
-	const u = user as { isAdmin?: boolean; is_admin?: boolean } | null | undefined;
+	const u = user as
+		| { isAdmin?: boolean; is_admin?: boolean }
+		| null
+		| undefined;
 	return Boolean(u?.isAdmin || u?.is_admin);
 }
 
@@ -65,10 +73,12 @@ export const requireAdmin = createServerOnlyFn(async (headers?: Headers) => {
 	return session.user;
 });
 
-export const requireAdminServer = createServerFn({ method: "GET" }).handler(async () => {
-	const h = await getRequestHeadersServer();
-	return requireAdmin(h);
-});
+export const requireAdminServer = createServerFn({ method: "GET" }).handler(
+	async () => {
+		const h = await getRequestHeadersServer();
+		return requireAdmin(h);
+	},
+);
 
 // Plan + quota in one call (mirrors old getUserPlanAndQuota).
 export const getUserPlanAndQuota = createServerFn({ method: "GET" }).handler(

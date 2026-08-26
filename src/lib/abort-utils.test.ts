@@ -12,10 +12,7 @@ afterEach(() => {
 describe("raceWithAbort", () => {
 	it("resolves with the underlying value when never aborted", async () => {
 		const ctrl = makeController();
-		const result = await raceWithAbort(
-			Promise.resolve("docs"),
-			ctrl.signal,
-		);
+		const result = await raceWithAbort(Promise.resolve("docs"), ctrl.signal);
 		expect(result).toBe("docs");
 	});
 

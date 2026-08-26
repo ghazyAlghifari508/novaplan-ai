@@ -4,7 +4,7 @@ import { AlertCircle, X } from "lucide-react";
 import { PricingComponent } from "@/components/ui/pricing-card";
 import { TopUpCard } from "@/components/ui/top-up-card";
 import { useUserPlan } from "@/hooks/use-user-plan";
-import { prdFyPlans, type PriceTier } from "@/lib/pricing-data";
+import { type PriceTier, prdFyPlans } from "@/lib/pricing-data";
 import { saveResumeIntent } from "@/lib/prompt-handoff";
 import { useUIStore } from "@/store";
 
@@ -87,9 +87,7 @@ export function CreditExhaustedModal({
 					<div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-crimson/10 text-crimson">
 						<AlertCircle size={20} strokeWidth={2} />
 					</div>
-				<h3 className="font-inter text-xl font-[510] text-snow">
-					{title}
-				</h3>
+					<h3 className="font-inter text-xl font-[510] text-snow">{title}</h3>
 					<p className="mt-2 font-inter text-sm text-fog">{errorMessage}</p>
 				</div>
 

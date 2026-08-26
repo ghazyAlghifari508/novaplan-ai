@@ -2,13 +2,23 @@ import { createFileRoute } from "@tanstack/react-router";
 import { asc, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { prdVersions, projects, tasks } from "@/db/schema";
-import { apiKeyAuth, hasScope, verifyProjectOwnership } from "@/lib/api-key-auth";
+import {
+	apiKeyAuth,
+	hasScope,
+	verifyProjectOwnership,
+} from "@/lib/api-key-auth";
 import { getLatestPrdContent } from "@/lib/services/prd-service";
 
 export const Route = createFileRoute("/api/v1/projects/$id")({
 	server: {
 		handlers: {
-			GET: async ({ params, request }: { params: { id: string }; request: Request }) => {
+			GET: async ({
+				params,
+				request,
+			}: {
+				params: { id: string };
+				request: Request;
+			}) => {
 				const auth = await apiKeyAuth(request);
 				if ("error" in auth)
 					return Response.json({ error: auth.error }, { status: auth.status });

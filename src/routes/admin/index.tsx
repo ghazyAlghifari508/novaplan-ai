@@ -128,9 +128,7 @@ function AdminDashboardPage() {
 				<section className="rounded-xl border border-graphite bg-charcoal p-6 lg:col-span-2">
 					<div className="mb-4 flex items-center justify-between">
 						<div>
-							<h2 className="text-base font-[510] text-snow">
-								Proyek Terbaru
-							</h2>
+							<h2 className="text-base font-[510] text-snow">Proyek Terbaru</h2>
 							<p className="text-xs text-fog">
 								Aktivitas pembuatan proyek paling akhir
 							</p>

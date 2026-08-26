@@ -20,7 +20,9 @@ export async function raceWithAbort<T>(
 	let onAbort: () => void = () => {};
 	const aborted = new Promise<never>((_, reject) => {
 		onAbort = () =>
-			reject(Object.assign(new Error("Request aborted"), { name: "AbortError" }));
+			reject(
+				Object.assign(new Error("Request aborted"), { name: "AbortError" }),
+			);
 		signal.addEventListener("abort", onAbort, { once: true });
 	});
 	try {

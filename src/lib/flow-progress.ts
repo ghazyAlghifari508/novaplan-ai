@@ -36,11 +36,7 @@ export function advanceStep(
  * that outranked the complete one (AC v2 = 1440 chars vs v1 = 19818) and became
  * what the viewer showed.
  */
-const TRUNCATING_REASONS = new Set([
-	"length",
-	"error",
-	"content-filter",
-]);
+const TRUNCATING_REASONS = new Set(["length", "error", "content-filter"]);
 
 export function isTruncatedGeneration(
 	content: string,

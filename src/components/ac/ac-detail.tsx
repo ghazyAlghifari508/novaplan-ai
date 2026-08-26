@@ -1,7 +1,12 @@
 "use client";
 
+import {
+	Link,
+	useLocation,
+	useNavigate,
+	useRouter,
+} from "@tanstack/react-router";
 import { ArrowRight, FileText } from "lucide-react";
-import { Link, useLocation, useNavigate, useRouter } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { syncPaymentStatus } from "@/app/actions/payment";
 import { CreditExhaustedModal } from "@/components/chat/credit-exhausted-modal";
@@ -392,7 +397,7 @@ export function AcDetail({
 		<>
 			<div className="flex h-dvh flex-col overflow-hidden bg-onyx text-(--text-primary)">
 				<div className="flex flex-1 overflow-hidden">
-				{/* Left: TOC — width/handle live on this wrapper: the aside below
+					{/* Left: TOC — width/handle live on this wrapper: the aside below
 				    scrolls (overflow-y-auto), and a scrolling ancestor clips
 				    absolutely positioned children at its padding edge, which
 				    shifts the resize hitbox left of the divider. */}
@@ -468,24 +473,23 @@ export function AcDetail({
 							</div>
 						)}
 
-					{plan === "free" && !acContent && !isGenerating && (
-						<div className="shrink-0 border-t border-graphite px-4 py-3">
-							<div className="flex flex-wrap items-center justify-between gap-3">
-								<p className="text-sm text-fog">
-									Generate Acceptance Criteria hanya untuk paket
-									Pro/Hengker.
-								</p>
-								<button
-									type="button"
-									onClick={() => setPaywallOpen(true)}
-									className="btn-primary flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-[510] transition-all hover:brightness-105 active:scale-[0.98]"
-								>
-									<span className="whitespace-nowrap">Upgrade ke Pro</span>
-									<ArrowRight size={12} />
-								</button>
+						{plan === "free" && !acContent && !isGenerating && (
+							<div className="shrink-0 border-t border-graphite px-4 py-3">
+								<div className="flex flex-wrap items-center justify-between gap-3">
+									<p className="text-sm text-fog">
+										Generate Acceptance Criteria hanya untuk paket Pro/Hengker.
+									</p>
+									<button
+										type="button"
+										onClick={() => setPaywallOpen(true)}
+										className="btn-primary flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-[510] transition-all hover:brightness-105 active:scale-[0.98]"
+									>
+										<span className="whitespace-nowrap">Upgrade ke Pro</span>
+										<ArrowRight size={12} />
+									</button>
+								</div>
 							</div>
-						</div>
-					)}
+						)}
 						{/* AC Viewer */}
 						<div className="flex-1 overflow-hidden">
 							{isGenerating && thinkingText && !streamingContent && (

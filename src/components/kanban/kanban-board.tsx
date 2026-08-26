@@ -1,12 +1,12 @@
 "use client";
 
+import { Link } from "@tanstack/react-router";
 import {
 	AlertTriangle,
 	ArrowUpDown,
 	KanbanSquare,
 	Loader2,
 } from "lucide-react";
-import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useKanbanTasks } from "@/hooks/use-kanban-polling";

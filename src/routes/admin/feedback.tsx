@@ -9,10 +9,7 @@ import {
 	Sparkles,
 } from "lucide-react";
 import { useState } from "react";
-import {
-	listErrorReports,
-	listFeedback,
-} from "@/lib/services/admin-service";
+import { listErrorReports, listFeedback } from "@/lib/services/admin-service";
 
 export const Route = createFileRoute("/admin/feedback")({
 	loader: async () => {
@@ -35,7 +32,8 @@ function AdminFeedbackPage() {
 		const matchesSearch =
 			!search ||
 			f.message.toLowerCase().includes(search.toLowerCase()) ||
-			(f.userEmail && f.userEmail.toLowerCase().includes(search.toLowerCase())) ||
+			(f.userEmail &&
+				f.userEmail.toLowerCase().includes(search.toLowerCase())) ||
 			(f.userName && f.userName.toLowerCase().includes(search.toLowerCase()));
 		const matchesType = typeFilter === "all" || f.type === typeFilter;
 		return matchesSearch && matchesType;
@@ -141,11 +139,10 @@ function AdminFeedbackPage() {
 							<div className="flex h-10 w-10 items-center justify-center rounded-full bg-obsidian border border-graphite text-fog mb-3">
 								<Inbox size={18} />
 							</div>
-							<p className="text-sm font-[510] text-snow">
-								Belum ada feedback
-							</p>
+							<p className="text-sm font-[510] text-snow">Belum ada feedback</p>
 							<p className="mt-1 text-xs text-fog max-w-sm">
-								Feedback dan bug report yang dikirimkan user dari halaman Settings akan tercatat di sini.
+								Feedback dan bug report yang dikirimkan user dari halaman
+								Settings akan tercatat di sini.
 							</p>
 						</div>
 					) : (

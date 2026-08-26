@@ -61,7 +61,11 @@ export const auth = betterAuth({
 						const { eq } = await import("drizzle-orm");
 
 						const [userRecord] = await db
-							.select({ id: users.id, email: users.email, isAdmin: users.isAdmin })
+							.select({
+								id: users.id,
+								email: users.email,
+								isAdmin: users.isAdmin,
+							})
 							.from(users)
 							.where(eq(users.id, userId))
 							.limit(1);
@@ -77,7 +81,10 @@ export const auth = betterAuth({
 								.where(eq(users.id, userRecord.id));
 						}
 					} catch (err) {
-						console.error("[auth] Failed to auto-promote admin in session hook:", err);
+						console.error(
+							"[auth] Failed to auto-promote admin in session hook:",
+							err,
+						);
 					}
 				},
 			},
@@ -103,7 +110,12 @@ export const auth = betterAuth({
 			fullName: { type: "string", required: false, input: true },
 			company: { type: "string", required: false, input: true },
 			role: { type: "string", required: false, input: false },
-			isAdmin: { type: "boolean", required: false, input: false, defaultValue: false },
+			isAdmin: {
+				type: "boolean",
+				required: false,
+				input: false,
+				defaultValue: false,
+			},
 			bannedAt: { type: "date", required: false, input: false },
 		},
 	},

@@ -31,9 +31,7 @@ const program = new Command();
 
 program
 	.name("prdfy")
-	.description(
-		"CLI tool for PrdFy — manage projects and tasks from terminal",
-	)
+	.description("CLI tool for PrdFy — manage projects and tasks from terminal")
 	.version("2.0.0");
 
 // prdfy login

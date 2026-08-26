@@ -496,11 +496,7 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({
 									/>
 								);
 							return (
-								<TaskCard
-									key={node.id}
-									node={node}
-									onOpen={handleOpenTask}
-								/>
+								<TaskCard key={node.id} node={node} onOpen={handleOpenTask} />
 							);
 						})}
 					</div>

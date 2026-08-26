@@ -84,10 +84,7 @@ export const Route = createFileRoute("/api/kanban/update-status")({
 					.select({ id: projects.id })
 					.from(projects)
 					.where(
-						and(
-							eq(projects.id, projectId),
-							eq(projects.userId, actingUserId!),
-						),
+						and(eq(projects.id, projectId), eq(projects.userId, actingUserId!)),
 					)
 					.limit(1);
 				if (!project)

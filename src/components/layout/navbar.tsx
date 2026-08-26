@@ -343,10 +343,18 @@ export function Navbar() {
 													</Link>
 													{session?.user &&
 														Boolean(
-															(session.user as { isAdmin?: boolean; is_admin?: boolean })
-																.isAdmin ||
-																(session.user as { isAdmin?: boolean; is_admin?: boolean })
-																	.is_admin,
+															(
+																session.user as {
+																	isAdmin?: boolean;
+																	is_admin?: boolean;
+																}
+															).isAdmin ||
+																(
+																	session.user as {
+																		isAdmin?: boolean;
+																		is_admin?: boolean;
+																	}
+																).is_admin,
 														) && (
 															<Link
 																to="/admin"

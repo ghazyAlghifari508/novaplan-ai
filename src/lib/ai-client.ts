@@ -84,11 +84,15 @@ export async function* streamChat(
 	let yieldedText = false;
 	let lastProgress = Date.now();
 	const totalDeadline = Date.now() + AI_TOTAL_TIMEOUT_MS;
-	const mkStallError = () => new Error("AI tidak merespons dalam 2 menit. Coba generate ulang.");
-	const mkTotalError = () => new Error("Generasi melebihi batas waktu. Coba lagi dengan prompt lebih ringkas.");
+	const mkStallError = () =>
+		new Error("AI tidak merespons dalam 2 menit. Coba generate ulang.");
+	const mkTotalError = () =>
+		new Error(
+			"Generasi melebihi batas waktu. Coba lagi dengan prompt lebih ringkas.",
+		);
 	try {
 		const iterator = result.fullStream[Symbol.asyncIterator]();
-		let done = false;
+		const done = false;
 		while (!done) {
 			const now = Date.now();
 			if (now >= totalDeadline) throw mkTotalError();
@@ -104,18 +108,30 @@ export async function* streamChat(
 					totalId = setTimeout(() => reject(mkTotalError()), remainingTotal);
 				}
 			});
-			let next: IteratorResult<(typeof result.fullStream extends AsyncIterable<infer U> ? U : never)>;
+			let next: IteratorResult<
+				typeof result.fullStream extends AsyncIterable<infer U> ? U : never
+			>;
 			try {
-				next = await Promise.race([iterator.next(), stallPromise, totalPromise]);
+				next = await Promise.race([
+					iterator.next(),
+					stallPromise,
+					totalPromise,
+				]);
 			} finally {
 				if (stallId !== undefined) clearTimeout(stallId);
 				if (totalId !== undefined) clearTimeout(totalId);
 			}
 			if (next.done) break;
-			const chunk = next.value as unknown as { type: string; text?: string; error?: unknown };
+			const chunk = next.value as unknown as {
+				type: string;
+				text?: string;
+				error?: unknown;
+			};
 			if (chunk.type === "reasoning-delta") {
 				lastProgress = Date.now();
-				onThinking?.((chunk as { type: "reasoning-delta"; text: string }).text ?? "");
+				onThinking?.(
+					(chunk as { type: "reasoning-delta"; text: string }).text ?? "",
+				);
 				continue;
 			}
 			if (chunk.type === "text-delta") {
@@ -135,7 +151,8 @@ export async function* streamChat(
 			}
 			// Other part types (start, finish, etc.) don't count as progress — stall
 			// timer is NOT reset, so a stream that only emits non-progress stays bounded.
-			if (Date.now() - lastProgress >= AI_STALL_TIMEOUT_MS) throw mkStallError();
+			if (Date.now() - lastProgress >= AI_STALL_TIMEOUT_MS)
+				throw mkStallError();
 		}
 		if (!yieldedText) {
 			if (outcome) outcome.finishReason = "error";

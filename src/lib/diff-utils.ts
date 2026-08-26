@@ -1,4 +1,7 @@
-export type DiffLine = { type: "added" | "removed" | "unchanged"; text: string };
+export type DiffLine = {
+	type: "added" | "removed" | "unchanged";
+	text: string;
+};
 
 // ponytail: LCS diff so an insertion mid-document doesn't flag every following
 // line as changed. O(n*m) DP fine at PRD scale (~300 lines → ~80k cells).
@@ -17,7 +20,9 @@ export function computeDiff(oldStr: string, newStr: string): DiffLine[] {
 	for (let i = n - 1; i >= 0; i--) {
 		for (let j = m - 1; j >= 0; j--) {
 			lcs[i][j] =
-				a[i] === b[j] ? lcs[i + 1][j + 1] + 1 : Math.max(lcs[i + 1][j], lcs[i][j + 1]);
+				a[i] === b[j]
+					? lcs[i + 1][j + 1] + 1
+					: Math.max(lcs[i + 1][j], lcs[i][j + 1]);
 		}
 	}
 

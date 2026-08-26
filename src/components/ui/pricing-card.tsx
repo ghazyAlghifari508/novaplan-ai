@@ -15,11 +15,7 @@ import {
 } from "@/components/ui/card";
 import { TopUpCard } from "@/components/ui/top-up-card";
 import { useUserPlan } from "@/hooks/use-user-plan";
-import {
-	type Feature,
-	prdFyPlans,
-	type PriceTier,
-} from "@/lib/pricing-data";
+import { type Feature, type PriceTier, prdFyPlans } from "@/lib/pricing-data";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/store";
 
@@ -116,8 +112,8 @@ export const PricingComponent: React.FC<PricingComponentProps> = ({
 								</p>
 								{plan.credits > 0 && (
 									<p className="mt-1 text-xs font-[510] text-fog">
-									{plan.credits} kredit
-									{plan.price > 0 ? " /bulan" : ""}
+										{plan.credits} kredit
+										{plan.price > 0 ? " /bulan" : ""}
 									</p>
 								)}
 							</div>

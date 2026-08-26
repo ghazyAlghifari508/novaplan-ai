@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { isBanned, isAdmin } from "@/lib/session";
+import { describe, expect, it } from "vitest";
+import { isAdmin, isBanned } from "@/lib/session";
 
 function requireUserGuard(session: { user: Record<string, unknown> } | null) {
 	if (!session?.user) throw new Error("Unauthorized");
@@ -29,7 +29,9 @@ describe("isBanned helper", () => {
 	it("returns true when bannedAt or banned_at is truthy", () => {
 		expect(isBanned({ id: "u1", bannedAt: new Date() })).toBe(true);
 		expect(isBanned({ id: "u1", banned_at: new Date() })).toBe(true);
-		expect(isBanned({ id: "u1", bannedAt: "2026-08-26T00:00:00.000Z" })).toBe(true);
+		expect(isBanned({ id: "u1", bannedAt: "2026-08-26T00:00:00.000Z" })).toBe(
+			true,
+		);
 	});
 });
 
@@ -53,8 +55,12 @@ describe("requireUser guard", () => {
 	});
 
 	it("throws Forbidden when user is banned", () => {
-		expect(() => requireUserGuard({ user: { id: "u1", bannedAt: new Date() } })).toThrow("Forbidden");
-		expect(() => requireUserGuard({ user: { id: "u1", banned_at: new Date() } })).toThrow("Forbidden");
+		expect(() =>
+			requireUserGuard({ user: { id: "u1", bannedAt: new Date() } }),
+		).toThrow("Forbidden");
+		expect(() =>
+			requireUserGuard({ user: { id: "u1", banned_at: new Date() } }),
+		).toThrow("Forbidden");
 	});
 
 	it("returns user when valid and not banned", () => {
@@ -69,12 +75,20 @@ describe("requireAdmin guard", () => {
 	});
 
 	it("throws Forbidden when user is not admin", () => {
-		expect(() => requireAdminGuard({ user: { id: "u1" } })).toThrow("Forbidden");
-		expect(() => requireAdminGuard({ user: { id: "u1", isAdmin: false } })).toThrow("Forbidden");
+		expect(() => requireAdminGuard({ user: { id: "u1" } })).toThrow(
+			"Forbidden",
+		);
+		expect(() =>
+			requireAdminGuard({ user: { id: "u1", isAdmin: false } }),
+		).toThrow("Forbidden");
 	});
 
 	it("throws Forbidden when admin is banned", () => {
-		expect(() => requireAdminGuard({ user: { id: "u1", isAdmin: true, bannedAt: new Date() } })).toThrow("Forbidden");
+		expect(() =>
+			requireAdminGuard({
+				user: { id: "u1", isAdmin: true, bannedAt: new Date() },
+			}),
+		).toThrow("Forbidden");
 	});
 
 	it("returns user when user is admin", () => {

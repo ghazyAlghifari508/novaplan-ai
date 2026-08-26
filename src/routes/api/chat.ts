@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { projects, subscriptions } from "@/db/schema";
+import { BRIEF_MAX_CHARS } from "@/lib/constants";
 import { checkCredits, consumeCredit } from "@/lib/credits";
 import { isTruncatedGeneration } from "@/lib/flow-progress";
 import { getLanguageDirective, normalizeLanguage } from "@/lib/language";
@@ -28,7 +29,6 @@ import {
 	resolveProjectId,
 	savePrdVersion,
 } from "@/lib/services/prd-service";
-import { BRIEF_MAX_CHARS } from "@/lib/constants";
 import { requireUser } from "@/lib/session";
 import type { Plan } from "@/types/database";
 

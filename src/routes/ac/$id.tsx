@@ -39,7 +39,8 @@ const loadAc = createServerFn({ method: "GET" })
 			latestAcContent: acContent ?? undefined,
 			latestPrdContent: prdContent ?? undefined,
 			plan,
-			acStatus: (project[0] as { acStatus: string | null }).acStatus ?? "pending",
+			acStatus:
+				(project[0] as { acStatus: string | null }).acStatus ?? "pending",
 		};
 	});
 

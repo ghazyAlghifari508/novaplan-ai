@@ -12,22 +12,23 @@ import { randomBytes } from "node:crypto";
  * specific model, symptom, or provider.
  */
 export function sanitizeModelOutput(content: string): string {
-  if (!content) return content;
-  const isFullHtmlPage =
-    /^\s*<!DOCTYPE\s+html/i.test(content) && /<\/html>/i.test(content);
-  if (!isFullHtmlPage) return content;
-  const stripped = content
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<head[\s\S]*?<\/head>/gi, " ");
-  const text = stripped
-    .replace(/><(?=\/?)/g, "> <")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-  return text.length > 0 ? text : content;
+	if (!content) return content;
+	const isFullHtmlPage =
+		/^\s*<!DOCTYPE\s+html/i.test(content) && /<\/html>/i.test(content);
+	if (!isFullHtmlPage) return content;
+	const stripped = content
+		.replace(/<script[\s\S]*?<\/script>/gi, " ")
+		.replace(/<style[\s\S]*?<\/style>/gi, " ")
+		.replace(/<head[\s\S]*?<\/head>/gi, " ");
+	const text = stripped
+		.replace(/><(?=\/?)/g, "> <")
+		.replace(/<[^>]+>/g, "")
+		.replace(/&nbsp;/gi, " ")
+		.replace(/\s+/g, " ")
+		.trim();
+	return text.length > 0 ? text : content;
 }
+
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { conversations, prdVersions, projects } from "@/db/schema";
@@ -432,13 +433,10 @@ export async function savePrdVersion(
 	// alone because providers report "stop" even for premature ends. Revisions
 	// patch into existing content, so they may legitimately ship a single block.
 	const cleanContent = sanitizeModelOutput(fullResponse);
-	const sectionMarkerCount = (cleanContent.match(/<!--\s*SECTION:\s*([^-\n]+?)\s*-->/gi) || [])
-		.filter((m, i, arr) => arr.indexOf(m) === i).length;
-	if (
-		mode === "generate" &&
-		cleanContent.trim() &&
-		sectionMarkerCount < 8
-	) {
+	const sectionMarkerCount = (
+		cleanContent.match(/<!--\s*SECTION:\s*([^-\n]+?)\s*-->/gi) || []
+	).filter((m, i, arr) => arr.indexOf(m) === i).length;
+	if (mode === "generate" && cleanContent.trim() && sectionMarkerCount < 8) {
 		throw new Error(
 			"PRD output tidak lengkap (kurang dari 8 section). Tidak disimpan. Coba lagi.",
 		);

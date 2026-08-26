@@ -2,8 +2,8 @@
 
 import { useLocation } from "@tanstack/react-router";
 import { Check } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { stepRank } from "@/lib/flow-progress";
+import { cn } from "@/lib/utils";
 
 // ponytail: pure step<->route logic extracted to @/lib/flow-step so server
 // code + tests can use it without next/navigation. Re-export keeps existing
@@ -45,7 +45,11 @@ export function FlowStepNav(props?: { step?: FlowStep | string | null }) {
 					if (isKanbanRoute) state = "current";
 					else if (rank >= stepRank("task")) state = "done";
 					else state = "locked";
-				} else if (s.id === "task" && isKanbanRoute && rank >= stepRank("task")) {
+				} else if (
+					s.id === "task" &&
+					isKanbanRoute &&
+					rank >= stepRank("task")
+				) {
 					// When viewing kanban, task is done (kanban is the current view of task stage)
 					state = "done";
 				} else {

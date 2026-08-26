@@ -1,7 +1,7 @@
 "use client";
 
-import { ArrowRight, Search, Trash2 } from "lucide-react";
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
+import { ArrowRight, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { DeleteProjectModal } from "@/components/prd/delete-project-modal";
 import { useUserPlan } from "@/hooks/use-user-plan";
@@ -28,7 +28,9 @@ const STEP_BADGE: Record<string, { label: string; className: string }> = {
 // ponytail: parse concrete history href like "/ask/<uuid>" into typed TanStack route.
 // Link's `to` expects the pattern "/ask/$id" + params, not the concrete string.
 // Using `to={href as never}` would bypass typing and do a full reload; this keeps SPA.
-function parseHistoryHref(href: string):
+function parseHistoryHref(
+	href: string,
+):
 	| { to: "/ask/$id"; params: { id: string } }
 	| { to: "/prd/$id"; params: { id: string } }
 	| { to: "/ac/$id"; params: { id: string } }
@@ -59,7 +61,10 @@ export function HistoryPage({ items }: { items: HistoryItem[] }) {
 	const [stepFilter, setStepFilter] = useState<string | null>(null);
 	const [page, setPage] = useState(1);
 	const filtered = filterHistory(localItems, query, stepFilter);
-	const totalPages = Math.max(1, Math.ceil(filtered.length / HISTORY_PAGE_SIZE));
+	const totalPages = Math.max(
+		1,
+		Math.ceil(filtered.length / HISTORY_PAGE_SIZE),
+	);
 	const clampedPage = Math.min(page, totalPages);
 	const paged = paginate(filtered, clampedPage, HISTORY_PAGE_SIZE);
 
@@ -187,113 +192,113 @@ export function HistoryPage({ items }: { items: HistoryItem[] }) {
 				) : (
 					<ul className="space-y-3">
 						{paged.map((item) => {
-						const badge = STEP_BADGE[item.step ?? "prd"] ?? STEP_BADGE.prd;
-						const href = resolveHistoryUrl(item);
-						const halted = isHaltedByCredits(item);
-						const link = parseHistoryHref(href);
+							const badge = STEP_BADGE[item.step ?? "prd"] ?? STEP_BADGE.prd;
+							const href = resolveHistoryUrl(item);
+							const halted = isHaltedByCredits(item);
+							const link = parseHistoryHref(href);
 
-						const handleClick = async (e: React.MouseEvent) => {
-							if (!halted) return;
-							e.preventDefault();
-							saveSuppressAutoGen(item.id);
+							const handleClick = async (e: React.MouseEvent) => {
+								if (!halted) return;
+								e.preventDefault();
+								saveSuppressAutoGen(item.id);
 
-							try {
-								// ponytail: use refetchPlan() from shared TanStack Query hook
-								// instead of raw fetch("/api/user/plan"). Deduped across components.
-								const freshPlan = await refetchPlan();
-								const remaining = freshPlan.data?.remaining;
-								if (
-									remaining === 0 ||
-									(remaining !== "unlimited" && Number(remaining ?? 0) <= 0)
-								) {
-									const stage = item.step === "task" ? "task" : "ac";
-									useChatStore.getState().setCreditsExhausted({
-										stage,
-										message:
-											"Kredit kamu sudah habis. Beli kredit untuk melanjutkan.",
-									});
+								try {
+									// ponytail: use refetchPlan() from shared TanStack Query hook
+									// instead of raw fetch("/api/user/plan"). Deduped across components.
+									const freshPlan = await refetchPlan();
+									const remaining = freshPlan.data?.remaining;
+									if (
+										remaining === 0 ||
+										(remaining !== "unlimited" && Number(remaining ?? 0) <= 0)
+									) {
+										const stage = item.step === "task" ? "task" : "ac";
+										useChatStore.getState().setCreditsExhausted({
+											stage,
+											message:
+												"Kredit kamu sudah habis. Beli kredit untuk melanjutkan.",
+										});
+									}
+								} catch {
+									// proceed anyway; landing page will handle
 								}
-							} catch {
-								// proceed anyway; landing page will handle
-							}
 
-							// SPA navigation via TanStack Router; preserve resolveHistoryUrl logic
-							if (link) navigate(link);
-							else window.location.href = href;
-						};
+								// SPA navigation via TanStack Router; preserve resolveHistoryUrl logic
+								if (link) navigate(link);
+								else window.location.href = href;
+							};
 
-						// ponytail: SPA via Link keeps navigation inside TanStack Router; fallback <a> only for unparseable href (should never happen).
-						const cardInner = (
-							<>
-								<div className="min-w-0 flex-1">
-									<div className="flex items-center gap-2">
-										<h2 className="truncate font-inter text-base font-[510] text-snow">
-											{item.name}
-										</h2>
-										<span
-											className={`rounded-full px-2 py-0.5 font-inter text-[11px] font-[510] ${badge.className}`}
-										>
-											{badge.label}
-										</span>
-										{halted && (
-											<span className="rounded-full px-2 py-0.5 font-inter text-[11px] font-[510] bg-crimson/15 text-crimson">
-												Terhenti
+							// ponytail: SPA via Link keeps navigation inside TanStack Router; fallback <a> only for unparseable href (should never happen).
+							const cardInner = (
+								<>
+									<div className="min-w-0 flex-1">
+										<div className="flex items-center gap-2">
+											<h2 className="truncate font-inter text-base font-[510] text-snow">
+												{item.name}
+											</h2>
+											<span
+												className={`rounded-full px-2 py-0.5 font-inter text-[11px] font-[510] ${badge.className}`}
+											>
+												{badge.label}
 											</span>
+											{halted && (
+												<span className="rounded-full px-2 py-0.5 font-inter text-[11px] font-[510] bg-crimson/15 text-crimson">
+													Terhenti
+												</span>
+											)}
+										</div>
+										{item.preview && (
+											<p className="mt-1 line-clamp-2 font-inter text-xs text-fog">
+												{item.preview}
+											</p>
 										)}
-									</div>
-									{item.preview && (
-										<p className="mt-1 line-clamp-2 font-inter text-xs text-fog">
-											{item.preview}
+										<p className="mt-1.5 font-inter text-[11px] text-slate">
+											Diperbarui {formatDate(item.updatedAt)}
 										</p>
+									</div>
+
+									<ArrowRight
+										size={16}
+										className="shrink-0 text-fog opacity-0 transition-opacity group-hover:opacity-100"
+										aria-hidden
+									/>
+									<button
+										type="button"
+										onClick={(e) => {
+											e.preventDefault();
+											e.stopPropagation();
+											openDelete(item.id);
+										}}
+										className="shrink-0 rounded-md p-1.5 text-crimson transition-colors hover:bg-crimson/10"
+										aria-label={`Hapus proyek ${item.name}`}
+									>
+										<Trash2 size={16} />
+									</button>
+								</>
+							);
+
+							return (
+								<li key={item.id}>
+									{link ? (
+										<Link
+											to={link.to}
+											params={link.params}
+											onClick={handleClick}
+											className="group flex items-center gap-4 rounded-xl border border-graphite bg-charcoal/60 p-4 transition-colors hover:border-fog/40 hover:bg-charcoal"
+										>
+											{cardInner}
+										</Link>
+									) : (
+										<a
+											href={href}
+											onClick={handleClick}
+											className="group flex items-center gap-4 rounded-xl border border-graphite bg-charcoal/60 p-4 transition-colors hover:border-fog/40 hover:bg-charcoal"
+										>
+											{cardInner}
+										</a>
 									)}
-									<p className="mt-1.5 font-inter text-[11px] text-slate">
-										Diperbarui {formatDate(item.updatedAt)}
-									</p>
-								</div>
-
-								<ArrowRight
-									size={16}
-									className="shrink-0 text-fog opacity-0 transition-opacity group-hover:opacity-100"
-									aria-hidden
-								/>
-								<button
-									type="button"
-									onClick={(e) => {
-										e.preventDefault();
-										e.stopPropagation();
-										openDelete(item.id);
-									}}
-									className="shrink-0 rounded-md p-1.5 text-crimson transition-colors hover:bg-crimson/10"
-									aria-label={`Hapus proyek ${item.name}`}
-								>
-									<Trash2 size={16} />
-								</button>
-							</>
-						);
-
-						return (
-							<li key={item.id}>
-								{link ? (
-									<Link
-										to={link.to}
-										params={link.params}
-										onClick={handleClick}
-										className="group flex items-center gap-4 rounded-xl border border-graphite bg-charcoal/60 p-4 transition-colors hover:border-fog/40 hover:bg-charcoal"
-									>
-										{cardInner}
-									</Link>
-								) : (
-									<a
-										href={href}
-										onClick={handleClick}
-										className="group flex items-center gap-4 rounded-xl border border-graphite bg-charcoal/60 p-4 transition-colors hover:border-fog/40 hover:bg-charcoal"
-									>
-										{cardInner}
-									</a>
-								)}
-							</li>
-						);
-					})}
+								</li>
+							);
+						})}
 					</ul>
 				)}
 

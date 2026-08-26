@@ -54,7 +54,7 @@ describe("isTruncatedGeneration", () => {
 
 	it("rejects aborted output", () => {
 		expect(isTruncatedGeneration("partial", "error")).toBe(true);
-		expect(isTruncatedGeneration("partial", "other")).toBe(true);
+		expect(isTruncatedGeneration("partial", "content-filter")).toBe(true);
 	});
 
 	it("accepts a normally finished generation", () => {

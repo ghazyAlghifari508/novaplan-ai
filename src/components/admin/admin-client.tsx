@@ -3,10 +3,8 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import {
 	ArrowLeft,
-	FileText,
 	LayoutDashboard,
 	MessageSquare,
-	Shield,
 	Users,
 } from "lucide-react";
 import { memo } from "react";

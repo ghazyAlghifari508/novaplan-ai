@@ -322,24 +322,24 @@ export function PrdDetail({
 							projectId={projectId}
 							className="flex-1 overflow-hidden"
 						/>
-					{plan === "free" && latestVersion && (
-						<div className="shrink-0 border-t border-graphite bg-charcoal/40 px-4 py-3">
-							<div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3">
-								<p className="text-sm text-fog">
-									Lanjut ke AC butuh Pro — Generate Acceptance Criteria
-									hanya untuk paket Pro/Hengker.
-								</p>
-								<button
-									type="button"
-									onClick={() => setPaywallOpen(true)}
-									className="btn-primary flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-[510] transition-all hover:brightness-105 active:scale-[0.98]"
-								>
-									<span className="whitespace-nowrap">Upgrade ke Pro</span>
-									<ArrowRight size={12} />
-								</button>
+						{plan === "free" && latestVersion && (
+							<div className="shrink-0 border-t border-graphite bg-charcoal/40 px-4 py-3">
+								<div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3">
+									<p className="text-sm text-fog">
+										Lanjut ke AC butuh Pro — Generate Acceptance Criteria hanya
+										untuk paket Pro/Hengker.
+									</p>
+									<button
+										type="button"
+										onClick={() => setPaywallOpen(true)}
+										className="btn-primary flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-[510] transition-all hover:brightness-105 active:scale-[0.98]"
+									>
+										<span className="whitespace-nowrap">Upgrade ke Pro</span>
+										<ArrowRight size={12} />
+									</button>
+								</div>
 							</div>
-						</div>
-					)}
+						)}
 					</div>
 				</div>
 

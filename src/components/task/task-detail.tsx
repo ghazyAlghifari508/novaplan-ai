@@ -1,5 +1,6 @@
 "use client";
 
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
 	AlertTriangle,
 	ArrowRight,
@@ -7,7 +8,6 @@ import {
 	Circle,
 	FileText,
 } from "lucide-react";
-import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { syncPaymentStatus } from "@/app/actions/payment";
 import { CreditExhaustedModal } from "@/components/chat/credit-exhausted-modal";
@@ -256,13 +256,7 @@ export function TaskDetail({
 		isGeneratingRef.current = false;
 		setIsGenerating(false);
 		abortRef.current = null;
-	}, [
-		hasAc,
-		projectId,
-		showToast,
-		setCreditsExhausted,
-		setTaskGenerated,
-	]);
+	}, [hasAc, projectId, showToast, setCreditsExhausted, setTaskGenerated]);
 
 	// Auto-generate on mount if no tasks yet.
 	// Uses ref to access latest handleGenerate, avoiding stale closure issue.

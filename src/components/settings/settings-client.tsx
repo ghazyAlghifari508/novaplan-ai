@@ -1,5 +1,6 @@
 "use client";
 
+import { Link, useLocation } from "@tanstack/react-router";
 import {
 	ArrowLeft,
 	Bell,
@@ -9,7 +10,6 @@ import {
 	Shield,
 	User,
 } from "lucide-react";
-import { Link, useLocation } from "@tanstack/react-router";
 import { memo } from "react";
 import { cn } from "@/lib/utils";
 

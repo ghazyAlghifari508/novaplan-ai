@@ -53,11 +53,16 @@ export function AC_GENERATION_PROMPT(lang: "id" | "en" = "id"): string {
 	// Only the fixed headings/labels legitimately translate; the body targets the
 	// OUTPUT LANGUAGE DIRECTIVE appended by the caller.
 	if (lang === "en") {
-		return AC_TEMPLATE
-			.replace("{glossary}", "Convention")
-			.replace("# Acceptance Criteria - [Nama Proyek]", "# Acceptance Criteria - [Project Name]")
+		return AC_TEMPLATE.replace("{glossary}", "Convention")
+			.replace(
+				"# Acceptance Criteria - [Nama Proyek]",
+				"# Acceptance Criteria - [Project Name]",
+			)
 			.replace("Paragraf deskripsi singkat.", "Short description paragraph.")
-			.replace("Konteks PRD akan diberikan setelah prompt ini. Generate AC SEKARANG.", "The PRD context will be provided after this prompt. Generate the AC NOW.");
+			.replace(
+				"Konteks PRD akan diberikan setelah prompt ini. Generate AC SEKARANG.",
+				"The PRD context will be provided after this prompt. Generate the AC NOW.",
+			);
 	}
 	return AC_TEMPLATE.replace("{glossary}", "Konvensi");
 }
