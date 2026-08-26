@@ -1,37 +1,86 @@
+"use client";
+
+import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 import { FAQ_CATEGORIES } from "./faq-data";
 
 export function Faq() {
-  return (
-    <main className="page-wrap px-4 py-12">
-      <section className="island-shell rounded-2xl p-6 sm:p-8">
-        <p className="island-kicker mb-2">FAQ</p>
-        <h1 className="display-title mb-3 text-4xl font-bold text-[var(--sea-ink)] sm:text-5xl">
-          Pertanyaan yang sering ditanyakan
-        </h1>
-        <p className="m-0 max-w-3xl text-base leading-8 text-[var(--sea-ink-soft)]">
-          Temukan jawaban seputar akun, credit, cara kerja, dan pembayaran PrdFy.
-        </p>
-        <div className="mt-8 space-y-8">
-          {FAQ_CATEGORIES.map((cat) => (
-            <div key={cat.id}>
-              <h2 className="mb-3 text-xl font-semibold text-[var(--sea-ink)]">{cat.title}</h2>
-              <div className="divide-y divide-graphite rounded-xl border border-graphite">
-                {cat.items.map((item, i) => (
-                  <details key={i} className="group p-4">
-                    <summary className="cursor-pointer list-none font-[510] text-[var(--sea-ink)] marker:hidden">
-                      <span className="flex items-center justify-between">
-                        {item.q}
-                        <span className="text-fog transition-transform group-open:rotate-45">+</span>
-                      </span>
-                    </summary>
-                    <p className="mt-2 text-sm leading-7 text-[var(--sea-ink-soft)]">{item.a}</p>
-                  </details>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-    </main>
-  );
+	const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
+
+	const toggleItem = (key: string) => {
+		setOpenItems((prev) => ({
+			...prev,
+			[key]: !prev[key],
+		}));
+	};
+
+	return (
+		<main className="min-h-[calc(100vh-3.5rem)] bg-onyx px-6 py-10">
+			<div className="mx-auto max-w-4xl">
+				<header className="mb-8">
+					<h1 className="font-inter text-2xl font-[510] text-snow">
+						Frequently Asked Questions
+					</h1>
+					<p className="mt-1 font-inter text-sm text-fog">
+						Pertanyaan yang sering diajukan seputar akun, credit, dan alur kerja
+						PrdFy.
+					</p>
+				</header>
+
+				<div className="space-y-8">
+					{FAQ_CATEGORIES.map((cat) => (
+						<section key={cat.id} className="space-y-3">
+							<h2 className="font-inter text-xs font-[510] uppercase tracking-wider text-mist">
+								{cat.title}
+							</h2>
+
+							<div className="divide-y divide-graphite rounded-lg border border-graphite bg-charcoal">
+								{cat.items.map((item, i) => {
+									const itemKey = `${cat.id}-${i}`;
+									const isOpen = !!openItems[itemKey];
+
+									return (
+										<div key={itemKey}>
+											<button
+												type="button"
+												onClick={() => toggleItem(itemKey)}
+												className="flex w-full items-center justify-between gap-4 p-4 text-left font-inter text-sm font-[510] text-snow transition-colors hover:bg-white/5"
+												aria-expanded={isOpen}
+											>
+												<span>{item.q}</span>
+												<ChevronDown
+													size={16}
+													className={`shrink-0 text-fog transition-transform duration-200 ${
+														isOpen ? "rotate-180 text-snow" : ""
+													}`}
+												/>
+											</button>
+
+											{isOpen && (
+												<div className="border-t border-graphite/60 px-4 pb-4 pt-3 font-inter text-sm leading-relaxed text-fog">
+													<p>{item.a}</p>
+												</div>
+											)}
+										</div>
+									);
+								})}
+							</div>
+						</section>
+					))}
+				</div>
+
+				<div className="mt-12 border-t border-graphite pt-6 text-center">
+					<p className="font-inter text-xs text-fog">
+						Punya pertanyaan lain?{" "}
+						<a
+							href="/settings/feedback"
+							className="font-[510] text-snow hover:underline"
+						>
+							Hubungi kami via Feedback
+						</a>
+					</p>
+				</div>
+			</div>
+		</main>
+	);
 }

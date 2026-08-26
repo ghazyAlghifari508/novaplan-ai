@@ -169,6 +169,16 @@ export function Navbar() {
 								Pricing
 							</Link>
 							<Link
+								to="/faq"
+								className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
+									pathname === "/faq"
+										? "bg-white/10 text-snow"
+										: "text-fog hover:bg-white/5 hover:text-snow"
+								}`}
+							>
+								FAQ
+							</Link>
+							<Link
 								to="/history"
 								className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
 									pathname === "/history"

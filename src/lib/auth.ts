@@ -46,15 +46,39 @@ export const auth = betterAuth({
 		session: {
 			create: {
 				after: async (session: any) => {
-					const adminEmails = (process.env.ADMIN_EMAILS ?? "")
-						.split(",")
-						.map((e) => e.trim().toLowerCase())
-						.filter(Boolean);
-					if (!adminEmails.includes(session.user.email.toLowerCase())) return;
-					const { db } = await import("@/db");
-					const { users } = await import("@/db/schema");
-					const { eq } = await import("drizzle-orm");
-					await db.update(users).set({ isAdmin: true }).where(eq(users.id, session.user.id));
+					try {
+						const adminEmails = (process.env.ADMIN_EMAILS ?? "")
+							.split(",")
+							.map((e) => e.trim().toLowerCase())
+							.filter(Boolean);
+						if (adminEmails.length === 0) return;
+
+						const userId = session?.userId || session?.user?.id;
+						if (!userId) return;
+
+						const { db } = await import("@/db");
+						const { users } = await import("@/db/schema");
+						const { eq } = await import("drizzle-orm");
+
+						const [userRecord] = await db
+							.select({ id: users.id, email: users.email, isAdmin: users.isAdmin })
+							.from(users)
+							.where(eq(users.id, userId))
+							.limit(1);
+
+						if (
+							userRecord?.email &&
+							adminEmails.includes(userRecord.email.toLowerCase()) &&
+							!userRecord.isAdmin
+						) {
+							await db
+								.update(users)
+								.set({ isAdmin: true })
+								.where(eq(users.id, userRecord.id));
+						}
+					} catch (err) {
+						console.error("[auth] Failed to auto-promote admin in session hook:", err);
+					}
 				},
 			},
 		},
