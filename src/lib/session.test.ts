@@ -12,6 +12,7 @@ function requireUserGuard(session: { user: Record<string, unknown> } | null) {
 
 function requireAdminGuard(session: { user: Record<string, unknown> } | null) {
 	if (!session?.user) throw new Error("Unauthorized");
+	if ((session.user as { banned_at?: string | Date }).banned_at) throw new Error("Forbidden");
 	if (!(session.user as { is_admin?: boolean }).is_admin) throw new Error("Forbidden");
 	return session.user;
 }
@@ -120,10 +121,10 @@ describe("requireAdmin resolves when is_admin true", () => {
 		expect(isAdmin(user)).toBe(true);
 	});
 
-	it("resolves regardless of banned_at (admin check only cares about is_admin)", () => {
-		// requireAdmin only checks is_admin; banned handling is in requireUser
+	it("throws Forbidden when admin is banned (banned_at enforced before is_admin)", () => {
 		const adminBanned = { id: "u1", is_admin: true, banned_at: new Date() };
-		expect(requireAdminGuard({ user: adminBanned })).toEqual(adminBanned);
+		expect(() => requireAdminGuard({ user: adminBanned })).toThrow("Forbidden");
+		expect(() => requireAdminGuard({ user: { id: "u1", is_admin: true, banned_at: "2026-01-01" } })).toThrow("Forbidden");
 	});
 
 	it("admin user with extra fields still resolves", () => {

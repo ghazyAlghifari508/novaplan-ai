@@ -58,6 +58,7 @@ export const requireAdmin = createServerOnlyFn(async (headers?: Headers) => {
 	const h = headers ?? (await getRequestHeadersServer());
 	const session = await getSessionFromHeaders(h);
 	if (!session?.user) throw new Error("Unauthorized");
+	if ((session.user as { banned_at?: string | Date }).banned_at) throw new Error("Forbidden");
 	if (!(session.user as { is_admin?: boolean }).is_admin) throw new Error("Forbidden");
 	return session.user;
 });
