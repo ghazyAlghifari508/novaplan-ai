@@ -1,5 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { CheckCircle2, Clock, CreditCard, Search } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+	ArrowLeft,
+	CheckCircle2,
+	Clock,
+	CreditCard,
+	Search,
+} from "lucide-react";
 import { useState } from "react";
 import { AdminMetricCard } from "@/components/admin/admin-metric-card";
 import { useStreamerMode } from "@/components/admin/streamer-mode-context";
@@ -53,7 +59,18 @@ function AdminTransactionsPage() {
 		.reduce((sum, t) => sum + (t.amount ?? 0), 0);
 
 	return (
-		<div className="mx-auto max-w-6xl space-y-6 font-inter">
+		<div className="mx-auto max-w-7xl space-y-8 font-inter">
+			{/* Quick Workspace Back Link */}
+			<div className="flex items-center">
+				<Link
+					to="/"
+					className="inline-flex items-center gap-1.5 text-xs font-[510] text-fog transition-colors hover:text-snow"
+				>
+					<ArrowLeft size={14} />
+					<span>Kembali ke Workspace</span>
+				</Link>
+			</div>
+
 			{/* Header */}
 			<header className="border-b border-graphite pb-6">
 				<h1 className="text-2xl font-[510] text-snow">
@@ -66,7 +83,7 @@ function AdminTransactionsPage() {
 			</header>
 
 			{/* Metric Summary Bar */}
-			<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<AdminMetricCard
 					label="Total Transaksi"
 					value={transactions.length}
@@ -232,7 +249,7 @@ function AdminTransactionsPage() {
 											</td>
 											<td className="px-5 py-3.5">
 												<span
-													className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${
+													className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-[11px] font-medium ${
 														isSuccess
 															? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
 															: isPending
@@ -240,15 +257,6 @@ function AdminTransactionsPage() {
 																: "bg-crimson/10 text-crimson border border-crimson/20"
 													}`}
 												>
-													<span
-														className={`h-1.5 w-1.5 rounded-full ${
-															isSuccess
-																? "bg-emerald-400"
-																: isPending
-																	? "bg-amber-400"
-																	: "bg-crimson"
-														}`}
-													/>
 													{isSuccess
 														? "Selesai"
 														: isPending

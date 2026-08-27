@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
+	ArrowLeft,
 	ExternalLink,
 	FileText,
 	FolderGit2,
@@ -49,7 +50,18 @@ function AdminProjectsPage() {
 	const taskCount = projects.filter((p) => p.step === "task").length;
 
 	return (
-		<div className="mx-auto max-w-6xl space-y-6 font-inter">
+		<div className="mx-auto max-w-7xl space-y-8 font-inter">
+			{/* Quick Workspace Back Link */}
+			<div className="flex items-center">
+				<Link
+					to="/"
+					className="inline-flex items-center gap-1.5 text-xs font-[510] text-fog transition-colors hover:text-snow"
+				>
+					<ArrowLeft size={14} />
+					<span>Kembali ke Workspace</span>
+				</Link>
+			</div>
+
 			{/* Header */}
 			<header className="border-b border-graphite pb-6">
 				<h1 className="text-2xl font-[510] text-snow">
@@ -62,7 +74,7 @@ function AdminProjectsPage() {
 			</header>
 
 			{/* Metric Summary Bar */}
-			<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<AdminMetricCard
 					label="Total Proyek"
 					value={projects.length}

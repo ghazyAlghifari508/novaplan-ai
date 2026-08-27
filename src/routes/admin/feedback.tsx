@@ -1,5 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
+	ArrowLeft,
 	Bug,
 	CheckCircle2,
 	Inbox,
@@ -8,6 +9,7 @@ import {
 	Sparkles,
 } from "lucide-react";
 import { useState } from "react";
+import { AdminMetricCard } from "@/components/admin/admin-metric-card";
 import { listErrorReports, listFeedback } from "@/lib/services/admin-service";
 
 export const Route = createFileRoute("/admin/feedback")({
@@ -47,8 +49,24 @@ function AdminFeedbackPage() {
 		);
 	});
 
+	const generalCount = feedback.filter((f) => f.type === "general").length;
+	const featureCount = feedback.filter((f) => f.type === "feature").length;
+	const bugCount =
+		errors.length + feedback.filter((f) => f.type === "bug").length;
+
 	return (
-		<div className="mx-auto max-w-6xl space-y-6 font-inter">
+		<div className="mx-auto max-w-7xl space-y-8 font-inter">
+			{/* Quick Workspace Back Link */}
+			<div className="flex items-center">
+				<Link
+					to="/"
+					className="inline-flex items-center gap-1.5 text-xs font-[510] text-fog transition-colors hover:text-snow"
+				>
+					<ArrowLeft size={14} />
+					<span>Kembali ke Workspace</span>
+				</Link>
+			</div>
+
 			{/* Header */}
 			<header className="border-b border-graphite pb-6">
 				<h1 className="text-2xl font-[510] text-snow">
@@ -58,6 +76,34 @@ function AdminFeedbackPage() {
 					Daftar masukan pengguna, permintaan fitur, dan catatan crash sistem.
 				</p>
 			</header>
+
+			{/* Metric Summary Bar */}
+			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+				<AdminMetricCard
+					label="Total Masukan"
+					value={feedback.length + errors.length}
+					subtext="Feedback & log error"
+					icon={Inbox}
+				/>
+				<AdminMetricCard
+					label="Feedback Umum"
+					value={generalCount}
+					subtext="Masukan & saran pengguna"
+					icon={MessageSquare}
+				/>
+				<AdminMetricCard
+					label="Permintaan Fitur"
+					value={featureCount}
+					subtext="Ide & wishlist pengguna"
+					icon={Sparkles}
+				/>
+				<AdminMetricCard
+					label="Bug & Crash"
+					value={bugCount}
+					subtext="Tiket bug & error sistem"
+					icon={Bug}
+				/>
+			</div>
 
 			{/* Filters and Tabs Bar */}
 			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

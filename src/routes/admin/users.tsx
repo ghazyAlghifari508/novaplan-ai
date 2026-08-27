@@ -1,6 +1,15 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Ban, Search, Shield } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+	ArrowLeft,
+	Ban,
+	Crown,
+	Search,
+	Shield,
+	UserCheck,
+	Users,
+} from "lucide-react";
 import { useState } from "react";
+import { AdminMetricCard } from "@/components/admin/admin-metric-card";
 import {
 	listUsers,
 	resetUserCredit,
@@ -50,8 +59,29 @@ function AdminUsersPage() {
 		return matchesSearch && matchesPlan;
 	});
 
+	const freeCount = rows.filter(
+		(r) => (r.sub?.plan ?? "free") === "free",
+	).length;
+	const proCount = rows.filter((r) => r.sub?.plan === "pro").length;
+	const hengkerCount = rows.filter((r) => r.sub?.plan === "hengker").length;
+	const adminCount = rows.filter(
+		(r) =>
+			Boolean(r.user.isAdmin) || (r.user as { role?: string }).role === "admin",
+	).length;
+
 	return (
-		<div className="mx-auto max-w-6xl space-y-6 font-inter">
+		<div className="mx-auto max-w-7xl space-y-8 font-inter">
+			{/* Quick Workspace Back Link */}
+			<div className="flex items-center">
+				<Link
+					to="/"
+					className="inline-flex items-center gap-1.5 text-xs font-[510] text-fog transition-colors hover:text-snow"
+				>
+					<ArrowLeft size={14} />
+					<span>Kembali ke Workspace</span>
+				</Link>
+			</div>
+
 			{/* Header */}
 			<header className="border-b border-graphite pb-6">
 				<h1 className="text-2xl font-[510] text-snow">Manajemen Pengguna</h1>
@@ -59,6 +89,40 @@ function AdminUsersPage() {
 					Kelola hak akses, status paket langganan, dan batasan akun pengguna.
 				</p>
 			</header>
+
+			{/* Metric Summary Bar */}
+			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+				<AdminMetricCard
+					label="Total Pengguna"
+					value={rows.length}
+					subtext="Akun pengguna terdaftar"
+					icon={Users}
+				/>
+				<AdminMetricCard
+					label="Paket Free"
+					value={freeCount}
+					subtext="Pengguna tier gratis"
+					icon={Users}
+				/>
+				<AdminMetricCard
+					label="Paket Pro"
+					value={proCount}
+					subtext="Pengguna paket Pro"
+					icon={UserCheck}
+				/>
+				<AdminMetricCard
+					label="Paket Hengker"
+					value={hengkerCount}
+					subtext="Pengguna tier tertinggi"
+					icon={Crown}
+				/>
+				<AdminMetricCard
+					label="Administrator"
+					value={adminCount}
+					subtext="Akses penuh ke sistem"
+					icon={Shield}
+				/>
+			</div>
 
 			{/* Filters */}
 			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -191,8 +255,7 @@ function AdminUsersPage() {
 													Banned
 												</span>
 											) : (
-												<span className="inline-flex items-center gap-1 text-[11px] text-emerald-400">
-													<span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+												<span className="inline-flex items-center rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-[510] text-emerald-400 border border-emerald-500/20">
 													Aktif
 												</span>
 											)}

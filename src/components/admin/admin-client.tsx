@@ -2,7 +2,6 @@
 
 import { Link, useLocation } from "@tanstack/react-router";
 import {
-	ArrowLeft,
 	CreditCard,
 	Eye,
 	EyeOff,
@@ -79,27 +78,10 @@ function AdminShellInner({ children }: { children: React.ReactNode }) {
 				<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 					{/* Header Row 1: Brand + Workspace Link + Streamer Mode Toggle */}
 					<div className="flex h-14 items-center justify-between gap-4 border-b border-graphite/60">
-						<div className="flex items-center gap-3">
+						{/* Left: Brand */}
+						<div className="flex items-center gap-2.5">
 							<Logo height={22} />
-							<div className="flex items-center gap-1.5">
-								<span className="rounded bg-white/10 px-1.5 py-0.5 font-inter text-[10px] font-semibold uppercase tracking-wider text-mist">
-									Admin
-								</span>
-								<span className="hidden text-sm font-medium text-snow sm:inline">
-									Panel
-								</span>
-							</div>
-
-							<div className="hidden h-4 w-px bg-graphite sm:block" />
-
-							<Link
-								to="/"
-								className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-[510] text-fog transition-colors hover:bg-white/5 hover:text-snow"
-							>
-								<ArrowLeft size={13} />
-								<span className="hidden sm:inline">Kembali ke Workspace</span>
-								<span className="sm:hidden">Workspace</span>
-							</Link>
+							<span className="text-sm font-[510] text-snow">Admin Panel</span>
 						</div>
 
 						{/* Streamer Mode Toggle Button */}
@@ -118,12 +100,6 @@ function AdminShellInner({ children }: { children: React.ReactNode }) {
 									: "Aktifkan Streamer Mode untuk menyamarkan nominal dan data pengguna"
 							}
 						>
-							<span
-								className={cn(
-									"h-2 w-2 rounded-full",
-									isStreamerMode ? "bg-emerald-400 animate-pulse" : "bg-fog/50",
-								)}
-							/>
 							{isStreamerMode ? <EyeOff size={14} /> : <Eye size={14} />}
 							<span className="hidden xs:inline sm:inline">Streamer Mode</span>
 							<span

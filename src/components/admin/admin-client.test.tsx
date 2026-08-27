@@ -63,9 +63,7 @@ describe("AdminClient Top-Nav Shell", () => {
 		});
 
 		expect(container.querySelector("#admin-test-content")).not.toBeNull();
-		expect(container.textContent).toContain("Admin");
-		expect(container.textContent).toContain("Panel");
-		expect(container.textContent).toContain("Kembali ke Workspace");
+		expect(container.textContent).toContain("Admin Panel");
 		expect(container.textContent).toContain("Ringkasan");
 		expect(container.textContent).toContain("Pengguna");
 		expect(container.textContent).toContain("Tiket");

@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
+	ArrowLeft,
 	ArrowUpRight,
 	CreditCard,
 	FolderGit2,
@@ -30,23 +31,20 @@ function getStatusBadge(status: string) {
 	const normalized = status.toLowerCase();
 	if (["success", "settlement", "paid"].includes(normalized)) {
 		return (
-			<span className="inline-flex items-center gap-1 rounded border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-emerald-400">
-				<span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+			<span className="inline-flex items-center rounded border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-emerald-400">
 				Selesai
 			</span>
 		);
 	}
 	if (["pending", "challenge"].includes(normalized)) {
 		return (
-			<span className="inline-flex items-center gap-1 rounded border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-300">
-				<span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+			<span className="inline-flex items-center rounded border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-300">
 				Pending
 			</span>
 		);
 	}
 	return (
-		<span className="inline-flex items-center gap-1 rounded border border-rose-500/20 bg-rose-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-rose-300">
-			<span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
+		<span className="inline-flex items-center rounded border border-rose-500/20 bg-rose-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-rose-300">
 			{status}
 		</span>
 	);
@@ -137,6 +135,17 @@ function AdminDashboardPage() {
 
 	return (
 		<div className="mx-auto max-w-7xl space-y-8 font-inter">
+			{/* Quick Workspace Back Link */}
+			<div className="flex items-center">
+				<Link
+					to="/"
+					className="inline-flex items-center gap-1.5 text-xs font-[510] text-fog transition-colors hover:text-snow"
+				>
+					<ArrowLeft size={14} />
+					<span>Kembali ke Workspace</span>
+				</Link>
+			</div>
+
 			{/* Page Header */}
 			<header className="border-b border-graphite pb-6">
 				<h1 className="font-inter text-2xl font-[510] text-snow">
