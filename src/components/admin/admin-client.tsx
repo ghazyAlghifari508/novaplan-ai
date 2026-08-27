@@ -128,7 +128,7 @@ function AdminShellInner({ children }: { children: React.ReactNode }) {
 							<span className="hidden xs:inline sm:inline">Streamer Mode</span>
 							<span
 								className={cn(
-									"rounded px-1.5 py-0.2 text-[10px] font-semibold uppercase",
+									"rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase",
 									isStreamerMode
 										? "bg-emerald-500/20 text-emerald-300"
 										: "bg-white/5 text-fog",
