@@ -339,28 +339,37 @@ export function TrendLineChart({
 							})}
 
 							{/* X-Axis Date Labels */}
-							{currentData.map((item, i) => {
-								const x = getX(i);
-								const showLabel =
-									pointCount <= 8 ||
-									(pointCount <= 16 && (i % 2 === 0 || i === pointCount - 1)) ||
-									i % 4 === 0 ||
-									i === pointCount - 1;
+							{(() => {
+								const step =
+									pointCount <= 8
+										? 1
+										: pointCount <= 14
+											? 2
+											: pointCount <= 21
+												? 3
+												: 4;
+								return currentData.map((item, i) => {
+									const x = getX(i);
+									const isLast = i === pointCount - 1;
+									const isStep = i % step === 0;
+									const showLabel =
+										isLast || (isStep && pointCount - 1 - i >= step * 0.6);
 
-								if (!showLabel) return null;
+									if (!showLabel) return null;
 
-								return (
-									<text
-										key={`date-lbl-${item.date}`}
-										x={x}
-										y={baselineY + 22}
-										textAnchor="middle"
-										className="fill-fog text-[11px] select-none"
-									>
-										{item.label}
-									</text>
-								);
-							})}
+									return (
+										<text
+											key={`date-lbl-${item.date}`}
+											x={x}
+											y={baselineY + 22}
+											textAnchor="middle"
+											className="fill-fog text-[11px] select-none"
+										>
+											{item.label}
+										</text>
+									);
+								});
+							})()}
 
 							{/* Area Fills */}
 							{userArea && (
