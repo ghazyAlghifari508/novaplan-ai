@@ -357,7 +357,7 @@ export const countUsers = createServerFn({ method: "GET" }).handler(
 
 export const getAdminTrendMetrics = createServerFn({ method: "GET" })
 	.validator((data: { days?: number } = {}) => ({
-		days: data?.days ?? 7,
+		days: Math.min(Math.max(data?.days ?? 7, 1), 90),
 	}))
 	.handler(async ({ data }): Promise<DailyTrendPoint[]> => {
 		await requireAdmin(await getRequestHeaders());
