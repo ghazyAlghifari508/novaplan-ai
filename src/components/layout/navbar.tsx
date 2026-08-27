@@ -304,6 +304,7 @@ export function Navbar() {
 								) : (
 									<div className="relative">
 										<button
+											type="button"
 											onClick={() => setIsDropdownOpen(!isDropdownOpen)}
 											aria-label="User menu"
 											aria-haspopup="true"
@@ -314,8 +315,10 @@ export function Navbar() {
 										</button>
 										{isDropdownOpen && (
 											<>
-												<div
-													className="fixed inset-0 z-40"
+												<button
+													type="button"
+													aria-label="Tutup menu pengguna"
+													className="fixed inset-0 z-40 cursor-default bg-transparent border-0"
 													onClick={() => setIsDropdownOpen(false)}
 												/>
 												<div className="absolute right-0 top-full z-50 mt-2 flex w-56 flex-col overflow-hidden rounded-xl bg-obsidian py-2 font-inter shadow-[var(--shadow-overlay)]">
@@ -331,15 +334,7 @@ export function Navbar() {
 														className="flex items-center gap-3 px-4 py-2.5 text-sm font-[510] text-mist transition-colors hover:bg-white/5 hover:text-snow"
 													>
 														<Settings size={16} className="text-fog" />
-														Profile / Setting
-													</Link>
-													<Link
-														to="/settings/feedback"
-														onClick={() => setIsDropdownOpen(false)}
-														className="flex items-center gap-3 px-4 py-2.5 text-sm font-[510] text-mist transition-colors hover:bg-white/5 hover:text-snow"
-													>
-														<MessageSquare size={16} className="text-fog" />
-														Bantuan & Feedback
+														Setting
 													</Link>
 													{session?.user &&
 														Boolean(
@@ -365,8 +360,17 @@ export function Navbar() {
 																Admin
 															</Link>
 														)}
+													<Link
+														to="/settings/feedback"
+														onClick={() => setIsDropdownOpen(false)}
+														className="flex items-center gap-3 px-4 py-2.5 text-sm font-[510] text-mist transition-colors hover:bg-white/5 hover:text-snow"
+													>
+														<MessageSquare size={16} className="text-fog" />
+														Bantuan & Feedback
+													</Link>
 													<div className="my-1 h-px w-full bg-graphite" />
 													<button
+														type="button"
 														onClick={() => {
 															setIsDropdownOpen(false);
 															handleLogout();
