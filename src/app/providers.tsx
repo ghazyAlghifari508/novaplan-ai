@@ -4,8 +4,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { useState } from "react";
 
-export function Providers({ children }: { children: React.ReactNode }) {
-	const [queryClient] = useState(
+export function Providers({
+	children,
+	queryClient: externalQueryClient,
+}: {
+	children: React.ReactNode;
+	queryClient?: QueryClient;
+}) {
+	const [fallbackClient] = useState(
 		() =>
 			new QueryClient({
 				defaultOptions: {
@@ -17,6 +23,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
 			}),
 	);
 
+	const client = externalQueryClient ?? fallbackClient;
+
 	return (
 		<ThemeProvider
 			attribute="class"
@@ -24,7 +32,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 			enableSystem
 			disableTransitionOnChange
 		>
-			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+			<QueryClientProvider client={client}>{children}</QueryClientProvider>
 		</ThemeProvider>
 	);
 }
