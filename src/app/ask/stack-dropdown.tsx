@@ -6,6 +6,7 @@ import {
 	ChevronDown,
 	type LucideIcon,
 	Search,
+	Sparkles,
 	X,
 } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -208,11 +209,22 @@ export function StackDropdown({
 						type="button"
 						onClick={toggleSkip}
 						className={cn(
-							"shrink-0 rounded-full px-3 py-1 min-h-[44px] inline-flex items-center justify-center font-inter text-xs transition-colors",
-							skipped ? "bg-steel text-snow" : "text-fog hover:text-snow",
+							"shrink-0 rounded-full px-3 py-1 min-h-[36px] inline-flex items-center gap-1.5 justify-center font-inter text-xs transition-all",
+							skipped
+								? "bg-indigo/20 text-indigo-300 border border-indigo-500/40 shadow-xs"
+								: "text-fog hover:text-snow border border-graphite/60 bg-white/[0.03] hover:bg-white/5",
 						)}
+						title={
+							skipped
+								? "Rekomendasi AI aktif"
+								: "Pilih Rekomendasi AI agar AI menganalisis dan menentukan stack terbaik"
+						}
 					>
-						{skipped ? "Dilewati" : "Lewati"}
+						<Sparkles
+							size={12}
+							className={skipped ? "text-indigo-400" : "text-fog"}
+						/>
+						<span>Rekomendasi AI</span>
 					</button>
 				)}
 
@@ -273,7 +285,7 @@ export function StackDropdown({
 							/>
 						)}
 						{skipped
-							? "Dilewati"
+							? "Otomatis rekomendasi AI"
 							: displayValue && !isCustomValue
 								? displayValue
 								: isCustomValue

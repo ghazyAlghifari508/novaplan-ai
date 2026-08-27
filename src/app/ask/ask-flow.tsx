@@ -343,8 +343,8 @@ Deployment: ${tech.deployment || defaultChoice}`;
 				) : session === 2 ? (
 					<div className="space-y-6 pb-8">
 						<p className="font-inter text-xs text-fog italic">
-							Pilih &ldquo;Lewati&rdquo; jika tidak yakin, AI akan memilih stack
-							yang paling sesuai untuk aplikasi Anda.
+							Pilih &ldquo;Rekomendasi AI&rdquo; jika tidak yakin, AI akan
+							memilih stack yang paling sesuai untuk aplikasi Anda.
 						</p>
 						<div className="grid gap-4 sm:grid-cols-2">
 							<StackDropdown

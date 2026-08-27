@@ -1,88 +1,69 @@
 "use client";
 
-import { useLocation } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { Check } from "lucide-react";
 import { stepRank } from "@/lib/flow-progress";
+import { type FlowStep, routeToStep, stepToRoute } from "@/lib/flow-step";
 import { cn } from "@/lib/utils";
+import { useChatStore } from "@/store";
 
 // ponytail: pure step<->route logic extracted to @/lib/flow-step so server
 // code + tests can use it without next/navigation. Re-export keeps existing
 // `import { routeToStep } from "./flow-step-nav"` call sites working.
 export { type FlowStep, routeToStep } from "@/lib/flow-step";
 
-import type { FlowStep } from "@/lib/flow-step";
-import { routeToStep } from "@/lib/flow-step";
+export type StepId = FlowStep;
 
-export type StepId = FlowStep | "kanban";
-
-const steps: Array<{ id: StepId; label: string; route: string }> = [
-	{ id: "prd", label: "PRD", route: "/prd/$id" },
-	{ id: "ac", label: "AC", route: "/ac/$id" },
-	{ id: "task", label: "Task", route: "/task/$id" },
-	{ id: "kanban", label: "Kanban", route: "/kanban/$id" },
+const STEPS: Array<{ id: FlowStep; label: string }> = [
+	{ id: "question", label: "Question" },
+	{ id: "prd", label: "PRD" },
+	{ id: "ac", label: "AC" },
+	{ id: "task", label: "Task" },
 ];
 
-function rankOf(id: StepId): number {
-	// Kanban is distinct visual step beyond task (task=3, kanban=4)
-	if (id === "kanban") return stepRank("task") + 1;
-	return stepRank(id as FlowStep);
-}
-
-export function FlowStepNav(props?: { step?: FlowStep | string | null }) {
+export function FlowStepNav(props?: {
+	step?: FlowStep | string | null;
+	taskStatus?: string | null;
+}) {
 	const pathname = useLocation({ select: (l) => l.pathname });
 	const isKanbanRoute = (pathname ?? "").startsWith("/kanban");
-	// Honest: prefer real DB step when provided via prop, fallback to route-derived
-	const currentStep = (props?.step as FlowStep) ?? routeToStep(pathname ?? "");
-	let rank = stepRank(currentStep);
-	// Question stage is not shown in stepper (steps start at PRD) — map question(0) → prd(1) so there is always a current
-	if (rank === stepRank("question")) rank = stepRank("prd");
+	const isTaskGenerated = useChatStore((s) => s.isTaskGenerated);
+	const currentRouteStep = routeToStep(pathname ?? "");
+	const routeRank = stepRank(currentRouteStep);
+	const dbRank = stepRank(props?.step as FlowStep);
+
+	const isTaskDone =
+		isKanbanRoute || isTaskGenerated || props?.taskStatus === "completed";
+
+	// Extract project id from URL (e.g. /prd/123 -> 123)
+	const projectId = (pathname ?? "").split("/")[2];
 
 	return (
-		<ol aria-label="Flow step" className="flex items-center gap-2 md:gap-2">
-			{steps.map((s, idx) => {
-				let state: "done" | "current" | "locked";
-				if (s.id === "kanban") {
-					if (isKanbanRoute) state = "current";
-					else if (rank >= stepRank("task")) state = "done";
-					else state = "locked";
-				} else if (
-					s.id === "task" &&
-					isKanbanRoute &&
-					rank >= stepRank("task")
-				) {
-					// When viewing kanban, task is done (kanban is the current view of task stage)
-					state = "done";
-				} else {
-					const sRank = rankOf(s.id);
-					state = sRank < rank ? "done" : sRank === rank ? "current" : "locked";
-				}
-				const isCompleted = state === "done";
-				const isActive = state === "current";
-				const isLocked = state === "locked";
+		<ol aria-label="Flow step" className="flex items-center gap-1.5 md:gap-2">
+			{STEPS.map((s, idx) => {
+				const isCurrentRoute = s.id === currentRouteStep;
 
-				// Connector active when the current step is done/current, not locked
-				const connectorActive = (() => {
-					if (s.id === "kanban") {
-						return rank >= stepRank("task") || isKanbanRoute;
-					}
-					return rankOf(s.id) <= rank;
-				})();
+				const isCompleted =
+					s.id === "task"
+						? isTaskDone
+						: !isCurrentRoute &&
+							(routeRank > idx || (props?.step ? dbRank > idx : false));
 
-				return (
-					<li
-						key={`${s.id}-${s.route}`}
-						className="flex items-center gap-1.5"
-						aria-current={isActive ? "step" : undefined}
-					>
-						{idx > 0 && (
-							<span
-								aria-hidden
-								className={cn(
-									"hidden h-px w-4 transition-colors duration-300 md:block",
-									connectorActive ? "bg-indigo/60" : "bg-graphite",
-								)}
-							/>
+				const isActive = isCurrentRoute && !isCompleted;
+				const isLocked = !isCompleted && !isActive;
+
+				const connectorActive =
+					idx <= routeRank || (props?.step ? idx <= dbRank : false);
+
+				const stepContent = (
+					<div
+						className={cn(
+							"flex items-center gap-1.5",
+							(isCompleted || isActive) && projectId
+								? "cursor-pointer"
+								: "cursor-default",
 						)}
+					>
 						<span
 							className={cn(
 								"flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-[510] transition-colors duration-300",
@@ -95,12 +76,44 @@ export function FlowStepNav(props?: { step?: FlowStep | string | null }) {
 						</span>
 						<span
 							className={cn(
-								"hidden font-inter text-sm font-normal transition-colors duration-300 md:block",
-								isActive ? "font-[510] text-snow" : "text-fog",
+								"hidden font-inter text-sm transition-colors duration-300 md:block",
+								isActive
+									? "font-[510] text-snow"
+									: isCompleted
+										? "font-normal text-snow hover:text-mist"
+										: "font-normal text-fog",
 							)}
 						>
 							{s.label}
 						</span>
+					</div>
+				);
+
+				return (
+					<li
+						key={s.id}
+						className="flex items-center gap-1.5 md:gap-2"
+						aria-current={isActive ? "step" : undefined}
+					>
+						{idx > 0 && (
+							<span
+								aria-hidden
+								className={cn(
+									"hidden h-px w-4 transition-colors duration-300 md:block",
+									connectorActive ? "bg-indigo/60" : "bg-graphite",
+								)}
+							/>
+						)}
+						{projectId && (isCompleted || isActive) ? (
+							<Link
+								to={stepToRoute(s.id, projectId)}
+								className="transition-opacity hover:opacity-90 focus:outline-none"
+							>
+								{stepContent}
+							</Link>
+						) : (
+							stepContent
+						)}
 					</li>
 				);
 			})}

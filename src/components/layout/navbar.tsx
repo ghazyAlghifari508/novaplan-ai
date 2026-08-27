@@ -9,7 +9,6 @@ import {
 } from "@tanstack/react-router";
 import {
 	ArrowRight,
-	CreditCard,
 	LogOut,
 	Menu,
 	MessageSquare,
@@ -46,14 +45,23 @@ export function Navbar() {
 	const routeStep = routeToStep(pathname);
 	const _isWorkspace = routeStep !== "prd";
 	// Honest stepper: DB step via loader when available, fallback to route
-	const dbStep = useMatches({
+	const projectNavData = useMatches({
 		select: (matches) => {
 			for (let i = matches.length - 1; i >= 0; i--) {
 				const data = matches[i].loaderData as
-					| { step?: string | null }
+					| { step?: string | null; taskStatus?: string | null }
 					| undefined;
-				if (data && typeof data.step === "string") return data.step;
-				if (data && data.step === null) return null;
+				if (
+					data &&
+					(typeof data.step === "string" ||
+						typeof data.taskStatus === "string" ||
+						data.step === null)
+				) {
+					return {
+						step: data.step ?? null,
+						taskStatus: data.taskStatus ?? null,
+					};
+				}
 			}
 			return null;
 		},
@@ -138,14 +146,20 @@ export function Navbar() {
 				{/* Mobile: step dots (flow routes only) */}
 				{isFlowStepRoute && (
 					<div className="flex md:hidden flex-1 items-center justify-center">
-						<FlowStepNav step={dbStep} />
+						<FlowStepNav
+							step={projectNavData?.step}
+							taskStatus={projectNavData?.taskStatus}
+						/>
 					</div>
 				)}
 
 				{/* Center: navlinks - Desktop */}
 				<div className="hidden md:flex flex-1 items-center justify-center">
 					{isFlowStepRoute ? (
-						<FlowStepNav step={dbStep} />
+						<FlowStepNav
+							step={projectNavData?.step}
+							taskStatus={projectNavData?.taskStatus}
+						/>
 					) : (
 						<div className="flex items-center gap-1">
 							<Link
