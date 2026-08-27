@@ -4,25 +4,22 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SettingsClient } from "./settings-client";
 
-let mockLocation = { pathname: "/settings/profile", searchStr: "" };
+let mockLocation = { pathname: "/settings/profile" };
+const mockBack = vi.fn();
+const mockNavigate = vi.fn();
 
 vi.mock("@tanstack/react-router", () => ({
 	Link: ({
 		to,
-		search,
 		children,
 		className,
 	}: {
 		to: string;
-		search?: Record<string, unknown>;
 		children: React.ReactNode;
 		className?: string;
 	}) => {
-		const searchString = search
-			? `?${new URLSearchParams(search as Record<string, string>).toString()}`
-			: "";
 		return (
-			<a href={`${to}${searchString}`} className={className}>
+			<a href={to} className={className}>
 				{children}
 			</a>
 		);
@@ -30,18 +27,26 @@ vi.mock("@tanstack/react-router", () => ({
 	useLocation: ({
 		select,
 	}: {
-		select?: (l: { pathname: string; searchStr: string }) => unknown;
+		select?: (l: { pathname: string }) => unknown;
 	} = {}) => {
 		return select ? select(mockLocation) : mockLocation;
 	},
+	useRouter: () => ({
+		history: {
+			back: mockBack,
+		},
+		navigate: mockNavigate,
+	}),
 }));
 
-describe("SettingsClient Back Navigation", () => {
+describe("SettingsClient Dynamic Back Navigation", () => {
 	let container: HTMLDivElement;
 	let root: Root | null = null;
 
 	beforeEach(() => {
-		mockLocation = { pathname: "/settings/profile", searchStr: "" };
+		mockLocation = { pathname: "/settings/profile" };
+		mockBack.mockClear();
+		mockNavigate.mockClear();
 		(globalThis as Record<string, unknown>).IS_REACT_ACT_ENVIRONMENT = true;
 		container = document.createElement("div");
 		document.body.appendChild(container);
@@ -58,9 +63,7 @@ describe("SettingsClient Back Navigation", () => {
 		container?.remove();
 	});
 
-	it("renders default Back to Workspace when from parameter is absent", () => {
-		mockLocation = { pathname: "/settings/profile", searchStr: "" };
-
+	it("renders Kembali button on desktop and mobile", () => {
 		act(() => {
 			root?.render(
 				<SettingsClient profile={{}}>
@@ -69,13 +72,17 @@ describe("SettingsClient Back Navigation", () => {
 			);
 		});
 
-		expect(container.textContent).toContain("Back to Workspace");
-		const backLink = container.querySelector('a[href="/"]');
-		expect(backLink).not.toBeNull();
+		expect(container.textContent).toContain("Kembali");
+		// Verify no 'Kembali ke Admin Panel' or 'Back to Workspace' exists
+		expect(container.textContent).not.toContain("Kembali ke Admin Panel");
+		expect(container.textContent).not.toContain("Back to Workspace");
 	});
 
-	it("renders Kembali ke Admin Panel when ?from=admin is present", () => {
-		mockLocation = { pathname: "/settings/profile", searchStr: "?from=admin" };
+	it("calls history.back() when window.history.length > 1", () => {
+		Object.defineProperty(window.history, "length", {
+			value: 2,
+			configurable: true,
+		});
 
 		act(() => {
 			root?.render(
@@ -85,13 +92,21 @@ describe("SettingsClient Back Navigation", () => {
 			);
 		});
 
-		expect(container.textContent).toContain("Kembali ke Admin Panel");
-		const adminLink = container.querySelector('a[href="/admin"]');
-		expect(adminLink).not.toBeNull();
+		const backBtn = container.querySelector("button[title='Kembali']");
+		expect(backBtn).not.toBeNull();
+
+		act(() => {
+			(backBtn as HTMLButtonElement).click();
+		});
+
+		expect(mockBack).toHaveBeenCalled();
 	});
 
-	it("preserves ?from=admin in settings navigation tabs", () => {
-		mockLocation = { pathname: "/settings/profile", searchStr: "?from=admin" };
+	it("falls back to navigate('/') when window.history.length <= 1", () => {
+		Object.defineProperty(window.history, "length", {
+			value: 1,
+			configurable: true,
+		});
 
 		act(() => {
 			root?.render(
@@ -101,9 +116,30 @@ describe("SettingsClient Back Navigation", () => {
 			);
 		});
 
-		const billingLink = container.querySelector(
-			'a[href="/settings/billing?from=admin"]',
-		);
+		const backBtn = container.querySelector("button[title='Kembali']");
+		expect(backBtn).not.toBeNull();
+
+		act(() => {
+			(backBtn as HTMLButtonElement).click();
+		});
+
+		expect(mockNavigate).toHaveBeenCalledWith({ to: "/" });
+	});
+
+	it("renders clean navigation tabs without query parameter artifacts", () => {
+		act(() => {
+			root?.render(
+				<SettingsClient profile={{}}>
+					<div>Profile Content</div>
+				</SettingsClient>,
+			);
+		});
+
+		const billingLink = container.querySelector('a[href="/settings/billing"]');
 		expect(billingLink).not.toBeNull();
+		const allLinks = Array.from(container.querySelectorAll("a"));
+		for (const link of allLinks) {
+			expect(link.getAttribute("href")).not.toContain("?from=");
+		}
 	});
 });

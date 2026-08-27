@@ -1,6 +1,6 @@
 "use client";
 
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useRouter } from "@tanstack/react-router";
 import {
 	ArrowLeft,
 	Bell,
@@ -31,9 +31,15 @@ export const SettingsClient = memo(function SettingsClient({
 	children,
 }: SettingsClientProps) {
 	const pathname = useLocation({ select: (l) => l.pathname });
-	const searchStr = useLocation({ select: (l) => l.searchStr });
-	const searchParams = new URLSearchParams(searchStr);
-	const isFromAdmin = searchParams.get("from") === "admin";
+	const router = useRouter();
+
+	const handleBack = () => {
+		if (typeof window !== "undefined" && window.history.length > 1) {
+			router.history.back();
+		} else {
+			router.navigate({ to: "/" });
+		}
+	};
 
 	return (
 		<div className="flex min-h-screen flex-col bg-onyx text-snow md:flex-row">
@@ -48,13 +54,15 @@ export const SettingsClient = memo(function SettingsClient({
 							Manage account preferences
 						</p>
 					</div>
-					<Link
-						to={isFromAdmin ? "/admin" : "/"}
-						className="flex items-center justify-center rounded-md bg-white/5 p-2 text-fog md:hidden"
-						title={isFromAdmin ? "Kembali ke Admin Panel" : "Back to Workspace"}
+					<button
+						type="button"
+						onClick={handleBack}
+						className="flex items-center justify-center rounded-md bg-white/5 p-2 text-fog transition-colors hover:bg-white/10 hover:text-snow md:hidden"
+						title="Kembali"
+						aria-label="Kembali"
 					>
 						<ArrowLeft size={20} />
-					</Link>
+					</button>
 				</div>
 
 				<nav className="flex md:flex-1 md:flex-col flex-row gap-2 md:space-y-1.5 px-4 pb-4 md:pb-0 overflow-x-auto md:overflow-y-auto hide-scrollbar items-center md:items-stretch">
@@ -65,7 +73,6 @@ export const SettingsClient = memo(function SettingsClient({
 							<Link
 								key={item.href}
 								to={item.href}
-								search={isFromAdmin ? { from: "admin" } : undefined}
 								className={cn(
 									"flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-[13px] font-[510] transition-all duration-300 md:gap-3 md:px-4 md:py-3 md:text-[15px]",
 									isActive
@@ -84,32 +91,14 @@ export const SettingsClient = memo(function SettingsClient({
 
 					<div className="my-6 hidden h-px w-full bg-graphite md:block" />
 
-					{isFromAdmin ? (
-						<div className="hidden flex-col gap-1 md:flex">
-							<Link
-								to="/admin"
-								className="flex items-center gap-3 rounded-md px-4 py-3 text-[15px] font-[510] text-emerald-400 transition-all duration-300 hover:bg-emerald-500/10 hover:text-emerald-300"
-							>
-								<Shield size={18} className="text-emerald-400" />
-								<span>Kembali ke Admin Panel</span>
-							</Link>
-							<Link
-								to="/"
-								className="flex items-center gap-3 rounded-md px-4 py-2 text-[13px] font-[510] text-fog/70 transition-all duration-300 hover:text-snow"
-							>
-								<ArrowLeft size={15} className="text-fog/70" />
-								<span>Ke Workspace Utama</span>
-							</Link>
-						</div>
-					) : (
-						<Link
-							to="/"
-							className="hidden items-center gap-3 rounded-md px-4 py-3 text-[15px] font-[510] text-fog transition-all duration-300 hover:bg-white/5 hover:text-snow md:flex"
-						>
-							<ArrowLeft size={18} className="text-fog" />
-							Back to Workspace
-						</Link>
-					)}
+					<button
+						type="button"
+						onClick={handleBack}
+						className="hidden items-center gap-3 rounded-md px-4 py-3 text-[15px] font-[510] text-fog transition-all duration-300 hover:bg-white/5 hover:text-snow md:flex"
+					>
+						<ArrowLeft size={18} className="text-fog" />
+						<span>Kembali</span>
+					</button>
 				</nav>
 			</aside>
 

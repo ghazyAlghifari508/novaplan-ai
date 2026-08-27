@@ -334,12 +334,12 @@ export function Navbar() {
 														Profile / Setting
 													</Link>
 													<Link
-														to="/pricing"
+														to="/settings/feedback"
 														onClick={() => setIsDropdownOpen(false)}
 														className="flex items-center gap-3 px-4 py-2.5 text-sm font-[510] text-mist transition-colors hover:bg-white/5 hover:text-snow"
 													>
-														<CreditCard size={16} className="text-fog" />
-														Pricing
+														<MessageSquare size={16} className="text-fog" />
+														Bantuan & Feedback
 													</Link>
 													{session?.user &&
 														Boolean(

@@ -60,7 +60,7 @@ const NAV_ITEMS: NavItem[] = [
 		isActive: (p: string) => p.startsWith("/admin/transactions"),
 	},
 	{
-		href: "/settings/profile?from=admin",
+		href: "/settings/profile",
 		label: "Pengaturan",
 		icon: Settings,
 		isActive: (p: string) =>
