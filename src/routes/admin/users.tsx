@@ -1,17 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-	Ban,
-	CheckCircle2,
-	Coins,
-	MoreVertical,
-	RotateCcw,
-	Search,
-	Shield,
-	ShieldAlert,
-	Sparkles,
-	UserCheck,
-	UserX,
-} from "lucide-react";
+import { Ban, Search, Shield } from "lucide-react";
 import { useState } from "react";
 import {
 	listUsers,
@@ -55,7 +43,7 @@ function AdminUsersPage() {
 		const matchesSearch =
 			!search ||
 			user.email.toLowerCase().includes(search.toLowerCase()) ||
-			(user.name && user.name.toLowerCase().includes(search.toLowerCase()));
+			user.name?.toLowerCase().includes(search.toLowerCase());
 		const matchesPlan =
 			planFilter === "all" || (sub?.plan ?? "free") === planFilter;
 		return matchesSearch && matchesPlan;

@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
-	AlertTriangle,
 	Bug,
 	CheckCircle2,
 	Inbox,
@@ -32,9 +31,8 @@ function AdminFeedbackPage() {
 		const matchesSearch =
 			!search ||
 			f.message.toLowerCase().includes(search.toLowerCase()) ||
-			(f.userEmail &&
-				f.userEmail.toLowerCase().includes(search.toLowerCase())) ||
-			(f.userName && f.userName.toLowerCase().includes(search.toLowerCase()));
+			f.userEmail?.toLowerCase().includes(search.toLowerCase()) ||
+			f.userName?.toLowerCase().includes(search.toLowerCase());
 		const matchesType = typeFilter === "all" || f.type === typeFilter;
 		return matchesSearch && matchesType;
 	});
@@ -43,8 +41,8 @@ function AdminFeedbackPage() {
 		return (
 			!search ||
 			e.errorMessage.toLowerCase().includes(search.toLowerCase()) ||
-			(e.context && e.context.toLowerCase().includes(search.toLowerCase())) ||
-			(e.userEmail && e.userEmail.toLowerCase().includes(search.toLowerCase()))
+			e.context?.toLowerCase().includes(search.toLowerCase()) ||
+			e.userEmail?.toLowerCase().includes(search.toLowerCase())
 		);
 	});
 
