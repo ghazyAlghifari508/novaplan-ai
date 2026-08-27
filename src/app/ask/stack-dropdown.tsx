@@ -208,13 +208,13 @@ export function StackDropdown({
 						type="button"
 						onClick={toggleSkip}
 						className={cn(
-							"shrink-0 rounded px-2.5 py-1 min-h-[32px] inline-flex items-center justify-center font-inter text-xs transition-colors",
+							"shrink-0 cursor-pointer rounded px-2.5 py-1 min-h-[32px] inline-flex items-center justify-center font-inter text-xs transition-colors",
 							skipped
 								? "bg-steel text-snow font-[510]"
 								: "text-fog hover:text-snow hover:bg-white/5",
 						)}
 					>
-						Rekomendasi AI
+						{skipped ? "Rekomendasi AI Aktif" : "Gunakan Rekomendasi AI"}
 					</button>
 				)}
 
