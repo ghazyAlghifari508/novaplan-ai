@@ -18,6 +18,7 @@ import {
 	useStreamerMode,
 } from "@/components/admin/streamer-mode-context";
 import { Logo } from "@/components/ui/logo";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -84,35 +85,41 @@ function AdminShellInner({ children }: { children: React.ReactNode }) {
 							<span className="text-sm font-[510] text-snow">Admin Panel</span>
 						</div>
 
-						{/* Streamer Mode Toggle Button */}
-						<button
-							type="button"
-							onClick={toggleStreamerMode}
-							className={cn(
-								"flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all",
-								isStreamerMode
-									? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
-									: "border-graphite bg-obsidian text-fog hover:border-mist/30 hover:text-snow",
-							)}
-							title={
-								isStreamerMode
-									? "Streamer Mode aktif (Data sensitif disamarkan)"
-									: "Aktifkan Streamer Mode untuk menyamarkan nominal dan data pengguna"
-							}
-						>
-							{isStreamerMode ? <EyeOff size={14} /> : <Eye size={14} />}
-							<span className="hidden xs:inline sm:inline">Streamer Mode</span>
-							<span
+						{/* Right: Theme Toggle + Streamer Mode Toggle Button */}
+						<div className="flex items-center gap-2">
+							<ThemeToggle />
+
+							<button
+								type="button"
+								onClick={toggleStreamerMode}
 								className={cn(
-									"rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase",
+									"flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all",
 									isStreamerMode
-										? "bg-emerald-500/20 text-emerald-300"
-										: "bg-white/5 text-fog",
+										? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
+										: "border-graphite bg-obsidian text-fog hover:border-mist/30 hover:text-snow",
 								)}
+								title={
+									isStreamerMode
+										? "Streamer Mode aktif (Data sensitif disamarkan)"
+										: "Aktifkan Streamer Mode untuk menyamarkan nominal dan data pengguna"
+								}
 							>
-								{isStreamerMode ? "ON" : "OFF"}
-							</span>
-						</button>
+								{isStreamerMode ? <EyeOff size={14} /> : <Eye size={14} />}
+								<span className="hidden xs:inline sm:inline">
+									Streamer Mode
+								</span>
+								<span
+									className={cn(
+										"rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase",
+										isStreamerMode
+											? "bg-emerald-500/20 text-emerald-300"
+											: "bg-white/5 text-fog",
+									)}
+								>
+									{isStreamerMode ? "ON" : "OFF"}
+								</span>
+							</button>
+						</div>
 					</div>
 
 					{/* Header Row 2: Horizontal Navigation Tabs */}

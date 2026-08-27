@@ -81,7 +81,7 @@ describe("AdminClient Top-Nav Shell", () => {
 			);
 		});
 
-		const toggleButton = container.querySelector("button");
+		const toggleButton = container.querySelector("button[title*='Streamer Mode']");
 		expect(toggleButton).not.toBeNull();
 		expect(toggleButton?.textContent).toContain("OFF");
 

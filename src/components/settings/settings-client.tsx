@@ -1,6 +1,6 @@
 "use client";
 
-import { Link, useLocation, useRouter } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import {
 	ArrowLeft,
 	Bell,
@@ -31,15 +31,6 @@ export const SettingsClient = memo(function SettingsClient({
 	children,
 }: SettingsClientProps) {
 	const pathname = useLocation({ select: (l) => l.pathname });
-	const router = useRouter();
-
-	const handleBack = () => {
-		if (typeof window !== "undefined" && window.history.length > 1) {
-			router.history.back();
-		} else {
-			router.navigate({ to: "/" });
-		}
-	};
 
 	return (
 		<div className="flex min-h-screen flex-col bg-onyx text-snow md:flex-row">
@@ -54,15 +45,14 @@ export const SettingsClient = memo(function SettingsClient({
 							Manage account preferences
 						</p>
 					</div>
-					<button
-						type="button"
-						onClick={handleBack}
+					<Link
+						to="/"
 						className="flex items-center justify-center rounded-md bg-white/5 p-2 text-fog transition-colors hover:bg-white/10 hover:text-snow md:hidden"
 						title="Kembali"
 						aria-label="Kembali"
 					>
 						<ArrowLeft size={20} />
-					</button>
+					</Link>
 				</div>
 
 				<nav className="flex md:flex-1 md:flex-col flex-row gap-2 md:space-y-1.5 px-4 pb-4 md:pb-0 overflow-x-auto md:overflow-y-auto hide-scrollbar items-center md:items-stretch">
@@ -91,14 +81,13 @@ export const SettingsClient = memo(function SettingsClient({
 
 					<div className="my-6 hidden h-px w-full bg-graphite md:block" />
 
-					<button
-						type="button"
-						onClick={handleBack}
+					<Link
+						to="/"
 						className="hidden items-center gap-3 rounded-md px-4 py-3 text-[15px] font-[510] text-fog transition-all duration-300 hover:bg-white/5 hover:text-snow md:flex"
 					>
 						<ArrowLeft size={18} className="text-fog" />
 						<span>Kembali</span>
-					</button>
+					</Link>
 				</nav>
 			</aside>
 

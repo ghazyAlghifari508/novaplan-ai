@@ -63,7 +63,7 @@ describe("SettingsClient Dynamic Back Navigation", () => {
 		container?.remove();
 	});
 
-	it("renders Kembali button on desktop and mobile", () => {
+	it("renders Kembali links pointing to / on desktop and mobile", () => {
 		act(() => {
 			root?.render(
 				<SettingsClient profile={{}}>
@@ -72,58 +72,12 @@ describe("SettingsClient Dynamic Back Navigation", () => {
 			);
 		});
 
+		const kembaliLinks = Array.from(container.querySelectorAll("a[href='/']"));
+		expect(kembaliLinks.length).toBeGreaterThanOrEqual(1);
 		expect(container.textContent).toContain("Kembali");
 		// Verify no 'Kembali ke Admin Panel' or 'Back to Workspace' exists
 		expect(container.textContent).not.toContain("Kembali ke Admin Panel");
 		expect(container.textContent).not.toContain("Back to Workspace");
-	});
-
-	it("calls history.back() when window.history.length > 1", () => {
-		Object.defineProperty(window.history, "length", {
-			value: 2,
-			configurable: true,
-		});
-
-		act(() => {
-			root?.render(
-				<SettingsClient profile={{}}>
-					<div>Profile Content</div>
-				</SettingsClient>,
-			);
-		});
-
-		const backBtn = container.querySelector("button[title='Kembali']");
-		expect(backBtn).not.toBeNull();
-
-		act(() => {
-			(backBtn as HTMLButtonElement).click();
-		});
-
-		expect(mockBack).toHaveBeenCalled();
-	});
-
-	it("falls back to navigate('/') when window.history.length <= 1", () => {
-		Object.defineProperty(window.history, "length", {
-			value: 1,
-			configurable: true,
-		});
-
-		act(() => {
-			root?.render(
-				<SettingsClient profile={{}}>
-					<div>Profile Content</div>
-				</SettingsClient>,
-			);
-		});
-
-		const backBtn = container.querySelector("button[title='Kembali']");
-		expect(backBtn).not.toBeNull();
-
-		act(() => {
-			(backBtn as HTMLButtonElement).click();
-		});
-
-		expect(mockNavigate).toHaveBeenCalledWith({ to: "/" });
 	});
 
 	it("renders clean navigation tabs without query parameter artifacts", () => {

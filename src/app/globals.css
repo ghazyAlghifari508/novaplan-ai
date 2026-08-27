@@ -7,38 +7,45 @@
    ============================================ */
 
 @theme {
-  /* Linear color tokens */
-  --color-onyx: #08090a;
-  --color-charcoal: #0f1011;
-  --color-obsidian: #161718;
-  --color-graphite: #23252a;
-  --color-iron: #323334;
-  --color-steel: #383b3f;
-  --color-slate: #62666d;
-  --color-fog: #8a8f98;
-  --color-mist: #d0d6e0;
-  --color-platinum: #e5e5e6;
-  --color-snow: #f7f8f8;
-  --color-indigo: #5e6ad2;
-  --color-emerald: #27a644;
-  --color-crimson: #eb5757;
-  --color-cyan: #02b8cc;
+	/* Linear color tokens */
+	--color-onyx: #08090a;
+	--color-charcoal: #0f1011;
+	--color-obsidian: #161718;
+	--color-graphite: #23252a;
+	--color-iron: #323334;
+	--color-steel: #383b3f;
+	--color-slate: #62666d;
+	--color-fog: #8a8f98;
+	--color-mist: #d0d6e0;
+	--color-platinum: #e5e5e6;
+	--color-snow: #f7f8f8;
+	--color-indigo: #5e6ad2;
+	--color-emerald: #27a644;
+	--color-crimson: #eb5757;
+	--color-cyan: #02b8cc;
 
+	/* Font Families */
+	--font-inter:
+		"Inter", var(--font-inter-base), ui-sans-serif, system-ui, sans-serif;
+	--font-berkeley-mono:
+		"JetBrains Mono", var(--font-jetbrains-base), ui-monospace, SFMono-Regular,
+		Menlo, Monaco, Consolas, monospace;
 
+	/* Font Sizes */
+	--text-body: 16px;
 
-  /* Font Families */
-  --font-inter: "Inter", var(--font-inter-base), ui-sans-serif, system-ui, sans-serif;
-  --font-berkeley-mono: "JetBrains Mono", var(--font-jetbrains-base), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	/* Border Radius */
+	--radius-md: 12px;
 
-  /* Font Sizes */
-  --text-body: 16px;
-
-  /* Border Radius */
-  --radius-md: 12px;
-
-  /* Shadows */
-  --shadow-linear-inset: rgb(35, 37, 42) 0px 0px 0px 1px inset;
-  --shadow-linear-button: rgba(0, 0, 0, 0.01) 0px 5px 2px 0px, rgba(0, 0, 0, 0.04) 0px 3px 2px 0px, rgba(0, 0, 0, 0.07) 0px 1px 1px 0px, rgba(0, 0, 0, 0.08) 0px 0px 1px 0px;
+	/* Shadows */
+	--shadow-linear-inset: rgb(35, 37, 42) 0px 0px 0px 1px inset;
+	--shadow-linear-button:
+		rgba(0, 0, 0, 0.01) 0px 5px 2px 0px, rgba(0, 0, 0, 0.04) 0px 3px 2px 0px, rgba(
+			0,
+			0,
+			0,
+			0.07
+		) 0px 1px 1px 0px, rgba(0, 0, 0, 0.08) 0px 0px 1px 0px;
 }
 
 /* ============================================
@@ -150,7 +157,7 @@
 html,
 body {
 	max-width: 100vw;
-	overflow-x: hidden;
+	overflow-x: clip;
 }
 
 body {
@@ -335,45 +342,45 @@ a {
 }
 
 @utility animate-element {
-  animation: fadeSlideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  opacity: 0;
-  filter: blur(4px);
-  transform: translateY(20px);
+	animation: fadeSlideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	opacity: 0;
+	filter: blur(4px);
+	transform: translateY(20px);
 }
 
 @utility animate-slide-right {
-  animation: slideRightIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  opacity: 0;
-  filter: blur(4px);
-  transform: translateX(-30px);
+	animation: slideRightIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	opacity: 0;
+	filter: blur(4px);
+	transform: translateX(-30px);
 }
 
 @utility animate-testimonial {
-  animation: testimonialIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  opacity: 0;
-  filter: blur(4px);
-  transform: translateY(20px) scale(0.95);
+	animation: testimonialIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	opacity: 0;
+	filter: blur(4px);
+	transform: translateY(20px) scale(0.95);
 }
 
 @utility animate-flash {
-  animation: flashHighlight 2s ease-out;
+	animation: flashHighlight 2s ease-out;
 }
 
 @utility animate-slide-down {
-  animation: slideDown 0.3s ease-out;
+	animation: slideDown 0.3s ease-out;
 }
 
 @utility custom-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-graphite) transparent;
+	scrollbar-width: thin;
+	scrollbar-color: var(--color-graphite) transparent;
 }
 
 @utility hide-scrollbar {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  &::-webkit-scrollbar {
-    display: none;
-  }
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+	&::-webkit-scrollbar {
+		display: none;
+	}
 }
 
 @keyframes flashHighlight {
@@ -404,15 +411,39 @@ a {
 	}
 }
 
-@utility animate-delay-100 { animation-delay: 100ms; }
-@utility animate-delay-200 { animation-delay: 200ms; }
-@utility animate-delay-300 { animation-delay: 300ms; }
-@utility animate-delay-400 { animation-delay: 400ms; }
-@utility animate-delay-500 { animation-delay: 500ms; }
-@utility animate-delay-600 { animation-delay: 600ms; }
-@utility animate-delay-700 { animation-delay: 700ms; }
-@utility animate-delay-800 { animation-delay: 800ms; }
-@utility animate-delay-900 { animation-delay: 900ms; }
-@utility animate-delay-1000 { animation-delay: 1000ms; }
-@utility animate-delay-1200 { animation-delay: 1200ms; }
-@utility animate-delay-1400 { animation-delay: 1400ms; }
+@utility animate-delay-100 {
+	animation-delay: 100ms;
+}
+@utility animate-delay-200 {
+	animation-delay: 200ms;
+}
+@utility animate-delay-300 {
+	animation-delay: 300ms;
+}
+@utility animate-delay-400 {
+	animation-delay: 400ms;
+}
+@utility animate-delay-500 {
+	animation-delay: 500ms;
+}
+@utility animate-delay-600 {
+	animation-delay: 600ms;
+}
+@utility animate-delay-700 {
+	animation-delay: 700ms;
+}
+@utility animate-delay-800 {
+	animation-delay: 800ms;
+}
+@utility animate-delay-900 {
+	animation-delay: 900ms;
+}
+@utility animate-delay-1000 {
+	animation-delay: 1000ms;
+}
+@utility animate-delay-1200 {
+	animation-delay: 1200ms;
+}
+@utility animate-delay-1400 {
+	animation-delay: 1400ms;
+}
