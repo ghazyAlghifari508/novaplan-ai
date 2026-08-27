@@ -1,22 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-	Activity,
 	ArrowUpRight,
-	Coins,
 	CreditCard,
-	FileCode2,
-	FileSpreadsheet,
 	FolderGit2,
 	Layers,
-	ListTodo,
-	TrendingUp,
+	MessageSquare,
 	Users,
 } from "lucide-react";
+import { useState } from "react";
+import { AdminMetricCard } from "@/components/admin/admin-metric-card";
+import { useStreamerMode } from "@/components/admin/streamer-mode-context";
+import { TrendLineChart } from "@/components/admin/trend-line-chart";
 import {
 	type AdminDashboardMetrics,
+	type DailyTrendPoint,
 	getAdminDashboardMetrics,
+	getAdminTrendMetrics,
 } from "@/lib/services/admin-service";
-import { formatCurrency } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/")({
 	loader: async (): Promise<AdminDashboardMetrics> => {
@@ -25,221 +25,302 @@ export const Route = createFileRoute("/admin/")({
 	component: AdminDashboardPage,
 });
 
+function getStatusBadge(status: string) {
+	const normalized = status.toLowerCase();
+	if (["success", "settlement", "paid"].includes(normalized)) {
+		return (
+			<span className="inline-flex items-center gap-1 rounded border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-emerald-400">
+				<span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+				Selesai
+			</span>
+		);
+	}
+	if (["pending", "challenge"].includes(normalized)) {
+		return (
+			<span className="inline-flex items-center gap-1 rounded border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-300">
+				<span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+				Pending
+			</span>
+		);
+	}
+	return (
+		<span className="inline-flex items-center gap-1 rounded border border-rose-500/20 bg-rose-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-rose-300">
+			<span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
+			{status}
+		</span>
+	);
+}
+
+function getPlanBadge(plan: string) {
+	const p = plan.toLowerCase();
+	if (p === "hengker") {
+		return (
+			<span className="inline-flex items-center rounded border border-amber-400/20 bg-amber-400/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-300">
+				Hengker
+			</span>
+		);
+	}
+	if (p === "pro") {
+		return (
+			<span className="inline-flex items-center rounded border border-indigo-400/20 bg-indigo-400/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-indigo-300">
+				Pro
+			</span>
+		);
+	}
+	return (
+		<span className="inline-flex items-center rounded border border-graphite bg-white/5 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-mist">
+			{plan}
+		</span>
+	);
+}
+
+function getStepBadge(step: string | null) {
+	const s = (step || "draft").toLowerCase();
+	const labelMap: Record<string, string> = {
+		idea: "Ide",
+		questions: "Tanya Jawab",
+		prd: "PRD",
+		ac: "AC",
+		kanban: "Kanban",
+	};
+	const label = labelMap[s] || s;
+	return (
+		<span className="rounded border border-graphite bg-white/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-mist">
+			{label}
+		</span>
+	);
+}
+
+function formatShortDate(date: Date | string | null | undefined): string {
+	if (!date) return "—";
+	const d = new Date(date);
+	return d.toLocaleDateString("id-ID", {
+		day: "numeric",
+		month: "short",
+		hour: "2-digit",
+		minute: "2-digit",
+	});
+}
+
 function AdminDashboardPage() {
 	const metrics = Route.useLoaderData();
+	const { maskOrderId, maskName, maskCurrency } = useStreamerMode();
 
+	const [trendData, setTrendData] = useState<DailyTrendPoint[]>(
+		metrics.trendData || [],
+	);
+	const [isLoadingTrend, setIsLoadingTrend] = useState<boolean>(false);
+
+	const handleRangeChange = async (days: number) => {
+		setIsLoadingTrend(true);
+		try {
+			const res = await getAdminTrendMetrics({ data: { days } });
+			setTrendData(res);
+		} catch (err) {
+			console.error("Failed to fetch trend data:", err);
+		} finally {
+			setIsLoadingTrend(false);
+		}
+	};
+
+	const hengkerCount =
+		metrics.planDistribution?.find((p) => p.plan === "hengker")?.count ?? 0;
+	const proCount =
+		metrics.planDistribution?.find((p) => p.plan === "pro")?.count ?? 0;
 	const totalPipelineOutputs =
-		metrics.prdCount + metrics.acCount + metrics.tasksCount;
+		(metrics.prdCount ?? 0) +
+		(metrics.acCount ?? 0) +
+		(metrics.tasksCount ?? 0);
+	const openTicketsCount =
+		(metrics.feedbackCount ?? 0) + (metrics.errorCount ?? 0);
 
 	return (
-		<div className="mx-auto max-w-6xl space-y-8 font-inter">
+		<div className="mx-auto max-w-7xl space-y-8 font-inter">
 			{/* Page Header */}
 			<header className="border-b border-graphite pb-6">
 				<h1 className="font-inter text-2xl font-[510] text-snow">
 					System Overview
 				</h1>
 				<p className="mt-1 text-sm text-fog">
-					Metrik real-time pengguna, aktivitas pipeline AI, dan pendapatan
-					platform.
+					Metrik real-time pengguna, aktivitas pipeline AI, dan performa
+					finansial platform.
 				</p>
 			</header>
 
-			{/* 4 Key Metric Cards */}
-			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-				<MetricCard
+			{/* 5 Key Metric Cards */}
+			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+				<AdminMetricCard
 					label="Total Pengguna"
 					value={metrics.usersCount}
-					subtext={`${metrics.planDistribution.find((p) => p.plan === "hengker")?.count ?? 0} Hengker, ${metrics.planDistribution.find((p) => p.plan === "pro")?.count ?? 0} Pro`}
+					subtext={`${hengkerCount} Hengker · ${proCount} Pro`}
 					icon={Users}
 				/>
-				<MetricCard
-					label="Total Proyek"
-					value={metrics.projectsCount}
-					subtext="Proyek ide produk dibuat"
-					icon={FolderGit2}
-				/>
-				<MetricCard
-					label="Output Pipeline AI"
+				<AdminMetricCard
+					label="Status Pipeline"
 					value={totalPipelineOutputs}
 					subtext={`${metrics.prdCount} PRD · ${metrics.acCount} AC · ${metrics.tasksCount} Task`}
 					icon={Layers}
 				/>
-				<MetricCard
-					label="Total Pendapatan"
-					value={formatCurrency(metrics.totalRevenue)}
-					subtext="Total transaksi Midtrans"
-					icon={Coins}
+				<AdminMetricCard
+					label="Proyek Siap"
+					value={metrics.projectsCount}
+					subtext="Proyek ide produk aktif"
+					icon={FolderGit2}
+				/>
+				<AdminMetricCard
+					label="Tiket Terbuka"
+					value={openTicketsCount}
+					subtext={`${metrics.feedbackCount} Saran · ${metrics.errorCount} Error`}
+					icon={MessageSquare}
+				/>
+				<AdminMetricCard
+					label="Pendapatan Bulan Ini"
+					value={metrics.currentMonthRevenue}
+					subtext="Total pembayaran sukses bulan ini"
+					icon={CreditCard}
+					isCurrency={true}
 				/>
 			</div>
 
-			{/* Pipeline AI Breakdown */}
-			<section className="rounded-xl border border-graphite bg-charcoal p-6">
-				<div className="mb-4 flex items-center justify-between">
-					<div>
-						<h2 className="text-base font-[510] text-snow">
-							Aktivitas Generasi AI (Pipeline)
-						</h2>
-						<p className="text-xs text-fog">
-							Total dokumen & breakdown artifact yang berhasil di-generate
-						</p>
+			{/* Trend Line Chart Section */}
+			<section className="relative">
+				<TrendLineChart
+					initialData={metrics.trendData}
+					data={trendData}
+					onRangeChange={handleRangeChange}
+					className={
+						isLoadingTrend
+							? "opacity-70 transition-opacity"
+							: "transition-opacity"
+					}
+				/>
+				{isLoadingTrend && (
+					<div className="absolute right-6 top-6 flex items-center gap-2 rounded-full border border-graphite bg-obsidian/80 px-3 py-1 text-[11px] text-fog backdrop-blur">
+						<span className="h-1.5 w-1.5 animate-ping rounded-full bg-emerald-400" />
+						Memperbarui grafik...
 					</div>
-					<Activity size={18} className="text-fog" />
-				</div>
-
-				<div className="grid grid-cols-1 gap-4 sm:grid-cols-3 pt-2">
-					<div className="rounded-lg border border-graphite bg-obsidian p-4">
-						<div className="flex items-center gap-2 text-fog">
-							<FileSpreadsheet size={16} className="text-mist" />
-							<span className="text-xs font-[510]">PRD Dokumen</span>
-						</div>
-						<p className="mt-2 text-2xl font-light text-snow">
-							{metrics.prdCount}
-						</p>
-						<p className="mt-1 text-[11px] text-fog">Versi PRD disimpan</p>
-					</div>
-
-					<div className="rounded-lg border border-graphite bg-obsidian p-4">
-						<div className="flex items-center gap-2 text-fog">
-							<FileCode2 size={16} className="text-mist" />
-							<span className="text-xs font-[510]">Acceptance Criteria</span>
-						</div>
-						<p className="mt-2 text-2xl font-light text-snow">
-							{metrics.acCount}
-						</p>
-						<p className="mt-1 text-[11px] text-fog">Versi AC terbuat</p>
-					</div>
-
-					<div className="rounded-lg border border-graphite bg-obsidian p-4">
-						<div className="flex items-center gap-2 text-fog">
-							<ListTodo size={16} className="text-mist" />
-							<span className="text-xs font-[510]">Task & Kanban</span>
-						</div>
-						<p className="mt-2 text-2xl font-light text-snow">
-							{metrics.tasksCount}
-						</p>
-						<p className="mt-1 text-[11px] text-fog">Butir task dibuat</p>
-					</div>
-				</div>
+				)}
 			</section>
 
-			{/* 2-Column: Recent Projects & Plan Distribution */}
-			<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-				{/* Recent Projects (2 cols) */}
-				<section className="rounded-xl border border-graphite bg-charcoal p-6 lg:col-span-2">
-					<div className="mb-4 flex items-center justify-between">
-						<div>
-							<h2 className="text-base font-[510] text-snow">Proyek Terbaru</h2>
-							<p className="text-xs text-fog">
-								Aktivitas pembuatan proyek paling akhir
-							</p>
+			{/* Bottom Two-Column Activity Cards */}
+			<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+				{/* Card 1: Transaksi Booster Terbaru */}
+				<section className="flex flex-col justify-between rounded-xl border border-graphite bg-charcoal p-5 sm:p-6 shadow-[var(--shadow-inset)]">
+					<div>
+						<div className="mb-4 flex items-center justify-between">
+							<div>
+								<h2 className="text-base font-[510] text-snow">
+									Transaksi Booster Terbaru
+								</h2>
+								<p className="text-xs text-fog">
+									Riwayat pesanan kredit & paket Mayar / Midtrans
+								</p>
+							</div>
+							<Link
+								to="/admin"
+								className="text-xs font-medium text-fog hover:text-snow transition-colors"
+							>
+								Lihat Semua
+							</Link>
 						</div>
+
+						{!metrics.recentTransactions ||
+						metrics.recentTransactions.length === 0 ? (
+							<div className="py-12 text-center text-xs text-fog">
+								Belum ada transaksi booster tercatat.
+							</div>
+						) : (
+							<div className="divide-y divide-graphite rounded-lg border border-graphite bg-obsidian">
+								{metrics.recentTransactions.map((tx) => (
+									<div
+										key={tx.id}
+										className="flex flex-col gap-2 p-3.5 sm:flex-row sm:items-center sm:justify-between transition-colors hover:bg-white/[0.02]"
+									>
+										<div className="min-w-0 flex-1 pr-2">
+											<div className="flex items-center gap-2">
+												<span className="font-mono text-xs font-medium text-snow">
+													{maskOrderId(tx.orderId)}
+												</span>
+												{getPlanBadge(tx.plan)}
+											</div>
+											<p className="mt-1 truncate text-xs text-fog">
+												{maskName(tx.userName || tx.userEmail)} ·{" "}
+												{formatShortDate(tx.createdAt)}
+											</p>
+										</div>
+
+										<div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+											{getStatusBadge(tx.status)}
+											<span className="font-mono text-xs font-medium text-snow">
+												{maskCurrency(tx.amount)}
+											</span>
+										</div>
+									</div>
+								))}
+							</div>
+						)}
 					</div>
-
-					{metrics.recentProjects.length === 0 ? (
-						<p className="py-8 text-center text-xs text-fog">
-							Belum ada proyek yang dibuat.
-						</p>
-					) : (
-						<div className="divide-y divide-graphite rounded-lg border border-graphite bg-obsidian">
-							{metrics.recentProjects.map((p) => (
-								<div
-									key={p.id}
-									className="flex items-center justify-between p-3.5 transition-colors hover:bg-white/[0.02]"
-								>
-									<div className="min-w-0 pr-4">
-										<p className="truncate text-sm font-[510] text-snow">
-											{p.name}
-										</p>
-										<p className="truncate text-xs text-fog">
-											{p.userName || p.userEmail || "Anonymous"}
-										</p>
-									</div>
-
-									<div className="flex items-center gap-3">
-										<span className="rounded bg-white/5 px-2 py-0.5 text-[11px] font-[510] uppercase text-mist">
-											{p.step || "draft"}
-										</span>
-										<Link
-											to="/prd/$id"
-											params={{ id: p.id }}
-											className="text-fog hover:text-snow"
-											title="Buka proyek"
-										>
-											<ArrowUpRight size={16} />
-										</Link>
-									</div>
-								</div>
-							))}
-						</div>
-					)}
 				</section>
 
-				{/* Plan Distribution (1 col) */}
-				<section className="rounded-xl border border-graphite bg-charcoal p-6">
-					<h2 className="text-base font-[510] text-snow">Distribusi Paket</h2>
-					<p className="text-xs text-fog">Tier langganan pengguna</p>
+				{/* Card 2: Proyek Terbaru */}
+				<section className="flex flex-col justify-between rounded-xl border border-graphite bg-charcoal p-5 sm:p-6 shadow-[var(--shadow-inset)]">
+					<div>
+						<div className="mb-4 flex items-center justify-between">
+							<div>
+								<h2 className="text-base font-[510] text-snow">
+									Proyek Terbaru
+								</h2>
+								<p className="text-xs text-fog">
+									Aktivitas pembuatan proyek paling akhir
+								</p>
+							</div>
+							<Link
+								to="/admin"
+								className="text-xs font-medium text-fog hover:text-snow transition-colors"
+							>
+								Kelola Proyek
+							</Link>
+						</div>
 
-					<div className="mt-4 space-y-3">
-						{["free", "pro", "hengker"].map((tier) => {
-							const item = metrics.planDistribution.find(
-								(p) => p.plan === tier,
-							);
-							const count = item?.count ?? 0;
-							const total = metrics.usersCount || 1;
-							const pct = Math.round((count / total) * 100);
+						{!metrics.recentProjects || metrics.recentProjects.length === 0 ? (
+							<div className="py-12 text-center text-xs text-fog">
+								Belum ada proyek yang dibuat.
+							</div>
+						) : (
+							<div className="divide-y divide-graphite rounded-lg border border-graphite bg-obsidian">
+								{metrics.recentProjects.map((p) => (
+									<div
+										key={p.id}
+										className="flex items-center justify-between p-3.5 transition-colors hover:bg-white/[0.02]"
+									>
+										<div className="min-w-0 flex-1 pr-3">
+											<p className="truncate text-sm font-[510] text-snow">
+												{p.name}
+											</p>
+											<p className="mt-0.5 truncate text-xs text-fog">
+												{maskName(p.userName || p.userEmail)} ·{" "}
+												{formatShortDate(p.createdAt)}
+											</p>
+										</div>
 
-							return (
-								<div
-									key={tier}
-									className="rounded-lg border border-graphite bg-obsidian p-3"
-								>
-									<div className="flex items-center justify-between text-xs font-[510]">
-										<span className="capitalize text-snow">{tier}</span>
-										<span className="text-fog">
-											{count} user ({pct}%)
-										</span>
+										<div className="flex items-center gap-2.5 shrink-0">
+											{getStepBadge(p.step)}
+											<Link
+												to="/prd/$id"
+												params={{ id: p.id }}
+												className="rounded p-1 text-fog hover:bg-white/5 hover:text-snow transition-colors"
+												title="Buka proyek"
+											>
+												<ArrowUpRight size={16} />
+											</Link>
+										</div>
 									</div>
-									<div className="mt-2 h-1.5 w-full rounded-full bg-graphite overflow-hidden">
-										<div
-											className={`h-full rounded-full ${
-												tier === "hengker"
-													? "bg-amber-400"
-													: tier === "pro"
-														? "bg-indigo-400"
-														: "bg-fog"
-											}`}
-											style={{ width: `${pct}%` }}
-										/>
-									</div>
-								</div>
-							);
-						})}
+								))}
+							</div>
+						)}
 					</div>
 				</section>
 			</div>
-		</div>
-	);
-}
-
-function MetricCard({
-	label,
-	value,
-	subtext,
-	icon: Icon,
-}: {
-	label: string;
-	value: string | number;
-	subtext: string;
-	icon: React.ComponentType<{ size?: number; className?: string }>;
-}) {
-	return (
-		<div className="rounded-xl border border-graphite bg-charcoal p-5 shadow-[var(--shadow-inset)]">
-			<div className="flex items-center justify-between text-fog">
-				<span className="font-inter text-xs font-[510] text-mist">{label}</span>
-				<Icon size={16} className="text-fog" />
-			</div>
-			<p className="mt-3 font-inter text-2xl font-light text-snow">{value}</p>
-			<p className="mt-1 font-inter text-[11px] text-fog truncate">{subtext}</p>
 		</div>
 	);
 }
