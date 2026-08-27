@@ -11,6 +11,7 @@ import {
 import { useUIStore } from "@/store";
 
 export const Route = createFileRoute("/admin/users")({
+	staleTime: 30_000,
 	loader: async () => {
 		const rows = await listUsers({ data: { limit: 100 } });
 		return { rows };

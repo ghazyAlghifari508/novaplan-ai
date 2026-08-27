@@ -11,6 +11,7 @@ import { useState } from "react";
 import { listErrorReports, listFeedback } from "@/lib/services/admin-service";
 
 export const Route = createFileRoute("/admin/feedback")({
+	staleTime: 30_000,
 	loader: async () => {
 		const [feedback, errors] = await Promise.all([
 			listFeedback({ data: {} }),

@@ -22,7 +22,7 @@ import { Logo } from "@/components/ui/logo";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
-	href: "/admin" | "/admin/users" | "/admin/feedback" | "/settings";
+	href: string;
 	label: string;
 	icon: React.ComponentType<{ size?: number; className?: string }>;
 	isActive: (pathname: string) => boolean;
@@ -48,19 +48,19 @@ const NAV_ITEMS: NavItem[] = [
 		isActive: (p: string) => p.startsWith("/admin/feedback"),
 	},
 	{
-		href: "/admin",
+		href: "/admin/projects",
 		label: "Proyek",
 		icon: FolderGit2,
 		isActive: (p: string) => p.startsWith("/admin/projects"),
 	},
 	{
-		href: "/admin",
+		href: "/admin/transactions",
 		label: "Transaksi",
 		icon: CreditCard,
 		isActive: (p: string) => p.startsWith("/admin/transactions"),
 	},
 	{
-		href: "/settings",
+		href: "/settings/profile?from=admin",
 		label: "Pengaturan",
 		icon: Settings,
 		isActive: (p: string) =>
@@ -149,6 +149,7 @@ function AdminShellInner({ children }: { children: React.ReactNode }) {
 								<Link
 									key={item.label}
 									to={item.href}
+									preload="intent"
 									className={cn(
 										"flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-[510] transition-colors",
 										isActive

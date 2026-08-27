@@ -19,6 +19,7 @@ import {
 } from "@/lib/services/admin-service";
 
 export const Route = createFileRoute("/admin/")({
+	staleTime: 30_000,
 	loader: async (): Promise<AdminDashboardMetrics> => {
 		return await getAdminDashboardMetrics();
 	},

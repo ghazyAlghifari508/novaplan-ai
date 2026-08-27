@@ -22,6 +22,8 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AcIdRouteImport } from './routes/ac/$id'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminFeedbackRouteImport } from './routes/admin/feedback'
+import { Route as AdminProjectsRouteImport } from './routes/admin/projects'
+import { Route as AdminTransactionsRouteImport } from './routes/admin/transactions'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiFeedbackRouteImport } from './routes/api/feedback'
@@ -135,6 +137,16 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const AdminFeedbackRoute = AdminFeedbackRouteImport.update({
   id: '/feedback',
   path: '/feedback',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminProjectsRoute = AdminProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminTransactionsRoute = AdminTransactionsRouteImport.update({
+  id: '/transactions',
+  path: '/transactions',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
@@ -396,6 +408,8 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRouteWithChildren
   '/ac/$id': typeof AcIdRoute
   '/admin/feedback': typeof AdminFeedbackRoute
+  '/admin/projects': typeof AdminProjectsRoute
+  '/admin/transactions': typeof AdminTransactionsRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
   '/api/feedback': typeof ApiFeedbackRoute
@@ -458,6 +472,8 @@ export interface FileRoutesByTo {
   '/pricing': typeof PricingRoute
   '/ac/$id': typeof AcIdRoute
   '/admin/feedback': typeof AdminFeedbackRoute
+  '/admin/projects': typeof AdminProjectsRoute
+  '/admin/transactions': typeof AdminTransactionsRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
   '/api/feedback': typeof ApiFeedbackRoute
@@ -523,6 +539,8 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRouteWithChildren
   '/ac/$id': typeof AcIdRoute
   '/admin/feedback': typeof AdminFeedbackRoute
+  '/admin/projects': typeof AdminProjectsRoute
+  '/admin/transactions': typeof AdminTransactionsRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
   '/api/feedback': typeof ApiFeedbackRoute
@@ -589,6 +607,8 @@ export interface FileRouteTypes {
     | '/settings'
     | '/ac/$id'
     | '/admin/feedback'
+    | '/admin/projects'
+    | '/admin/transactions'
     | '/admin/users'
     | '/api/chat'
     | '/api/feedback'
@@ -651,6 +671,8 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/ac/$id'
     | '/admin/feedback'
+    | '/admin/projects'
+    | '/admin/transactions'
     | '/admin/users'
     | '/api/chat'
     | '/api/feedback'
@@ -715,6 +737,8 @@ export interface FileRouteTypes {
     | '/settings'
     | '/ac/$id'
     | '/admin/feedback'
+    | '/admin/projects'
+    | '/admin/transactions'
     | '/admin/users'
     | '/api/chat'
     | '/api/feedback'
@@ -906,6 +930,20 @@ declare module '@tanstack/react-router' {
       path: '/feedback'
       fullPath: '/admin/feedback'
       preLoaderRoute: typeof AdminFeedbackRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/projects': {
+      id: '/admin/projects'
+      path: '/projects'
+      fullPath: '/admin/projects'
+      preLoaderRoute: typeof AdminProjectsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/transactions': {
+      id: '/admin/transactions'
+      path: '/transactions'
+      fullPath: '/admin/transactions'
+      preLoaderRoute: typeof AdminTransactionsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/users': {
@@ -1256,12 +1294,16 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminFeedbackRoute: typeof AdminFeedbackRoute
+  AdminProjectsRoute: typeof AdminProjectsRoute
+  AdminTransactionsRoute: typeof AdminTransactionsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminFeedbackRoute: AdminFeedbackRoute,
+  AdminProjectsRoute: AdminProjectsRoute,
+  AdminTransactionsRoute: AdminTransactionsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
