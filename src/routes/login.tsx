@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { LoginForm } from "@/components/auth/login-form";
 
 export const Route = createFileRoute("/login")({
@@ -11,6 +11,17 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
+	useEffect(() => {
+		if (
+			typeof window !== "undefined" &&
+			window.location.hostname === "127.0.0.1"
+		) {
+			const url = new URL(window.location.href);
+			url.hostname = "localhost";
+			window.location.replace(url.toString());
+		}
+	}, []);
+
 	return (
 		<Suspense
 			fallback={

@@ -45,7 +45,7 @@ export const auth = betterAuth({
 		},
 		session: {
 			create: {
-				after: async (session: any) => {
+				after: async (session: { userId?: string; user?: { id?: string } }) => {
 					try {
 						const adminEmails = (process.env.ADMIN_EMAILS ?? "")
 							.split(",")
@@ -130,6 +130,12 @@ export const auth = betterAuth({
 		window: 60,
 		max: 100,
 	},
+	trustedOrigins: [
+		"http://localhost:3000",
+		"http://127.0.0.1:3000",
+		...(process.env.APP_URL ? [process.env.APP_URL] : []),
+		...(process.env.BETTER_AUTH_URL ? [process.env.BETTER_AUTH_URL] : []),
+	],
 	// tanstackStartCookies MUST be last plugin
 	plugins: [tanstackStartCookies()],
 });
